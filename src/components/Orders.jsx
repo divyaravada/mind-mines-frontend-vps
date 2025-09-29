@@ -4,23 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useGetOrdersQuery } from "../features/orders/ordersApi";
 import OrderDialog from "./OrderDialog";
 
-function formatMoney(v) {
-  if (v === null || v === undefined) return "0.00 €";
-  const n =
-    typeof v === "number"
-      ? v
-      : parseFloat(
-          v
-            .toString()
-            .replace(/[^\d.,-]/g, "")
-            .replace(",", ".")
-        );
-  const safe = Number.isFinite(n) ? n : 0;
-  return `${safe.toFixed(2)} €`;
-}
-
 export default function Orders() {
   const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
 
   const { data: orders = [], isFetching, error } = useGetOrdersQuery();
@@ -29,6 +15,35 @@ export default function Orders() {
   const [selectedId, setSelectedId] = useState(null);
 
   const loc = useLocation();
+
+  const fmtMoney = (v) => {
+    let n =
+      typeof v === "number"
+        ? v
+        : parseFloat(
+            String(v)
+              .replace(/[^\d.,-]/g, "")
+              .replace(",", ".")
+          );
+    if (!Number.isFinite(n)) n = 0;
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: "EUR",
+      }).format(n);
+    } catch {
+      return `${n.toFixed(2)} €`;
+    }
+  };
+
+  const fmtDateTime = (v) => {
+    try {
+      const d = new Date(v);
+      return d.toLocaleString(locale);
+    } catch {
+      return String(v);
+    }
+  };
 
   const statusClass = (s) =>
     s === "delivered"
@@ -55,46 +70,37 @@ export default function Orders() {
   if (error?.status === 401) {
     const next = encodeURIComponent(loc.pathname + loc.search);
     return (
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-light mb-3">
-          {t("auth.signInRequired", "Sign in required")}
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {t(
-            "auth.signInToViewOrders",
-            "Please sign in to view your orders and invoices."
-          )}
-        </p>
+      <div className="max-w-3xl mx-auto px-6 py-16 text-backnewswhite dark:text-backnewsdark">
+        <h2 className="text-3xl font-light mb-3">{t("auth.signInRequired")}</h2>
+        <p className="text-gray-600 mb-6">{t("auth.signInToViewOrders")}</p>
         <Link
           to={`/login?next=${next}`}
           className="inline-block bg-black text-white px-5 py-2 rounded"
         >
-          {t("auth.signIn", "Sign in")}
+          {t("auth.signIn")}
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-4xl font-light mb-8">
-          {t("order.yourOrders", "Your Orders")}
-        </h2>
+    <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
+      <div className="flex items-center justify-between mb-8 ">
+        <h2 className="text-4xl font-light mb-8">{t("order.yourOrders")}</h2>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">Back to Accounts</h6>
+          <h6 className="text-2xl font-light mb-8">{t("backtoAccount")}</h6>
         </Link>
         <span className="text-sm text-gray-500">
-          {t("order.count", "{{count}} orders", { count: orders.length })}
+          {t("order.count", { count: orders.length })}
         </span>
       </div>
 
       {isFetching ? (
-        <div className="text-gray-500">{t("common.loading", "Loading…")}</div>
+        <div className="text-gray-500">{t("common.loading")}</div>
       ) : orders.length === 0 ? (
-        <div className="text-gray-400">{t("order.none", "No orders yet.")}</div>
+        <div className="text-gray-400">{t("order.none")}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
           {orders.map((o) => (
             <button
               key={o.id}
@@ -102,13 +108,16 @@ export default function Orders() {
                 setSelectedId(o.id);
                 setOpen(true);
               }}
-              className="bg-white text-left p-4 rounded shadow hover:shadow-md transition"
+              className="bg-white text-left p-4 rounded shadow hover:shadow-md transition  dark:bg-marbleblack"
             >
               <div className="flex gap-3">
                 <img
                   src={coverFor(o)}
                   alt={productTitle(o.items?.[0]?.product)}
                   className="w-20 h-20 object-cover rounded"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                 />
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
@@ -125,11 +134,11 @@ export default function Orders() {
                   </div>
 
                   <div className="text-sm text-gray-500">
-                    {new Date(o.created_at).toLocaleString()}
+                    {fmtDateTime(o.created_at)}
                   </div>
 
                   <div className="text-sm">
-                    {t("order.total", "Total")}: {formatMoney(o.total_price)}
+                    {t("order.total")}: {fmtMoney(o.total_price)}
                   </div>
                 </div>
               </div>

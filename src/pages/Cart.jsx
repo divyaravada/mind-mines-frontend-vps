@@ -63,13 +63,13 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-5xl mx-auto py-12 px-4">
+      <div className="max-w-5xl mx-auto py-12 px-4  text-backnewswhite dark:text-backnewsdark">
         <h1 className="text-2xl font-bold mb-4">Cart (0 items)</h1>
-        <div className="bg-white rounded shadow p-8 text-center">
+        <div className="bg-white rounded shadow p-8 text-center dark:bg-marbleblack">
           <p className="mb-6 text-gray-600">Your cart is empty.</p>
           <Link
             to="/decorative-products"
-            className="inline-block px-5 py-3 rounded bg-marbleblack text-white"
+            className="inline-block px-5 py-3 rounded bg-marblewhite dark:text-backnewsdark text-white"
           >
             Continue shopping
           </Link>

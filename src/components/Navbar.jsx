@@ -191,7 +191,7 @@ export default function Navbar() {
               className="absolute inset-0 bg-black/40"
               onClick={() => dispatch(setMobileMenuOpen(false))}
             />
-            <div className="absolute right-0 top-0 h-full w-80 max-w-[90vw] bg-white dark:bg-gray-900 p-4 shadow-lg translate-x-0 transition-transform">
+            <div className="absolute right-0 top-0 h-full w-80 max-w-[90vw] bg-white text-backnewswhite dark:text-backnewsdark dark:bg-gray-900 p-4 shadow-lg translate-x-0 transition-transform">
               {/* header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="font-semibold text-lg">Menu</div>
@@ -332,7 +332,7 @@ export default function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden px-4 py-2"
+          className="md:hidden px-4 py-2  dark:text-backnewsdark"
           aria-label="Open Menu"
           onClick={() => dispatch(setMobileMenuOpen(true))}
         >

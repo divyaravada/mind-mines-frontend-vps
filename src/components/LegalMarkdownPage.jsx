@@ -1,18 +1,20 @@
 // src/components/LegalMarkdownPage.jsx
-import React from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default function LegalMarkdownPage({ ns }) {
-  const { t } = useTranslation(ns);
+  // Use default namespace, but prefix all keys with `ns` (privacy/imprint/terms)
+  const { t } = useTranslation(undefined, { keyPrefix: ns });
+
   const title = t("title");
   const updated = t("updated", { defaultValue: "" });
-  const sections = t("sections", { returnObjects: true }) || [];
+
+  // Ensure we always get an array, even if the key is missing
+  const sectionsRaw = t("sections", { returnObjects: true, defaultValue: [] });
+  const sections = Array.isArray(sectionsRaw) ? sectionsRaw : [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 prose prose-neutral lg:prose-lg dark:prose-invert">
+    <div className="max-w-4xl mx-auto px-4 py-10 prose prose-neutral lg:prose-lg dark:prose-invert  text-backnewswhite dark:text-backnewsdark">
       <h1 className="text-3xl font-bold mb-2">{title}</h1>
       {!!updated && <p className="text-sm text-gray-500 mb-6">{updated}</p>}
 

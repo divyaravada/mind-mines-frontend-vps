@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 import { useSendStoneEnquiryMutation } from "../features/stones/stonesApi";
 
 export default function StoneEnquiryForm({
@@ -7,6 +8,8 @@ export default function StoneEnquiryForm({
   presetStoneType,
   onSuccess,
 }) {
+  const { t } = useTranslation();
+
   const [stoneType, setStoneType] = useState(presetStoneType || "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState(""); // only for guests
@@ -30,7 +33,7 @@ export default function StoneEnquiryForm({
       setMessage("");
       if (!presetStoneType) setStoneType("");
       onSuccess?.();
-    } catch (err) {
+    } catch {
       // handled by isError + error display
     }
   };
@@ -54,19 +57,22 @@ export default function StoneEnquiryForm({
     <form onSubmit={submit} className="grid gap-3 max-w-md">
       {presetStoneType ? (
         <div className="text-sm">
-          <span className="font-medium">Stone type:</span>{" "}
+          <span className="font-medium">{t("enquiry.stoneType")}:</span>{" "}
           <span className="inline-block rounded bg-gray-200 px-2 py-0.5">
             {presetStoneType}
           </span>
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium">Stone type</label>
+          <label className="block text-sm font-medium" htmlFor="stoneType">
+            {t("enquiry.stoneType")}
+          </label>
           <input
+            id="stoneType"
             value={stoneType}
             onChange={(e) => setStoneType(e.target.value)}
             className="w-full border rounded px-3 py-2"
-            placeholder="e.g. marble"
+            placeholder={t("enquiry.placeholders.stoneType")}
             required
           />
           {showFieldError("stone_type")}
@@ -74,11 +80,15 @@ export default function StoneEnquiryForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium">Name</label>
+        <label className="block text-sm font-medium" htmlFor="name">
+          {t("enquiry.name")}
+        </label>
         <input
+          id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full border rounded px-3 py-2"
+          placeholder={t("enquiry.placeholders.name")}
           required
         />
         {showFieldError("name")}
@@ -86,12 +96,16 @@ export default function StoneEnquiryForm({
 
       {!isAuthenticated && (
         <div>
-          <label className="block text-sm font-medium">Email</label>
+          <label className="block text-sm font-medium" htmlFor="email">
+            {t("enquiry.email")}
+          </label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border rounded px-3 py-2"
+            placeholder={t("enquiry.placeholders.email")}
             required
           />
           {showFieldError("email")}
@@ -99,12 +113,16 @@ export default function StoneEnquiryForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium">Message</label>
+        <label className="block text-sm font-medium" htmlFor="message">
+          {t("enquiry.message")}
+        </label>
         <textarea
+          id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="w-full border rounded px-3 py-2"
           rows={4}
+          placeholder={t("enquiry.placeholders.message")}
           required
         />
         {showFieldError("message")}
@@ -118,19 +136,16 @@ export default function StoneEnquiryForm({
         type="submit"
         disabled={isLoading}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+        aria-busy={isLoading}
       >
-        {isLoading ? "Sending…" : "Send enquiry"}
+        {isLoading ? t("enquiry.sending") : t("enquiry.send")}
       </button>
 
       {isSuccess && (
-        <div className="text-green-700">
-          Thank you! We’ve received your enquiry.
-        </div>
+        <div className="text-green-700">{t("enquiry.success")}</div>
       )}
       {isError && !Object.keys(fieldErrors).length && (
-        <div className="text-red-600">
-          Something went wrong. Please try again.
-        </div>
+        <div className="text-red-600">{t("enquiry.genericError")}</div>
       )}
     </form>
   );

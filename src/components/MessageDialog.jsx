@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function MessageDialog({
   open,
@@ -7,7 +8,9 @@ export default function MessageDialog({
   kind = "success",
   onClose,
 }) {
+  const { t } = useTranslation();
   if (!open) return null;
+
   const tone = kind === "success" ? "border-green-200" : "border-red-200";
   const icon = kind === "success" ? "✅" : "⚠️";
 
@@ -31,7 +34,7 @@ export default function MessageDialog({
               onClick={onClose}
               className="px-4 py-2 rounded bg-black text-white"
             >
-              OK
+              {t("common.ok")}
             </button>
           </div>
         </div>

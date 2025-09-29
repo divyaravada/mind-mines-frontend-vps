@@ -24,7 +24,7 @@ export default function ContactSection() {
   };
 
   return (
-    <div className="w-full py-14 bg-gradient-to-b from-[#eaeaea] via-[#f8fcfe] to-[#f8fcfe] dark:from-gray-900 dark:via-marbleblack dark:to-marbleblack">
+    <div className="w-full py-14 bg-gradient-to-b from-[#eaeaea] via-[#f8fcfe] to-[#f8fcfe] dark:from-gray-900 dark:via-marbleblack dark:to-marbleblack text-backnewswhite dark:text-backnewsdark">
       <div className="max-w-3xl mx-auto px-6">
         <h2 className="text-3xl font-serif font-bold mb-2 text-marbleblack dark:text-white">
           {t("about.contactHeading")}
@@ -84,7 +84,7 @@ export default function ContactSection() {
             <button
               type="submit"
               disabled={isLoading}
-              className="px-8 py-2 rounded bg-marbleblack text-white hover:bg-black/90 font-semibold transition"
+              className="px-8 py-2 rounded bg-marbleblack dark:bg-marblewhite dark:text-backnewsdark text-white hover:bg-black/90 font-semibold transition dark:backnewsdark dark:focus:ring-white"
             >
               {isLoading ? t("about.sending") : t("about.send")}
             </button>

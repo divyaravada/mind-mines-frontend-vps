@@ -7,6 +7,7 @@ import {
   useDeleteAddressMutation,
   useMakeDefaultAddressMutation,
 } from "../features/addresses/addressApi";
+import { useTranslation } from "react-i18next";
 
 const initial = {
   first_name: "",
@@ -21,6 +22,9 @@ const initial = {
 };
 
 export default function AccountAddresses() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
+
   const { data: list = [], isFetching } = useGetAddressesQuery();
   const [createAddress, { isLoading: creating }] = useCreateAddressMutation();
   const [updateAddress, { isLoading: updating }] = useUpdateAddressMutation();
@@ -54,14 +58,14 @@ export default function AccountAddresses() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-light mb-8">Shipping Addresses</h1>
+        <h1 className="text-4xl font-light mb-8">{t("addresses.title")} </h1>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">Back to Accounts</h6>
+          <h6 className="text-2xl font-light mb-8">{t("backtoAccount")} </h6>
         </Link>
         <span className="text-sm text-gray-500">
-          Manage your shipping addresses
+          {t(useGetAddressesQuery.subtitle)}
         </span>
       </div>
 
@@ -70,77 +74,79 @@ export default function AccountAddresses() {
         <div className="p-6 border rounded">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-light">
-              {editingId ? "Edit address" : "New address"}
+              {editingId
+                ? t("addresses.editAddress")
+                : t("addresses.newAddress")}
             </h2>
             <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-              MAIN ADDRESS
+              {t("addresses.mainBadge")}
             </span>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <input
-              placeholder="First name"
+              placeholder={t("addresses.firstName")}
               value={form.first_name}
               onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             />
             <input
-              placeholder="Last name"
+              placeholder={t("addresses.lastName")}
               value={form.last_name}
               onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             />
             <input
-              placeholder="street Name and number"
+              placeholder={t("addresses.street")}
               value={form.address_line1}
               onChange={(e) =>
                 setForm({ ...form, address_line1: e.target.value })
               }
-              className="border px-3 py-2 rounded md:col-span-2"
+              className="border px-3 py-2 rounded md:col-span-2 dark:bg-marbleblack"
             />
             <input
-              placeholder="Address landmark (optional)"
+              placeholder={t("addresses.address2")}
               value={form.address_line2}
               onChange={(e) =>
                 setForm({ ...form, address_line2: e.target.value })
               }
-              className="border px-3 py-2 rounded md:col-span-2"
+              className="border px-3 py-2 rounded md:col-span-2 dark:bg-marbleblack"
             />
             <input
-              placeholder="Postal code"
+              placeholder={t("addresses.postalCode")}
               value={form.postal_code}
               onChange={(e) =>
                 setForm({ ...form, postal_code: e.target.value })
               }
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             />
             <input
-              placeholder="City"
+              placeholder={t("addresses.city")}
               value={form.city}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             />
             <select
               value={form.country}
               onChange={(e) => setForm({ ...form, country: e.target.value })}
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             >
-              <option>Germany</option>
-              <option>Austria</option>
-              <option>Switzerland</option>
-              <option>France</option>
-              <option>Italy</option>
-              <option>Netherlands</option>
+              <option value="Germany">{t("countries.germany")}</option>
+              <option value="Austria">{t("countries.austria")}</option>
+              <option value="Switzerland">{t("countries.switzerland")}</option>
+              <option value="France">{t("countries.france")}</option>
+              <option value="Italy">{t("countries.italy")}</option>
+              <option value="Netherlands">{t("countries.netherlands")}</option>
             </select>
             <input
-              placeholder="Telephone"
+              placeholder={t("addresses.phone")}
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="border px-3 py-2 rounded"
+              className="border px-3 py-2 rounded dark:bg-marbleblack"
             />
           </div>
 
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-4 dark:bg-marbleblack">
             <input
               id="is_default"
               type="checkbox"
@@ -150,20 +156,20 @@ export default function AccountAddresses() {
               }
             />
             <label htmlFor="is_default" className="text-sm">
-              Set as main address
+              {t("addresses.setAsMain")}
             </label>
           </div>
 
           <button
             onClick={save}
             disabled={creating || updating}
-            className="mt-6 bg-black text-white px-5 py-2 rounded disabled:opacity-60"
+            className="mt-6 bg-black text-white px-5 py-2 rounded disabled:opacity-60 dark:bg-gray-800  text-backnewswhite dark:text-backnewsdark "
           >
             {creating || updating
-              ? "Saving…"
+              ? t("addresses.saving")
               : editingId
-              ? "Save changes"
-              : "Add a new address"}
+              ? t("addresses.saveChanges")
+              : t("addresses.addNew")}
           </button>
         </div>
 
@@ -179,7 +185,7 @@ export default function AccountAddresses() {
                   {a.first_name} {a.last_name}{" "}
                   {a.is_default ? (
                     <span className="ml-2 text-xs bg-gray-200 px-2 py-1 rounded">
-                      MAIN
+                      {t("addresses.mainTag")}
                     </span>
                   ) : null}
                 </div>
@@ -201,23 +207,23 @@ export default function AccountAddresses() {
                     className="underline"
                     onClick={() => makeDefault(a.id).unwrap()}
                   >
-                    Make main
+                    {t("addresses.makeMain")}
                   </button>
                 )}
                 <button className="underline" onClick={() => edit(a)}>
-                  Edit
+                  {t("addresses.edit")}
                 </button>
                 <button
                   className="underline text-red-600"
                   onClick={() => del(a.id)}
                 >
-                  Delete
+                  {t("addresses.delete")}
                 </button>
               </div>
             </div>
           ))}
           {!list.length && (
-            <div className="text-gray-500">No addresses yet.</div>
+            <div className="text-gray-500"> {t("addresses.none")}.</div>
           )}
         </div>
       </div>

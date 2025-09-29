@@ -5,9 +5,8 @@ import http from "../services/http"; // <-- change to `../services/api` if that'
 import MessageDialog from "./MessageDialog";
 import { toAbsoluteUrl } from "../utils/urls";
 
-function formatMoney(v) {
-  if (v === null || v === undefined) return "0.00 €";
-  const n =
+function formatMoney(v, locale = "en") {
+  let n =
     typeof v === "number"
       ? v
       : parseFloat(
@@ -15,8 +14,15 @@ function formatMoney(v) {
             .replace(/[^\d.,-]/g, "")
             .replace(",", ".")
         );
-  const safe = Number.isFinite(n) ? n : 0;
-  return `${safe.toFixed(2)} €`;
+  if (!Number.isFinite(n)) n = 0;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+    }).format(n);
+  } catch {
+    return `${n.toFixed(2)} €`;
+  }
 }
 
 function parseDateLoose(v) {
@@ -50,6 +56,7 @@ function parseDateLoose(v) {
 
 export default function OrderDialog({ orderId, open, onClose }) {
   const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
 
   const [loading, setLoading] = useState(false);
@@ -59,11 +66,18 @@ export default function OrderDialog({ orderId, open, onClose }) {
   // Cancel modal
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelMsg, setCancelMsg] = useState("");
+  const cancelMsgTrimmed = cancelMsg.trim();
 
   // Return modal
   const [retOpen, setRetOpen] = useState(false);
   const [retMsg, setRetMsg] = useState("");
+  const retMsgTrimmed = retMsg.trim();
   const [retFiles, setRetFiles] = useState([]);
+  const [retFilesError, setRetFilesError] = useState("");
+
+  // limit uploads to 10 MB total
+  const MAX_UPLOAD_MB = 10;
+  const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
   // Toast/message dialog
   const [msgOpen, setMsgOpen] = useState(false);
@@ -91,7 +105,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
         if (!cancelled) setOrder(res.data);
       } catch (err) {
         if (!cancelled) {
-          setError(t("order.loadError", "Failed to load order details."));
+          setError(t("order.loadError"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -109,7 +123,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
     (lang === "de" ? p?.title_de : p?.title_en) ||
     p?.title_en ||
     p?.title_de ||
-    t("order.item", "Item");
+    t("order.item");
 
   const totalQty =
     order?.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) ?? 0;
@@ -135,7 +149,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   // Return visible on delivered; disabled after 15 days
   const showReturnBtn = !!order && isDelivered;
-  const RETURN_WINDOW_DAYS = 1;
+  const RETURN_WINDOW_DAYS = 5;
   const returnDisabled =
     typeof ageDays === "number" ? ageDays > RETURN_WINDOW_DAYS : true;
   const daysLeft =
@@ -151,55 +165,101 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   async function submitCancel() {
     if (!order) return;
+    if (!cancelMsgTrimmed) {
+      showMessage(
+        t("order.cancelReasonRequiredTitle"),
+        t("order.cancelReasonRequired"),
+        "error"
+      );
+      return;
+    }
     try {
       await http.post(`orders/${order.id}/request-cancel/`, {
-        message: cancelMsg,
+        message: cancelMsgTrimmed,
       });
       showMessage(
-        t("order.cancelRequestedTitle", "Cancellation requested"),
-        t(
-          "order.cancelRequested",
-          "We received your cancellation request. We’ll email you shortly."
-        ),
+        t("order.cancelRequestedTitle"),
+        t("order.cancelRequested"),
         "success"
       );
       setCancelOpen(false);
       setCancelMsg("");
     } catch (e) {
       showMessage(
-        t("order.cancelFailedTitle", "Cancellation failed"),
-        e?.response?.data?.detail ||
-          t("order.cancelFailed", "Failed to request cancellation."),
+        t("order.cancelFailedTitle"),
+        e?.response?.data?.detail || t("order.cancelFailed"),
         "error"
       );
     }
   }
 
+  // ---------- Return validation helpers ----------
+  const totalBytes = (files) =>
+    files.reduce((sum, f) => sum + (f?.size || 0), 0);
+  const hasFiles = retFiles.length > 0;
+  const filesSizeOk = totalBytes(retFiles) <= MAX_UPLOAD_BYTES;
+  const hasReason = !!retMsgTrimmed;
+  const canSubmitReturn = hasReason && hasFiles && filesSizeOk;
+
+  const onChangeFiles = (e) => {
+    const files = Array.from(e.target.files || []);
+    const size = totalBytes(files);
+    if (size > MAX_UPLOAD_BYTES) {
+      setRetFilesError(t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB }));
+      setRetFiles(files); // keep selection but block submit; remove if you prefer: setRetFiles([])
+    } else {
+      setRetFilesError("");
+      setRetFiles(files);
+    }
+  };
   async function submitReturn() {
     if (!order) return;
+
+    if (!hasReason) {
+      showMessage(
+        t("order.returnReasonRequiredTitle"),
+        t("order.returnReasonRequired"),
+        "error"
+      );
+      return;
+    }
+    if (!hasFiles) {
+      showMessage(
+        t("order.returnFileRequiredTitle"),
+        t("order.returnFileRequired"),
+        "error"
+      );
+      return;
+    }
+    if (!filesSizeOk) {
+      showMessage(
+        t("order.returnFailedTitle"),
+        t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB }),
+        "error"
+      );
+      return;
+    }
+
     const fd = new FormData();
-    fd.append("message", retMsg);
+    fd.append("message", retMsgTrimmed);
     retFiles.forEach((f) => fd.append("files", f));
     try {
       await http.post(`orders/${order.id}/request-return/`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       showMessage(
-        t("order.returnRequestedTitle", "Return requested"),
-        t(
-          "order.returnRequested",
-          "We received your return request. We’ll email you shortly."
-        ),
+        t("order.returnRequestedTitle"),
+        t("order.returnRequested"),
         "success"
       );
       setRetOpen(false);
       setRetMsg("");
       setRetFiles([]);
+      setRetFilesError("");
     } catch (e) {
       showMessage(
-        t("order.returnFailedTitle", "Return failed"),
-        e?.response?.data?.detail ||
-          t("order.returnFailed", "Failed to request a return."),
+        t("order.returnFailedTitle"),
+        e?.response?.data?.detail || t("order.returnFailed"),
         "error"
       );
     }
@@ -221,7 +281,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center "
       aria-modal="true"
       role="dialog"
     >
@@ -230,22 +290,23 @@ export default function OrderDialog({ orderId, open, onClose }) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
+      <div className="relative  bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-4 text-backnewswhite dark:text-backnewsdark">
           <div>
-            <h3 className="text-xl font-semibold">
-              {t("order.details", "Order Details")}
-            </h3>
+            <h3 className="text-xl font-semibold">{t("order.details")}</h3>
             {order && (
               <p className="text-sm text-gray-500">
-                {t("order.orderHash", "Order")} #{order.number || order.id} •{" "}
-                {new Date(order.created_at).toLocaleString()}
+                {t("order.orderHash")} #{order.number || order.id} •{" "}
+                {new Date(order.created_at).toLocaleString(locale)}
                 {isDelivered && deliveredAt ? (
                   <span className="ml-2 text-xs text-gray-500">
-                    ({t("order.delivered", "Delivered")}:{" "}
-                    {deliveredAt.toLocaleDateString()}
-                    {typeof ageDays === "number" ? ` • ${ageDays}d ago` : ""})
+                    ({t("order.delivered")}:{" "}
+                    {deliveredAt.toLocaleDateString(locale)}
+                    {typeof ageDays === "number"
+                      ? ` • ${t("order.daysAgo", { count: ageDays })}`
+                      : ""}
+                    )
                   </span>
                 ) : null}
               </p>
@@ -254,18 +315,18 @@ export default function OrderDialog({ orderId, open, onClose }) {
           <button
             onClick={onClose}
             className="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-            aria-label={t("common.close", "Close")}
+            aria-label={t("common.close")}
           >
             ✕
           </button>
         </div>
 
         {/* Body */}
-        {loading && <div>{t("common.loading", "Loading…")}</div>}
+        {loading && <div>{t("common.loading")}</div>}
         {error && <div className="text-red-600">{error}</div>}
 
         {order && (
-          <div className="space-y-6">
+          <div className="space-y-6 text-backnewswhite dark:text-backnewsdark">
             {/* Status & total */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -278,23 +339,21 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </span>
                 {order.tracking_number ? (
                   <span className="text-xs text-gray-500">
-                    {t("order.tracking", "Tracking")}:{" "}
+                    {t("order.tracking")}:{" "}
                     <span className="font-mono">{order.tracking_number}</span>
                   </span>
                 ) : null}
               </div>
               <div className="text-right">
-                <div className="text-xs text-gray-500">
-                  {t("order.total", "Total")}
-                </div>
+                <div className="text-xs text-gray-500">{t("order.total")}</div>
                 <div className="text-lg font-semibold">
-                  {formatMoney(order.total_price)}
+                  {formatMoney(order.total_price, locale)}
                 </div>
               </div>
             </div>
 
             {/* Items */}
-            <div className="space-y-3 max-h-[50vh] overflow-auto pr-1">
+            <div className="space-y-3 max-h-[50vh] overflow-auto pr-1  ">
               {order.items.map((it) => (
                 <div key={it.id} className="flex gap-4 items-center">
                   <img
@@ -307,8 +366,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
                       {productTitle(it.product)}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {t("order.qty", "Qty")}: {it.quantity} •{" "}
-                      {t("order.unit", "Unit")}: {formatMoney(it.unit_price)}
+                      {t("order.qty")}: {it.quantity} • {t("order.unit")}:{" "}
+                      {formatMoney(it.unit_price, locale)}
                     </div>
                   </div>
                 </div>
@@ -317,28 +376,24 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
             {/* Summary */}
             <div className="mt-2 border-t pt-3 grid grid-cols-2 gap-y-1 text-sm">
-              <div className="text-gray-500">{t("order.items", "Items")}</div>
+              <div className="text-gray-500">{t("order.items")}</div>
               <div className="text-right">{totalQty}</div>
-              <div className="text-gray-500">
-                {t("order.subtotal", "Subtotal")}
-              </div>
+              <div className="text-gray-500">{t("order.subtotal")}</div>
               <div className="text-right">{formatMoney(order.subtotal)}</div>
-              <div className="text-gray-500">
-                {t("order.shipping", "Shipping")}
-              </div>
+              <div className="text-gray-500">{t("order.shipping")}</div>
               <div className="text-right">
-                {formatMoney(order.shipping_fee)}
+                {formatMoney(order.shipping_fee, locale)}
               </div>
               <div className="font-medium">{t("order.total", "Total")}</div>
               <div className="text-right font-semibold">
-                {formatMoney(order.total_price)}
+                {formatMoney(order.total_price, locale)}
               </div>
             </div>
 
             {/* Shipping address */}
             <div>
               <div className="text-sm font-semibold mb-1">
-                {t("order.shippingAddress", "Shipping address")}
+                {t("order.shippingAddress")}
               </div>
               {order.shipping_address ? (
                 <div className="text-sm">
@@ -366,13 +421,13 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">
-                  {t("order.noAddress", "No address on file")}
+                  {t("order.noAddress")}
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 flex-wrap">
+            <div className="flex items-center justify-end gap-2 flex-wrap text-backnewswhite dark:text-backnewsdark">
               {/* Return */}
               {showReturnBtn && (
                 <button
@@ -383,15 +438,11 @@ export default function OrderDialog({ orderId, open, onClose }) {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-gray-50"
                   }`}
-                  title={
-                    returnDisabled
-                      ? t("order.returnExpired", "Return window expired")
-                      : ""
-                  }
+                  title={returnDisabled ? t("order.returnExpired") : ""}
                 >
                   {t("order.return", "Return")}
                   {!returnDisabled && typeof daysLeft === "number"
-                    ? ` (${daysLeft}d left)`
+                    ? `  (${t("order.daysLeft", { count: daysLeft })})`
                     : ""}
                 </button>
               )}
@@ -402,7 +453,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   onClick={() => setCancelOpen(true)}
                   className="px-4 py-2 rounded border hover:bg-gray-50"
                 >
-                  {t("order.cancel", "Cancel")}
+                  {t("order.cancel")}
                 </button>
               )}
 
@@ -412,9 +463,9 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   href={toAbsoluteUrl(order.invoice_pdf)}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 rounded bg-black text-white"
+                  className="px-4 py-2 rounded bg-black text-white text-backnewswhite dark:text-backnewsdark"
                 >
-                  {t("order.downloadInvoice", "Download invoice")}
+                  {t("order.downloadInvoice")}
                 </a>
               )}
 
@@ -422,17 +473,14 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 onClick={onClose}
                 className="px-4 py-2 rounded border hover:bg-gray-50"
               >
-                {t("common.close", "Close")}
+                {t("common.close")}
               </button>
             </div>
 
             {/* Hint if invoice not ready */}
             {isPaidOrLater && !showInvoice && (
-              <div className="text-xs text-gray-500">
-                {t(
-                  "order.invoicePending",
-                  "Your invoice will be available shortly and sent by email."
-                )}
+              <div className="text-xs text-backnewswhite dark:text-backnewsdark">
+                {t("order.invoicePending")}
               </div>
             )}
           </div>
@@ -440,34 +488,46 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
         {/* Cancel modal */}
         {cancelOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
             <div className="bg-white rounded shadow p-5 w-full max-w-md">
               <h3 className="text-lg font-semibold mb-2">
-                {t("order.cancelOrder", "Cancel order")}
+                {t("order.cancelOrder")}
               </h3>
               <p className="text-sm text-gray-600 mb-2">
-                {t(
-                  "order.cancelExplain",
-                  "Tell us why you want to cancel (optional)."
-                )}
+                {t("order.cancelExplainRequired")}
               </p>
               <textarea
                 value={cancelMsg}
                 onChange={(e) => setCancelMsg(e.target.value)}
                 className="w-full border rounded p-2 h-28"
+                placeholder={t("order.cancelReasonPlaceholder")}
+                aria-invalid={!cancelMsgTrimmed}
               />
+              {/* Optional live hint */}
+              {!cancelMsgTrimmed && (
+                <div className="mt-1 text-xs text-red-600">
+                  {t("order.cancelReasonInline")}
+                </div>
+              )}
               <div className="mt-3 flex justify-end gap-2">
                 <button
                   onClick={() => setCancelOpen(false)}
                   className="px-3 py-2 border rounded"
                 >
-                  {t("common.close", "Close")}
+                  {t("common.close")}
                 </button>
+                {/* Disable submit until there is input */}
                 <button
                   onClick={submitCancel}
-                  className="px-3 py-2 bg-black text-white rounded"
+                  disabled={!cancelMsgTrimmed}
+                  className={`px-3 py-2 rounded text-white ${
+                    cancelMsgTrimmed
+                      ? "bg-black"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  aria-disabled={!cancelMsgTrimmed}
                 >
-                  {t("order.submit", "Submit")}
+                  {t("order.submit")}
                 </button>
               </div>
             </div>
@@ -476,41 +536,77 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
         {/* Return modal */}
         {retOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
             <div className="bg-white rounded shadow p-5 w-full max-w-md">
               <h3 className="text-lg font-semibold mb-2">
-                {t("order.returnOrder", "Return order")}
+                {t("order.returnOrder")}
               </h3>
               <p className="text-sm text-gray-600 mb-2">
-                {t(
-                  "order.returnExplain",
-                  "Describe the reason and attach photos/videos (optional). upto max 10MB"
-                )}
+                {t("order.returnExplainRequired", { max: MAX_UPLOAD_MB })}
               </p>
+              <label
+                className="block text-sm font-medium mb-1"
+                htmlFor="retMessage"
+              >
+                {t("order.returnReasonLabel")}
+              </label>
               <textarea
+                id="retMessage"
                 value={retMsg}
                 onChange={(e) => setRetMsg(e.target.value)}
                 className="w-full border rounded p-2 h-28"
+                placeholder={t("order.returnReasonPlaceholder")}
+                aria-invalid={!hasReason}
               />
+              {!hasReason && (
+                <div className="mt-1 text-xs text-red-600">
+                  {t("order.returnReasonInline")}
+                </div>
+              )}
+
+              <label
+                className="block text-sm font-medium mt-3 mb-1"
+                htmlFor="retFiles"
+              >
+                {t("order.returnFilesLabel")}
+              </label>
               <input
+                id="retFiles"
                 type="file"
                 multiple
                 accept="image/*,video/*"
-                onChange={(e) => setRetFiles(Array.from(e.target.files || []))}
-                className="mt-2"
+                onChange={onChangeFiles}
+                className="mt-1"
+                aria-invalid={!hasFiles || !filesSizeOk}
               />
+              {(!hasFiles || retFilesError) && (
+                <div className="mt-1 text-xs text-red-600">
+                  {retFilesError || t("order.returnFileInline")}
+                </div>
+              )}
+              {!retFilesError && hasFiles && !filesSizeOk && (
+                <div className="mt-1 text-xs text-red-600">
+                  {t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB })}
+                </div>
+              )}
               <div className="mt-3 flex justify-end gap-2">
                 <button
                   onClick={() => setRetOpen(false)}
                   className="px-3 py-2 border rounded"
                 >
-                  {t("common.close", "Close")}
+                  {t("common.close")}
                 </button>
                 <button
                   onClick={submitReturn}
-                  className="px-3 py-2 bg-black text-white rounded"
+                  disabled={!canSubmitReturn}
+                  className={`px-3 py-2 rounded text-white ${
+                    canSubmitReturn
+                      ? "bg-black"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  aria-disabled={!canSubmitReturn}
                 >
-                  {t("order.submit", "Submit")}
+                  {t("order.submit")}
                 </button>
               </div>
             </div>

@@ -101,9 +101,20 @@
       "germany": "Ansässig in Deutschland",
       "stones": "Aus hochwertigen Steinen",
       "return": "14 Tage Rückgaberecht"
+    },
+    "categories": {
+      "home_decor": "Wohndekor",
+      "storage": "Aufbewahrung",
+      "kitchen": "Küche",
+      "office": "Büro",
+      "bathroom": "Badezimmer",
+      "sculptures_customization": "Skulpturen & Personalisierung"
     }
   },
   "auth": {
+    "signInRequired": "Anmeldung erforderlich",
+    "signInToViewOrders": "Bitte melden Sie sich an, um Ihre Bestellungen und Rechnungen zu sehen.",
+    "signIn": "Anmelden",
     "customerTab": "Kunde",
     "adminTab": "Admin",
     "loginTitle": "Ich bin bereits Kunde",
@@ -257,7 +268,11 @@
     "sections": [
       {
         "heading": "Unternehmen",
-        "body": ["MindMines GmbH", "Geschäftsführer: ...", "USt-IdNr.: DE..."]
+        "body": [
+          "MindMines GmbH",
+          "Geschäftsführer: Feldstraße 11, 21640 Horneburg",
+          "USt-IdNr.: DE..."
+        ]
       },
       {
         "heading": "Kontakt",
@@ -277,6 +292,107 @@
         "body": ["Standardlieferung 6–11 Werktage innerhalb der EU."]
       }
     ]
+  },
+  "backtoAccount": "Zurück zum Konto",
+  "orderNumber": "Bestellungen",
+  "order": {
+    "yourOrders": "Meine Bestellungen",
+    "count": "{{count}} Bestellung",
+    "count_plural": "{{count}} Bestellungen",
+    "details": "Bestelldetails",
+    "orderHash": "Bestellung",
+    "delivered": "Zugestellt",
+    "loadError": "Bestelldaten konnten nicht geladen werden.",
+    "item": "Artikel",
+    "tracking": "Sendung",
+    "total": "Gesamt",
+    "qty": "Menge",
+    "unit": "Einheit",
+    "items": "Artikel",
+    "subtotal": "Zwischensumme",
+    "shipping": "Versand",
+    "shippingAddress": "Lieferadresse",
+    "phone": "Telefon",
+    "noAddress": "Keine Adresse hinterlegt",
+    "return": "Rückgabe",
+    "returnExpired": "Rückgabefrist abgelaufen",
+    "cancel": "Stornieren",
+    "downloadInvoice": "Rechnung herunterladen",
+    "invoicePending": "Ihre Rechnung wird in Kürze bereitgestellt und per E-Mail gesendet.",
+    "cancelOrder": "Bestellung stornieren",
+    "cancelExplainRequired": "Bitte teilen Sie uns mit, warum Sie stornieren möchten (Pflichtfeld).",
+    "cancelReasonPlaceholder": "Bitte Grund hier eingeben…",
+    "cancelReasonInline": "Für die Stornierung ist ein Grund erforderlich.",
+    "submit": "Senden",
+    "returnOrder": "Bestellung zurückgeben",
+    "returnExplain": "Beschreiben Sie den Grund und fügen Sie Fotos/Videos bei (optional). Bis zu 10 MB gesamt.",
+    "returnRequestedTitle": "Rückgabe angefordert",
+    "returnRequested": "Wir haben Ihre Rückgabeanfrage erhalten. Sie erhalten in Kürze eine E-Mail.",
+    "returnFailedTitle": "Rückgabe fehlgeschlagen",
+    "returnFailed": "Die Rückgabeanfrage konnte nicht gesendet werden.",
+    "returnExplainRequired": "Beschreiben Sie den Grund und fügen Sie mindestens ein Foto oder Video hinzu (Pflicht). Insgesamt bis zu {{max}} MB.",
+    "returnReasonLabel": "Grund",
+    "returnReasonPlaceholder": "Erläutern Sie, was nicht in Ordnung ist oder warum Sie zurückgeben möchten…",
+    "returnReasonInline": "Ein Grund ist erforderlich.",
+    "returnReasonRequiredTitle": "Grund erforderlich",
+    "returnReasonRequired": "Bitte geben Sie den Grund für die Rückgabe an.",
+    "returnFilesLabel": "Fotos/Videos",
+    "returnFileInline": "Bitte fügen Sie mindestens eine Datei (Bild oder Video) hinzu.",
+    "returnFileRequiredTitle": "Anhang erforderlich",
+    "returnFileRequired": "Bitte fügen Sie mindestens ein Foto oder Video hinzu.",
+    "returnFilesTooLarge": "Die Dateien überschreiten insgesamt {{max}} MB. Bitte entfernen oder komprimieren Sie einige.",
+    "cancelReasonRequiredTitle": "Grund erforderlich",
+    "cancelReasonRequired": "Bitte geben Sie den Grund an, warum Sie die Bestellung stornieren möchten.",
+    "cancelRequestedTitle": "Stornierung angefordert",
+    "cancelRequested": "Wir haben Ihre Stornierungsanfrage erhalten. Sie erhalten in Kürze eine E-Mail.",
+    "cancelFailedTitle": "Stornierung fehlgeschlagen",
+    "cancelFailed": "Die Stornierungsanfrage konnte nicht gesendet werden.",
+    "daysAgo": "vor {{count}} Tag",
+    "daysAgo_plural": "vor {{count}} Tagen",
+    "daysLeft": "{{count}} Tag verbleibend",
+    "daysLeft_plural": "{{count}} Tage verbleibend",
+    "status": {
+      "pending": "Ausstehend",
+      "processing": "In Bearbeitung",
+      "paid": "Bezahlt",
+      "shipped": "Versandt",
+      "delivered": "Zugestellt",
+      "cancelled": "Storniert",
+      "failed": "Fehlgeschlagen"
+    }
+  },
+  "common": {
+    "loading": "Wird geladen…",
+    "ok": "OK",
+    "close": "Schließen"
+  },
+  "stones": {
+    "types": {
+      "marble": "Marmor",
+      "granite": "Granit",
+      "limestone": "Kalkstein",
+      "sandstone": "Sandstein",
+      "slate": "Schiefer",
+      "quartzite": "Quarzit",
+      "travertine": "Travertin",
+      "soapstone": "Speckstein"
+    }
+  },
+  "enquiry": {
+    "stoneType": "Steinart",
+    "name": "Name",
+    "email": "E-Mail",
+    "message": "Nachricht",
+    "send": "Anfrage senden",
+    "sending": "Senden…",
+    "success": "Vielen Dank! Wir haben Ihre Anfrage erhalten.",
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "placeholders": {
+      "stoneType": "z. B. Marmor",
+      "name": "Ihr vollständiger Name",
+      "email": "sie@beispiel.de",
+      "message": "Beschreiben Sie Ihren Bedarf (Maße, Oberfläche, Menge, Lieferort)…"
+    }
   },
   "cookies": {
     "bannerTitle": "Ihre Privatsphäre ist uns wichtig",
@@ -306,6 +422,93 @@
     "wishdet": "Hier können Sie Ihre Lieblingsprodukte ansehen und bearbeiten.",
     "review": "Ihre Bewertungen",
     "reviewde": "Hier können Sie Ihre erstellten Bewertungen einsehen und bearbeiten."
+  },
+  "addresses": {
+    "title": "Lieferadressen",
+    "subtitle": "Verwalten Sie Ihre Lieferadressen",
+    "newAddress": "Neue Adresse",
+    "editAddress": "Adresse bearbeiten",
+    "mainBadge": "HAUPTADRESSE",
+    "mainTag": "HAUPT",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "street": "Straße und Hausnummer",
+    "address2": "Adresszusatz (optional)",
+    "postalCode": "Postleitzahl",
+    "city": "Stadt",
+    "country": "Land",
+    "phone": "Telefon",
+    "setAsMain": "Als Hauptadresse festlegen",
+    "saving": "Wird gespeichert…",
+    "saveChanges": "Änderungen speichern",
+    "addNew": "Neue Adresse hinzufügen",
+    "makeMain": "Als Haupt festlegen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "none": "Noch keine Adressen."
+  },
+  "countries": {
+    "germany": "Deutschland",
+    "austria": "Österreich",
+    "switzerland": "Schweiz",
+    "france": "Frankreich",
+    "italy": "Italien",
+    "netherlands": "Niederlande"
+  },
+  "wishlist": {
+    "title": "Ihre Wunschliste",
+    "emptyTitle": "Oh nein! Ihre Wunschliste ist noch leer.",
+    "emptySubtitle": "Fügen Sie Produkte über die Produktseiten zur Wunschliste hinzu.",
+    "startShopping": "Jetzt shoppen",
+    "count": "{{count}} Artikel",
+    "count_plural": "{{count}} Artikel",
+    "remove": "Entfernen",
+    "removeAria": "Von der Wunschliste entfernen",
+    "removedToast": "Von der Wunschliste entfernt",
+    "price": "Preis"
+  },
+  "reviews": {
+    "title": "Ihre Bewertungen",
+    "count": "{{count}} Bewertung",
+    "count_plural": "{{count}} Bewertungen",
+    "signInRequired": "Bitte melden Sie sich an, um Ihre Bewertungen zu sehen.",
+    "loadError": "Bewertungen konnten nicht geladen werden.",
+    "empty": "Sie haben noch keine Bewertungen geschrieben.",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "cancel": "Abbrechen",
+    "rating": "Bewertung",
+    "ratingAria": "Bewertung",
+    "messageLabel": "Nachricht",
+    "messagePlaceholder": "Teilen Sie Ihre Erfahrungen…",
+    "addImage": "Bild hinzufügen",
+    "removeCurrentImage": "Aktuelles Bild entfernen"
+  },
+  "profile": {
+    "title": "Ihr Profil",
+    "username": "Benutzername",
+    "fullName": "Vollständiger Name",
+    "avatar": "Profilbild",
+    "verified": "Verifiziert",
+    "yes": "Ja",
+    "no": "Nein",
+    "editProfile": "Profil bearbeiten",
+    "requestDeletion": "Kontolöschung anfordern",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "cancel": "Abbrechen",
+    "deletion": {
+      "title": "Kontolöschung anfordern",
+      "intro": "Bitte teilen Sie uns kurz mit, warum Sie Ihr Konto löschen möchten. Wir prüfen dies und melden uns.",
+      "placeholder": "Ihr Grund…",
+      "reasonRequired": "Bitte geben Sie den Grund für die Löschung an.",
+      "sent": "Ihre Anfrage wurde gesendet. Wir melden uns in Kürze.",
+      "failed": "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
+      "sending": "Wird gesendet…",
+      "sendRequest": "Anfrage senden"
+    }
   },
   "german": "Deutsch",
   "eu": "European Union",

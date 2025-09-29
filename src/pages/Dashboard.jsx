@@ -8,7 +8,7 @@ export default function Dashboard() {
   const email = data?.email || "";
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-6xl mx-auto px-6 py-10  text-backnewswhite dark:text-backnewsdark">
       <h1 className="text-5xl font-light mb-4">{t("myaccount.welcome")}</h1>
       <p className="mb-8 text-gray-600">
         {isLoading ? (
@@ -22,7 +22,7 @@ export default function Dashboard() {
 
       <Link
         to="/account/profile"
-        className="inline-block bg-black text-white px-6 py-3 rounded"
+        className="inline-block bg-black text-white px-6 py-3 rounded  dark:bg-marblewhite dark:text-backnewsdark"
       >
         {t("myaccount.update")}
       </Link>
@@ -30,7 +30,7 @@ export default function Dashboard() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         <Link to="/account/orders" className="p-6 border rounded hover:shadow">
           <h3 className="text-2xl font-light">{t("myaccount.order")}</h3>
-          <div className="mt-3 text-gray-600">
+          <div className="mt-3 text-gray-600 ">
             {t("myaccount.orderdetails")}
           </div>
         </Link>
