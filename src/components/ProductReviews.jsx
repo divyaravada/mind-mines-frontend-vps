@@ -7,24 +7,31 @@ import {
 } from "../features/products/productsApi";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
+import StarRating from "./StarRating";
+import { useTranslation } from "react-i18next";
 
 export default function ProductReviews({ productId }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
+
   const isLoggedIn = useSelector(selectIsAuthenticated);
-  const { data } = useListProductReviewsQuery(productId);
+  const { data, isFetching, error } = useListProductReviewsQuery(productId);
+
   const items = data?.results ?? data ?? [];
+
   const [editingId, setEditingId] = useState(null);
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState("");
   const [clearImage, setClearImage] = useState(false);
   const fileRef = useRef(null);
 
-  const [updateReview] = useUpdateReviewMutation();
-  const [deleteReview] = useDeleteReviewMutation();
+  const [updateReview, { isLoading: saving }] = useUpdateReviewMutation();
+  const [deleteReview, { isLoading: deleting }] = useDeleteReviewMutation();
 
   const startEdit = (rv) => {
     setEditingId(rv.id);
     setRating(rv.rating);
-    setMessage(rv.message);
+    setMessage(rv.message || "");
     setClearImage(false);
     if (fileRef.current) fileRef.current.value = "";
   };
@@ -47,16 +54,24 @@ export default function ProductReviews({ productId }) {
 
   return (
     <div className="mt-12">
-      <h3 className="text-xl font-semibold mb-4">Reviews</h3>
+      <h3 className="text-xl font-semibold mb-4">
+        {t("productReviews.title")}
+      </h3>
 
       {!isLoggedIn && (
         <div className="text-sm text-gray-600 mb-6">
-          Log in to post or edit your review.
+          {t("productReviews.loginPrompt")}
         </div>
       )}
 
-      {items.length === 0 ? (
-        <div className="text-gray-500">No reviews yet.</div>
+      {isFetching && <div className="text-gray-500">{t("common.loading")}</div>}
+
+      {error && !isFetching && (
+        <div className="text-red-600">{t("productReviews.loadError")}</div>
+      )}
+
+      {!isFetching && !error && items.length === 0 ? (
+        <div className="text-gray-500">{t("productReviews.none")}</div>
       ) : (
         <div className="space-y-4">
           {items.map((rv) => (
@@ -65,7 +80,7 @@ export default function ProductReviews({ productId }) {
                 <img
                   src={rv.author_avatar || avatar}
                   onError={(e) => (e.currentTarget.src = avatar)}
-                  alt=""
+                  alt={t("productReviews.authorAvatarAlt")}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="flex-1">
@@ -78,43 +93,49 @@ export default function ProductReviews({ productId }) {
                             onClick={() => startEdit(rv)}
                             className="text-xs px-2 py-1 border rounded"
                           >
-                            Edit
+                            {t("productReviews.edit")}
                           </button>
                         )}
                         <button
                           onClick={() => remove(rv.id)}
-                          className="text-xs px-2 py-1 border rounded text-red-600"
+                          className="text-xs px-2 py-1 border rounded text-red-600 disabled:opacity-60"
+                          disabled={deleting}
                         >
-                          Delete
+                          {t("productReviews.delete")}
                         </button>
                       </div>
                     )}
                   </div>
+
                   <div className="text-xs text-gray-500">
-                    {new Date(rv.created_at).toLocaleString()}
+                    {new Date(rv.created_at).toLocaleString(locale)}
                   </div>
 
                   {editingId === rv.id ? (
                     <div className="mt-2 space-y-2">
-                      <select
-                        value={rating}
-                        onChange={(e) => setRating(Number(e.target.value))}
-                        className="border rounded px-2 py-1"
-                      >
-                        {[5, 4, 3, 2, 1].map((n) => (
-                          <option key={n} value={n}>
-                            {n} ★
-                          </option>
-                        ))}
-                      </select>
+                      <label className="sr-only" htmlFor={`rating-${rv.id}`}>
+                        {t("productReviews.rating")}
+                      </label>
+                      <StarRating />
+
+                      <label className="sr-only" htmlFor={`msg-${rv.id}`}>
+                        {t("productReviews.messageLabel")}
+                      </label>
                       <textarea
+                        id={`msg-${rv.id}`}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         className="w-full border rounded px-3 py-2"
                         rows={3}
+                        placeholder={t("productReviews.messagePlaceholder")}
                       />
                       <div className="flex items-center gap-3">
-                        <input ref={fileRef} type="file" accept="image/*" />
+                        <input
+                          ref={fileRef}
+                          type="file"
+                          accept="image/*"
+                          aria-label={t("productReviews.addImage")}
+                        />
                         {rv.image && (
                           <label className="text-sm flex items-center gap-2">
                             <input
@@ -122,28 +143,34 @@ export default function ProductReviews({ productId }) {
                               checked={clearImage}
                               onChange={(e) => setClearImage(e.target.checked)}
                             />
-                            Remove current image
+                            {t("productReviews.removeCurrentImage")}
                           </label>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => save(rv.id)}
-                          className="px-3 py-1 bg-black text-white rounded"
+                          className="px-3 py-1 bg-black text-white rounded disabled:opacity-60"
+                          disabled={saving}
                         >
-                          Save
+                          {saving
+                            ? t("productReviews.saving")
+                            : t("productReviews.save")}
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
                           className="px-3 py-1 border rounded"
                         >
-                          Cancel
+                          {t("productReviews.cancel")}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div className="mt-1">
+                      <div
+                        className="mt-1"
+                        aria-label={t("productReviews.rating")}
+                      >
                         {Array.from({ length: rv.rating }).map((_, i) => (
                           <span key={i}>★</span>
                         ))}

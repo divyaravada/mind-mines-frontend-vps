@@ -86,9 +86,9 @@ export default function Orders() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
       <div className="flex items-center justify-between mb-8 ">
-        <h2 className="text-4xl font-light mb-8">{t("order.yourOrders")}</h2>
+        <h2 className="text-2xl font-light mb-8">{t("order.yourOrders")}</h2>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">{t("backtoAccount")}</h6>
+          <h6 className="text-xl font-light mb-8">{t("backtoAccount")}</h6>
         </Link>
         <span className="text-sm text-gray-500">
           {t("order.count", { count: orders.length })}

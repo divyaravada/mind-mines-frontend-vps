@@ -71,11 +71,9 @@ export default function Reviews() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark ">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-light mb-8">
-          {t("reviews.title", "Your Reviews")}
-        </h1>
+        <h1 className="text-2xl font-light mb-8">{t("reviews.title")}</h1>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">
+          <h6 className="text-xl font-light mb-8">
             {t("backtoAccount", "Back to Account")}
           </h6>
         </Link>
@@ -84,18 +82,13 @@ export default function Reviews() {
         </span>
       </div>
 
-      {isFetching && (
-        <div className="text-gray-500">{t("common.loading", "Loading…")}</div>
-      )}
+      {isFetching && <div className="text-gray-500">{t("common.loading")}</div>}
 
       {error && !isFetching && (
         <div className="text-red-600 mb-4">
           {error?.status === 401
-            ? t(
-                "reviews.signInRequired",
-                "Please sign in to view your reviews."
-              )
-            : t("reviews.loadError", "Failed to load reviews.")}
+            ? t("reviews.signInRequired")
+            : t("reviews.loadError")}
         </div>
       )}
 
@@ -121,14 +114,14 @@ export default function Reviews() {
                     onClick={() => startEdit(rv)}
                     className="text-sm px-2 py-1 border rounded"
                   >
-                    {t("reviews.edit", "Edit")}
+                    {t("reviews.edit")}
                   </button>
                 )}
                 <button
                   onClick={() => remove(rv.id)}
                   className="text-sm px-2 py-1 border rounded text-red-600"
                 >
-                  {t("reviews.delete", "Delete")}
+                  {t("reviews.delete")}
                 </button>
               </div>
             </div>
@@ -137,7 +130,7 @@ export default function Reviews() {
               <div className="mt-3 space-y-3">
                 <div className="flex items-center gap-3">
                   <label className="font-medium" htmlFor={`rating-${rv.id}`}>
-                    {t("reviews.rating", "Rating")}:
+                    {t("reviews.rating")}:
                   </label>
                   <select
                     id={`rating-${rv.id}`}
@@ -154,7 +147,7 @@ export default function Reviews() {
                 </div>
 
                 <label className="sr-only" htmlFor={`message-${rv.id}`}>
-                  {t("reviews.messageLabel", "Message")}
+                  {t("reviews.messageLabel")}
                 </label>
                 <textarea
                   id={`message-${rv.id}`}
@@ -162,10 +155,7 @@ export default function Reviews() {
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full border rounded px-3 py-2"
                   rows={3}
-                  placeholder={t(
-                    "reviews.messagePlaceholder",
-                    "Share your thoughts…"
-                  )}
+                  placeholder={t("reviews.messagePlaceholder")}
                 />
 
                 <div className="flex items-center gap-3">
@@ -173,7 +163,7 @@ export default function Reviews() {
                     ref={fileRef}
                     type="file"
                     accept="image/*"
-                    aria-label={t("reviews.addImage", "Add image")}
+                    aria-label={t("reviews.addImage")}
                   />
                   {rv.image && (
                     <label className="flex items-center gap-2 text-sm">
@@ -182,7 +172,7 @@ export default function Reviews() {
                         checked={clearImage}
                         onChange={(e) => setClearImage(e.target.checked)}
                       />
-                      {t("reviews.removeCurrentImage", "Remove current image")}
+                      {t("reviews.removeCurrentImage")}
                     </label>
                   )}
                 </div>
@@ -193,24 +183,19 @@ export default function Reviews() {
                     className="px-3 py-1 bg-black text-white rounded disabled:opacity-60"
                     disabled={saving}
                   >
-                    {saving
-                      ? t("reviews.saving", "Saving…")
-                      : t("reviews.save", "Save")}
+                    {saving ? t("reviews.saving") : t("reviews.save")}
                   </button>
                   <button
                     onClick={cancelEdit}
                     className="px-3 py-1 border rounded"
                   >
-                    {t("reviews.cancel", "Cancel")}
+                    {t("reviews.cancel")}
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <div
-                  className="mt-2"
-                  aria-label={t("reviews.ratingAria", "Rating")}
-                >
+                <div className="mt-2" aria-label={t("reviews.ratingAria")}>
                   {Array.from({ length: rv.rating }).map((_, i) => (
                     <span key={i}>★</span>
                   ))}

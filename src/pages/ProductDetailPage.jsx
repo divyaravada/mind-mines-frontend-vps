@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-12">
+    <div className="max-w-7xl mx-auto p-6 space-y-12  text-backnewswhite dark:text-backnewsdark">
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="w-full lg:w-1/2">
           <Carousel
@@ -144,10 +144,10 @@ export default function ProductDetailPage() {
           </div>
 
           <div>
-            <strong>{t("Dimensions")}:</strong> {product.dimensions}
+            <strong>{t("dimension")}:</strong> {product.dimensions}
           </div>
           <div>
-            <strong>{t("Weight")}:</strong> {product.weight} kg
+            <strong>{t("weight")}:</strong> {product.weight} kg
           </div>
 
           <div>
@@ -255,17 +255,19 @@ export default function ProductDetailPage() {
 
       <div className="p-4 rounded border bg-white shadow space-y-3">
         <div className="flex items-center gap-3">
-          <label className="font-medium">{t("Rating")}:</label>
+          <label className="font-medium">{t("productReviews.title")}:</label>
           <StarRating value={revRating} onChange={setRevRating} />
         </div>
         <div>
-          <label className="block font-medium mb-1">{t("Message")}</label>
+          <label className="block font-medium mb-1">
+            {t("productReviews.messageLabel")}
+          </label>
           <textarea
             value={revMessage}
             onChange={(e) => setRevMessage(e.target.value)}
             className="w-full border rounded px-3 py-2"
             rows={4}
-            placeholder={t("Share your thoughts...")}
+            placeholder={t("productReviews.messagePlaceholder")}
           />
         </div>
         <input ref={fileRef} type="file" accept="image/*" />
@@ -273,14 +275,16 @@ export default function ProductDetailPage() {
           onClick={submitReview}
           className="px-4 py-2 bg-black text-white rounded"
         >
-          {t("Submit Review")}
+          {t("productReviews.submit")}
         </button>
       </div>
 
       <section className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">{t("You may also like")}</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          {t("productReviews.youMay")}
+        </h2>
         {recommend.length === 0 ? (
-          <div className="text-gray-500">{t("No suggestions found.")}</div>
+          <div className="text-gray-500">{t("productReviews.noSugg")}</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {recommend.map((p) => (

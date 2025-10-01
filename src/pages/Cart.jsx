@@ -25,10 +25,23 @@ import {
   RotateCcw,
   Truck,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-const fmtEUR = (n) => `${n.toFixed(2)} €`;
+const fmtEUR = (n, locale = "en") => {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+    }).format(n);
+  } catch {
+    return `${n.toFixed(2)} €`;
+  }
+};
 
 export default function CartPage() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
+
   const dispatch = useDispatch();
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCartCount);
@@ -64,14 +77,16 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="max-w-5xl mx-auto py-12 px-4  text-backnewswhite dark:text-backnewsdark">
-        <h1 className="text-2xl font-bold mb-4">Cart (0 items)</h1>
+        <h1 className="text-2xl font-bold mb-4">
+          {t("cart.title", { count: 0 })}
+        </h1>
         <div className="bg-white rounded shadow p-8 text-center dark:bg-marbleblack">
-          <p className="mb-6 text-gray-600">Your cart is empty.</p>
+          <p className="mb-6 text-gray-600">{t("cart.empty")}</p>
           <Link
             to="/decorative-products"
             className="inline-block px-5 py-3 rounded bg-marblewhite dark:text-backnewsdark text-white"
           >
-            Continue shopping
+            {t("cart.continue")}
           </Link>
         </div>
       </div>
@@ -79,41 +94,41 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 text-backnewswhite  dark:text-backnewsdark lg:grid-cols-3 gap-8">
       {/* LEFT */}
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">
-            Cart ({count} {count === 1 ? "item" : "items"})
+            {t("cart.title_one")} ({count} {count === 1 ? "item" : "items"})
           </h1>
           <button
             onClick={() => dispatch(clearCart())}
             className="text-red-500 hover:underline flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
-            Clear cart
+            {t("cart.clear")}
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 ">
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
             const lineTotal = item.price * item.qty;
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow p-4 flex gap-4"
+                className="bg-white rounded-lg shadow p-4 flex gap-4  dark:bg-marbleblack"
               >
                 <img
                   src={item.image}
                   alt={item.name}
                   className="w-28 h-28 object-cover rounded"
                 />
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 ">
+                  <div className="flex items-start justify-between gap-3 ">
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
-                      <div className="text-sm text-gray-500 capitalize">
+                      <div className="text-sm text-gray-500 capitalize text-backnewswhite dark:text-backnewsdark ">
                         {item.category}
                       </div>
                     </div>
@@ -126,28 +141,34 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 text-backnewswhite dark:text-backnewsdark ">
                     {item.dimensions && (
                       <div>
-                        <span className="font-medium">Measurements: </span>
+                        <span className="font-medium">
+                          {t("cart.measurements")}:{" "}
+                        </span>
                         <span>{item.dimensions}</span>
                       </div>
                     )}
                     {item.weight && (
                       <div>
-                        <span className="font-medium">Weight: </span>
+                        <span className="font-medium">
+                          {t("cart.weight")}:{" "}
+                        </span>
                         <span>{item.weight}</span>
                       </div>
                     )}
                     {item.color && (
                       <div className="capitalize">
-                        <span className="font-medium">Color: </span>
+                        <span className="font-medium">{t("cart.color")}: </span>
                         <span>{item.color}</span>
                       </div>
                     )}
                     <div>
-                      <span className="font-medium">Delivery: </span>
-                      <span>6 – 11 business days</span>
+                      <span className="font-medium">
+                        {t("cart.delivery")}:{" "}
+                      </span>
+                      <span>{t("cart.deliveryTime")}</span>
                     </div>
                   </div>
 
@@ -161,7 +182,8 @@ export default function CartPage() {
                               updateQty({ id: item.id, qty: item.qty - 1 })
                             )
                           }
-                          aria-label="Decrease quantity"
+                          aria-label={t("cart.decreaseQty")}
+                          title={t("cart.decreaseQty")}
                         >
                           <Minus className="w-4 h-4" />
                         </button>
@@ -173,11 +195,12 @@ export default function CartPage() {
                             dispatch(
                               updateQty({
                                 id: item.id,
-                                qty: Number(e.target.value || 1),
+                                qty: Math.max(1, Number(e.target.value || 1)),
                               })
                             )
                           }
                           className="w-12 text-center outline-none p-1"
+                          aria-label={t("cart.quantity")}
                         />
                         <button
                           className="px-2 py-1"
@@ -186,7 +209,8 @@ export default function CartPage() {
                               updateQty({ id: item.id, qty: item.qty + 1 })
                             )
                           }
-                          aria-label="Increase quantity"
+                          aria-label={t("cart.increaseQty")}
+                          title={t("cart.increaseQty")}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -197,7 +221,8 @@ export default function CartPage() {
                           inWishlist ? "text-red-500" : "text-gray-400"
                         }`}
                         onClick={() => loggedIn && toggleWishlist(item.id)}
-                        title="Wishlist"
+                        title={t("cart.wishlist")}
+                        aria-label={t("cart.wishlist")}
                       >
                         {inWishlist ? (
                           <Heart className="w-5 h-5" />
@@ -208,9 +233,11 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm text-gray-500">Total</div>
+                      <div className="text-sm text-gray-500 text-backnewswhite dark:text-backnewsdark ">
+                        {t("cart.total")}
+                      </div>
                       <div className="text-lg font-semibold">
-                        {fmtEUR(lineTotal)}
+                        {fmtEUR(lineTotal, locale)}
                       </div>
                     </div>
                   </div>
@@ -220,8 +247,8 @@ export default function CartPage() {
           })}
         </div>
 
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600 mb-3">We accept</div>
+        <div className="mt-6 bg-white rounded-lg shadow p-4 dark:bg-marbleback">
+          <div className="text-sm text-gray-600 mb-3">{t("cart.weAccept")}</div>
           <div className="flex flex-wrap items-center gap-3">
             <BrandBadge label="PayPal" />
             <BrandBadge label="Mastercard" />
@@ -235,40 +262,46 @@ export default function CartPage() {
       {/* RIGHT */}
       <aside className="lg:col-span-1">
         <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-          <h2 className="text-xl font-semibold mb-4">Order Overview</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
           <div className="space-y-3 text-sm">
-            <Row label="Subtotal" value={fmtEUR(subtotal)} />
+            <Row label={t("cart.subtotal")} value={fmtEUR(subtotal, locale)} />
             <Row
-              label="Shipping fee"
-              value={shippingFee === 0 ? "Free" : fmtEUR(shippingFee)}
+              label={t("cart.shippingFee")}
+              value={
+                shippingFee === 0 ? t("cart.free") : fmtEUR(shippingFee, locale)
+              }
             />
             <hr />
             <Row
-              label={<span className="font-semibold">Total</span>}
-              value={<span className="font-semibold">{fmtEUR(total)}</span>}
+              label={<span className="font-semibold">{t("cart.total")}</span>}
+              value={
+                <span className="font-semibold">{fmtEUR(total, locale)}</span>
+              }
             />
-            <div className="text-xs text-gray-500 mt-1">(incl. tax)</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {t("cart.inclTax")}
+            </div>
           </div>
 
           <Link
             to="/checkout"
             className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
-            Checkout
+            {t("cart.checkout")}
           </Link>
 
           <div className="mt-6 space-y-3 text-sm text-gray-700">
             <Badge
               icon={<ShieldCheck className="w-4 h-4" />}
-              text="Secure payment"
+              text={t("cart.badgeSecure")}
             />
             <Badge
               icon={<RotateCcw className="w-4 h-4" />}
-              text="15 days return policy"
+              text={t("cart.badgeReturn")}
             />
             <Badge
               icon={<Truck className="w-4 h-4" />}
-              text="Convenient & easy delivery"
+              text={t("cart.badgeDelivery")}
             />
           </div>
         </div>

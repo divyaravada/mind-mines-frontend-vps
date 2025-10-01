@@ -92,15 +92,8 @@ export default function AccountWishlist() {
   if (!count) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-16 text-backnewswhite dark:text-backnewsdark ">
-        <h1 className="text-4xl font-light mb-4">
-          {t("wishlist.emptyTitle", "Oh no! Your wishlist is still empty.")}
-        </h1>
-        <p className="mb-8 text-gray-600">
-          {t(
-            "wishlist.emptySubtitle",
-            "Add products to your wishlist from product pages."
-          )}
-        </p>
+        <h1 className="text-2xl font-light mb-4">{t("wishlist.emptyTitle")}</h1>
+        <p className="mb-8 text-gray-600">{t("wishlist.emptySubtitle")}</p>
         <Link
           to="/decorative-products"
           className="inline-block bg-black text-white px-8 py-4 rounded"
@@ -114,11 +107,11 @@ export default function AccountWishlist() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark ">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-light mb-8">
+        <h1 className="text-2xl font-light mb-8">
           {t("wishlist.title", "Your Wishlist")}
         </h1>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">
+          <h6 className="text-xl font-light mb-8">
             {t("backtoAccount", "Back to Account")}
           </h6>
         </Link>

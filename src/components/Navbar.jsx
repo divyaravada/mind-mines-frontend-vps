@@ -28,7 +28,6 @@ export default function Navbar() {
 
   const user = useSelector((s) => s.auth.user);
   const darkMode = useSelector((s) => s.ui.darkMode);
-  const langMenuOpen = useSelector((s) => s.ui.langMenuOpen);
   const legalMenuOpen = useSelector((s) => s.ui.legalMenuOpen);
   const mobileMenu = useSelector((s) => s.ui.mobileMenuOpen);
 

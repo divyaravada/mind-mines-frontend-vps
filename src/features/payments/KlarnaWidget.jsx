@@ -1,6 +1,7 @@
 // src/components/payment/KlarnaWidget.jsx
 import { useEffect, useState } from "react";
 import { api } from "../../services/apiSlice";
+import { useTranslation } from "react-i18next";
 
 function useScript(src) {
   const [ready, setReady] = useState(false);
@@ -31,7 +32,16 @@ function toISO(country) {
       return "DE";
   }
 }
-
+const fmtEUR = (n, locale = "en") => {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+    }).format(n);
+  } catch {
+    return `${n.toFixed(2)} €`;
+  }
+};
 export default function KlarnaWidget({
   active,
   setActive,
@@ -44,16 +54,18 @@ export default function KlarnaWidget({
   onSuccess,
   setLocalOrderId,
 }) {
+  const { t, i18n } = useTranslation();
   const ready = useScript("https://x.klarnacdn.net/kp/lib/v1/api.js");
   const [clientToken, setClientToken] = useState(null);
   const [localOrderId, setLocalId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const locale = i18n.language || "en";
 
   const prettyLabel =
     label ||
     (category === "pay_over_time"
-      ? `Pay in installments with Klarna`
-      : `Pay later (Invoice) with Klarna`);
+      ? t("footer.payment.klarna.ctaInstallments")
+      : t("footer.payment.klarna.ctaInvoice"));
 
   return (
     <>
@@ -67,8 +79,8 @@ export default function KlarnaWidget({
         />
         <span className="flex-1">
           {category === "pay_over_time"
-            ? "Installments (0% financing)"
-            : "Invoice / Pay later with Klarna"}
+            ? t("footer.payment.klarna.installmentsLabel")
+            : t("footer.payment.klarna.invoiceLabel")}
         </span>
         <span className="text-xs font-semibold text-pink-600">Klarna</span>
       </label>
@@ -114,9 +126,7 @@ export default function KlarnaWidget({
                     );
                   }
                 } catch {
-                  alert(
-                    "Failed to start Klarna session. Please log in and ensure address is valid."
-                  );
+                  alert(t("footer.payment.klarna.sessionFailed"));
                 } finally {
                   setLoading(false);
                 }
@@ -124,7 +134,7 @@ export default function KlarnaWidget({
               disabled={!ready || loading}
               className="w-full py-3 rounded bg-pink-600 text-white font-semibold hover:bg-pink-700 disabled:opacity-60"
             >
-              {loading ? "Starting Klarna…" : prettyLabel}
+              {loading ? t("footer.payment.klarna.starting") : prettyLabel}
             </button>
           ) : (
             <>
@@ -132,9 +142,7 @@ export default function KlarnaWidget({
               <button
                 onClick={() => {
                   if (!localOrderId) {
-                    alert(
-                      "Order reference missing. Please reload and try again."
-                    );
+                    alert(t("footer.payment.klarna.noOrder"));
                     return;
                   }
                   if (!window.Klarna) return;
@@ -174,19 +182,19 @@ export default function KlarnaWidget({
                             months,
                           });
                           if (r.data?.status === "ok") onSuccess(localOrderId);
-                          else alert("Klarna confirm failed.");
+                          else alert(t("footer.payment.klarna.confirmFailed"));
                         } catch {
-                          alert("Klarna confirm failed.");
+                          alert(t("footer.payment.klarna.confirmFailed"));
                         }
                       } else {
-                        alert("Klarna was not approved.");
+                        alert(t("footer.payment.klarna.notApproved"));
                       }
                     }
                   );
                 }}
                 className="w-full py-3 rounded bg-pink-600 text-white font-semibold hover:bg-pink-700 mt-3"
               >
-                {prettyLabel} — {total.toFixed(2)} €
+                {prettyLabel} — {fmtEUR(total, locale)}
               </button>
             </>
           )}

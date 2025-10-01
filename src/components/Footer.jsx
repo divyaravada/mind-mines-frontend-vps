@@ -18,7 +18,7 @@ export default function Footer() {
   const { setLanguage } = require("../features/i18n/i18nSlice");
 
   return (
-    <footer className="bg-marblewhite dark:bg-marbleblack border-t border-gray-200 dark:border-gray-800 pt-8 pb-0 px-4">
+    <footer className="bg-marblewhite dark:bg-marbleblack border-t border-gray-200 dark:border-gray-800 pt-8 pb-0 px-4 ">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
         {/* About */}
         <div>

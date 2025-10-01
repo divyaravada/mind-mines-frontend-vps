@@ -22,8 +22,7 @@ const initial = {
 };
 
 export default function AccountAddresses() {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language || "en";
+  const { t } = useTranslation();
 
   const { data: list = [], isFetching } = useGetAddressesQuery();
   const [createAddress, { isLoading: creating }] = useCreateAddressMutation();
@@ -60,9 +59,9 @@ export default function AccountAddresses() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-light mb-8">{t("addresses.title")} </h1>
+        <h1 className="text-2xl font-light mb-8">{t("addresses.title")} </h1>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">{t("backtoAccount")} </h6>
+          <h6 className="text-xl font-light mb-8">{t("backtoAccount")} </h6>
         </Link>
         <span className="text-sm text-gray-500">
           {t(useGetAddressesQuery.subtitle)}

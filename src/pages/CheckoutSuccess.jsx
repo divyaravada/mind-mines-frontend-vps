@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import http from "../services/http";
 import { toAbsoluteUrl } from "../utils/urls";
+import { useTranslation } from "react-i18next";
 
 export default function CheckoutSuccess() {
+  const { t } = useTranslation();
   const [sp] = useSearchParams();
   const orderId = sp.get("order");
   const [order, setOrder] = useState(null);
@@ -38,7 +40,7 @@ export default function CheckoutSuccess() {
           if (timer) clearInterval(timer);
         }
       } catch (e) {
-        setError(e?.response?.data?.detail || "Failed to load order.");
+        setError(e?.response?.data?.detail || t("checkoutSuccess.loadError"));
       } finally {
         setLoading(false);
       }
@@ -47,11 +49,14 @@ export default function CheckoutSuccess() {
     load();
     timer = setInterval(() => !stopped && load(), 5000);
     return () => clearInterval(timer);
-  }, [orderId]);
+  }, [orderId, t]);
 
   if (!orderId)
-    return <div className="p-10 text-center">No order specified.</div>;
-  if (loading) return <div className="p-10 text-center">Loading…</div>;
+    return (
+      <div className="p-10 text-center">{t("checkoutSuccess.noOrder")}</div>
+    );
+  if (loading)
+    return <div className="p-10 text-center">{t("common.loading")}</div>;
   if (error)
     return <div className="p-10 text-center text-red-600">{error}</div>;
 
@@ -61,27 +66,33 @@ export default function CheckoutSuccess() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10 text-center">
-      <h1 className="text-2xl font-bold mb-2 text-center">Thank you!</h1>
+      <h1 className="text-2xl font-bold mb-2 text-center">
+        {t("checkoutSuccess.thankYou")}
+      </h1>
       <p className="text-gray-600 mb-6 text-center">
-        Your order <span className="font-semibold">{order.number}</span> was
-        created.
+        {t("checkoutSuccess.created", {
+          number: order.number,
+          defaultValue: "Your order {{number}} was created.",
+        })}
       </p>
 
       {isBank && !isPaid && bankInfo && (
         <div className="mb-6 border rounded p-4 bg-gray-50">
-          <h2 className="font-semibold mb-2">Bank transfer instructions</h2>
+          <h2 className="font-semibold mb-2">
+            {t("checkoutSuccess.bankTitle")}
+          </h2>
           <p className="text-sm text-gray-600 mb-3">
-            We’ve also emailed these details to you. Please transfer{" "}
-            <span className="font-semibold">{bankInfo.amount} €</span> and
-            include the reference below.
+            {t("checkoutSuccess.bankIntro")}
+            <span className="font-semibold">{bankInfo.amount} €</span>
+            {t("checkoutSuccess.bankIntro2")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <KV k="Amount" v={`${bankInfo.amount} €`} />
-            <KV k="Reference" v={bankInfo.reference} />
-            <KV k="IBAN" v={bankInfo.iban} />
-            <KV k="BIC" v={bankInfo.bic} />
-            <KV k="Beneficiary" v={bankInfo.beneficiary} />
+            <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} €`} />
+            <KV k={t("checkoutSuccess.reference")} v={bankInfo.reference} />
+            <KV k={t("checkoutSuccess.iban")} v={bankInfo.iban} />
+            <KV k={t("checkoutSuccess.bic")} v={bankInfo.bic} />
+            <KV k={t("checkoutSuccess.beneficiary")} v={bankInfo.beneficiary} />
           </div>
 
           {bankInfo.instructions && (
@@ -100,23 +111,22 @@ export default function CheckoutSuccess() {
             rel="noreferrer"
             className="inline-block px-4 py-2 rounded bg-gray-900 text-white"
           >
-            Download invoice (PDF)
+            {t("checkoutSuccess.downloadInvoice")}
           </a>
         ) : isBank && !isPaid ? (
           <p className="text-sm text-gray-600">
-            As soon as we receive your payment, your invoice will be generated
-            here automatically. This page refreshes every few seconds.
+            {t("checkoutSuccess.waitingBank")}
           </p>
         ) : (
           <p className="text-sm text-gray-500">
-            Generating invoice… please wait a moment.
+            {t("checkoutSuccess.generatingInvoice")}
           </p>
         )}
       </div>
 
       <div className="mt-6 text-center">
         <Link to="/account/orders" className="text-blue-600 underline">
-          Go to your orders
+          {t("checkoutSuccess.goToOrders")}
         </Link>
       </div>
     </div>

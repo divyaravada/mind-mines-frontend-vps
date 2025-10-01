@@ -9,8 +9,7 @@ import {
 } from "../features/account/accountApi";
 
 export default function Profile() {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language || "en";
+  const { t } = useTranslation();
 
   const { data: account, isLoading, refetch } = useGetAccountQuery();
   const [updateAccount, { isLoading: saving }] = useUpdateAccountMutation();
@@ -54,50 +53,31 @@ export default function Profile() {
   const submitDeletion = async () => {
     const reason = deletionReason.trim();
     if (!reason) {
-      setDeletionMsg(
-        t(
-          "profile.deletion.reasonRequired",
-          "Please tell us why you want to delete your account."
-        )
-      );
+      setDeletionMsg(t("profile.deletion.reasonRequired"));
       return;
     }
     try {
       setDeletionMsg(null);
       await requestDeletion({ reason }).unwrap();
-      setDeletionMsg(
-        t(
-          "profile.deletion.sent",
-          "Your request has been sent. We'll get back to you soon."
-        )
-      );
+      setDeletionMsg(t("profile.deletion.sent"));
       setTimeout(() => {
         setEditDeletion(false);
         setDeletionReason("");
         setDeletionMsg(null);
       }, 1200);
     } catch {
-      setDeletionMsg(
-        t(
-          "profile.deletion.failed",
-          "Could not send your request. Please try again later."
-        )
-      );
+      setDeletionMsg(t("profile.deletion.failed"));
     }
   };
 
-  if (isLoading) return <div>{t("common.loading", "Loading…")}</div>;
+  if (isLoading) return <div>{t("common.loading")}</div>;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-light mb-8">
-          {t("profile.title", "Your Profile")}
-        </h1>
+        <h1 className="text-2xl font-light mb-8">{t("profile.title")}</h1>
         <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-2xl font-light mb-8">
-            {t("backtoAccount", "Back to Account")}
-          </h6>
+          <h6 className="text-xl font-light mb-8">{t("backtoAccount")}</h6>
         </Link>
       </div>
 
@@ -120,14 +100,11 @@ export default function Profile() {
 
             <div className="mt-4 text-sm space-y-1">
               <div>
-                <strong>{t("profile.username", "Username")}:</strong>{" "}
-                {account?.username}
+                <strong>{t("profile.username")}:</strong> {account?.username}
               </div>
               <div>
-                <strong>{t("profile.verified", "Verified")}:</strong>{" "}
-                {account?.verified
-                  ? t("profile.yes", "Yes")
-                  : t("profile.no", "No")}
+                <strong>{t("profile.verified")}:</strong>{" "}
+                {account?.verified ? t("profile.yes") : t("profile.no")}
               </div>
             </div>
 
@@ -136,13 +113,13 @@ export default function Profile() {
                 onClick={() => setEdit(true)}
                 className="mt-4 px-3 py-2 rounded border text-sm"
               >
-                {t("profile.editProfile", "Edit profile")}
+                {t("profile.editProfile")}
               </button>
               <button
                 onClick={() => setEditDeletion(true)}
                 className="mt-4 px-3 py-2 rounded border text-sm"
               >
-                {t("profile.requestDeletion", "Request to delete account")}
+                {t("profile.requestDeletion")}
               </button>
             </div>
           </>
@@ -153,7 +130,7 @@ export default function Profile() {
                 className="text-sm text-gray-600 dark:text-backnewsdark"
                 htmlFor="username"
               >
-                {t("profile.username", "Username")}
+                {t("profile.username")}
               </label>
               <input
                 id="username"
@@ -167,7 +144,7 @@ export default function Profile() {
                 className="text-sm text-gray-600 dark:text-backnewsdark"
                 htmlFor="full_name"
               >
-                {t("profile.fullName", "Full name")}
+                {t("profile.fullName")}
               </label>
               <input
                 id="full_name"
@@ -181,7 +158,7 @@ export default function Profile() {
                 className="text-sm text-gray-600 dark:text-backnewsdark"
                 htmlFor="avatar"
               >
-                {t("profile.avatar", "Avatar")}
+                {t("profile.avatar")}
               </label>
               <input
                 id="avatar"
@@ -196,9 +173,7 @@ export default function Profile() {
                 disabled={saving}
                 className="px-3 py-2 rounded bg-gray-900 text-white text-sm disabled:opacity-60"
               >
-                {saving
-                  ? t("profile.saving", "Saving…")
-                  : t("profile.save", "Save")}
+                {saving ? t("profile.saving") : t("profile.save")}
               </button>
               <button
                 onClick={() => {
@@ -211,7 +186,7 @@ export default function Profile() {
                 }}
                 className="px-3 py-2 rounded border text-sm"
               >
-                {t("profile.cancel", "Cancel")}
+                {t("profile.cancel")}
               </button>
             </div>
           </>
@@ -232,29 +207,26 @@ export default function Profile() {
           <div className="relative bg-white w-[95%] max-w-lg rounded-lg shadow-xl p-6 dark:bg-gray-800 text-backnewswhite dark:text-backnewsdark">
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-lg font-semibold">
-                {t("profile.deletion.title", "Request account deletion")}
+                {t("profile.deletion.title")}
               </h3>
               <button
                 onClick={() => !sendingDeletion && setEditDeletion(false)}
                 className="rounded px-2 py-1 text-gray-500 hover:bg-gray-100"
-                aria-label={t("common.close", "Close")}
+                aria-label={t("common.close")}
                 disabled={sendingDeletion}
               >
                 ✕
               </button>
             </div>
             <p className="text-sm text-gray-600 mb-3">
-              {t(
-                "profile.deletion.intro",
-                "Please tell us briefly why you want to delete your account. We’ll review and get back to you."
-              )}
+              {t("profile.deletion.intro")}
             </p>
             <textarea
               value={deletionReason}
               onChange={(e) => setDeletionReason(e.target.value)}
               rows={4}
               className="w-full border rounded px-3 py-2 dark:bg-marbleblack text-backnewswhite dark:text-backnewsdark"
-              placeholder={t("profile.deletion.placeholder", "Your reason…")}
+              placeholder={t("profile.deletion.placeholder")}
               disabled={sendingDeletion}
             />
             {deletionMsg && <div className="mt-3 text-sm">{deletionMsg}</div>}
@@ -264,7 +236,7 @@ export default function Profile() {
                 className="px-3 py-2 rounded border text-sm"
                 disabled={sendingDeletion}
               >
-                {t("profile.cancel", "Cancel")}
+                {t("profile.cancel")}
               </button>
               <button
                 onClick={submitDeletion}
@@ -272,8 +244,8 @@ export default function Profile() {
                 disabled={sendingDeletion}
               >
                 {sendingDeletion
-                  ? t("profile.deletion.sending", "Sending…")
-                  : t("profile.deletion.sendRequest", "Send request")}
+                  ? t("profile.deletion.sending")
+                  : t("profile.deletion.sendRequest")}
               </button>
             </div>
           </div>

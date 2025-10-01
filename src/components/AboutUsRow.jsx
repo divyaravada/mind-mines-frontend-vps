@@ -4,14 +4,16 @@ import { useTranslation } from "react-i18next";
 export function AboutUsRow() {
   const { t } = useTranslation();
   return (
-    <section className="py-16 bg-white  scheme-light dark:scheme-dark dark:bg-marbleblack">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 px-4">
+    <section className="py-16 bg-white scheme-light dark:scheme-dark dark:bg-marbleblack">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-12 px-4">
         {/* Left: Image */}
-        <img
-          src={aboutUs}
-          alt="About Us"
-          className="max-w-5xl md:w-1/2 sm:w-1/2 max-h-fill rounded-2xl object-cover shadow transition-transform duration-300 hover:scale-110"
-        />
+        <figure className="relative w-full overflow-hidden rounded-2xl shadow aspect-[4/3]">
+          <img
+            src={aboutUs}
+            alt={t("home.aboutUs.alt", "About Us")}
+            className="absolute inset-0 w-full h-full object-contain md:object-cover transition-transform duration-300 md:hover:scale-110"
+          />
+        </figure>
         {/* Right: Text */}
         <div className="flex-1">
           <h2 className="text-3xl font-bold mb-4 text-backnewswhite dark:text-backnewsdark ">
