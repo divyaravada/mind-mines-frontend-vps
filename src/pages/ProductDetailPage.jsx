@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-12  text-backnewswhite dark:text-backnewsdark">
+    <div className="max-w-7xl mx-auto p-6 space-y-12   dark:text-backnewsdark">
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="w-full lg:w-1/2">
           <Carousel

@@ -30,12 +30,16 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AccountAddresses from "./components/Addresses";
 import RequireAuth from "./routes/RequireAuth";
+import ScrollToTop from "./components/ScrollToTop";
+import PromoBanner from "./components/PromoBanner";
 
 export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Navbar />
+      <PromoBanner />
       <div className="flex-1">
+        <ScrollToTop />
         <Routes>
           {/* Auth & verification */}
           <Route
@@ -66,7 +70,14 @@ export default function App() {
           />
           <Route path="/natural-stone" element={<NaturalStonePage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/checkout"
+            element={
+              <RequireAuth>
+                <Checkout />
+              </RequireAuth>
+            }
+          />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/imprint" element={<ImprintPage />} />

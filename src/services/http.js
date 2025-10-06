@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const RAW = (
-  process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api"
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api"
 ).trim();
 export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
 

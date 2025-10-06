@@ -94,7 +94,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 text-backnewswhite  dark:text-backnewsdark lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1  dark:text-backnewsdark lg:grid-cols-3 gap-8">
       {/* LEFT */}
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-4">

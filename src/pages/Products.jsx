@@ -89,7 +89,7 @@ export default function ProductsPage() {
       toast.error(t("Action failed"));
     }
   };
-  console.log(data);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 flex gap-6">
       {/* Filters */}

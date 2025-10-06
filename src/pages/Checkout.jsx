@@ -9,7 +9,6 @@ import {
   selectCartSubtotal,
   clearCart,
 } from "../features/cart/cartSlice";
-import KlarnaWidget from "../features/payments/KlarnaWidget";
 import http from "../services/http";
 import { useTranslation } from "react-i18next";
 
@@ -26,7 +25,8 @@ const fmtEUR = (n, locale = "en") => {
       currency: "EUR",
     }).format(n);
   } catch {
-    return `${n.toFixed(2)} €`;
+    const v = Number.isFinite(n) ? n : 0;
+    return `${v.toFixed(2)} €`;
   }
 };
 
@@ -38,6 +38,10 @@ export default function Checkout() {
   const subtotal = useSelector(selectCartSubtotal);
   const dispatch = useDispatch();
 
+  const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState(null);
+  const [couponErr, setCouponErr] = useState("");
+
   const navigate = useNavigate();
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
@@ -48,8 +52,36 @@ export default function Checkout() {
     }
   }, [items.length, navigate]);
 
+  const applyCoupon = async () => {
+    setCouponErr("");
+    try {
+      const r = await http.post("coupons/apply/", {
+        code: couponCode.trim(),
+        items: lineItems,
+      });
+      if (r.data?.ok) {
+        setCouponInfo(r.data);
+      } else {
+        setCouponInfo(null);
+        setCouponErr(r.data?.error || "Invalid coupon");
+      }
+    } catch (e) {
+      setCouponInfo(null);
+      setCouponErr(e?.response?.data?.error || "Invalid coupon");
+    }
+  };
+
   const shippingFee = 0;
-  const total = subtotal + shippingFee;
+  const discount = useMemo(() => {
+    const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
+    return Number.isFinite(d) ? d : 0;
+  }, [couponInfo]);
+
+  const payTotal = useMemo(() => {
+    // subtotal and shippingFee are numbers already
+    const t = subtotal + shippingFee - discount;
+    return Number(Math.max(0, t).toFixed(2));
+  }, [subtotal, shippingFee, discount]);
 
   const lineItems = items.map((c) => ({ product_id: c.id, qty: c.qty }));
 
@@ -154,7 +186,24 @@ export default function Checkout() {
       }
     })();
   }, [navigate]);
-
+  useEffect(() => {
+    const saved = localStorage.getItem("coupon_auto");
+    if (saved && !couponInfo?.ok && !couponCode) {
+      setCouponCode(saved.toUpperCase());
+      // Attempt apply automatically
+      (async () => {
+        try {
+          const r = await http.post("coupons/apply/", {
+            code: saved,
+            items: lineItems,
+          });
+          if (r.data?.ok) {
+            setCouponInfo(r.data);
+          }
+        } catch {}
+      })();
+    }
+  }, [couponCode, couponInfo, lineItems]);
   // Save address
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
@@ -197,13 +246,15 @@ export default function Checkout() {
   const [payment, setPayment] = useState("paypal");
   const availableMonths = useMemo(() => {
     const m = [];
-    if (total >= INSTALLMENT_THRESHOLDS["3"]) m.push(3);
-    if (total >= INSTALLMENT_THRESHOLDS["6"]) m.push(6);
-    if (total >= INSTALLMENT_THRESHOLDS["12"]) m.push(12);
+    if (payTotal >= INSTALLMENT_THRESHOLDS["3"]) m.push(3);
+    if (payTotal >= INSTALLMENT_THRESHOLDS["6"]) m.push(6);
+    if (payTotal >= INSTALLMENT_THRESHOLDS["12"]) m.push(12);
     return m;
-  }, [total]);
+  }, [payTotal]);
   const [selectedMonths, setSelectedMonths] = useState(null);
-  const monthly = selectedMonths ? (total / selectedMonths).toFixed(2) : null;
+  const monthly = selectedMonths
+    ? (payTotal / selectedMonths).toFixed(2)
+    : null;
   useEffect(() => {
     setSelectedMonths(availableMonths.length ? availableMonths[0] : null);
   }, [availableMonths]);
@@ -392,7 +443,7 @@ export default function Checkout() {
               components: "buttons",
               "disable-funding":
                 "card,credit,bancontact,blik,eps,giropay,ideal,mybank,p24,sepa,sofort,venmo",
-              locale: "de_DE",
+              locale: locale,
             }}
           >
             <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
@@ -422,6 +473,11 @@ export default function Checkout() {
                           items: lineItems,
                           payment_method: "paypal",
                           ...buildAddressPayload(),
+                          coupon_code: (
+                            couponCode ||
+                            couponInfo?.code ||
+                            ""
+                          ).trim(),
                         }
                       );
                       localOrderIdRef.current = res.data.order_id;
@@ -463,10 +519,12 @@ export default function Checkout() {
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
             form={form}
-            total={total}
+            total={payTotal}
+            couponCode={couponCode}
+            couponInfo={couponInfo}
           />
 
-          {/* Klarna installments */}
+          {/* Stripe installments */}
           {availableMonths.length > 0 && (
             <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
@@ -498,8 +556,8 @@ export default function Checkout() {
                 <div className="mb-2 text-sm">
                   {t("checkout.paySplit", {
                     count: selectedMonths,
-                    per: monthly || fmtEUR(total / selectedMonths, locale),
-                    total: fmtEUR(total, locale),
+                    per: monthly || fmtEUR(payTotal / selectedMonths, locale),
+                    total: fmtEUR(payTotal, locale),
                   })}
                 </div>
               )}
@@ -512,8 +570,10 @@ export default function Checkout() {
                 setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                 onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
                 form={form}
-                total={total}
+                total={payTotal}
                 months={3}
+                couponCode={couponCode}
+                couponInfo={couponInfo}
               />
 
               <StripeInstallments
@@ -524,7 +584,7 @@ export default function Checkout() {
                 setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                 onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
                 form={form}
-                total={total}
+                total={payTotal}
                 months={6}
               />
 
@@ -536,7 +596,7 @@ export default function Checkout() {
                 setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                 onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
                 form={form}
-                total={total}
+                total={payTotal}
                 months={9}
               />
             </div>
@@ -564,6 +624,11 @@ export default function Checkout() {
                       items: lineItems,
                       payment_method: "bank",
                       ...buildAddressPayload(),
+                      coupon_code: (
+                        couponCode ||
+                        couponInfo?.code ||
+                        ""
+                      ).trim(),
                     });
                     const id =
                       res.data?.order_id ?? res.data?.order?.id ?? null;
@@ -589,7 +654,7 @@ export default function Checkout() {
                 className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black"
               >
                 {t("checkout.placeBankOrder", {
-                  total: fmtEUR(total, locale),
+                  total: fmtEUR(payTotal, locale),
                   defaultValue: "Place order (bank transfer) — {{total}}",
                 })}
               </button>
@@ -643,6 +708,39 @@ export default function Checkout() {
           </div>
 
           <hr className="my-4" />
+          <div className="mt-3 border rounded p-3 space-y-2">
+            <div className="flex gap-2">
+              <input
+                className="flex-1 border rounded px-3 py-2"
+                placeholder="Coupon code"
+                value={couponCode}
+                onChange={(e) =>
+                  setCouponCode((e.target.value || "").toUpperCase())
+                }
+              />
+              <button
+                onClick={applyCoupon}
+                className="px-4 py-2 rounded bg-gray-900 text-white"
+              >
+                Apply
+              </button>
+            </div>
+            {couponErr && (
+              <div className="text-red-600 text-sm">{couponErr}</div>
+            )}
+            {couponInfo?.ok && (
+              <div className="text-green-700 text-sm">
+                Applied <b>{couponInfo.code}</b>: −{couponInfo.discount} €
+              </div>
+            )}
+          </div>
+          {discount > 0 && couponInfo?.code && (
+            <Row
+              label={`Coupon (${couponInfo.code})`}
+              value={`− ${fmtEUR(discount, locale)}`}
+            />
+          )}
+
           <Row
             label={t("checkout.subtotal", { count: itemsCount })}
             value={fmtEUR(subtotal, locale)}
@@ -660,7 +758,7 @@ export default function Checkout() {
               {t("checkout.inTotal")}
             </div>
             <div className="text-base font-semibold">
-              {fmtEUR(total, locale)}
+              {fmtEUR(payTotal, locale)}
             </div>
           </div>
           <div className="text-xs text-gray-500 mt-1">

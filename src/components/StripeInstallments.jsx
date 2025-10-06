@@ -1,3 +1,4 @@
+// src/components/StripeInstallments.jsx
 import React, { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -20,6 +21,8 @@ function InstallmentForm({
   form,
   total,
   months,
+  couponCode,
+  couponInfo,
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -66,6 +69,7 @@ function InstallmentForm({
         months,
         payment_method_id: setupIntent.payment_method,
         ...addressPayload,
+        coupon_code: (couponCode || couponInfo?.code || "").trim(),
       });
 
       setLocalOrderId?.(res.data.order_id);

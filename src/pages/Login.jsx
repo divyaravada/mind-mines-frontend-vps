@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import RegisterForm from "./RegisterPage";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import GoogleLoginButton from "../components/GoogleLoginButton";
 import { useLoginMutation } from "../features/auth/authApi";
 
@@ -16,13 +16,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const rawNext = params.get("next") || "/";
+
+  const nextPath = useMemo(() => {
+    try {
+      const u = new URL(rawNext, window.location.origin);
+      if (u.origin !== window.location.origin) return "/";
+      // Keep original path + query + hash
+      return `${u.pathname}${u.search}${u.hash}` || "/";
+    } catch {
+      return rawNext.startsWith("/") ? rawNext : "/";
+    }
+  }, [rawNext]);
 
   async function handleLogin(e) {
     e.preventDefault();
     if (!email || !password) return;
     try {
       await login({ email, password }).unwrap();
-      navigate("/");
+      navigate(nextPath, { replace: true });
     } catch (e) {
       console.warn("Login failed", e);
       // optionally show toast
@@ -121,7 +134,7 @@ export default function LoginPage() {
 
                   <div className="flex flex-col items-center mt-4 gap-2">
                     <div className="text-gray-500">{t("auth.or")}</div>
-                    <GoogleLoginButton />
+                    <GoogleLoginButton successRedirect={nextPath} />
                   </div>
                 </form>
               ) : (
