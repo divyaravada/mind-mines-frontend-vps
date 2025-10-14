@@ -214,7 +214,7 @@
       "end": "."
     },
     "payment": {
-      "bank": "SEPA Bank Transfer",
+      "bank": "Direct Manual Bank Transfer",
       "processing": "Processing…",
       "payNow": "Pay now",
       "card": {

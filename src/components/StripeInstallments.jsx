@@ -1,9 +1,9 @@
 // src/components/StripeInstallments.jsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
-  CardElement,
+  IbanElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
@@ -13,49 +13,48 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function InstallmentForm({
-  lineItems,
-  addressPayload,
+function InnerInstallments({
+  months,
+  orderPayload,     // { items, address_line1, ... , coupon_code }
+  form,             // { fullName, email, ... }
   setLocalOrderId,
   onSuccess,
-  form,
-  total,
-  months,
-  couponCode,
-  couponInfo,
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const start = async () => {
+  const total = useMemo(() => {
+    // let backend be source of truth; this is just a label if you want
+    // you can pass a "total" prop from Checkout if you prefer
+    return null;
+  }, []);
+
+  const startInstallments = async () => {
     setErr("");
     if (!stripe || !elements) return;
-
+    setLoading(true);
     try {
-      // 1) Ask backend for SetupIntent
-      const si = await http.post("payments/stripe/create-setup-intent/");
-      const clientSecret = si.data?.clientSecret;
-      if (!clientSecret) throw new Error("No client secret.");
+      // 1) create SetupIntent (save mandate)
+      const siRes = await http.post("payments/stripe/sepa/create-setup-intent/");
+      const clientSecret = siRes?.data?.clientSecret;
+      if (!clientSecret) throw new Error("Missing SetupIntent client secret");
 
-      // 2) Confirm setup (save card)
-      const { setupIntent, error } = await stripe.confirmCardSetup(
+      // 2) confirm mandate with IBAN + billing details
+      const { setupIntent, error } = await stripe.confirmSepaDebitSetup(
         clientSecret,
         {
           payment_method: {
-            card: elements.getElement(CardElement),
+            sepa_debit: elements.getElement(IbanElement),
             billing_details: {
               name: form?.fullName || "",
               email: form?.email || "",
-              phone: form?.telephone || "",
               address: {
-                line1: addressPayload?.address_line1 || "",
-                postal_code: addressPayload?.postal_code || "",
-                city: addressPayload?.city || "",
-                country: (addressPayload?.country || "DE")
-                  .slice(0, 2)
-                  .toUpperCase(),
+                line1: orderPayload?.address_line1 || "",
+                postal_code: orderPayload?.postal_code || "",
+                city: orderPayload?.city || "",
+                country: (orderPayload?.country || "DE").slice(0, 2).toUpperCase(),
               },
             },
           },
@@ -63,19 +62,26 @@ function InstallmentForm({
       );
       if (error) throw error;
 
-      // 3) Create the Stripe schedule + local order for N months
-      const res = await http.post("payments/stripe/create-installments/", {
-        items: lineItems,
-        months,
-        payment_method_id: setupIntent.payment_method,
-        ...addressPayload,
-        coupon_code: (couponCode || couponInfo?.code || "").trim(),
-      });
+      const pmId = setupIntent?.payment_method;
+      if (!pmId) throw new Error("Payment method not returned from Stripe.");
 
-      setLocalOrderId?.(res.data.order_id);
-      onSuccess?.(res.data.order_id);
+      // 3) start schedule on backend
+      const createRes = await http.post(
+        "payments/stripe/sepa/create-installments/",
+        {
+          ...orderPayload, // items, address, coupon_code
+          months,
+          payment_method_id: pmId,
+        }
+      );
+
+      const orderId = createRes?.data?.order_id;
+      if (orderId) setLocalOrderId?.(orderId);
+
+      // status will be "processing"; webhook marks "paid" later
+      onSuccess?.(orderId);
     } catch (e) {
-      setErr(e?.message || "Failed to start installments.");
+      setErr(e?.message || "Failed to start SEPA installments.");
     } finally {
       setLoading(false);
     }
@@ -84,71 +90,31 @@ function InstallmentForm({
   return (
     <div className="space-y-3">
       <div className="border rounded p-3">
-        <CardElement options={{ hidePostalCode: true }} />
+        <IbanElement options={{ supportedCountries: ["SEPA"] }} />
+        <p className="text-xs text-gray-600 mt-2">
+          By providing your IBAN and confirming, you authorize MindMines and Stripe
+          to debit your account monthly. You can request a refund within 8 weeks
+          from the debit date per your bank’s terms.
+        </p>
       </div>
-      {err && <div className="text-red-600 text-sm">{err}</div>}
+
+      {err && <div className="text-red-600 text-sm">{String(err)}</div>}
+
       <button
-        onClick={start}
+        onClick={startInstallments}
         disabled={loading || !stripe}
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
       >
-        {loading
-          ? "Processing..."
-          : `Start ${months} × ${(total / months).toFixed(2)} € installments`}
+        {loading ? "Processing…" : `Start ${months}-month plan`}
       </button>
     </div>
   );
 }
 
-export default function StripeInstallments({
-  active,
-  setActive,
-  lineItems,
-  addressPayload,
-  setLocalOrderId,
-  onSuccess,
-  form,
-  total,
-  months,
-}) {
-  if (!active)
-    return (
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-        <input
-          type="radio"
-          name="payment"
-          value={`card_installments_${months}`}
-          onChange={setActive}
-        />
-        <span className="flex-1">
-          Card installments — {months} months (Stripe)
-        </span>
-        <span className="text-xs">Auto-charge monthly</span>
-      </label>
-    );
-
+export default function StripeInstallments(props) {
   return (
-    <>
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-        <input type="radio" name="payment" checked readOnly />
-        <span className="flex-1">
-          Card installments — {months} months (Stripe)
-        </span>
-        <span className="text-xs">Auto-charge monthly</span>
-      </label>
-      <div className="border rounded p-3">
-        <Elements stripe={stripePromise} options={{ locale: "de" }}>
-          <InstallmentForm
-            lineItems={lineItems}
-            addressPayload={addressPayload}
-            setLocalOrderId={setLocalOrderId}
-            onSuccess={onSuccess}
-            form={form}
-            total={total}
-            months={months}
-          />
-        </Elements>
-      </div>
-    </>
+    <Elements stripe={stripePromise} options={{ locale: "de" }}>
+      <InnerInstallments {...props} />
+    </Elements>
   );
 }

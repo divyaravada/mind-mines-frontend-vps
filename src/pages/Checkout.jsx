@@ -13,8 +13,9 @@ import http from "../services/http";
 import { useTranslation } from "react-i18next";
 
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import StripeCard from "../components/StripeCard";
-import StripeInstallments from "../components/StripeInstallments";
+
+import StripeSepa from "../components/StripeSepa";
+import StripeSepaInstallments from "../components/StripeSepaInstallments";
 
 const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 12: 500 };
 
@@ -78,7 +79,6 @@ export default function Checkout() {
   }, [couponInfo]);
 
   const payTotal = useMemo(() => {
-    // subtotal and shippingFee are numbers already
     const t = subtotal + shippingFee - discount;
     return Number(Math.max(0, t).toFixed(2));
   }, [subtotal, shippingFee, discount]);
@@ -148,7 +148,6 @@ export default function Checkout() {
             main.address_line1 ||
             `${main.street_name || ""} ${main.house_number || ""}`.trim();
           const { street, houseNumber } = splitAddressLine1(line1);
-          // Compute without referencing outer `form`
           const computedFullName =
             [main.first_name, main.last_name]
               .filter(Boolean)
@@ -186,11 +185,11 @@ export default function Checkout() {
       }
     })();
   }, [navigate]);
+
   useEffect(() => {
     const saved = localStorage.getItem("coupon_auto");
     if (saved && !couponInfo?.ok && !couponCode) {
       setCouponCode(saved.toUpperCase());
-      // Attempt apply automatically
       (async () => {
         try {
           const r = await http.post("coupons/apply/", {
@@ -204,6 +203,7 @@ export default function Checkout() {
       })();
     }
   }, [couponCode, couponInfo, lineItems]);
+
   // Save address
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
@@ -252,9 +252,6 @@ export default function Checkout() {
     return m;
   }, [payTotal]);
   const [selectedMonths, setSelectedMonths] = useState(null);
-  const monthly = selectedMonths
-    ? (payTotal / selectedMonths).toFixed(2)
-    : null;
   useEffect(() => {
     setSelectedMonths(availableMonths.length ? availableMonths[0] : null);
   }, [availableMonths]);
@@ -437,13 +434,10 @@ export default function Checkout() {
 
           <PayPalScriptProvider
             options={{
-              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
+              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID,
               currency: "EUR",
               intent: "capture",
               components: "buttons",
-              "disable-funding":
-                "card,credit,bancontact,blik,eps,giropay,ideal,mybank,p24,sepa,sofort,venmo",
-              locale: locale,
             }}
           >
             <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
@@ -503,7 +497,6 @@ export default function Checkout() {
                     }
                   }}
                   onClick={(_, actions) => {
-                    // Prevent rendering of any fallback funding sources
                     return actions.resolve();
                   }}
                 />
@@ -511,9 +504,9 @@ export default function Checkout() {
             )}
           </PayPalScriptProvider>
 
-          <StripeCard
-            active={payment === "card"}
-            setActive={() => setPayment("card")}
+          <StripeSepa
+            active={payment === "sepa_debit"}
+            setActive={() => setPayment("sepa_debit")}
             lineItems={lineItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
@@ -524,83 +517,51 @@ export default function Checkout() {
             couponInfo={couponInfo}
           />
 
-          {/* Stripe installments */}
-          {availableMonths.length > 0 && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
-                  {t("checkout.zeroFinancing")}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {t("checkout.chooseTerm")}
-                  <span className="ml-2 inline-flex gap-2">
-                    {availableMonths.map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setSelectedMonths(m)}
-                        className={`px-2 py-1 rounded border text-sm ${
-                          selectedMonths === m
-                            ? "bg-pink-600 text-white border-pink-600"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        {t("checkout.monthsOption", { count: m })}
-                      </button>
-                    ))}
-                  </span>
-                </div>
+          {/* SEPA installments */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
+                0% Finanzierung verfügbar
               </div>
+              <div className="text-sm text-gray-600">
+                Wählen Sie die Laufzeit:
+                <span className="ml-2 inline-flex gap-2">
+                  {[3, 6, 9].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSelectedMonths(m)}
+                      className={`px-2 py-1 rounded border text-sm ${
+                        selectedMonths === m
+                          ? "bg-pink-600 text-white border-pink-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {m} Monate
+                    </button>
+                  ))}
+                </span>
+              </div>
+            </div>
 
-              {selectedMonths && (
-                <div className="mb-2 text-sm">
-                  {t("checkout.paySplit", {
-                    count: selectedMonths,
-                    per: monthly || fmtEUR(payTotal / selectedMonths, locale),
-                    total: fmtEUR(payTotal, locale),
-                  })}
-                </div>
-              )}
-
-              <StripeInstallments
-                active={payment === "card_installments_3"}
-                setActive={() => setPayment("card_installments_3")}
+            {selectedMonths && (
+              <StripeSepaInstallments
+                active={payment === `sepa_installments_${selectedMonths}`}
+                setActive={() =>
+                  setPayment(`sepa_installments_${selectedMonths}`)
+                }
+                months={selectedMonths}
                 lineItems={lineItems}
                 addressPayload={buildAddressPayload()}
                 setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                 onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
                 form={form}
                 total={payTotal}
-                months={3}
                 couponCode={couponCode}
                 couponInfo={couponInfo}
               />
-
-              <StripeInstallments
-                active={payment === "card_installments_6"}
-                setActive={() => setPayment("card_installments_6")}
-                lineItems={lineItems}
-                addressPayload={buildAddressPayload()}
-                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                form={form}
-                total={payTotal}
-                months={6}
-              />
-
-              <StripeInstallments
-                active={payment === "card_installments_9"}
-                setActive={() => setPayment("card_installments_9")}
-                lineItems={lineItems}
-                addressPayload={buildAddressPayload()}
-                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                form={form}
-                total={payTotal}
-                months={9}
-              />
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Direct bank transfer */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">

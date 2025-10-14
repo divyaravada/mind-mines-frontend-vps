@@ -9,8 +9,8 @@ export default {
       // If you use custom color tokens like marblewhite/marbleblack/backnews*,
       // define them here (match your old palette).
       colors: {
-        marblewhite: "#ffffff",
-        marbleblack: "#0b0b0b",
+        marblewhite: "#f8fcfe",
+        marbleblack: "#17160f",
         backnewswhite: "#ec8b0b",
         backnewsdark: "#578d49",
       },

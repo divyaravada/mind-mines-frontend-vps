@@ -229,7 +229,7 @@
       "end": "gele..."
     },
     "payment": {
-      "bank": "SEPA-Überweisung",
+      "bank": "Direct-Überweisung",
       "processing": "Wird verarbeitet…",
       "payNow": "Jetzt bezahlen",
       "card": {
