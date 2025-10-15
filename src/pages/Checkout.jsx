@@ -14,8 +14,8 @@ import { useTranslation } from "react-i18next";
 
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
+import StripeCard from "../components/StripeCard";
 
 const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 12: 500 };
 
@@ -516,14 +516,13 @@ export default function Checkout() {
             )}
           </PayPalScriptProvider>
 
-          <StripeSepa
-            active={payment === "sepa_debit"}
-            setActive={() => setPayment("sepa_debit")}
+          <StripeCard
+            active={payment === "card"}
+            setActive={() => setPayment("card")}
             lineItems={lineItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            form={form}
             total={payTotal}
             couponCode={couponCode}
             couponInfo={couponInfo}
