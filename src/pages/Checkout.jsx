@@ -434,10 +434,12 @@ export default function Checkout() {
 
           <PayPalScriptProvider
             options={{
-              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID,
+              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
               currency: "EUR",
               intent: "capture",
               components: "buttons",
+              locale: i18n.language === "de" ? "de_DE" : "en_US",
+              disableFunding: "card",
             }}
           >
             <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
@@ -459,6 +461,24 @@ export default function Checkout() {
                 <PayPalButtons
                   fundingSource="paypal"
                   style={{ layout: "horizontal", label: "paypal" }}
+                  onClick={async (_, actions) => {
+                    // 1) Require address saved
+                    if (!addressIdRef.current) {
+                      await saveAddress();
+                      if (!addressIdRef.current) {
+                        alert(t("checkout.saveAddressFirst"));
+                        return actions.reject();
+                      }
+                    }
+                    // 2) Optional: ping backend to validate stock/prices
+                    try {
+                      await http.post("orders/validate/", { items: lineItems }); // implement a cheap validator
+                    } catch {
+                      alert(t("checkout.validationFailed"));
+                      return actions.reject();
+                    }
+                    return actions.resolve();
+                  }}
                   createOrder={async () => {
                     try {
                       const res = await http.post(
@@ -484,7 +504,10 @@ export default function Checkout() {
                   onApprove={async (data) => {
                     try {
                       const cap = await http.post(
-                        `payments/paypal/capture/${data.orderID}/`
+                        `payments/paypal/capture/${data.orderID}/`,
+                        {
+                          local_order_id: localOrderIdRef.current,
+                        }
                       );
                       if (cap.data?.status === "COMPLETED") {
                         onSuccessfulOrder(localOrderIdRef.current);
@@ -495,9 +518,6 @@ export default function Checkout() {
                       alert("Capture request failed.");
                       throw e;
                     }
-                  }}
-                  onClick={(_, actions) => {
-                    return actions.resolve();
                   }}
                 />
               </div>
