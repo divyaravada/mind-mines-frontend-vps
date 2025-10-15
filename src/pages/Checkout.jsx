@@ -618,7 +618,7 @@ export default function Checkout() {
                       "payments/stripe/bank/create-intent/",
                       {
                         items: lineItems,
-                        payment_method: "bank_transfer_sepa",
+                        payment_method: "bank",
                         ...buildAddressPayload(),
                         coupon_code: (
                           couponCode ||
@@ -649,8 +649,17 @@ export default function Checkout() {
 
                     onSuccessfulOrder(id);
                   } catch (e) {
-                    console.error(e);
-                    alert(t("checkout.bankCreateFailed"));
+                    const msg =
+                      e?.response?.data?.detail ||
+                      (e?.response?.data?.errors &&
+                        JSON.stringify(e.response.data.errors)) ||
+                      e?.message ||
+                      t("checkout.bankCreateFailed");
+                    alert(msg);
+                    console.error(
+                      "BANK TRANSFER ERROR:",
+                      e?.response?.data || e
+                    );
                   }
                 }}
                 className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black"
