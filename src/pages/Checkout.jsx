@@ -462,20 +462,12 @@ export default function Checkout() {
                   fundingSource="paypal"
                   style={{ layout: "horizontal", label: "paypal" }}
                   onClick={async (_, actions) => {
-                    // 1) Require address saved
                     if (!addressIdRef.current) {
                       await saveAddress();
                       if (!addressIdRef.current) {
                         alert(t("checkout.saveAddressFirst"));
                         return actions.reject();
                       }
-                    }
-                    // 2) Optional: ping backend to validate stock/prices
-                    try {
-                      await http.post("orders/validate/", { items: lineItems }); // implement a cheap validator
-                    } catch {
-                      alert(t("checkout.validationFailed"));
-                      return actions.reject();
                     }
                     return actions.resolve();
                   }}
