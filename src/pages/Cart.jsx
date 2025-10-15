@@ -253,8 +253,8 @@ export default function CartPage() {
             <BrandBadge label="PayPal" />
             <BrandBadge label="Mastercard" />
             <BrandBadge label="VISA" />
-            <BrandBadge label="Klarna" />
-            <BrandBadge label="Apple Pay" />
+            <BrandBadge label="Giropay" />
+            <BrandBadge label="SEPA" />
           </div>
         </div>
       </div>

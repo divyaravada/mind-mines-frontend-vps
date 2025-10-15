@@ -162,10 +162,14 @@ export default function ProductDetailPage() {
               className="ml-2 border rounded px-2 py-1 w-20"
             />
           </div>
+          <p>
+            {" "}
+            <strong>{t("stock")}:</strong> {product.quantity}
+          </p>
 
           <button
             onClick={handleAddToCart}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded font-bold"
+            className="px-4 py-2 mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
             {t("Add to Cart")}
           </button>
