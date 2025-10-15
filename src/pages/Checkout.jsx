@@ -575,6 +575,80 @@ export default function Checkout() {
             )}
           </div>
 
+          {/* Direct bank transfer (SEPA credit transfer via Stripe) */}
+          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+            <input
+              type="radio"
+              name="payment"
+              value="bank"
+              checked={payment === "bank"}
+              onChange={() => setPayment("bank")}
+            />
+            <span className="flex-1">{t("checkout.bank")}</span>
+            <span className="text-xs">{t("checkout.ibanbic")}</span>
+          </label>
+
+          {payment === "bank" && (
+            <div className="border rounded p-3 space-y-3">
+              <p className="text-sm text-gray-600">{t("checkout.bankNote")}</p>
+              <button
+                onClick={async () => {
+                  try {
+                    if (!addressIdRef.current) {
+                      await saveAddress();
+                      if (!addressIdRef.current) {
+                        alert(t("checkout.saveAddressFirst"));
+                        return;
+                      }
+                    }
+                    const res = await http.post(
+                      "payments/stripe/bank/create-intent/",
+                      {
+                        items: lineItems,
+                        payment_method: "bank_transfer_sepa",
+                        ...buildAddressPayload(),
+                        coupon_code: (
+                          couponCode ||
+                          couponInfo?.code ||
+                          ""
+                        ).trim(),
+                      }
+                    );
+
+                    const id = res.data?.order_id;
+                    sessionStorage.setItem(
+                      "bank_checkout_info",
+                      JSON.stringify({
+                        order_id: id,
+                        order_number: res.data?.order_number,
+                        amount: res.data?.amount,
+                        currency: res.data?.currency,
+                        iban: res.data?.iban,
+                        bic: res.data?.bic,
+                        beneficiary: res.data?.beneficiary,
+                        reference: res.data?.reference,
+                        instructions: res.data?.instructions,
+                        payment_intent: res.data?.payment_intent,
+                      })
+                    );
+
+                    // Show success page; it can read bank_checkout_info and display instructions
+                    onSuccessfulOrder(id);
+                  } catch (e) {
+                    console.error(e);
+                    alert(t("checkout.bankCreateFailed"));
+                  }
+                }}
+                className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black"
+              >
+                {t("checkout.placeBankOrder", {
+                  total: fmtEUR(payTotal, locale),
+                  defaultValue: "Place order (bank transfer) — {{total}}",
+                })}
+              </button>
+            </div>
+          )}
+
           {/* Direct bank transfer */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
