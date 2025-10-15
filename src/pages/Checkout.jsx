@@ -608,7 +608,6 @@ export default function Checkout() {
                   try {
                     const res = await http.post("payments/bank/create/", {
                       items: lineItems,
-                      payment_method: "bank",
                       ...buildAddressPayload(),
                       coupon_code: (
                         couponCode ||
