@@ -433,6 +433,18 @@ export default function Checkout() {
             {t("checkout.deliveryNote")}
           </p>
 
+          <StripeCard
+            active={payment === "card"}
+            setActive={() => setPayment("card")}
+            lineItems={lineItems}
+            addressPayload={buildAddressPayload()}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+            total={payTotal}
+            couponCode={couponCode}
+            couponInfo={couponInfo}
+          />
+
           <PayPalScriptProvider
             options={{
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
@@ -529,17 +541,6 @@ export default function Checkout() {
             couponCode={couponCode}
             couponInfo={couponInfo}
           />
-          <StripeCard
-            active={payment === "card"}
-            setActive={() => setPayment("card")}
-            lineItems={lineItems}
-            addressPayload={buildAddressPayload()}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            total={payTotal}
-            couponCode={couponCode}
-            couponInfo={couponInfo}
-          />
 
           {/* SEPA installments */}
           <div className="mt-3">
@@ -587,92 +588,7 @@ export default function Checkout() {
             )}
           </div>
 
-          {/* Direct bank transfer (SEPA credit transfer via Stripe) */}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-            <input
-              type="radio"
-              name="payment"
-              value="bank"
-              checked={payment === "bank"}
-              onChange={() => setPayment("bank")}
-            />
-            <span className="flex-1">{t("checkout.bank")}</span>
-            <span className="text-xs">{t("checkout.ibanbic")}</span>
-          </label>
-
-          {payment === "bank" && (
-            <div className="border rounded p-3 space-y-3">
-              <p className="text-sm text-gray-600">{t("checkout.bankNote")}</p>
-              <button
-                onClick={async () => {
-                  try {
-                    if (!addressIdRef.current) {
-                      await saveAddress();
-                      if (!addressIdRef.current) {
-                        alert(t("checkout.saveAddressFirst"));
-                        return;
-                      }
-                    }
-
-                    const res = await http.post(
-                      "payments/stripe/bank/create-intent/",
-                      {
-                        items: lineItems,
-                        payment_method: "bank",
-                        ...buildAddressPayload(),
-                        coupon_code: (
-                          couponCode ||
-                          couponInfo?.code ||
-                          ""
-                        ).trim(),
-                      }
-                    );
-
-                    const id = res.data?.order_id;
-
-                    // Persist details for success page
-                    sessionStorage.setItem(
-                      "bank_checkout_info",
-                      JSON.stringify({
-                        order_id: id,
-                        order_number: res.data?.order_number,
-                        amount: res.data?.amount, // cents
-                        currency: res.data?.currency, // "EUR"
-                        iban: res.data?.iban,
-                        bic: res.data?.bic,
-                        beneficiary: res.data?.beneficiary,
-                        reference: res.data?.reference,
-                        instructions: res.data?.instructions,
-                        payment_intent: res.data?.payment_intent,
-                      })
-                    );
-
-                    onSuccessfulOrder(id);
-                  } catch (e) {
-                    const msg =
-                      e?.response?.data?.detail ||
-                      (e?.response?.data?.errors &&
-                        JSON.stringify(e.response.data.errors)) ||
-                      e?.message ||
-                      t("checkout.bankCreateFailed");
-                    alert(msg);
-                    console.error(
-                      "BANK TRANSFER ERROR:",
-                      e?.response?.data || e
-                    );
-                  }
-                }}
-                className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black"
-              >
-                {t("checkout.placeBankOrder", {
-                  total: fmtEUR(payTotal, locale),
-                  defaultValue: "Place order (bank transfer) — {{total}}",
-                })}
-              </button>
-            </div>
-          )}
-
-          {/* Direct bank transfer
+          {/* Direct bank transfer*/}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
               type="radio"
@@ -729,7 +645,7 @@ export default function Checkout() {
                 })}
               </button>
             </div>
-          )} */}
+          )}
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
             <Badge
