@@ -601,6 +601,7 @@ export default function Checkout() {
                         return;
                       }
                     }
+
                     const res = await http.post(
                       "payments/stripe/bank/create-intent/",
                       {
@@ -616,13 +617,15 @@ export default function Checkout() {
                     );
 
                     const id = res.data?.order_id;
+
+                    // Persist details for success page
                     sessionStorage.setItem(
                       "bank_checkout_info",
                       JSON.stringify({
                         order_id: id,
                         order_number: res.data?.order_number,
-                        amount: res.data?.amount,
-                        currency: res.data?.currency,
+                        amount: res.data?.amount, // cents
+                        currency: res.data?.currency, // "EUR"
                         iban: res.data?.iban,
                         bic: res.data?.bic,
                         beneficiary: res.data?.beneficiary,
@@ -632,7 +635,6 @@ export default function Checkout() {
                       })
                     );
 
-                    // Show success page; it can read bank_checkout_info and display instructions
                     onSuccessfulOrder(id);
                   } catch (e) {
                     console.error(e);
@@ -649,7 +651,7 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Direct bank transfer */}
+          {/* Direct bank transfer
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
               type="radio"
@@ -706,7 +708,7 @@ export default function Checkout() {
                 })}
               </button>
             </div>
-          )}
+          )} */}
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
             <Badge
