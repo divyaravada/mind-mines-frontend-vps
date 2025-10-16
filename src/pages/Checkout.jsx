@@ -17,6 +17,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
+import StripeCardInstallments from "../components/StripeCardInstallments";
 
 const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 9: 500 };
 
@@ -454,6 +455,67 @@ export default function Checkout() {
             couponCode={couponCode}
             couponInfo={couponInfo}
           />
+          {/* CARD installments */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
+                0% financing with card
+              </div>
+              <div className="text-sm text-gray-600">
+                Choose term:
+                <span className="ml-2 inline-flex gap-2">
+                  {[3, 6, 9].map((m) => (
+                    <button
+                      key={`card-${m}`}
+                      type="button"
+                      onClick={() => setSelectedMonths(m)}
+                      className={`px-2 py-1 rounded border text-sm ${
+                        selectedMonths === m
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {m} months
+                    </button>
+                  ))}
+                </span>
+              </div>
+            </div>
+
+            {selectedMonths ? (
+              <div className="text-sm text-gray-700 mb-3">
+                <div className="font-medium">
+                  Monthly payments ({selectedMonths}):{" "}
+                  {(() => {
+                    const parts = splitInstallments(payTotal, selectedMonths);
+                    return Array.isArray(parts) && parts.length > 0
+                      ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
+                      : fmtEUR(payTotal, locale);
+                  })()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Note: last month may differ by a few cents due to rounding.
+                </div>
+              </div>
+            ) : null}
+
+            {selectedMonths && (
+              <StripeCardInstallments
+                active={payment === `card_installments_${selectedMonths}`}
+                setActive={() =>
+                  setPayment(`card_installments_${selectedMonths}`)
+                }
+                months={selectedMonths}
+                lineItems={lineItems}
+                addressPayload={buildAddressPayload()}
+                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                total={payTotal}
+                couponCode={couponCode}
+                couponInfo={couponInfo}
+              />
+            )}
+          </div>
 
           <PayPalScriptProvider
             options={{
