@@ -579,15 +579,15 @@ export default function Checkout() {
               </div>
             </div>
 
-            {selectedMonths && (
+            {selectedMonths ? (
               <div className="text-sm text-gray-700 mb-3">
                 <div className="font-medium">
                   Monatsraten ({selectedMonths}):{" "}
                   {(() => {
                     const parts = splitInstallments(payTotal, selectedMonths);
-                    return parts.length
+                    return Array.isArray(parts) && parts.length > 0
                       ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
-                      : fmtEUR(payTotal, locale); // fallback: show total if something’s off
+                      : fmtEUR(payTotal, locale);
                   })()}
                 </div>
                 <div className="text-xs text-gray-500">
@@ -595,7 +595,7 @@ export default function Checkout() {
                   abweichen.
                 </div>
               </div>
-            )}
+            ) : null}
 
             {selectedMonths && (
               <StripeSepaInstallments

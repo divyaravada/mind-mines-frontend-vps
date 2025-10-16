@@ -16,8 +16,8 @@ const stripePromise = loadStripe(
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 
 const splitInstallments = (total, months) => {
-  const m = Number(months || 0);
-  const t = Number(total || 0);
+  const m = Number(months ?? 0);
+  const t = Number(total ?? 0);
 
   // Guard: if invalid inputs, return empty array
   if (!Number.isFinite(t) || !Number.isFinite(m) || m <= 0) return [];
