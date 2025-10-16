@@ -71,7 +71,7 @@ function InnerInstallments({
 
       // 3) start schedule on backend
       const createRes = await http.post(
-        "payments/stripe/sepa/create-installments/",
+        "payments/stripe/create-installments/",
         {
           ...orderPayload, // items, address, coupon_code
           months,
