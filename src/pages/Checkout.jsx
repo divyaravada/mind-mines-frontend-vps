@@ -18,8 +18,16 @@ import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 
-const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 12: 500 };
+const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 9: 500 };
 
+const toCents = (n) => Math.round(Number(n || 0) * 100);
+const splitInstallments = (total, months) => {
+  const tc = toCents(total);
+  const base = Math.floor(tc / months);
+  const rem = tc - base * months;
+  const parts = Array(months).fill(base);
+  if (rem) parts[months - 1] += rem;
+};
 const fmtEUR = (n, locale = "en") => {
   try {
     return new Intl.NumberFormat(locale, {
@@ -249,10 +257,12 @@ export default function Checkout() {
     const m = [];
     if (payTotal >= INSTALLMENT_THRESHOLDS["3"]) m.push(3);
     if (payTotal >= INSTALLMENT_THRESHOLDS["6"]) m.push(6);
-    if (payTotal >= INSTALLMENT_THRESHOLDS["12"]) m.push(12);
+    if (payTotal >= INSTALLMENT_THRESHOLDS["9"]) m.push(9);
     return m;
   }, [payTotal]);
+
   const [selectedMonths, setSelectedMonths] = useState(null);
+
   useEffect(() => {
     setSelectedMonths(availableMonths.length ? availableMonths[0] : null);
   }, [availableMonths]);
@@ -568,6 +578,21 @@ export default function Checkout() {
                 </span>
               </div>
             </div>
+
+            {selectedMonths && (
+              <div className="text-sm text-gray-700 mb-3">
+                <div className="font-medium">
+                  Monatsraten ({selectedMonths}):{" "}
+                  {splitInstallments(payTotal, selectedMonths)
+                    .map((amt, i) => fmtEUR(amt, locale))
+                    .join(" • ")}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Hinweis: Die letzte Rate kann wegen Rundung ein paar Cent
+                  abweichen.
+                </div>
+              </div>
+            )}
 
             {selectedMonths && (
               <StripeSepaInstallments

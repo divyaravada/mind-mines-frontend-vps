@@ -13,6 +13,26 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
+const toCents = (n) => Math.round(Number(n || 0) * 100);
+const splitInstallments = (total, months) => {
+  const tc = toCents(total);
+  const base = Math.floor(tc / months);
+  const rem = tc - base * months;
+  const parts = Array(months).fill(base);
+  if (rem) parts[months - 1] += rem;
+  return parts.map((c) => Number((c / 100).toFixed(2)));
+};
+const fmtEUR = (n) => {
+  try {
+    return new Intl.NumberFormat("de-DE", {
+      style: "currency",
+      currency: "EUR",
+    }).format(n);
+  } catch {
+    return `${Number(n || 0).toFixed(2)} €`;
+  }
+};
+
 function InnerInstallments({
   months,
   lineItems, // [{ product_id, qty }]
@@ -22,11 +42,17 @@ function InnerInstallments({
   form, // { fullName, email, ... }
   setLocalOrderId,
   onSuccess,
+  total,
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  const breakdown = Array.isArray(splitInstallments(total, months))
+    ? splitInstallments(total, months)
+    : [];
+  const perMonthLabel = breakdown.length ? fmtEUR(breakdown[0]) : null;
 
   const startInstallments = async () => {
     setErr("");
@@ -102,6 +128,16 @@ function InnerInstallments({
         </p>
       </div>
 
+      {breakdown.length > 0 && (
+        <div className="text-sm text-gray-700">
+          {breakdown.map((amt, i) => (
+            <span key={i} className="mr-2">
+              {i + 1}. {fmtEUR(amt)}
+            </span>
+          ))}
+        </div>
+      )}
+
       {err && <div className="text-red-600 text-sm">{String(err)}</div>}
 
       <button
@@ -109,7 +145,11 @@ function InnerInstallments({
         disabled={loading || !stripe}
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
       >
-        {loading ? "Processing…" : `Start ${months}-month plan`}
+        {loading
+          ? "Processing…"
+          : `Start ${months}-month plan${
+              perMonthLabel ? ` — ${perMonthLabel}/mo` : ""
+            }`}
       </button>
     </div>
   );
