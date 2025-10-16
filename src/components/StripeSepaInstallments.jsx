@@ -1,5 +1,5 @@
 // src/components/StripeInstallments.jsx
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -15,7 +15,10 @@ const stripePromise = loadStripe(
 
 function InnerInstallments({
   months,
-  orderPayload, // { items, address_line1, ... , coupon_code }
+  lineItems, // [{ product_id, qty }]
+  addressPayload, // { address_line1, postal_code, city, country, phone, ... }
+  couponCode,
+  couponInfo,
   form, // { fullName, email, ... }
   setLocalOrderId,
   onSuccess,
@@ -25,25 +28,19 @@ function InnerInstallments({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const total = useMemo(() => {
-    // let backend be source of truth; this is just a label if you want
-    // you can pass a "total" prop from Checkout if you prefer
-    return null;
-  }, []);
-
   const startInstallments = async () => {
     setErr("");
     if (!stripe || !elements) return;
     setLoading(true);
     try {
-      // 1) create SetupIntent (save mandate)
+      // 1) Create SetupIntent for SEPA mandate
       const siRes = await http.post(
         "payments/stripe/sepa/create-setup-intent/"
       );
       const clientSecret = siRes?.data?.clientSecret;
       if (!clientSecret) throw new Error("Missing SetupIntent client secret");
 
-      // 2) confirm mandate with IBAN + billing details
+      // 2) Confirm SEPA mandate
       const { setupIntent, error } = await stripe.confirmSepaDebitSetup(
         clientSecret,
         {
@@ -53,10 +50,10 @@ function InnerInstallments({
               name: form?.fullName || "",
               email: form?.email || "",
               address: {
-                line1: orderPayload?.address_line1 || "",
-                postal_code: orderPayload?.postal_code || "",
-                city: orderPayload?.city || "",
-                country: (orderPayload?.country || "DE")
+                line1: addressPayload?.address_line1 || "",
+                postal_code: addressPayload?.postal_code || "",
+                city: addressPayload?.city || "",
+                country: (addressPayload?.country || "DE")
                   .slice(0, 2)
                   .toUpperCase(),
               },
@@ -69,20 +66,23 @@ function InnerInstallments({
       const pmId = setupIntent?.payment_method;
       if (!pmId) throw new Error("Payment method not returned from Stripe.");
 
-      // 3) start schedule on backend
+      // 3) Start the installments schedule on backend
+      const payload = {
+        items: lineItems, // <-- REQUIRED
+        months,
+        payment_method_id: pmId, // <-- REQUIRED
+        method: "sepa_debit", // optional (defaults to sepa_debit)
+        ...addressPayload, // your address fields
+        coupon_code: (couponCode || couponInfo?.code || "").trim(),
+      };
+
       const createRes = await http.post(
         "payments/stripe/create-installments/",
-        {
-          ...orderPayload, // items, address, coupon_code
-          months,
-          payment_method_id: pmId,
-        }
+        payload
       );
-
       const orderId = createRes?.data?.order_id;
       if (orderId) setLocalOrderId?.(orderId);
 
-      // status will be "processing"; webhook marks "paid" later
       onSuccess?.(orderId);
     } catch (e) {
       setErr(e?.message || "Failed to start SEPA installments.");
