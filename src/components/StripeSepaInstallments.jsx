@@ -14,14 +14,25 @@ const stripePromise = loadStripe(
 );
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
+
 const splitInstallments = (total, months) => {
-  const tc = toCents(total);
-  const base = Math.floor(tc / months);
-  const rem = tc - base * months;
-  const parts = Array(months).fill(base);
-  if (rem) parts[months - 1] += rem;
+  const m = Number(months || 0);
+  const t = Number(total || 0);
+
+  // Guard: if invalid inputs, return empty array
+  if (!Number.isFinite(t) || !Number.isFinite(m) || m <= 0) return [];
+
+  const tc = toCents(t);
+  const base = Math.floor(tc / m);
+  const rem = tc - base * m;
+
+  const parts = Array(m).fill(base);
+  if (rem) parts[m - 1] += rem; // last month absorbs remainder
+
+  // return numbers in euros with 2 decimals
   return parts.map((c) => Number((c / 100).toFixed(2)));
 };
+
 const fmtEUR = (n) => {
   try {
     return new Intl.NumberFormat("de-DE", {

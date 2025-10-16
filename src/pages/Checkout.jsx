@@ -583,9 +583,12 @@ export default function Checkout() {
               <div className="text-sm text-gray-700 mb-3">
                 <div className="font-medium">
                   Monatsraten ({selectedMonths}):{" "}
-                  {splitInstallments(payTotal, selectedMonths)
-                    .map((amt, i) => fmtEUR(amt, locale))
-                    .join(" • ")}
+                  {(() => {
+                    const parts = splitInstallments(payTotal, selectedMonths);
+                    return parts.length
+                      ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
+                      : fmtEUR(payTotal, locale); // fallback: show total if something’s off
+                  })()}
                 </div>
                 <div className="text-xs text-gray-500">
                   Hinweis: Die letzte Rate kann wegen Rundung ein paar Cent
