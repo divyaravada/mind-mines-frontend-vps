@@ -60,10 +60,14 @@ function InnerInstallments({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
+  const parts = splitInstallments(total, months);
+
+  const perMonthLabel =
+    Array.isArray(parts) && parts.length ? fmtEUR(parts[0]) : null;
+
   const breakdown = Array.isArray(splitInstallments(total, months))
-    ? splitInstallments(total, months)
+    ? parts
     : [];
-  const perMonthLabel = breakdown.length ? fmtEUR(breakdown[0]) : null;
 
   const startInstallments = async () => {
     setErr("");
