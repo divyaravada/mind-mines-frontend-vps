@@ -557,7 +557,7 @@
     "monthsOption_other": "{{count}} months",
     "paySplit": "Pay <strong>{{count}} × {{per}}</strong> (total {{total}})",
     "klarnaLabel": "Pay {{count}} × {{per}} with Klarna (0% financing)",
-    "bank": "Direct Bank Transfer (SEPA)",
+    "bank": "Direct Manual Bank Transfer",
     "ibanbic": "IBAN/BIC",
     "bankNote": "You will receive our bank details and reference. Please transfer the amount within 24 hours.",
     "bankCreateFailed": "Failed to create bank transfer order. Please log in and try again.",
