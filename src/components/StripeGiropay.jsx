@@ -81,6 +81,7 @@ export default function StripeGiropay({
   setLocalOrderId,
   total,
   onSuccess,
+  country,
 }) {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
@@ -161,6 +162,8 @@ export default function StripeGiropay({
               orderId={orderId}
               addressPayload={addressPayload}
               onSuccess={onSuccess}
+              total={total}
+              country={country}
             />
           </Elements>
         </div>

@@ -143,6 +143,8 @@ export default function Checkout() {
       is_default: true,
     };
   };
+  const addr = buildAddressPayload();
+  const country2 = (addr?.country || "").slice(0, 2).toUpperCase();
 
   // Prefill
   useEffect(() => {
@@ -687,6 +689,7 @@ export default function Checkout() {
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
             total={payTotal}
+            country={country2}
           />
 
           {/* Direct bank transfer*/}
