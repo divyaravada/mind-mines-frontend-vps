@@ -18,6 +18,7 @@ import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
+import StripeGiropay from "../components/StripeGiropay";
 
 const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 9: 500 };
 
@@ -677,6 +678,16 @@ export default function Checkout() {
               />
             )}
           </div>
+
+          <StripeGiropay
+            active={payment === "giropay"}
+            setActive={() => setPayment("giropay")}
+            lineItems={lineItems}
+            addressPayload={buildAddressPayload()} // include country: "DE" when applicable
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+            total={payTotal}
+          />
 
           {/* Direct bank transfer*/}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">

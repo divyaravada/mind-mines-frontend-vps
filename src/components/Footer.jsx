@@ -3,7 +3,6 @@ import { Globe, Landmark } from "lucide-react";
 import DarkLogo from "../assets/BlackLogo.jpg";
 import LightLogo from "../assets/OrangeLogo.jpg";
 import paypal from "../assets/paypal.svg";
-import klarna from "../assets/klarna.svg";
 import dhl from "../assets/dhl.svg";
 import dpd from "../assets/dpd.png";
 import hermes from "../assets/hermes.svg.png";
@@ -132,7 +131,6 @@ export default function Footer() {
             {t("footer.secure")}
           </span>
           <img src={paypal} alt="PayPal" className="h-10 md:h-14" />
-          <img src={klarna} alt="Klarna" className="h-10 md:h-14" />
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs md:text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600">
             <Landmark className="w-4 h-4" />
             {t("footer.payment.bank") || "SEPA Bank Transfer"}

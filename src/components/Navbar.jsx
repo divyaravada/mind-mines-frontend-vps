@@ -16,7 +16,6 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   toggleDarkMode,
   setLangMenuOpen,
-  setLegalMenuOpen,
   setMobileMenuOpen,
 } from "../features/ui/uiSlice";
 import { logout } from "../features/auth/authSlice";
@@ -116,54 +115,6 @@ export default function Navbar() {
               placeholder={t("navbar.searchPlaceholder")}
             />
             <Search className="absolute left-2 top-2 w-4 h-4 text-gray-400" />
-          </div>
-
-          {/* Legal dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => dispatch(setLegalMenuOpen(!legalMenuOpen))}
-              aria-label="Legal links"
-              className="relative ml-2 flex items-center gap-1 hover:opacity-80"
-            >
-              <FileText className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
-              <span className="text-backnewswhite dark:text-backnewsdark font-bold">
-                {t("navbar.legal")}
-              </span>
-            </button>
-            {legalMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 text-backnewswhite dark:text-backnewsdark rounded shadow-lg z-50">
-                <Link
-                  to="/privacy"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => dispatch(setLegalMenuOpen(false))}
-                >
-                  {t("navbar.privacy")}
-                </Link>
-                <Link
-                  to="/imprint"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => dispatch(setLegalMenuOpen(false))}
-                >
-                  {t("navbar.imprint")}
-                </Link>
-                <Link
-                  to="/terms"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => dispatch(setLegalMenuOpen(false))}
-                >
-                  {t("navbar.terms")}
-                </Link>
-                <button
-                  onClick={() => {
-                    window?.openCookieManager?.();
-                    dispatch(setLegalMenuOpen(false));
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  {t("cookies.manage")}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Language */}
