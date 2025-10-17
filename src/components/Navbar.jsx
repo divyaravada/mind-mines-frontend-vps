@@ -27,7 +27,6 @@ export default function Navbar() {
 
   const user = useSelector((s) => s.auth.user);
   const darkMode = useSelector((s) => s.ui.darkMode);
-  const legalMenuOpen = useSelector((s) => s.ui.legalMenuOpen);
   const mobileMenu = useSelector((s) => s.ui.mobileMenuOpen);
 
   useEffect(() => {
@@ -68,14 +67,14 @@ export default function Navbar() {
       ];
 
   return (
-    <nav className="bg-marblewhite dark:bg-marbleblack shadow sticky top-0 z-50 transition">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-4 md:px-8">
+    <nav className="bg-marblewhite dark:bg-marbleblack text-xl shadow sticky top-0 z-50 transition">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-24 px-4 md:px-8">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2">
           <img
             src={LightLogo}
             alt="MindMines"
-            className="h-20 w-auto block dark:hidden"
+            className="h-24 w-auto block dark:hidden"
           />
           <img
             src={DarkLogo}
@@ -91,7 +90,7 @@ export default function Navbar() {
               <button
                 key={i}
                 onClick={link.onClick || handleLogin}
-                className="hover:text-backnewsdark text-backnewswhite dark:text-backnewsdark font-bold"
+                className="hover:text-backnewsdark text-backnewswhite dark:text-backnewsdark"
               >
                 {link.label}
               </button>
@@ -99,7 +98,7 @@ export default function Navbar() {
               <Link
                 key={i}
                 to={link.to ?? "#"}
-                className="hover:text-backnewsdark text-backnewswhite dark:text-backnewsdark font-bold flex items-center"
+                className="hover:text-backnewsdark text-backnewswhite dark:text-backnewsdark flex items-center"
               >
                 {link.icon}
                 {link.label}

@@ -35,7 +35,7 @@ import PromoBanner from "./components/PromoBanner";
 
 export default function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="font-open-sans flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Navbar />
       <PromoBanner />
       <div className="flex-1">
