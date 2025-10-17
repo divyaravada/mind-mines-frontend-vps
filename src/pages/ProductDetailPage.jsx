@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
@@ -57,6 +58,95 @@ export default function ProductDetailPage() {
   if (!product)
     return <div className="py-24 text-center">{t("Not found")}</div>;
 
+  // ---- SEO data (safe) ----
+  const currentOrigin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://mindmines.eu";
+  const url = `${currentOrigin}/decorative-products/${product.id}/`;
+  const title = `${productTitle(product, lang)} | MindMines`;
+  const description =
+    product[`short_description1_${lang}`] ||
+    product[`short_description2_${lang}`] ||
+    product[`short_description3_${lang}`] ||
+    productTitle(product, lang);
+  // pick best image: media image -> product.image -> placeholder
+  const mediaImgs = Array.isArray(product.media)
+    ? product.media
+        .filter((m) => m && m.media_type !== "video" && m.image)
+        .map((m) => m.image)
+    : [];
+  const image =
+    mediaImgs[0] || product.image || `${currentOrigin}/og-default.jpg`;
+  const priceNumber =
+    typeof product.vat_price === "number"
+      ? product.vat_price
+      : parseFloat(
+          String(product.vat_price || product.price || 0).replace(",", ".")
+        ) || 0;
+  const inStock =
+    typeof product.quantity === "number" ? product.quantity > 0 : true;
+
+  // Product JSON-LD (all fields optional-safe)
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: productTitle(product, lang),
+    image: [image],
+    description,
+    sku: product.key || String(product.id),
+    brand: { "@type": "Brand", name: "MindMines" },
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: "EUR",
+      price: priceNumber.toFixed(2),
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    ...(product.average_rating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: String(product.average_rating),
+            reviewCount: String(product.reviews_count || 0),
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: currentOrigin },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Products",
+        item: `${currentOrigin}/decorative-products/`,
+      },
+      ...(product.category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: t("categories." + product.category + ".heading"),
+              item: `${currentOrigin}/decorative-products/category/${product.category}/`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: productTitle(product, lang),
+        item: url,
+      },
+    ],
+  };
+
   const handleAddToCart = () => {
     const unit = product.vat_price ?? product.price;
     dispatch(
@@ -89,6 +179,26 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-12   dark:text-backnewsdark">
+      <Helmet>
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={url} />+ {/* Open Graph */}
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={url} />
+        <meta property="og:image" content={image} />+ {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={image} />+ {/* Structured data */}{" "}
+        <script type="application/ld+json">
+          {JSON.stringify(productJsonLd)}
+        </script>{" "}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>{" "}
+      </Helmet>
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="w-full lg:w-1/2">
           <Carousel

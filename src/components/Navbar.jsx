@@ -68,7 +68,7 @@ export default function Navbar() {
       ];
 
   return (
-    <nav className="bg-marblewhite dark:bg-marbleblack text-xl shadow sticky top-0 z-50 transition">
+    <nav className="bg-marblewhite dark:bg-marbleblack text-lg shadow sticky top-0 z-50 transition">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-24 px-4 md:px-8">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2">

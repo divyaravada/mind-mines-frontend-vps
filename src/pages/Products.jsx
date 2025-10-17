@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -63,6 +64,52 @@ export default function ProductsPage() {
     return Math.max(1, Math.ceil(count / PAGE_SIZE));
   }, [data, products.length]);
 
+  // ---- SEO helpers (safe defaults) ----
+  const currentOrigin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://mindmines.eu";
+  const basePath = "/decorative-products";
+  const listUrl = categoryId
+    ? `${currentOrigin}${basePath}/category/${categoryId}?page=${page}`
+    : `${currentOrigin}${basePath}?page=${page}`;
+  const canonUrl = listUrl; // keep params so page 2/3 are distinct
+
+  const categoryObj = homeCategories.find(
+    (c) => String(c.id) === String(categoryId)
+  );
+  const pageTitle = categoryObj
+    ? `${t(categoryObj.label)} | MindMines`
+    : `${t("All")} | MindMines`;
+  const pageDesc = categoryObj
+    ? t("Browse {{cat}} at MindMines", { cat: t(categoryObj.label) })
+    : t("Browse products at MindMines");
+
+  // Breadcrumb JSON-LD (works with or without category)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: currentOrigin },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Products",
+        item: `${currentOrigin}${basePath}/`,
+      },
+      ...(categoryObj
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: t(categoryObj.label),
+              item: `${currentOrigin}${basePath}/category/${categoryId}/`,
+            },
+          ]
+        : []),
+    ],
+  };
+
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
   const wl = Array.isArray(wlRaw) ? wlRaw : wlRaw?.results ?? [];
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
@@ -92,6 +139,38 @@ export default function ProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 flex gap-6">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <link rel="canonical" href={canonUrl} />
+        {page > 1 && (
+          <link
+            rel="prev"
+            href={
+              categoryId
+                ? `${currentOrigin}${basePath}/category/${categoryId}?page=${
+                    page - 1
+                  }`
+                : `${currentOrigin}${basePath}?page=${page - 1}`
+            }
+          />
+        )}
+        {page < totalPages && (
+          <link
+            rel="next"
+            href={
+              categoryId
+                ? `${currentOrigin}${basePath}/category/${categoryId}?page=${
+                    page + 1
+                  }`
+                : `${currentOrigin}${basePath}?page=${page + 1}`
+            }
+          />
+        )}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>
+      </Helmet>
       {/* Filters */}
       <aside className="w-64 hidden md:block">
         <div className="mb-6 p-4 rounded shadow bg-white">
