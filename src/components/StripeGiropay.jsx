@@ -81,12 +81,12 @@ export default function StripeGiropay({
   setLocalOrderId,
   total,
   onSuccess,
+  country,
 }) {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const addr = addressPayload();
-  const country2 = (addr?.country || "").slice(0, 2).toUpperCase();
+
   // create the PaymentIntent server-side
   useEffect(() => {
     let cancelled = false;
@@ -97,6 +97,7 @@ export default function StripeGiropay({
         const res = await http.post("payments/stripe/giropay/create-intent/", {
           items: lineItems,
           ...addressPayload, // include country=DE so the backend can validate
+          country: (addressPayload?.country || "DE").slice(0, 2).toUpperCase(),
         });
         if (!cancelled) {
           setClientSecret(res.data?.clientSecret || "");
@@ -162,8 +163,6 @@ export default function StripeGiropay({
               orderId={orderId}
               addressPayload={addressPayload}
               onSuccess={onSuccess}
-              total={total}
-              country={country2}
             />
           </Elements>
         </div>
