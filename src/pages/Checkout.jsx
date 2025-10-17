@@ -18,7 +18,6 @@ import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
-import StripeGiropay from "../components/StripeGiropay";
 
 const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 9: 500 };
 

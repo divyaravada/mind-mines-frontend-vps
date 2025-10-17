@@ -1,5 +1,5 @@
 //src/components/StripeSepa.jsx
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,

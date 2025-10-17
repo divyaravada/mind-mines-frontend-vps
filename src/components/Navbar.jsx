@@ -19,6 +19,7 @@ import {
   setMobileMenuOpen,
 } from "../features/ui/uiSlice";
 import { logout } from "../features/auth/authSlice";
+import ProductSearch from "./ProductSearch";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -108,12 +109,7 @@ export default function Navbar() {
 
           {/* Search */}
           <div className="relative">
-            <input
-              type="text"
-              className="rounded px-3 py-1 pl-8 w-36 md:w-48 bg-gray-100 dark:bg-backnewsdark text-backnewswhite dark:text-backnewsdark focus:outline-none"
-              placeholder={t("navbar.searchPlaceholder")}
-            />
-            <Search className="absolute left-2 top-2 w-4 h-4 text-gray-400" />
+            <ProductSearch t={t} />
           </div>
 
           {/* Language */}
