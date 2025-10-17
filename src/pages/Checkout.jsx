@@ -29,6 +29,7 @@ const splitInstallments = (total, months) => {
   const rem = tc - base * months;
   const parts = Array(months).fill(base);
   if (rem) parts[months - 1] += rem;
+  return parts.map((c) => c / 100);
 };
 const fmtEUR = (n, locale = "en") => {
   try {
@@ -256,7 +257,7 @@ export default function Checkout() {
     else navigate("/dashboard/orders");
   };
 
-  const [payment, setPayment] = useState("paypal");
+  const [payment, setPayment] = useState("card");
   const availableMonths = useMemo(() => {
     const m = [];
     if (payTotal >= INSTALLMENT_THRESHOLDS["3"]) m.push(3);
@@ -265,15 +266,10 @@ export default function Checkout() {
     return m;
   }, [payTotal]);
 
-  const [selectedMonths, setSelectedMonths] = useState(null);
-
-  useEffect(() => {
-    setSelectedMonths(availableMonths.length ? availableMonths[0] : null);
-  }, [availableMonths]);
+  const [cardMonths, setCardMonths] = useState(null);
+  const [sepaMonths, setSepaMonths] = useState(null);
 
   const localOrderIdRef = useRef(null);
-  const isDE =
-    (buildAddressPayload?.country || "").slice(0, 2).toUpperCase() === "DE";
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -448,82 +444,85 @@ export default function Checkout() {
           <p className="text-sm text-gray-500 mb-4">
             {t("checkout.deliveryNote")}
           </p>
-          {isDE && (
-            <StripeGiropay
-              active={payment === "giropay"}
-              setActive={() => setPayment("giropay")}
-              lineItems={lineItems}
-              addressPayload={buildAddressPayload()}
-              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-              total={payTotal}
-              couponCode={couponCode}
-              couponInfo={couponInfo}
-            />
-          )}
+
+          <StripeCard
+            active={payment === "card"}
+            setActive={() => setPayment("card")}
+            lineItems={lineItems}
+            addressPayload={buildAddressPayload()}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+            total={payTotal}
+            couponCode={couponCode}
+            couponInfo={couponInfo}
+          />
 
           {/* CARD installments */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
-                0% financing with card
+          {payment.startsWith("card") && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
+                  0% financing with card
+                </div>
+                <div className="text-sm text-gray-600">
+                  Choose term:
+                  <span className="ml-2 inline-flex gap-2">
+                    {[3, 6, 9].map((m) => (
+                      <button
+                        key={`card-${m}`}
+                        type="button"
+                        onClick={() => {
+                          setCardMonths(m);
+                          setPayment(`card_installments_${m}`);
+                        }}
+                        className={`px-2 py-1 rounded border text-sm ${
+                          cardMonths === m
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        {m} months
+                      </button>
+                    ))}
+                  </span>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">
-                Choose term:
-                <span className="ml-2 inline-flex gap-2">
-                  {[3, 6, 9].map((m) => (
-                    <button
-                      key={`card-${m}`}
-                      type="button"
-                      onClick={() => setSelectedMonths(m)}
-                      className={`px-2 py-1 rounded border text-sm ${
-                        selectedMonths === m
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "hover:bg-gray-50"
-                      }`}
-                    >
-                      {m} months
-                    </button>
-                  ))}
-                </span>
-              </div>
+
+              {cardMonths ? (
+                <div className="text-sm text-gray-700 mb-3">
+                  <div className="font-medium">
+                    Monthly payments ({cardMonths}):{" "}
+                    {(() => {
+                      const parts = splitInstallments(payTotal, cardMonths);
+                      return Array.isArray(parts) && parts.length > 0
+                        ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
+                        : fmtEUR(payTotal, locale);
+                    })()}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Note: last month may differ by a few cents due to rounding.
+                  </div>
+                </div>
+              ) : null}
+
+              {cardMonths && (
+                <StripeCardInstallments
+                  active={payment === `card_installments_${cardMonths}`}
+                  setActive={() =>
+                    setPayment(`card_installments_${cardMonths}`)
+                  }
+                  months={cardMonths}
+                  lineItems={lineItems}
+                  addressPayload={buildAddressPayload()}
+                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                  total={payTotal}
+                  couponCode={couponCode}
+                  couponInfo={couponInfo}
+                />
+              )}
             </div>
-
-            {selectedMonths ? (
-              <div className="text-sm text-gray-700 mb-3">
-                <div className="font-medium">
-                  Monthly payments ({selectedMonths}):{" "}
-                  {(() => {
-                    const parts = splitInstallments(payTotal, selectedMonths);
-                    return Array.isArray(parts) && parts.length > 0
-                      ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
-                      : fmtEUR(payTotal, locale);
-                  })()}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Note: last month may differ by a few cents due to rounding.
-                </div>
-              </div>
-            ) : null}
-
-            {selectedMonths && (
-              <StripeCardInstallments
-                active={payment === `card_installments_${selectedMonths}`}
-                setActive={() =>
-                  setPayment(`card_installments_${selectedMonths}`)
-                }
-                months={selectedMonths}
-                lineItems={lineItems}
-                addressPayload={buildAddressPayload()}
-                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                total={payTotal}
-                couponCode={couponCode}
-                couponInfo={couponInfo}
-              />
-            )}
-          </div>
-
+          )}
           <PayPalScriptProvider
             options={{
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
@@ -622,79 +621,74 @@ export default function Checkout() {
           />
 
           {/* SEPA installments */}
-          <div className="mt-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
-                0% Finanzierung verfügbar
+          {(payment === "sepa_debit" ||
+            payment.startsWith("sepa_installments")) && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
+                  0% Finanzierung verfügbar
+                </div>
+                <div className="text-sm text-gray-600">
+                  Wählen Sie die Laufzeit:
+                  <span className="ml-2 inline-flex gap-2">
+                    {[3, 6, 9].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => {
+                          setSepaMonths(m);
+                          setPayment(`sepa_installments_${m}`);
+                        }}
+                        className={`px-2 py-1 rounded border text-sm ${
+                          sepaMonths === m
+                            ? "bg-pink-600 text-white border-pink-600"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        {m} Monate
+                      </button>
+                    ))}
+                  </span>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">
-                Wählen Sie die Laufzeit:
-                <span className="ml-2 inline-flex gap-2">
-                  {[3, 6, 9].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setSelectedMonths(m)}
-                      className={`px-2 py-1 rounded border text-sm ${
-                        selectedMonths === m
-                          ? "bg-pink-600 text-white border-pink-600"
-                          : "hover:bg-gray-50"
-                      }`}
-                    >
-                      {m} Monate
-                    </button>
-                  ))}
-                </span>
-              </div>
+
+              {sepaMonths ? (
+                <div className="text-sm text-gray-700 mb-3">
+                  <div className="font-medium">
+                    Monatsraten ({sepaMonths}):{" "}
+                    {(() => {
+                      const parts = splitInstallments(payTotal, sepaMonths);
+                      return Array.isArray(parts) && parts.length > 0
+                        ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
+                        : fmtEUR(payTotal, locale);
+                    })()}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Hinweis: Die letzte Rate kann wegen Rundung ein paar Cent
+                    abweichen.
+                  </div>
+                </div>
+              ) : null}
+
+              {sepaMonths && (
+                <StripeSepaInstallments
+                  active={payment === `sepa_installments_${sepaMonths}`}
+                  setActive={() =>
+                    setPayment(`sepa_installments_${sepaMonths}`)
+                  }
+                  months={sepaMonths}
+                  lineItems={lineItems}
+                  addressPayload={buildAddressPayload()}
+                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                  form={form}
+                  total={payTotal}
+                  couponCode={couponCode}
+                  couponInfo={couponInfo}
+                />
+              )}
             </div>
-
-            {selectedMonths ? (
-              <div className="text-sm text-gray-700 mb-3">
-                <div className="font-medium">
-                  Monatsraten ({selectedMonths}):{" "}
-                  {(() => {
-                    const parts = splitInstallments(payTotal, selectedMonths);
-                    return Array.isArray(parts) && parts.length > 0
-                      ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
-                      : fmtEUR(payTotal, locale);
-                  })()}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Hinweis: Die letzte Rate kann wegen Rundung ein paar Cent
-                  abweichen.
-                </div>
-              </div>
-            ) : null}
-
-            {selectedMonths && (
-              <StripeSepaInstallments
-                active={payment === `sepa_installments_${selectedMonths}`}
-                setActive={() =>
-                  setPayment(`sepa_installments_${selectedMonths}`)
-                }
-                months={selectedMonths}
-                lineItems={lineItems}
-                addressPayload={buildAddressPayload()}
-                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                form={form}
-                total={payTotal}
-                couponCode={couponCode}
-                couponInfo={couponInfo}
-              />
-            )}
-          </div>
-
-          <StripeGiropay
-            active={payment === "giropay"}
-            setActive={() => setPayment("giropay")}
-            lineItems={lineItems}
-            addressPayload={buildAddressPayload()} // include country: "DE" when applicable
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            total={payTotal}
-            country={country2}
-          />
+          )}
 
           {/* Direct bank transfer*/}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
