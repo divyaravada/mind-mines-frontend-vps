@@ -272,6 +272,8 @@ export default function Checkout() {
   }, [availableMonths]);
 
   const localOrderIdRef = useRef(null);
+  const isDE =
+    (addressPayload?.country || "").slice(0, 2).toUpperCase() === "DE";
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -446,18 +448,20 @@ export default function Checkout() {
           <p className="text-sm text-gray-500 mb-4">
             {t("checkout.deliveryNote")}
           </p>
+          {isDE && (
+            <StripeGiropay
+              active={payment === "giropay"}
+              setActive={() => setPayment("giropay")}
+              lineItems={lineItems}
+              addressPayload={buildAddressPayload()}
+              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+              total={payTotal}
+              couponCode={couponCode}
+              couponInfo={couponInfo}
+            />
+          )}
 
-          <StripeCard
-            active={payment === "card"}
-            setActive={() => setPayment("card")}
-            lineItems={lineItems}
-            addressPayload={buildAddressPayload()}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            total={payTotal}
-            couponCode={couponCode}
-            couponInfo={couponInfo}
-          />
           {/* CARD installments */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">

@@ -81,12 +81,12 @@ export default function StripeGiropay({
   setLocalOrderId,
   total,
   onSuccess,
-  country,
 }) {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const addr = addressPayload();
+  const country2 = (addr?.country || "").slice(0, 2).toUpperCase();
   // create the PaymentIntent server-side
   useEffect(() => {
     let cancelled = false;
@@ -163,7 +163,7 @@ export default function StripeGiropay({
               addressPayload={addressPayload}
               onSuccess={onSuccess}
               total={total}
-              country={country}
+              country={country2}
             />
           </Elements>
         </div>
