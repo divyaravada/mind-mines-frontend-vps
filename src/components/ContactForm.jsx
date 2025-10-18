@@ -2,11 +2,21 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSendContactMutation } from "../features/contact/contactApi";
 
+const PHONE = "+491704658288";
+const WHATSAPP = "+491704658188";
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP.replace(/\D/g, "")}`;
+const PHONE_LINK = `tel:${PHONE}`;
+const SUPPORT_EMAIL = "support@mindmines.eu";
+
 export default function ContactSection() {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+    hp: "",
+  });
 
-  // RTK Query mutation
   const [sendContact, { isLoading, isSuccess, isError }] =
     useSendContactMutation();
 
@@ -15,11 +25,16 @@ export default function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.hp) return; // bot trap
     try {
-      await sendContact(form).unwrap();
-      setForm({ name: "", email: "", message: "" });
+      await sendContact({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+      }).unwrap();
+      setForm({ name: "", email: "", message: "", hp: "" });
     } catch {
-      // error state handled by isError
+      /* handled by isError */
     }
   };
 
@@ -32,6 +47,61 @@ export default function ContactSection() {
         <p className="mb-7 text-gray-700 dark:text-gray-300">
           {t("about.contactSub")}
         </p>
+
+        {/* Direct contact cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* WhatsApp */}
+          <a
+            href={WHATSAPP_LINK}
+            target="_blank"
+            rel="noreferrer"
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-bold">{t("about.whatsapp")}</span>
+              <span className="text-xs opacity-70 ml-auto">
+                {t("about.hoursValue")}
+              </span>
+            </div>
+            <div className="text-sm opacity-80 mt-1">{WHATSAPP}</div>
+          </a>
+
+          {/* Phone (optional – remove if you don’t use one) */}
+          <a
+            href={PHONE_LINK}
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-bold">{t("about.phone")}</span>
+              <span className="text-xs opacity-70 ml-auto">
+                {t("about.hoursValue")}
+              </span>
+            </div>
+            <div className="text-sm opacity-80 mt-1">{PHONE}</div>
+          </a>
+
+          {/* Email */}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-bold">{t("about.emailLabel")}</span>
+              <span className="text-xs opacity-70 ml-auto">
+                {t("about.hoursValue")}
+              </span>
+            </div>
+            <div className="text-sm opacity-80 mt-1">{SUPPORT_EMAIL}</div>
+          </a>
+        </div>
+
+        {/* Address */}
+        <div className="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 mb-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-bold">{t("about.address")}:</span>
+            <span className="opacity-80">{t("about.addressValue")}</span>
+          </div>
+        </div>
 
         {isSuccess ? (
           <div className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded p-6 text-center font-semibold">

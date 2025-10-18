@@ -1,3 +1,4 @@
+import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
@@ -5,8 +6,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
+import { addItem } from "../features/cart/cartSlice";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
 import {
@@ -136,7 +138,14 @@ export default function ProductsPage() {
       toast.error(t("Action failed"));
     }
   };
-
+  const dispatch = useDispatch();
+  const onAddToCart = (p) => {
+    const price = typeof p.vat_price === "number" ? p.vat_price : p.price || 0;
+    dispatch(
+      addItem({ id: p.id, title: productTitle(p, lang), price, image: p.image })
+    );
+    navigate("/cart");
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 flex gap-6">
       <Helmet>
@@ -276,40 +285,16 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {products.map((p) => (
-              <div
+              <ProductTile
                 key={p.id}
-                className="relative bg-white rounded-xl p-4 shadow hover:shadow-md cursor-pointer"
-                onClick={() => navigate(`/decorative-products/${p.id}`)}
-              >
-                <img
-                  src={p.image}
-                  alt={productTitle(p, lang)}
-                  className="w-full h-40 object-cover rounded mb-2"
-                />
-                <h3 className="text-sm font-bold truncate">
-                  {productTitle(p, lang)}
-                </h3>
-                <p className="text-xs text-gray-500 truncate">
-                  {p[`short_description1_${lang}`]}
-                </p>
-                <div className="mt-1 font-bold">{p.vat_price} €</div>
-
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleWishlist(p.id);
-                  }}
-                  className={`absolute top-3 right-3 text-xl ${
-                    wlIds.has(p.id)
-                      ? "text-red-500"
-                      : isLoggedIn
-                      ? "text-gray-300 hover:text-red-400"
-                      : "text-gray-200 cursor-not-allowed"
-                  }`}
-                >
-                  {wlIds.has(p.id) ? "❤️" : "🤍"}
-                </div>
-              </div>
+                product={p}
+                title={productTitle(p, lang)}
+                subtitle={p[`short_description1_${lang}`]}
+                image={p.image}
+                wished={wlIds.has(p.id)}
+                onToggleWishlist={toggleWishlist}
+                onAddToCart={() => onAddToCart(p)}
+              />
             ))}
           </div>
         )}

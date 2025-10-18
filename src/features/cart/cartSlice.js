@@ -1,48 +1,85 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-function readInitial() {
+const LS_KEY = "cart_v1";
+
+function load() {
   try {
-    const raw = localStorage.getItem("cart");
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(LS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
+function save(items) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(items));
+  } catch {}
+}
 
-const slice = createSlice({
+const initialState = { items: load() };
+
+const cartSlice = createSlice({
   name: "cart",
-  initialState: { items: readInitial() },
+  initialState,
   reducers: {
-    addItem: (state, { payload }) => {
-      const exists = state.items.find((c) => c.id === payload.id);
-      if (exists) {
-        exists.qty += payload.qty || 1;
+    addItem: (state, action) => {
+      const { id, title, name, price, image, ...rest } = action.payload || {};
+      const itemTitle = title || name || "";
+      const p = Number(price) || 0;
+      const found = state.items.find((i) => i.id === id);
+      if (found) {
+        found.qty = Math.max(1, Number(found.qty || 1) + 1);
+        // keep latest title/image/price in sync
+        found.name = itemTitle;
+        found.title = itemTitle;
+        found.price = p;
+        if (image) found.image = image;
+        Object.assign(found, rest);
       } else {
-        state.items.push({ ...payload, qty: Math.max(1, payload.qty || 1) });
+        state.items.push({
+          id,
+          name: itemTitle,
+          title: itemTitle,
+          price: p,
+          image: image || "",
+          qty: 1,
+          ...rest,
+        });
       }
+      save(state.items);
     },
-    removeItem: (state, { payload: id }) => {
-      state.items = state.items.filter((c) => c.id !== id);
+    removeItem: (state, action) => {
+      const id = action.payload;
+      state.items = state.items.filter((i) => i.id !== id);
+      save(state.items);
     },
-    updateQty: (state, { payload }) => {
-      const { id, qty } = payload;
-      const it = state.items.find((c) => c.id === id);
-      if (it) it.qty = Math.max(1, Number(qty || 1));
+    setQty: (state, action) => {
+      const { id, qty } = action.payload || {};
+      const it = state.items.find((i) => i.id === id);
+      if (it) {
+        it.qty = Math.max(1, Number(qty) || 1);
+        save(state.items);
+      }
     },
     clearCart: (state) => {
       state.items = [];
-    },
-    setCart: (state, { payload }) => {
-      state.items = Array.isArray(payload) ? payload : [];
+      save(state.items);
     },
   },
 });
 
-export const { addItem, removeItem, updateQty, clearCart, setCart } =
-  slice.actions;
-export default slice.reducer;
-export const selectCartItems = (s) => s.cart.items;
-export const selectCartCount = (s) =>
-  s.cart.items.reduce((sum, it) => sum + it.qty, 0);
-export const selectCartSubtotal = (s) =>
-  s.cart.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+export const { addItem, removeItem, setQty, clearCart } = cartSlice.actions;
+
+export const updateQty = cartSlice.actions.setQty;
+
+export const selectCartItems = (state) => state.cart?.items || [];
+export const selectCartCount = (state) =>
+  (state.cart?.items || []).reduce((n, i) => n + (Number(i.qty) || 0), 0);
+export const selectCartSubtotal = (state) =>
+  (state.cart?.items || []).reduce(
+    (sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 0),
+    0
+  );
+
+export default cartSlice.reducer;

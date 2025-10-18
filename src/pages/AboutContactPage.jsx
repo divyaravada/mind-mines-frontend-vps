@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import aboutUs from "../assets/aboutUs.jpg";
 import ContactSection from "../components/ContactForm";
+import TrustBadges from "../components/TrustBadges";
 
 export default function AboutContactPage() {
   const { t } = useTranslation();
@@ -34,6 +35,11 @@ export default function AboutContactPage() {
             {t("about.vision")}
           </div>
         </div>
+      </div>
+
+      {/* Trust badges */}
+      <div className="px-6 max-w-6xl mx-auto pb-6">
+        <TrustBadges />
       </div>
 
       {/* Contact Us */}

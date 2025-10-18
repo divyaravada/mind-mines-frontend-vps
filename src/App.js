@@ -9,14 +9,14 @@ import SignupWithGoogle from "./pages/SignupWithGoogle";
 import Login from "./pages/Login";
 import Logout from "./pages/Logout";
 import Home from "./pages/Home";
-import About from "./pages/About";
+import About from "./pages/AboutContactPage";
 import Products from "./pages/Products";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import NaturalStonePage from "./pages/NaturalStonePage";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
-import PrivacyPage from "./pages/PrivacyPage";
+import PrivacyPage from "./pages/PrivacyPolicyPage";
 import ImprintPage from "./pages/ImprintPage";
 import TermsPage from "./pages/TermsPage";
 import Dashboard from "./pages/Dashboard";
@@ -32,6 +32,10 @@ import AccountAddresses from "./components/Addresses";
 import RequireAuth from "./routes/RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
 import PromoBanner from "./components/PromoBanner";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import ReturnsPage from "./pages/ReturnsPage";
+import ShippingPolicyPage from "./pages/ShippingPolicyPage";
+import AboutContactPage from "./pages/AboutContactPage";
 
 export default function App() {
   return (
@@ -58,7 +62,7 @@ export default function App() {
 
           {/* Public pages */}
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about" element={<AboutContactPage />} />
           <Route path="/decorative-products" element={<Products />} />
           <Route
             path="/decorative-products/category/:categoryId"
@@ -79,9 +83,11 @@ export default function App() {
             }
           />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/imprint" element={<ImprintPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/returns" element={<ReturnsPage />} />
+          <Route path="/shipping" element={<ShippingPolicyPage />} />
 
           {/* Account (protected) */}
           <Route

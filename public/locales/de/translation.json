@@ -51,64 +51,110 @@
   "All": "All",
   "No products found in this category.": "No products found in this category.",
   "short_description": "Kurze Beschreibung",
-  "categories": {
-    "home_decor": {
-      "heading": " WOHNDEKOR & ACCESSOIRES",
-      "description": "Verleihen Sie Ihrem Zuhause mit zeitlosen Marmor-Dekorationen und Accessoires für jeden Stil eine besondere Note.",
-      "button": "Wohnaccessoires shoppen"
-    },
-    "storage": {
-      "heading": "AUFBEWAHRUNG UND ORGANISATION",
-      "description": "Entdecken Sie elegante und langlebige Aufbewahrungslösungen aus hochwertigem Marmor und Granit.",
-      "button": "Aufbewahrung shoppen"
-    },
-    "kitchen": {
-      "heading": "KÜCHE UND GERÄTE",
-      "description": "Verwandeln Sie Ihre Küche mit unserer exklusiven Auswahl an Accessoires in einen luxuriösen und funktionalen Raum – für mehr Schönheit und Alltagstauglichkeit beim Kochen.",
-      "button": "Küchenzubehör shoppen"
-    },
-    "office": {
-      "heading": "BÜROBEDARF",
-      "description": "Verschönern Sie Ihren Arbeitsplatz mit eleganten Marmor-Accessoires, die Design und Funktionalität vereinen.",
-      "button": "Shop Storage"
-    },
-    "bathroom": {
-      "heading": "BADEZIMMER-ACCESSOIRES",
-      "description": "Bringen Sie Luxus in Ihr Bad mit unseren einzigartigen Marmor-Accessoires – dort, wo Stil auf täglichen Komfort trifft.",
-      "button": "Bürobedarf shoppen"
-    },
-    "sculpture": {
-      "heading": "SKULPTUREN & INDIVIDUALISIERUNG",
-      "description": "Entdecken Sie exklusive Skulpturen oder gestalten Sie Marmorelemente individuell nach Ihrem Geschmack und Bedarf.",
-      "button": "Skulpturen shoppen"
-    }
+  "common": {
+    "shopNow": "Jetzt shoppen",
+    "learnMore": "Mehr erfahren",
+    "loading": "Wird geladen…",
+    "ok": "OK",
+    "close": "Schließen"
   },
   "home": {
+    "heroFallback": {
+      "title": "Willkommen bei MindMines",
+      "subtitle": "Entdecken Sie unsere aktuellen Kollektionen."
+    },
     "ourCollection": "Unsere Kollektion",
     "collection": {
-      "mobileHolder": "Handyhalter",
-      "multipurpose": "Mehrzweckhalter",
-      "kitchenBowl": "Küchenschüssel",
-      "tray": "Tablett"
+      "mobileHolder": "Handyhalter (Marmor)",
+      "multipurpose": "Organizer (Mehrzweck)",
+      "kitchenBowl": "Küchenschale",
+      "tray": "Marmortablett"
     },
     "aboutUs": {
-      "heading": "Über Uns",
-      "text": "Wir verbinden südasiatisches Handwerk mit europäischem Minimalismus und schaffen zeitlose Marmorstücke für jedes Zuhause. Mit Sitz in Deutschland sorgt unser Team für höchste Qualität und ethische Beschaffung. ",
-      "secText": "Entdecken Sie einzigartige Designs aus Naturstein – mit Sorgfalt gefertigt und für die Ewigkeit gemacht."
+      "alt": "Über uns",
+      "heading": "Aus Stein gefertigt, fürs Leben gestaltet",
+      "text": "Wir beziehen und fertigen hochwertige Natursteinprodukte für den Alltag – langlebig und mit Liebe zum Detail.",
+      "secText": "Von maßgefertigten Küchenarbeitsplatten bis zu Skulpturen und Büroaccessoires – jedes Stück entsteht mit Sorgfalt."
     },
     "features": {
-      "materials": "Natürliche Materialien",
-      "germany": "Ansässig in Deutschland",
-      "stones": "Aus hochwertigen Steinen",
-      "return": "14 Tage Rückgaberecht"
+      "materials": "Hochwertige Naturmaterialien",
+      "germany": "Sitz in Deutschland",
+      "stones": "Marmor · Granit · Travertin",
+      "return": "14 Tage Rückgabe"
     },
     "categories": {
-      "home_decor": "Wohndekor",
-      "storage": "Aufbewahrung",
-      "kitchen": "Küche",
-      "office": "Büro",
-      "bathroom": "Badezimmer",
-      "sculptures_customization": "Skulpturen & Personalisierung"
+      "natural_stone": {
+        "heading": "Naturstein",
+        "description": "Marmor, Granit, Travertin & mehr – Platten, Fliesen und Projekte nach Maß.",
+        "button": "Naturstein entdecken"
+      },
+      "countertops": {
+        "heading": "Küchenarbeitsplatten",
+        "description": "Individuelle Arbeitsplatten aus Marmor & Granit – passgenau, versiegelt, montiert.",
+        "button": "Angebot anfordern"
+      },
+      "home_decor": {
+        "heading": "Wohndekor",
+        "description": "Vasen, Tabletts, Kerzenständer – besondere Akzente aus echtem Stein.",
+        "button": "Wohndekor shoppen"
+      },
+      "storage": {
+        "heading": "Aufbewahrung & Organisation",
+        "description": "Tabletts, Stiftehalter und Ordnungssysteme mit Charakter.",
+        "button": "Aufbewahrung shoppen"
+      },
+      "kitchen": {
+        "heading": "Küche & Servieren",
+        "description": "Schalen, Platten, Messerablagen – funktional, hochwertig.",
+        "button": "Küche shoppen"
+      },
+      "office": {
+        "heading": "Büro",
+        "description": "Schreibtisch-Organizer, Handyhalter u. v. m.",
+        "button": "Büro shoppen"
+      },
+      "bathroom": {
+        "heading": "Bad-Accessoires",
+        "description": "Seifenschalen, Zahnbürstenhalter und Sets aus Stein.",
+        "button": "Bad shoppen"
+      },
+      "sculpture": {
+        "heading": "Skulpturen & Maßanfertigung",
+        "description": "Statement-Skulpturen und Einzelanfertigungen.",
+        "button": "Skulpturen ansehen"
+      }
+    },
+    "cta": {
+      "countertopTitle": "Planen Sie Ihre Traum-Arbeitsplatte",
+      "countertopLead": "Senden Sie Maße oder eine kurze Nachricht – wir erstellen ein Angebot und beraten zu Stein & Finish.",
+      "whatsapp": "WhatsApp",
+      "requestQuote": "Angebot anfordern"
+    },
+    "topsellers": {
+      "title": "Bestseller",
+      "seeAll": "Alle ansehen",
+      "addToCart": "In den Warenkorb",
+      "added": "Hinzugefügt!",
+      "from": "ab"
+    },
+    "trust": {
+      "title": "Warum MindMines?",
+      "secure": "100 % sichere Zahlungen (PayPal & SEPA)",
+      "based": "Sitz in Deutschland (Horneburg)",
+      "dhl": "Schneller DHL-Versand in der EU",
+      "packaging": "Sichere Verpackung für empfindliche Marmorartikel",
+      "handmade": "Handarbeit in Premium-Qualität",
+      "badgePayments": "Sicherer Checkout & Käuferschutz"
+    },
+    "handmade": {
+      "title": "Garantie: Handarbeit",
+      "text": "Alle Stücke werden von erfahrenen Handwerkern gefertigt und vor dem Versand geprüft. Naturstein-Variationen sind ein Qualitätsmerkmal."
+    },
+    "shipping": {
+      "title": "Bedingungen für kostenlosen Versand",
+      "de": "Deutschland: Kostenloser Versand ab {{amount}} €",
+      "eu": "EU: Kostenloser Versand ab {{amount}} €",
+      "note": "Schwere/Übergrößen können Zuschläge verursachen (an der Kasse ersichtlich)."
     }
   },
   "auth": {
@@ -147,18 +193,35 @@
     "cta": "Zur Startseite"
   },
   "about": {
-    "heading": "Über Uns",
-    "intro": "Unsere Reise begann als leidenschaftliche Marmorhändler, die mit großer Sorgfalt exquisite Steine aus dem Herzen Italiens bezogen. So knüpften wir Kontakte zu begeisterten Kunden auf den lebendigen Märkten Dubais, in den vielfältigen Landschaften Indiens und im kulturell reichen Deutschland. Inspiriert von unserer tiefen Liebe zur zeitlosen Schönheit des Natursteins wagten wir bald den Schritt in die faszinierende Welt der Handwerkskunst. So konnten wir Marmor, Granit und sogar Kieselsteine in einzigartige und geheimnisvolle Dekorationsobjekte verwandeln, die eine Geschichte erzählen.",
-    "founded": "Im Jahr 2022 gründeten wir unser eigenes Unternehmen mit einer klaren Mission: Unsere Leidenschaft für edle Materialien und künstlerische Handwerkskunst mit einem weltweiten Publikum zu teilen. Wir glauben, dass jeder Stein einen einzigartigen Charakter besitzt – und unsere Kreationen feiern diese Individualität.",
-    "today": "Heute werden wir von der Zufriedenheit und Inspiration unserer geschätzten Kunden getragen. Das motiviert uns, stets zu innovieren und zu wachsen. Unser Anspruch ist zweifach: Materialien ethisch und nachhaltig zu beschaffen und dabei eng mit erfahrenen Handwerkern zusammenzuarbeiten, die unseren Ideen Leben einhauchen. Gemeinsam schaffen wir bemerkenswerte Steinobjekte – von eleganten Skulpturen bis hin zu ausdrucksstarken Wohnaccessoires – jedes Stück gestaltet, um mit Schönheit und Raffinesse zu begeistern.",
-    "vision": "Unsere Vision ist eine Welt, in der der Zauber des Steins jeden Raum bereichert – mit Wärme, Eleganz und einem Hauch von Natur, sowohl im privaten als auch im geschäftlichen Umfeld. Begleiten Sie uns auf dieser Reise und entdecken Sie, wie unsere Kunstfertigkeit Ihr Zuhause oder Ihr Unternehmen in eine Oase voller Stil und Anmut verwandeln kann.",
+    "heading": "Über uns",
+    "intro": "Unsere Reise begann als leidenschaftliche Marmorhändler, die erlesene Steine aus Italien bezogen. In Dubai, Indien und Deutschland knüpften wir Beziehungen – getragen von unserer Liebe zur zeitlosen Schönheit von Naturstein.",
+    "founded": "2022 gründeten wir MindMines mit einem klaren Ziel: Hochwertige Materialien und Handwerkskunst einem weltweiten Publikum zugänglich zu machen. Jeder Stein besitzt einen einzigartigen Charakter – den wir in jedem Stück feiern.",
+    "today": "Heute arbeiten wir mit erfahrenen Kunsthandwerkern zusammen und fertigen Skulpturen und Dekor aus Marmor, Granit und sogar Kieseln – mit Sinn für Eleganz und Raffinesse.",
+    "vision": "Unsere Vision: Wärme, Eleganz und ein Stück Natur in Wohn- und Geschäftsräume bringen – durch ethische Beschaffung und nachhaltige Handarbeit.",
     "contactHeading": "Kontakt",
-    "contactSub": "Sie möchten mit uns zusammenarbeiten, mehr erfahren oder Teil unseres Teams werden? Bitte teilen Sie uns Ihre Informationen mit – wir melden uns innerhalb von 48 Stunden.",
-    "name": "Name",
-    "email": "E-Mail",
-    "message": "Nachricht",
-    "send": "Senden",
-    "success": "Vielen Dank! Wir melden uns bald bei Ihnen."
+    "contactSub": "Lieber direkt sprechen? Rufen Sie an oder schreiben Sie uns per WhatsApp – ohne Wartezeit.",
+    "success": "Danke! Ihre Nachricht wurde gesendet. Wir melden uns zeitnah.",
+    "name": "Ihr Name",
+    "email": "E-Mail-Adresse",
+    "message": "Wie können wir helfen?",
+    "send": "Nachricht senden",
+    "sending": "Senden…",
+    "error": "Etwas ist schiefgelaufen. Bitte erneut versuchen oder per WhatsApp/Telefon kontaktieren.",
+    "orReachUs": "Oder direkt erreichen",
+    "phone": "Telefon",
+    "whatsapp": "WhatsApp",
+    "emailLabel": "E-Mail",
+    "hours": "Zeiten",
+    "hoursValue": "Mo–Fr, 09:00–18:00 Uhr",
+    "address": "Adresse",
+    "addressValue": "Feldstraße 11, 21640 Horneburg, Deutschland"
+  },
+  "badges": {
+    "payments": "Sichere Zahlungen",
+    "security": "Geschützter Checkout",
+    "guarantee": "14-Tage Geld-zurück-Garantie",
+    "ssl": "SSL geschützt",
+    "shipsTo": "Versand nach Deutschland & EU"
   },
   "naturalStone": {
     "title": "Naturstein",
@@ -256,66 +319,6 @@
     }
   },
 
-  "privacy": {
-    "title": "Datenschutzerklärung",
-    "updated": "Zuletzt aktualisiert: 23. August 2025",
-    "sections": [
-      {
-        "heading": "1. Verantwortlicher",
-        "body": [
-          "MindMines GmbH",
-          "Adresse Zeile 1",
-          "E-Mail: info@mindmines.eu"
-        ]
-      },
-      {
-        "heading": "2. Verarbeitete personenbezogene Daten",
-        "body": [
-          "Kontodaten (E-Mail, Name).",
-          "Bestelldaten (Lieferadresse, Zahlungsmetadaten).",
-          "Nutzungsdaten (nur mit Ihrer Einwilligung für Analysen)."
-        ]
-      },
-      {
-        "heading": "3. Rechtsgrundlagen & Zwecke",
-        "body": [
-          "Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO).",
-          "Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) für Analyse/Marketing.",
-          "Rechtliche Pflichten (Art. 6 Abs. 1 lit. c DSGVO) für Rechnungen & Steuern."
-        ]
-      }
-    ]
-  },
-  "imprint": {
-    "title": "Impressum",
-    "sections": [
-      {
-        "heading": "Unternehmen",
-        "body": [
-          "MindMines GmbH",
-          "Geschäftsführer: Feldstraße 11, 21640 Horneburg",
-          "USt-IdNr.: DE..."
-        ]
-      },
-      {
-        "heading": "Kontakt",
-        "body": ["E-Mail: info@mindmines.eu", "Telefon: +49 ..."]
-      }
-    ]
-  },
-  "terms": {
-    "title": "Allgemeine Geschäftsbedingungen (AGB)",
-    "sections": [
-      {
-        "heading": "Geltungsbereich",
-        "body": ["Diese AGB gelten für alle Käufe über unseren Webshop."]
-      },
-      {
-        "heading": "Lieferung",
-        "body": ["Standardlieferung 6–11 Werktage innerhalb der EU."]
-      }
-    ]
-  },
   "backtoAccount": "Zurück zum Konto",
   "orderNumber": "Bestellungen",
   "order": {
@@ -384,11 +387,7 @@
       "failed": "Fehlgeschlagen"
     }
   },
-  "common": {
-    "loading": "Wird geladen…",
-    "ok": "OK",
-    "close": "Schließen"
-  },
+
   "stones": {
     "types": {
       "marble": "Marmor",
@@ -643,6 +642,134 @@
     "badgeReturn": "15 Tage Rückgaberecht",
     "badgeDelivery": "Bequeme & einfache Lieferung",
     "wishlist": "Wunschliste"
+  },
+
+  "legal": {
+    "lastUpdated": "Zuletzt aktualisiert: {{date}}",
+    "nav": {
+      "imprint": "Impressum",
+      "terms": "Allgemeine Geschäftsbedingungen (AGB)",
+      "privacy": "Datenschutzerklärung (DSGVO)",
+      "returns": "Widerruf & Rückgabe",
+      "shipping": "Versandrichtlinie"
+    },
+    "imprint": {
+      "title": "Impressum",
+      "company": "MindMines GbR",
+      "addressLabel": "Eingetragene Anschrift",
+      "address": "Feldstraße 11, 21640 Horneburg, Deutschland",
+      "managingPartners": "Geschäftsführende Gesellschafter",
+      "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
+      "contact": "Kontakt",
+      "email": "E-Mail",
+      "supportEmail": "Support-E-Mail",
+      "whatsapp": "WhatsApp",
+      "vat": "USt-IdNr.",
+      "vatValue": "DE362093828",
+      "businessType": "Unternehmensart",
+      "businessTypeValue": "Verkauf von physischen Marmor- & Stein-Produkten für Zuhause/Büro (B2C).",
+      "hours": "Kundensupportzeiten",
+      "hoursValue": "Montag–Freitag, 09:00–18:00 Uhr CET",
+      "dispute": "Verbraucherschlichtung",
+      "disputeText": "Die EU-Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit. Wir sind weder verpflichtet noch bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
+      "liability": "Haftung für Inhalte & Links",
+      "liabilityText": "Wir pflegen unsere Inhalte sorgfältig, übernehmen jedoch keine Haftung für externe Links. Für deren Inhalte sind stets die jeweiligen Betreiber verantwortlich."
+    },
+    "terms": {
+      "title": "Allgemeine Geschäftsbedingungen (AGB)",
+      "scope": "1. Geltung & Vertragspartner",
+      "scopeText": "Diese Bedingungen regeln alle B2C-Käufe über mindmines.eu. Vertragspartner: MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland.",
+      "definitions": "2. Begriffe",
+      "definitionsText": "„Kunde“ ist Verbraucher i.S.d. §13 BGB. „Produkte“ sind physische Marmor-/Steinartikel.",
+      "ordering": "3. Bestellablauf & Vertragsschluss",
+      "orderingText": "Shop-Angebote sind unverbindlich. Mit Ihrer Bestellung geben Sie ein verbindliches Angebot ab. Die Annahme erfolgt per E-Mail-Bestätigung oder Versand.",
+      "pricing": "4. Preise, Steuern & Rechnung",
+      "pricingText": "Alle Preise inkl. gesetzlicher MwSt., soweit anwendbar. Versandkosten an der Kasse. Sie erhalten eine MwSt.-Rechnung per E-Mail.",
+      "payment": "5. Zahlungsmethoden",
+      "paymentText": "Wir akzeptieren PayPal, Kredit-/Debitkarte (Stripe), SEPA-Überweisung und Klarna (sofern verfügbar).",
+      "shipping": "6. Versand, Lieferzeiten & Gefahrenübergang",
+      "shippingText": "Versand nach Deutschland und EU per DHL/Partner. Lieferzeiten werden an der Kasse angezeigt. Beim Verbrauchsgüterkauf geht die Gefahr mit Übergabe an Sie über.",
+      "withdrawal": "7. Widerrufsrecht (14 Tage)",
+      "withdrawalText": "Verbraucher haben 14 Tage Widerrufsrecht ohne Angabe von Gründen. Maßanfertigungen sind ausgeschlossen. Details siehe Widerruf & Rückgabe.",
+      "warranty": "8. Gewährleistung",
+      "warrantyText": "Es gelten die gesetzlichen Verbraucherrechte. Natursteinvariationen (Farbe/Maserung) stellen keinen Mangel dar.",
+      "titleRetention": "9. Eigentumsvorbehalt",
+      "titleRetentionText": "Bis zur vollständigen Zahlung bleibt die Ware unser Eigentum.",
+      "liability": "10. Haftung",
+      "liabilityText": "Wir haften für Vorsatz und grobe Fahrlässigkeit; für leichte Fahrlässigkeit nur bei Verletzung wesentlicher Pflichten und begrenzt auf vorhersehbare Schäden.",
+      "data": "11. Datenschutz & Cookies",
+      "dataText": "Einzelheiten zur Verarbeitung und zu Cookies finden Sie in unserer Datenschutzerklärung.",
+      "jurisdiction": "12. Recht & Gerichtsstand",
+      "jurisdictionText": "Es gilt deutsches Recht; zwingende Verbraucherschutzvorschriften Ihres Wohnsitzes bleiben unberührt. Gerichtsstand: Amtsgericht Stade, Deutschland.",
+      "final": "13. Schlussbestimmungen",
+      "finalText": "Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der übrigen unberührt."
+    },
+    "privacy": {
+      "title": "Datenschutzerklärung (DSGVO)",
+      "controller": "Verantwortlicher",
+      "controllerText": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland, info@mindmines.eu",
+      "processing": "Welche Daten wir verarbeiten & warum",
+      "processingItems": [
+        "Konto- & Bestelldaten zur Vertragserfüllung und zum Support.",
+        "Zahlungsdaten werden durch PayPal/Stripe/Klarna als eigenständige Verantwortliche verarbeitet.",
+        "Betriebsdaten (Logs, IP, Gerät) zur Sicherheit und Betrugsprävention.",
+        "Marketing-E-Mails nur mit Einwilligung; Abmeldung jederzeit möglich."
+      ],
+      "legalBases": "Rechtsgrundlagen",
+      "legalBasesItems": [
+        "Art. 6 Abs. 1 lit. b DSGVO (Vertrag)",
+        "Art. 6 Abs. 1 lit. c DSGVO (rechtliche Pflichten)",
+        "Art. 6 Abs. 1 lit. f DSGVO (berechtigte Interessen: Sicherheit, Missbrauchsvermeidung)",
+        "Art. 6 Abs. 1 lit. a DSGVO (Einwilligung) für Marketing"
+      ],
+      "cookies": "Cookies & Analyse",
+      "cookiesText": "Wir setzen essenzielle Cookies ein. Optionale Analyse-/Marketing-Cookies nur mit Ihrer Einwilligung.",
+      "recipients": "Empfänger",
+      "recipientsText": "Zahlungsanbieter (PayPal, Stripe, Klarna), Hosting- und Logistikpartner, jeweils nur soweit erforderlich.",
+      "eueea": "Datenübermittlungen außerhalb der EU/des EWR",
+      "eueeaText": "Gegebenenfalls auf Basis von Angemessenheitsbeschlüssen oder Standardvertragsklauseln.",
+      "retention": "Speicherdauer",
+      "retentionText": "Aufbewahrung nach steuer- & handelsrechtlichen Fristen; Löschung, wenn nicht mehr erforderlich.",
+      "rights": "Ihre Rechte",
+      "rightsItems": [
+        "Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch, Datenübertragbarkeit",
+        "Einwilligungen jederzeit widerrufbar",
+        "Beschwerde bei Ihrer Aufsichtsbehörde"
+      ],
+      "contact": "Kontakt zum Datenschutz",
+      "contactText": "E-Mail: info@mindmines.eu — wir antworten zeitnah."
+    },
+    "returns": {
+      "title": "Widerruf & Rückgabe",
+      "intro": "Sie können die meisten Artikel innerhalb von 14 Tagen zurückgeben. Maßanfertigungen sind vom Widerruf ausgeschlossen.",
+      "how": "So starten Sie eine Rückgabe",
+      "howItems": [
+        "E-Mail an support@mindmines.eu mit Bestellnummer innerhalb von 14 Tagen nach Zustellung.",
+        "Wenn möglich Originalverpackung verwenden; schwere Steinartikel sorgfältig polstern.",
+        "An die unten stehende Adresse zurücksenden. Rücksendekosten tragen Sie, außer bei Defekt oder unserem Fehler."
+      ],
+      "condition": "Zustand der Ware",
+      "conditionText": "Unbenutzt und wiederverkaufsfähig. Natursteinvariationen sind normal und kein Mangel.",
+      "refunds": "Rückerstattungen",
+      "refundsText": "Nach Prüfung erstatten wir innerhalb von 14 Tagen auf die ursprüngliche Zahlungsart. Versandkosten sind nicht erstattungsfähig, außer bei unserem Fehler.",
+      "returnAddress": "Rücksendeadresse",
+      "address": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland"
+    },
+    "shipping": {
+      "title": "Versandrichtlinie",
+      "zones": "Liefergebiete",
+      "zonesText": "Deutschland und Europäische Union.",
+      "carriers": "Versanddienst & Bearbeitung",
+      "carriersText": "DHL/Partner übernehmen die Zustellung. Bearbeitung i. d. R. 1–2 Werktage.",
+      "times": "Voraussichtliche Lieferzeiten",
+      "timesItems": ["Deutschland: 2–4 Werktage", "EU: 3–7 Werktage"],
+      "costs": "Versandkosten",
+      "costsText": "An der Kasse je nach Gewicht/Größe & Zielort. Für schwere Steinartikel können Zuschläge anfallen.",
+      "risk": "Gefahr & beschädigte Pakete",
+      "riskText": "Die Gefahr geht mit Übergabe auf Sie über. Bei Schäden bitte Fotos erstellen und uns innerhalb von 48 Stunden kontaktieren.",
+      "undeliverable": "Unzustellbare Sendungen",
+      "undeliverableText": "Kommt eine Sendung wegen falscher Adresse/Annahmeverweigerung zurück, versenden wir erneut gegen Kostenerstattung oder erstatten abzüglich Versand."
+    }
   },
   "dimension": "Abmessungen",
   "measurement": "Maße",

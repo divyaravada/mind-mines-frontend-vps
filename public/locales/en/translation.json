@@ -23,32 +23,110 @@
     "shippingInfo": "Shipping Information",
     "returnPolicy": "Return Policy"
   },
+  "common": {
+    "shopNow": "Shop now",
+    "learnMore": "Learn more",
+    "close": "Close",
+    "ok": "Ok",
+    "loading": "Loading…"
+  },
   "home": {
+    "heroFallback": {
+      "title": "Welcome to MindMines",
+      "subtitle": "Explore our latest collections."
+    },
     "ourCollection": "Our Collection",
     "collection": {
-      "mobileHolder": "Mobile holder",
-      "multipurpose": "Multipurpose Holder",
+      "mobileHolder": "Phone Stand (Marble)",
+      "multipurpose": "Multi-Purpose Organizer",
       "kitchenBowl": "Kitchen Bowl",
-      "tray": "Tray"
+      "tray": "Marble Tray"
     },
     "aboutUs": {
-      "heading": "About Us",
-      "text": "We blend South Asian craftsmanship with European minimalism to create timeless marble pieces for every space. Based in Germany, our team ensures the highest quality and ethical sourcing. ",
-      "secText": "Discover unique designs, made with care from natural stone—designed to last a lifetime."
+      "alt": "About Us",
+      "heading": "Crafted from Stone, Designed for Living",
+      "text": "We source and craft premium natural stone pieces for everyday life—made to last and made to be loved.",
+      "secText": "From bespoke kitchen countertops to sculptural décor and smart office accessories, every item is built with care."
     },
     "features": {
-      "materials": "Natural Materials",
+      "materials": "Premium natural materials",
       "germany": "Based in Germany",
-      "stones": "From High Quality Stones",
-      "return": "14 Days Return Policy"
+      "stones": "Marble · Granite · Travertine",
+      "return": "14-day returns"
     },
     "categories": {
-      "home_decor": "Home Decor",
-      "storage": "Storage",
-      "kitchen": "Kitchen",
-      "office": "Office",
-      "bathroom": "Bathroom",
-      "sculptures_customization": "Sculptures & Customization"
+      "natural_stone": {
+        "heading": "Natural Stone",
+        "description": "Marble, granite, travertine & more—slabs, tiles, and bespoke projects.",
+        "button": "Explore Natural Stone"
+      },
+      "countertops": {
+        "heading": "Kitchen Countertops",
+        "description": "Custom marble & granite countertops—precision cut, sealed, and installed.",
+        "button": "Get Countertop Quote"
+      },
+      "home_decor": {
+        "heading": "Home Décor",
+        "description": "Vases, trays, candle stands — unique accents in real stone.",
+        "button": "Shop Home Décor"
+      },
+      "storage": {
+        "heading": "Storage & Organization",
+        "description": "Trays, pen holders, and tidy solutions with stone character.",
+        "button": "Shop Storage"
+      },
+      "kitchen": {
+        "heading": "Kitchen & Serveware",
+        "description": "Bowls, platters, knife rests—functional pieces, premium feel.",
+        "button": "Shop Kitchen"
+      },
+      "office": {
+        "heading": "Office",
+        "description": "Desk organizers, phone stands, and more for a focused workspace.",
+        "button": "Shop Office"
+      },
+      "bathroom": {
+        "heading": "Bathroom Accessories",
+        "description": "Soap dishes, toothbrush holders, and sets in stone.",
+        "button": "Shop Bathroom"
+      },
+      "sculpture": {
+        "heading": "Sculptures & Custom",
+        "description": "Statement sculptures and one-off commissions.",
+        "button": "Explore Sculptures"
+      }
+    },
+    "cta": {
+      "countertopTitle": "Plan your dream kitchen countertop",
+      "countertopLead": "Send sizes or a quick message—we’ll quote and guide you on stone choice and finish.",
+      "whatsapp": "WhatsApp Us",
+      "requestQuote": "Request a Quote"
+    },
+    "topsellers": {
+      "title": "Top-Selling Products",
+      "seeAll": "See all",
+      "addToCart": "Add to cart",
+      "added": "Added!",
+      "from": "from"
+    },
+    "trust": {
+      "title": "Why Choose MindMines",
+      "secure": "100% Secure Payments (PayPal & SEPA)",
+      "based": "Based in Germany (Horneburg)",
+      "dhl": "Fast DHL Shipping in the EU",
+      "packaging": "Safe Packaging for Fragile Marble Items",
+      "handmade": "Handmade Premium Quality",
+      "badgePayments": "Secure checkout & buyer protection"
+    },
+    "handmade": {
+      "title": "Handmade Quality Guarantee",
+      "text": "Every piece is crafted by skilled artisans and inspected before shipping. Natural stone variations are part of the charm."
+    },
+    "shipping": {
+      "title": "Free Delivery Conditions",
+      "de": "Germany: Free delivery on orders",
+      "eu": "EU: Free delivery on orders",
+      "note": "Heavy/oversize items may incur a surcharge (shown at checkout)."
     }
   },
 
@@ -125,53 +203,37 @@
   "Not found": "Not found",
   "All": "All",
   "No products found in this category.": "No products found in this category.",
-  "categories": {
-    "short_description": "Short Description",
-    "home_decor": {
-      "heading": "HOME DECOR & ACCESSORIES",
-      "description": "Elevate your space with timeless marble décor and accessories for every style",
-      "button": "Shop Home Decor"
-    },
-    "storage": {
-      "heading": "STORAGE & ORGANIZATION",
-      "description": "Discover elegant and durable storage solutions crafted from high-quality marble and granite.",
-      "button": "Shop Storage"
-    },
-    "kitchen": {
-      "heading": "KITCHEN AND APPLIANCES",
-      "description": "Transform your kitchen into a luxurious and efficient space with our premium selection of accessories. Ensuring beauty and practicality in your everyday cooking environment.",
-      "button": "Shop Kitchen"
-    },
-    "office": {
-      "heading": "Office Supplies",
-      "description": "Enhance your workspace with sophisticated marble office accessories that combine design and functionality.",
-      "button": "Shop Office"
-    },
-    "bathroom": {
-      "heading": "BATHROOM ACCESSORIES",
-      "description": "Add luxury to your bathroom with our unique marble accessories—where style meets everyday comfort.",
-      "button": "Shop Bathroom"
-    },
-    "sculpture": {
-      "heading": "SCULPTURES & CUSTOMIZATION",
-      "description": "Discover exclusive sculptures or customize marble pieces for your individual taste and requirements.",
-      "button": "Shop Sculptures"
-    }
-  },
+
   "about": {
     "heading": "About Us",
-    "intro": "Our journey began as passionate marble traders, meticulously sourcing exquisite stones from the heart of Italy. We forged connections with enthusiastic customers across vibrant markets in Dubai, the rich landscapes of India, and the culturally rich country of Germany. Inspired by a deep love for the timeless beauty of natural stone, we soon ventured into the captivating art of crafting. This evolution allowed us to transform marble, granite, and even pebbles into unique and mysterious décor pieces that tell a story.",
-    "founded": "In 2022, we founded our own company with a clear mission: to share our passion for fine materials and artistic craftsmanship with a global audience. We believe that each stone possesses a unique character, and our goal is to celebrate that individuality through our creations.",
-    "today": "Today, we are fueled by the satisfaction and inspiration of our cherished customers, compelling us to continually innovate and grow. Our commitment is twofold: to source materials ethically and sustainably while collaborating closely with skilled artisans who breathe life into our ideas. Together, we deliver remarkable stone creations that range from elegant sculptures to striking home accessories, each piece designed to resonate with beauty and sophistication.",
-    "vision": "We envision a world where the magic of stone enhances every space, bringing warmth, elegance, and a touch of nature into both homes and businesses. Join us on this journey, and discover how our artistry can transform your environment into a sanctuary of style and grace.",
-
-    "contactHeading": "Contact us",
-    "contactSub": "Interested in collaborating, learning more, or working with us? Please share your information and we will get back to you within 48 hours.",
-    "name": "Name",
-    "email": "Email",
-    "message": "Message",
-    "send": "Send",
-    "success": "Thank you! We'll be in touch soon."
+    "intro": "Our journey began as passionate marble traders, meticulously sourcing exquisite stones from the heart of Italy. We connected with customers across Dubai, India, and Germany, inspired by a deep love for the timeless beauty of natural stone.",
+    "founded": "In 2022, we founded MindMines with a clear mission: share fine materials and craftsmanship with a global audience. We believe each stone has a unique character—and we celebrate that individuality in every piece.",
+    "today": "Today, fueled by our customers’ inspiration, we collaborate with skilled artisans to craft sculptures and decor from marble, granite, and even pebbles—each designed to resonate with beauty and sophistication.",
+    "vision": "Our vision: bring warmth, elegance, and a touch of nature into homes and businesses through ethical sourcing and sustainable craftsmanship.",
+    "contactHeading": "Contact Us",
+    "contactSub": "Prefer talking? Call or message us directly—no waiting.",
+    "success": "Thanks! Your message has been sent. We’ll get back to you shortly.",
+    "name": "Your name",
+    "email": "Email address",
+    "message": "How can we help?",
+    "send": "Send message",
+    "sending": "Sending…",
+    "error": "Something went wrong. Please try again or contact us via WhatsApp/phone.",
+    "orReachUs": "Or reach us directly",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "emailLabel": "Email",
+    "hours": "Hours",
+    "hoursValue": "Mon–Fri, 09:00–18:00 CET",
+    "address": "Address",
+    "addressValue": "Feldstraße 11, 21640 Horneburg, Germany"
+  },
+  "badges": {
+    "payments": "Trusted payments",
+    "security": "Secure checkout",
+    "guarantee": "14-day money-back guarantee",
+    "ssl": "SSL protected",
+    "shipsTo": "Ships to Germany & EU"
   },
   "footer": {
     "secure": "Secure payment",
@@ -240,58 +302,7 @@
       }
     }
   },
-  "privacy": {
-    "title": "Data Protection (Privacy Policy)",
-    "updated": "Last updated: August 23, 2025",
-    "sections": [
-      {
-        "heading": "1. Controller",
-        "body": ["MindMines GmbH", "Address line 1", "Email: info@mindmines.eu"]
-      },
-      {
-        "heading": "2. Personal data we process",
-        "body": [
-          "Account data (email, name).",
-          "Order data (shipping address, payments metadata).",
-          "Usage data (only with your consent for analytics)."
-        ]
-      },
-      {
-        "heading": "3. Legal bases & purposes",
-        "body": [
-          "Contract performance (Art. 6(1)(b) GDPR) to fulfill orders.",
-          "Consent (Art. 6(1)(a) GDPR) for analytics/marketing cookies.",
-          "Legal obligations (Art. 6(1)(c) GDPR) for invoicing & tax."
-        ]
-      }
-    ]
-  },
-  "imprint": {
-    "title": "Imprint",
-    "sections": [
-      {
-        "heading": "Company",
-        "body": ["MindMines GmbH", "Managing Director: ...", "VAT ID: DE..."]
-      },
-      {
-        "heading": "Contact",
-        "body": ["Email: info@mindmines.eu", "Phone: +49 ..."]
-      }
-    ]
-  },
-  "terms": {
-    "title": "Terms & Conditions",
-    "sections": [
-      {
-        "heading": "Scope",
-        "body": ["These Terms apply to all purchases via our webshop."]
-      },
-      {
-        "heading": "Delivery",
-        "body": ["Standard delivery 6–11 business days within EU."]
-      }
-    ]
-  },
+
   "backtoAccount": "Back to Accounts",
   "order": {
     "yourOrders": "Your Orders",
@@ -359,11 +370,7 @@
       "failed": "Failed"
     }
   },
-  "common": {
-    "close": "Close",
-    "ok": "Ok",
-    "loading": "Loading…"
-  },
+
   "stones": {
     "types": {
       "marble": "Marble",
@@ -618,6 +625,134 @@
     "badgeReturn": "15 days return policy",
     "badgeDelivery": "Convenient & easy delivery",
     "wishlist": "Wishlist"
+  },
+
+  "legal": {
+    "lastUpdated": "Last updated: {{date}}",
+    "nav": {
+      "imprint": "Imprint",
+      "terms": "Terms & Conditions (AGB)",
+      "privacy": "Privacy Policy (GDPR)",
+      "returns": "Return & Refund Policy",
+      "shipping": "Shipping Policy"
+    },
+    "imprint": {
+      "title": "Imprint",
+      "company": "MindMines GbR",
+      "addressLabel": "Registered address",
+      "address": "Feldstraße 11, 21640 Horneburg, Germany",
+      "managingPartners": "Managing partners",
+      "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
+      "contact": "Contact",
+      "email": "Email",
+      "supportEmail": "Support Email",
+      "whatsapp": "WhatsApp",
+      "vat": "VAT ID (USt-IdNr.)",
+      "vatValue": "DE362093828",
+      "businessType": "Business type",
+      "businessTypeValue": "Sale of physical marble & stone home/office products (B2C).",
+      "hours": "Customer support hours",
+      "hoursValue": "Monday–Friday, 09:00–18:00 CET",
+      "dispute": "Dispute resolution for consumers",
+      "disputeText": "The European Commission provides an online dispute resolution (ODR) platform. We are neither obliged nor willing to participate in a dispute resolution procedure before a consumer arbitration board.",
+      "liability": "Liability for contents & links",
+      "liabilityText": "We carefully curate our content. Nevertheless, we cannot assume liability for external links. The respective provider or operator is always responsible for the content of linked pages."
+    },
+    "terms": {
+      "title": "Terms & Conditions (AGB)",
+      "scope": "1. Scope & Contracting Party",
+      "scopeText": "These terms govern all B2C purchases via mindmines.eu. Contracting party: MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany.",
+      "definitions": "2. Definitions",
+      "definitionsText": "“Customer” means a consumer within §13 BGB. “Products” are physical marble/stone items.",
+      "ordering": "3. Ordering Process & Contract Formation",
+      "orderingText": "Items in the shop are non-binding. By placing an order you submit a binding offer. We accept by email confirmation or by dispatch of goods.",
+      "pricing": "4. Prices, Taxes & Invoicing",
+      "pricingText": "All prices include statutory VAT where applicable. Shipping costs are shown at checkout. You will receive a VAT invoice by email.",
+      "payment": "5. Payment Methods",
+      "paymentText": "We accept PayPal, credit/debit cards (via Stripe), SEPA bank transfer, and Klarna (where available).",
+      "shipping": "6. Shipping, Delivery Times & Risk Transfer",
+      "shippingText": "We ship to Germany and EU via DHL/partners. Delivery times are shown at checkout. For consumer sales, risk transfers upon delivery to you.",
+      "withdrawal": "7. Right of Withdrawal (14 days)",
+      "withdrawalText": "Consumers have 14 days to withdraw without giving reasons. Custom-made items are excluded. Details in the Return & Refund Policy.",
+      "warranty": "8. Warranty & Defect Liability",
+      "warrantyText": "Statutory consumer rights under German law apply. Natural stone variations (color/veining) are not defects.",
+      "titleRetention": "9. Retention of Title",
+      "titleRetentionText": "Goods remain our property until paid in full (Eigentumsvorbehalt).",
+      "liability": "10. Liability",
+      "liabilityText": "We are liable for intent and gross negligence; for slight negligence only for breach of essential duties, capped to foreseeable damages.",
+      "data": "11. Data Protection & Cookies",
+      "dataText": "See our Privacy Policy for details on processing and cookies.",
+      "jurisdiction": "12. Governing Law & Jurisdiction",
+      "jurisdictionText": "German law applies; mandatory consumer protections of your residence remain. Place of jurisdiction: Amtsgericht Stade, Germany.",
+      "final": "13. Final Provisions",
+      "finalText": "If a clause is invalid, the remainder stays effective."
+    },
+    "privacy": {
+      "title": "Privacy Policy (GDPR)",
+      "controller": "Controller",
+      "controllerText": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany, info@mindmines.eu",
+      "processing": "What we process & why",
+      "processingItems": [
+        "Account & order data to fulfill contracts and customer support.",
+        "Payment data processed by PayPal/Stripe/Klarna as independent controllers.",
+        "Operational data (logs, IP, device) for security and fraud prevention.",
+        "Marketing emails only with consent; you can unsubscribe anytime."
+      ],
+      "legalBases": "Legal bases",
+      "legalBasesItems": [
+        "Art. 6(1)(b) GDPR (contract)",
+        "Art. 6(1)(c) GDPR (legal obligations)",
+        "Art. 6(1)(f) GDPR (legitimate interests: security, prevention of abuse)",
+        "Art. 6(1)(a) GDPR (consent) for marketing"
+      ],
+      "cookies": "Cookies & analytics",
+      "cookiesText": "We use essential cookies for the shop to function. Optional analytics/marketing cookies only with your consent.",
+      "recipients": "Recipients",
+      "recipientsText": "Payment providers (PayPal, Stripe, Klarna), hosting and logistics partners, only as required.",
+      "eueea": "Data transfers outside EU/EEA",
+      "eueeaText": "Where applicable, safeguarded through adequacy decisions or Standard Contractual Clauses.",
+      "retention": "Retention",
+      "retentionText": "We retain data for statutory periods (tax/commercial) and delete when no longer necessary.",
+      "rights": "Your rights",
+      "rightsItems": [
+        "Access, rectification, erasure, restriction, objection, portability",
+        "Withdraw consent at any time",
+        "Complain to your supervisory authority"
+      ],
+      "contact": "Contact for privacy",
+      "contactText": "Email: info@mindmines.eu — we’ll respond promptly."
+    },
+    "returns": {
+      "title": "Return & Refund Policy",
+      "intro": "You have 14 days to return most items. Custom-made products are non-refundable.",
+      "how": "How to start a return",
+      "howItems": [
+        "Email support@mindmines.eu with your order number within 14 days of delivery.",
+        "Use the original packaging when possible; protect heavy stone items carefully.",
+        "Ship to the return address below. You are responsible for return shipping unless the item is defective or we made a mistake."
+      ],
+      "condition": "Item condition",
+      "conditionText": "Items must be unused and in resellable condition. Natural stone variations are normal and not defects.",
+      "refunds": "Refunds",
+      "refundsText": "Upon inspection, we refund to your original payment method within 14 days. Shipping fees are non-refundable unless due to our error.",
+      "returnAddress": "Return address",
+      "address": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany"
+    },
+    "shipping": {
+      "title": "Shipping Policy",
+      "zones": "Where we ship",
+      "zonesText": "Germany and European Union.",
+      "carriers": "Carrier & handling",
+      "carriersText": "DHL/partners handle delivery. Processing typically 1–2 business days.",
+      "times": "Estimated delivery times",
+      "timesItems": ["Germany: 2–4 business days", "EU: 3–7 business days"],
+      "costs": "Shipping costs",
+      "costsText": "Shown at checkout based on weight/size and destination. Heavy stone items may incur surcharges.",
+      "risk": "Risk & damaged parcels",
+      "riskText": "Risk transfers to you on delivery. If damaged, document with photos and contact support within 48 hours.",
+      "undeliverable": "Undeliverable shipments",
+      "undeliverableText": "If parcels return due to incorrect address/refusal, we can reship at cost or refund minus shipping."
+    }
   },
   "dimension": "Dimensions",
   "measurement": "MaMeasurements",

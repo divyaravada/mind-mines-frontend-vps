@@ -47,21 +47,6 @@ export default function Footer() {
           </h2>
           <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
             <li>
-              <Link to="/orders" className="hover:underline">
-                {t("footer.help.order")}
-              </Link>
-            </li>
-            <li>
-              <Link to="/track" className="hover:underline">
-                {t("footer.help.track")}
-              </Link>
-            </li>
-            <li>
-              <Link to="/returns" className="hover:underline">
-                {t("footer.help.returnOrder")}
-              </Link>
-            </li>
-            <li>
               <Link to="/help" className="hover:underline">
                 {t("footer.help.allTopics")}
               </Link>
@@ -94,24 +79,30 @@ export default function Footer() {
           <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
             <li>
               <Link to="/imprint" className="hover:underline">
-                {t("footer.legal.imprint")}
-              </Link>
-            </li>
-            <li>
-              <Link to="/privacy" className="hover:underline">
-                {t("footer.legal.data")}
+                {t("legal.nav.imprint")}
               </Link>
             </li>
             <li>
               <Link to="/terms" className="hover:underline">
-                {t("footer.legal.termsConditions")}
+                {t("legal.nav.terms")}
+              </Link>
+            </li>
+            <li>
+              <Link to="/privacy" className="hover:underline">
+                {t("legal.nav.privacy")}
+              </Link>
+            </li>
+            <li>
+              <Link to="/returns" className="hover:underline">
+                {t("legal.nav.returns")}
               </Link>
             </li>
             <li>
               <Link to="/shipping" className="hover:underline">
-                {t("footer.legal.info")}
+                {t("legal.nav.shipping")}
               </Link>
             </li>
+
             <li>
               <Link to="/about" className="hover:underline">
                 {t("footer.legal.about")}
@@ -154,15 +145,23 @@ export default function Footer() {
             {t("footer.start")} {new Date().getFullYear()}{" "}
             {t("footer.rightreserv")}{" "}
             <Link to="/imprint" className="underline hover:opacity-80">
-              {t("footer.legal.imprint")}
-            </Link>{" "}
-            |{" "}
-            <Link to="/privacy" className="underline hover:opacity-80">
-              {t("footer.legal.data")}
+              {t("legal.nav.imprint")}
             </Link>{" "}
             |{" "}
             <Link to="/terms" className="underline hover:opacity-80">
-              {t("footer.legal.shorttcs")}
+              {t("legal.nav.terms")}
+            </Link>{" "}
+            |{" "}
+            <Link to="/privacy" className="underline hover:opacity-80">
+              {t("legal.nav.privacy")}
+            </Link>{" "}
+            |{" "}
+            <Link to="/returns" className="underline hover:opacity-80">
+              {t("legal.nav.returns")}
+            </Link>{" "}
+            |{" "}
+            <Link to="/shipping" className="underline hover:opacity-80">
+              {t("legal.nav.shipping")}
             </Link>
           </div>
 

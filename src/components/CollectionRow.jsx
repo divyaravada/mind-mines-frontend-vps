@@ -1,5 +1,5 @@
 import mobileHolder from "../assets/mobileHolder.jpg";
-import bathSoap from "../assets/macke up holder.jpg";
+import bathSoap from "../assets/mackeUpHolder.jpg";
 import kitchenBowl from "../assets/kitchenBowl.jpg";
 import marbleTray from "../assets/marbleTray.jpg";
 import { useTranslation } from "react-i18next";
