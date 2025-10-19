@@ -33,8 +33,13 @@ import ReturnsPage from "./pages/ReturnsPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import AboutContactPage from "./pages/AboutContactPage";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
+import { useEffect } from "react";
 
 export default function App() {
+  useEffect(() => {
+    document.documentElement.setAttribute("data-gramm", "false");
+    document.documentElement.setAttribute("data-gramm_editor", "false");
+  }, []);
   return (
     <div className="font-open-sans flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Navbar />
