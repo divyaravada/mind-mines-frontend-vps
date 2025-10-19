@@ -1,3 +1,4 @@
+// src/features/products/productsApi.js
 import { api } from "../../services/apiSlice";
 
 export const productsApi = api.injectEndpoints({
@@ -58,19 +59,19 @@ export const productsApi = api.injectEndpoints({
       invalidatesTags: (_r, _e, arg) => [{ type: "Reviews", id: arg.id }],
     }),
 
-    updateReview: b.mutation({
-      query: ({ reviewId, form }) => ({
-        url: `reviews/${reviewId}/`,
-        method: "PATCH",
-        body: form,
-      }),
-      invalidatesTags: ["Reviews"],
-    }),
+    // updateReview: b.mutation({
+    //   query: ({ reviewId, form }) => ({
+    //     url: `reviews/${reviewId}/`,
+    //     method: "PATCH",
+    //     body: form,
+    //   }),
+    //   invalidatesTags: ["Reviews"],
+    // }),
 
-    deleteReview: b.mutation({
-      query: (reviewId) => ({ url: `reviews/${reviewId}/`, method: "DELETE" }),
-      invalidatesTags: ["Reviews"],
-    }),
+    // deleteReview: b.mutation({
+    //   query: (reviewId) => ({ url: `reviews/${reviewId}/`, method: "DELETE" }),
+    //   invalidatesTags: ["Reviews"],
+    // }),
   }),
 });
 
@@ -79,8 +80,8 @@ export const {
   useGetProductQuery,
   useListProductReviewsQuery,
   useCreateProductReviewMutation,
-  useUpdateReviewMutation,
-  useDeleteReviewMutation,
+  // useUpdateReviewMutation,
+  // useDeleteReviewMutation,
   useLazyGetProductQuery,
   useGetTopProductsQuery,
 } = productsApi;

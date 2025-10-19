@@ -1,3 +1,4 @@
+// src/features/cart/cartSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const LS_KEY = "cart_v1";

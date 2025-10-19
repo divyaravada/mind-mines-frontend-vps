@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import { Link } from "react-router-dom";
 import { useGetAccountQuery } from "../features/account/accountApi";
 import { useTranslation } from "react-i18next";

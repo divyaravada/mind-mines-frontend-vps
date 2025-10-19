@@ -6,7 +6,7 @@ export default function CountertopCTA() {
   const { t } = useTranslation();
   return (
     <section className="bg-white dark:bg-gray-900 py-10">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
         <div className="md:col-span-2">
           <h3 className="text-2xl font-bold mb-2">
             {t("home.cta.countertopTitle")}

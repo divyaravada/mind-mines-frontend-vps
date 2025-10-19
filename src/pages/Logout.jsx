@@ -1,3 +1,4 @@
+// src/pages/Logout.jsx
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";

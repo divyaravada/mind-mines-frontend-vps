@@ -1,3 +1,4 @@
+// src/components/Addresses.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -63,9 +64,6 @@ export default function AccountAddresses() {
         <Link to="/account" className="p-6 hover:underline">
           <h6 className="text-xl font-light mb-8">{t("backtoAccount")} </h6>
         </Link>
-        <span className="text-sm text-gray-500">
-          {t(useGetAddressesQuery.subtitle)}
-        </span>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

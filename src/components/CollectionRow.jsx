@@ -1,3 +1,4 @@
+// src/components/CollectionRow.jsx
 import mobileHolder from "../assets/mobileHolder.jpg";
 import bathSoap from "../assets/mackeUpHolder.jpg";
 import kitchenBowl from "../assets/kitchenBowl.jpg";

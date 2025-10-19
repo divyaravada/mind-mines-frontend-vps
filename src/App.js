@@ -3,20 +3,16 @@ import { Routes, Route } from "react-router-dom";
 
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ResendVerification from "./pages/ResendVerification";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import SignupWithGoogle from "./pages/SignupWithGoogle";
 import Login from "./pages/Login";
 import Logout from "./pages/Logout";
 import Home from "./pages/Home";
-import About from "./pages/AboutContactPage";
 import Products from "./pages/Products";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import NaturalStonePage from "./pages/NaturalStonePage";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
-import PrivacyPage from "./pages/PrivacyPolicyPage";
 import ImprintPage from "./pages/ImprintPage";
 import TermsPage from "./pages/TermsPage";
 import Dashboard from "./pages/Dashboard";
@@ -36,6 +32,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import AboutContactPage from "./pages/AboutContactPage";
+import GuestOrderLookup from "./pages/GuestOrderLookup";
 
 export default function App() {
   return (
@@ -51,12 +48,12 @@ export default function App() {
             element={<EmailVerificationPage />}
           />
           <Route path="/resend-verification" element={<ResendVerification />} />
-          <Route path="/reset-password" element={<ForgotPasswordPage />} />
+
           <Route
             path="/reset-password/:uid/:token/"
             element={<ResetPasswordPage />}
           />
-          <Route path="/signup-with-google" element={<SignupWithGoogle />} />
+
           <Route path="/users/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
 
@@ -74,15 +71,9 @@ export default function App() {
           />
           <Route path="/natural-stone" element={<NaturalStonePage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route
-            path="/checkout"
-            element={
-              <RequireAuth>
-                <Checkout />
-              </RequireAuth>
-            }
-          />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/order-lookup" element={<GuestOrderLookup />} />
           <Route path="/imprint" element={<ImprintPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />

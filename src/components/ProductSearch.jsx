@@ -1,3 +1,4 @@
+// src/components/ProductSearch.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";

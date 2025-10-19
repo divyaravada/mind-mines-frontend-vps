@@ -1,4 +1,4 @@
-import React from "react";
+// src/components/MessageDialog.jsx
 import { useTranslation } from "react-i18next";
 
 export default function MessageDialog({

@@ -1,3 +1,4 @@
+// src/features/i18n/i18nSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import i18n from "../../i18n";
 

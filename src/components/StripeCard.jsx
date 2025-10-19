@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+// src/components/StripeCard.jsx
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,

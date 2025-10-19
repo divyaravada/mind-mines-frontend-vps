@@ -1,7 +1,7 @@
 import { API_BASE } from "../services/apiSlice";
 
-// API_BASE looks like "http://127.0.0.1:8000/api/"
-const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "/"); // -> "http://127.0.0.1:8000/"
+// API_BASE looks like "https://mindmines.eu/api/"
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "/"); // -> "https://mindmines.eu/"
 
 export function toAbsoluteUrl(url) {
   if (!url) return url;

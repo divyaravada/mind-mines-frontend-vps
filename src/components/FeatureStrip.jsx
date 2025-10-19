@@ -1,3 +1,4 @@
+// src/components/FeatureStrip.jsx
 import { Gem, Home, Globe, RotateCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

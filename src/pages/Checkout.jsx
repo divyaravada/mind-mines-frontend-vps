@@ -57,7 +57,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
-
+  const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   useEffect(() => {
     if (items.length === 0 && !skipCartGuardRef.current) {
       navigate("/decorative-products");
@@ -149,6 +149,41 @@ export default function Checkout() {
   // Prefill
   useEffect(() => {
     (async () => {
+      if (!isAuth) {
+        // Guest: try to hydrate email/address from localStorage if available
+        try {
+          const savedGuest = JSON.parse(
+            localStorage.getItem("guest_address") || "{}"
+          );
+          if (savedGuest && typeof savedGuest === "object") {
+            setForm((p) => ({
+              ...p,
+              email: savedGuest.email || p.email,
+              country: savedGuest.country || p.country,
+              fullName:
+                [savedGuest.first_name, savedGuest.last_name]
+                  .filter(Boolean)
+                  .join(" ") || p.fullName,
+              ...(() => {
+                const { street, houseNumber } = splitAddressLine1(
+                  savedGuest.address_line1 || ""
+                );
+                return {
+                  street: street || p.street,
+                  houseNumber: houseNumber || p.houseNumber,
+                };
+              })(),
+              apartment: savedGuest.address_line2 || p.apartment,
+              postalCode: savedGuest.postal_code || p.postalCode,
+              city: savedGuest.city || p.city,
+              telephone: savedGuest.phone || p.telephone,
+            }));
+          }
+        } catch {}
+        return;
+      }
+
+      // Authenticated: prefill from backend (DO NOT redirect on 401)
       try {
         const a = await http.get("dashboard/addresses/", {
           params: { page_size: 20 },
@@ -182,7 +217,7 @@ export default function Checkout() {
         }
       } catch (err) {
         if (err?.response?.status === 401) {
-          navigate("/login?next=/checkout");
+          console.error("Unauthorized when fetching account data");
           return;
         }
       }
@@ -192,7 +227,7 @@ export default function Checkout() {
         setForm((p) => ({ ...p, email: u.data?.email || p.email }));
       } catch (err) {
         if (err?.response?.status === 401) {
-          navigate("/login?next=/checkout");
+          console.error("Unauthorized when fetching account data");
           return;
         }
       }
@@ -224,12 +259,25 @@ export default function Checkout() {
     setSavingAddr(true);
     try {
       const payload = buildAddressPayload();
-      if (addressIdRef.current) {
-        await http.put(`dashboard/addresses/${addressIdRef.current}/`, payload);
-        setAddrSaved(true);
+      if (isAuth) {
+        if (addressIdRef.current) {
+          await http.put(
+            `dashboard/addresses/${addressIdRef.current}/`,
+            payload
+          );
+          setAddrSaved(true);
+        } else {
+          const r = await http.post("dashboard/addresses/", payload);
+          addressIdRef.current = r.data?.id ?? null;
+          setAddrSaved(true);
+        }
       } else {
-        const r = await http.post("dashboard/addresses/", payload);
-        addressIdRef.current = r.data?.id ?? null;
+        // Guest path: store locally so we can reuse during this session
+        localStorage.setItem(
+          "guest_address",
+          JSON.stringify({ ...payload, email: form.email })
+        );
+        addressIdRef.current = null; // no server id for guests
         setAddrSaved(true);
       }
     } catch {
@@ -257,18 +305,23 @@ export default function Checkout() {
   };
 
   const [payment, setPayment] = useState("card");
-  const availableMonths = useMemo(() => {
-    const m = [];
-    if (payTotal >= INSTALLMENT_THRESHOLDS["3"]) m.push(3);
-    if (payTotal >= INSTALLMENT_THRESHOLDS["6"]) m.push(6);
-    if (payTotal >= INSTALLMENT_THRESHOLDS["9"]) m.push(9);
-    return m;
-  }, [payTotal]);
 
   const [cardMonths, setCardMonths] = useState(null);
   const [sepaMonths, setSepaMonths] = useState(null);
 
   const localOrderIdRef = useRef(null);
+
+  const hasMinimalAddress = () => {
+    const needed = [
+      "email",
+      "fullName",
+      "street",
+      "postalCode",
+      "city",
+      "country",
+    ];
+    return needed.every((k) => (form[k] || "").toString().trim().length > 0);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -552,12 +605,9 @@ export default function Checkout() {
                   fundingSource="paypal"
                   style={{ layout: "horizontal", label: "paypal" }}
                   onClick={async (_, actions) => {
-                    if (!addressIdRef.current) {
-                      await saveAddress();
-                      if (!addressIdRef.current) {
-                        alert(t("checkout.saveAddressFirst"));
-                        return actions.reject();
-                      }
+                    if (!hasMinimalAddress()) {
+                      alert(t("checkout.saveAddressFirst"));
+                      return actions.reject();
                     }
                     return actions.resolve();
                   }}

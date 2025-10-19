@@ -1,10 +1,11 @@
+// src/components/ProductReviews.jsx
 import { useRef, useState } from "react";
 import avatar from "../assets/avatar.png";
+import { useListProductReviewsQuery } from "../features/products/productsApi";
 import {
-  useListProductReviewsQuery,
   useUpdateReviewMutation,
   useDeleteReviewMutation,
-} from "../features/products/productsApi";
+} from "../features/reviews/reviewsApi";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import StarRating from "./StarRating";
@@ -116,7 +117,7 @@ export default function ProductReviews({ productId }) {
                       <label className="sr-only" htmlFor={`rating-${rv.id}`}>
                         {t("productReviews.rating")}
                       </label>
-                      <StarRating />
+                      <StarRating value={rating} onChange={setRating} />
 
                       <label className="sr-only" htmlFor={`msg-${rv.id}`}>
                         {t("productReviews.messageLabel")}

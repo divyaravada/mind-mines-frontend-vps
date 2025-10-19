@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import HomeCarousel from "../components/HomeCarousel";
 import { CollectionRow } from "../components/CollectionRow";
 import { AboutUsRow } from "../components/AboutUsRow";

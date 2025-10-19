@@ -1,3 +1,4 @@
+// src/pages/NaturalStonePage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";

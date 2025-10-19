@@ -1,3 +1,4 @@
+// src/features/orders/ordersApi.js
 import { api } from "../../services/apiSlice";
 
 export const ordersApi = api.injectEndpoints({
@@ -18,7 +19,16 @@ export const ordersApi = api.injectEndpoints({
       query: (id) => `dashboard/orders/${id}/`,
       providesTags: (_r, _e, id) => [{ type: "Orders", id }],
     }),
+    guestLookup: build.mutation({
+      query: ({ email, number }) => ({
+        url: "guest-lookup/",
+        method: "POST",
+        data: { email, number },
+      }),
+      transformResponse: (res) => res, // shape already fine
+    }),
   }),
 });
 
-export const { useGetOrdersQuery, useGetOrderQuery } = ordersApi;
+export const { useGetOrdersQuery, useGetOrderQuery, useGuestLookupMutation } =
+  ordersApi;

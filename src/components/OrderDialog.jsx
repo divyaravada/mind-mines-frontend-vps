@@ -1,3 +1,4 @@
+// src/components/OrderDialog.jsx
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 // If you followed my earlier advice, use the axios client with auth:

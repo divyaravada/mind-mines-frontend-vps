@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import RegisterForm from "./RegisterPage";

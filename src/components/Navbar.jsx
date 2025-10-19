@@ -1,14 +1,7 @@
+// src/components/Navbar.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import {
-  ShoppingCart,
-  Globe,
-  Sun,
-  Moon,
-  Search,
-  FileText,
-  X,
-} from "lucide-react";
+import { ShoppingCart, Globe, Sun, Moon, FileText, X } from "lucide-react";
 import DarkLogo from "../assets/BlackLogo.jpg";
 import LightLogo from "../assets/OrangeLogo.jpg";
 import { useTranslation } from "react-i18next";
@@ -64,6 +57,11 @@ export default function Navbar() {
         { to: "/about", label: t("navbar.about") },
         { to: "/decorative-products", label: t("navbar.decorativeProducts") },
         { to: "/natural-stone", label: t("navbar.naturalStone") },
+        {
+          to: "/cart",
+          label: t("navbar.cart"),
+          icon: <ShoppingCart className="w-5 h-5 mr-1" />,
+        },
         { to: "/users/login", label: t("navbar.login"), isButton: true },
       ];
 
@@ -201,9 +199,18 @@ export default function Navbar() {
                     </button>
                   </>
                 ) : (
-                  <button onClick={handleLogin} className="py-2 text-left">
-                    {t("navbar.login")}
-                  </button>
+                  <>
+                    <Link
+                      to="/cart"
+                      onClick={() => dispatch(setMobileMenuOpen(false))}
+                      className="py-2 border-b flex items-center gap-2"
+                    >
+                      <ShoppingCart className="w-5 h-5" /> {t("navbar.cart")}
+                    </Link>
+                    <button onClick={handleLogin} className="py-2 text-left">
+                      {t("navbar.login")}
+                    </button>
+                  </>
                 )}
               </nav>
 

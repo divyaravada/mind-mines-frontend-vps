@@ -1,3 +1,4 @@
+// src/pages/EmailVerificationPage.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useVerifyEmailQuery } from "../features/auth/authApi";

@@ -1,3 +1,4 @@
+// src/components/Footer.jsx
 import { Link } from "react-router-dom";
 import { Globe, Landmark } from "lucide-react";
 import DarkLogo from "../assets/BlackLogo.jpg";
@@ -77,6 +78,11 @@ export default function Footer() {
             {t("footer.legal.title")}
           </h2>
           <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
+            <li>
+              <Link to="/order-lookup" className="hover:underline">
+                {t("footer.help.trackGuestOrder", "Track guest order")}
+              </Link>
+            </li>
             <li>
               <Link to="/imprint" className="hover:underline">
                 {t("legal.nav.imprint")}

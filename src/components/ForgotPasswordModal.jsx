@@ -1,3 +1,4 @@
+// src/components/ForgotPasswordModal.jsx
 import { useState } from "react";
 import { useRequestPasswordResetMutation } from "../features/auth/authApi";
 

@@ -1,10 +1,8 @@
-// src/main.jsx
-
+// src/index.js
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
-import "./i18n"; // <<< IMPORTANT: initializes i18n before App mounts
 import "./index.css";
 import App from "./App";
 import { GoogleOAuthProvider } from "@react-oauth/google";

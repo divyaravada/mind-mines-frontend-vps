@@ -58,7 +58,7 @@ export default function HomeCarousel() {
   }
 
   return (
-    <div className="relative w-full h-96 overflow-hidden">
+    <div className="relative w-full h-[32rem] overflow-hidden">
       <div
         ref={sliderRef}
         className="keen-slider h-full md:h-full"

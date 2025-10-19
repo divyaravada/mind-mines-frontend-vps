@@ -12,7 +12,7 @@ const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE,
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
-    const token = getState()?.auth?.access; // <-- align with authSlice
+    const token = getState()?.auth?.access;
     if (token) headers.set("authorization", `Bearer ${token}`);
     headers.set("accept", "application/json");
     return headers;

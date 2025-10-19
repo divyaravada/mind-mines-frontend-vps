@@ -1,7 +1,6 @@
 // src/components/TopSellers.jsx
 import { useTranslation } from "react-i18next";
-import { Heart, ShoppingCart } from "lucide-react";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import ProductTile from "./ProductTile";
@@ -14,7 +13,7 @@ import {
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { addItem } from "../features/cart/cartSlice";
 import { productTitle } from "../lib/i18n";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function TopSellers() {
   const { t, i18n } = useTranslation();

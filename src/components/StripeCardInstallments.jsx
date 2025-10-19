@@ -1,4 +1,4 @@
-// src/components/// StripeCardInstallments.jsx
+// src/components/StripeCardInstallments.jsx
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {

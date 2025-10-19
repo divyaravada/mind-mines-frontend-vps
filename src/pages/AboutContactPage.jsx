@@ -1,3 +1,4 @@
+// src/pages/AboutContactPage.jsx
 import { useTranslation } from "react-i18next";
 import aboutUs from "../assets/aboutUs.jpg";
 import ContactSection from "../components/ContactForm";

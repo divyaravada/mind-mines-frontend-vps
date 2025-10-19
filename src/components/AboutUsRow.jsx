@@ -1,3 +1,4 @@
+// src/components/AboutUsRow.jsx
 import aboutUs from "../assets/aboutUs.jpg";
 import { useTranslation } from "react-i18next";
 

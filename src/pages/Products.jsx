@@ -1,3 +1,4 @@
+// src/pages/Products.jsx
 import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
