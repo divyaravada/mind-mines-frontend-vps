@@ -152,12 +152,12 @@ export default function StripeCard({
           return map[up] || "DE";
         };
         const res = await http.post("payments/stripe/create-intent/", {
-          email: customerEmail || addressPayload?.email,
           items: lineItems,
           payment_method: "card",
           ...addressPayload,
           country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
+          email: customerEmail || addressPayload?.email,
         });
         if (!cancelled) {
           setClientSecret(res.data?.clientSecret || "");
@@ -183,6 +183,7 @@ export default function StripeCard({
     couponInfo,
     addressPayload,
     setLocalOrderId,
+    customerEmail,
   ]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
