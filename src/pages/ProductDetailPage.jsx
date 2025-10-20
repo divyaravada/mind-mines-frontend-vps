@@ -16,6 +16,8 @@ import {
 } from "../features/products/productsApi";
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
+import LowStockBanner from "../components/LowStockBanner";
+import OutOfStockNotify from "../components/OutOfStockNotify";
 
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
@@ -277,7 +279,8 @@ export default function ProductDetailPage() {
             {" "}
             <strong>{t("stock")}:</strong> {product.quantity}
           </p>
-
+          <LowStockBanner stock={product.stock} />
+          {product?.stock <= 0 && <OutOfStockNotify productId={product.id} />}
           <button
             onClick={handleAddToCart}
             className="px-4 py-2 mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"

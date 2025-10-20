@@ -12,10 +12,12 @@ export default function HomeCarousel() {
   const timer = useRef(null);
 
   // Safety: ensure it's an array
-  const categories = useMemo(
-    () => (Array.isArray(rawCategories) ? rawCategories : []),
-    []
-  );
+  const categories = useMemo(() => {
+    const arr = Array.isArray(rawCategories) ? rawCategories : [];
+    return arr.filter(
+      (c) => c.id !== "countertops" && c.id !== "dream_kitchen"
+    );
+  }, []);
 
   const [sliderRef, slider] = useKeenSlider({
     loop: true,

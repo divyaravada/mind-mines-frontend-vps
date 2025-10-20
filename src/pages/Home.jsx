@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main>
       <HomeCarousel />
-      <CountertopCTA />
+      {/* <CountertopCTA /> */}
       <TopSellers />
       <HandmadeGuarantee />
       <CollectionRow />

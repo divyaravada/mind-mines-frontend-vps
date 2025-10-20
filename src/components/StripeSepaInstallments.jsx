@@ -171,6 +171,14 @@ function InnerInstallments({
 }
 
 export default function StripeInstallments(props) {
+  const cc = (props.addressPayload?.country || "DE").slice(0, 2).toUpperCase();
+  if (cc !== "DE") {
+    return (
+      <div className="text-sm text-gray-600">
+        SEPA installments are available in Germany only.
+      </div>
+    );
+  }
   return (
     <Elements stripe={stripePromise} options={{ locale: "de" }}>
       <InnerInstallments {...props} />

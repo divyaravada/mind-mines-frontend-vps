@@ -58,20 +58,13 @@ export const productsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_r, _e, arg) => [{ type: "Reviews", id: arg.id }],
     }),
-
-    // updateReview: b.mutation({
-    //   query: ({ reviewId, form }) => ({
-    //     url: `reviews/${reviewId}/`,
-    //     method: "PATCH",
-    //     body: form,
-    //   }),
-    //   invalidatesTags: ["Reviews"],
-    // }),
-
-    // deleteReview: b.mutation({
-    //   query: (reviewId) => ({ url: `reviews/${reviewId}/`, method: "DELETE" }),
-    //   invalidatesTags: ["Reviews"],
-    // }),
+    subscribeStockAlert: b.mutation({
+      query: ({ product, email }) => ({
+        url: "stock-alerts/",
+        method: "POST",
+        body: { product, email },
+      }),
+    }),
   }),
 });
 
@@ -80,8 +73,7 @@ export const {
   useGetProductQuery,
   useListProductReviewsQuery,
   useCreateProductReviewMutation,
-  // useUpdateReviewMutation,
-  // useDeleteReviewMutation,
   useLazyGetProductQuery,
   useGetTopProductsQuery,
+  useSubscribeStockAlertMutation,
 } = productsApi;

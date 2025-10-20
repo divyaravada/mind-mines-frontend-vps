@@ -126,6 +126,8 @@ function SepaForm({
 
 export default function StripeSepa(props) {
   const { active, setActive } = props;
+  const cc = (props.addressPayload?.country || "DE").slice(0, 2).toUpperCase();
+  const isDE = cc === "DE";
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -133,13 +135,16 @@ export default function StripeSepa(props) {
           type="radio"
           name="payment"
           value="sepa"
-          checked={active}
-          onChange={() => setActive?.()}
+          checked={active && isDE}
+          onChange={() => isDE && setActive?.()}
+          disabled={!isDE}
         />
-        <span className="flex-1">Direct Bank Transfer (SEPA)</span>
+        <span className="flex-1">
+          Direct Bank Transfer (SEPA){!isDE ? " — DE only" : ""}
+        </span>
         <span className="text-xs">IBAN/BIC</span>
       </label>
-      {active && (
+      {active && isDE && (
         <div className="border rounded p-3">
           <Elements stripe={stripePromise} options={{ locale: "de" }}>
             <SepaForm {...props} />
