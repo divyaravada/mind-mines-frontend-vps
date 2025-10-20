@@ -246,7 +246,7 @@ export default function ProductDetailPage() {
             {productTitle(product, lang)}
           </h1>
           <div className="text-sm text-gray-500 mb-2">
-            {t("categories." + product.category + ".heading")}
+            {t("home.categories." + product.category + ".heading")}
           </div>
           <div className="text-xl font-bold">{product.vat_price} €</div>
 

@@ -19,6 +19,7 @@ function CardInner({
   locale,
   lineItems,
   addressPayload,
+  customerEmail,
   couponCode,
   couponInfo,
   setLocalOrderId,
@@ -36,6 +37,14 @@ function CardInner({
     setProcessing(true);
     setErrorMsg("");
 
+    const normalizeCountry = (c) => {
+      if (!c) return "DE";
+      const up = ("" + c).trim();
+      if (up.length === 2) return up.toUpperCase();
+      const map = { Germany: "DE", Deutschland: "DE" };
+      return map[up] || "DE";
+    };
+
     try {
       // confirm the payment (handles 3DS automatically; returns when completed or no redirect)
       const { error, paymentIntent } = await stripe.confirmPayment({
@@ -50,15 +59,13 @@ function CardInner({
                     addressPayload.last_name || ""
                   }`.trim()
                 : undefined,
-              email: undefined, // email usually captured earlier; optional here
+              email: customerEmail || addressPayload?.email || undefined, // email usually captured earlier; optional here
               address: {
                 line1: addressPayload?.address_line1 || undefined,
                 line2: addressPayload?.address_line2 || undefined,
                 postal_code: addressPayload?.postal_code || undefined,
                 city: addressPayload?.city || undefined,
-                country: (addressPayload?.country || "DE")
-                  .slice(0, 2)
-                  .toUpperCase(),
+                country: normalizeCountry(addressPayload?.country),
               },
             },
           },
@@ -123,6 +130,7 @@ export default function StripeCard({
   couponCode,
   couponInfo,
   locale = "en",
+  customerEmail,
 }) {
   const { i18n } = useTranslation();
   const [clientSecret, setClientSecret] = useState("");
@@ -135,10 +143,20 @@ export default function StripeCard({
       if (!active) return;
       setLoading(true);
       try {
+        const normalizeCountry = (c) => {
+          if (!c) return "DE";
+          const up = ("" + c).trim();
+          if (up.length === 2) return up.toUpperCase();
+          // very small map for common names you use
+          const map = { Germany: "DE", Deutschland: "DE" };
+          return map[up] || "DE";
+        };
         const res = await http.post("payments/stripe/create-intent/", {
+          email: customerEmail || addressPayload?.email,
           items: lineItems,
           payment_method: "card",
           ...addressPayload,
+          country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
         });
         if (!cancelled) {
@@ -146,7 +164,11 @@ export default function StripeCard({
           setLocalOrderId?.(res.data?.order_id);
         }
       } catch (e) {
-        if (!cancelled) setClientSecret("");
+        if (!cancelled) {
+          setClientSecret("");
+          console.error("Create intent failed", e?.response?.data || e);
+          // optionally show a toast/banner with e.response.data.detail or validation errors
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -206,7 +228,7 @@ export default function StripeCard({
             options={{
               clientSecret,
               appearance,
-              locale: i18n.language === "de" ? "de" : "en",
+              locale: "de" === locale ? "de" : "en",
             }}
           >
             <CardInner
@@ -214,6 +236,7 @@ export default function StripeCard({
               locale={i18n.language}
               lineItems={lineItems}
               addressPayload={addressPayload}
+              customerEmail={customerEmail || addressPayload?.email}
               couponCode={couponCode}
               couponInfo={couponInfo}
               setLocalOrderId={setLocalOrderId}
