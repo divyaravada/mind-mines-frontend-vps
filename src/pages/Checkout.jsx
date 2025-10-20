@@ -59,7 +59,6 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
-  const customerEmail = authEmail || form?.email || "";
   useEffect(() => {
     if (items.length === 0 && !skipCartGuardRef.current) {
       navigate("/decorative-products");
@@ -110,7 +109,7 @@ export default function Checkout() {
     city: "",
     telephone: "",
   });
-
+  const customerEmail = authEmail || form.email || "";
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -509,7 +508,7 @@ export default function Checkout() {
             total={payTotal}
             couponCode={couponCode}
             couponInfo={couponInfo}
-            customerEmail={customerEmail}
+            customerEmail={authEmail || form.email || ""}
           />
 
           {/* CARD installments */}
