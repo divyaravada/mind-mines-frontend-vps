@@ -58,6 +58,8 @@ export default function Checkout() {
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
+  const authEmail = useSelector((s) => s.auth?.user?.email) || "";
+  const customerEmail = authEmail || form?.email || "";
   useEffect(() => {
     if (items.length === 0 && !skipCartGuardRef.current) {
       navigate("/decorative-products");
@@ -507,6 +509,7 @@ export default function Checkout() {
             total={payTotal}
             couponCode={couponCode}
             couponInfo={couponInfo}
+            customerEmail={customerEmail}
           />
 
           {/* CARD installments */}
