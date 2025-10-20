@@ -143,11 +143,11 @@ export default function ProductTile({
             title={isOut ? t("product.cannotAdd", "Out of stock") : undefined}
           >
             <ShoppingCart className="w-4 h-4" />
-            <span>
+            {/* <span>
               {isOut
                 ? t("product.out", "Out")
                 : t("home.topsellers.addToCart", "Add to cart")}
-            </span>
+            </span> */}
           </button>
         </div>
       </div>
