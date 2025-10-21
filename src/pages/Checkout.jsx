@@ -42,6 +42,27 @@ const fmtEUR = (n, locale = "en") => {
   }
 };
 
+const normalizeCountry = (c) => {
+  if (!c) return "DE";
+  const s = String(c).trim();
+  if (s.length === 2) return s.toUpperCase();
+  const map = {
+    Germany: "DE",
+    Deutschland: "DE",
+    Austria: "AT",
+    Österreich: "AT",
+    Switzerland: "CH",
+    Schweiz: "CH",
+    Italy: "IT",
+    Italia: "IT",
+    France: "FR",
+    Frankreich: "FR",
+    Netherlands: "NL",
+    Niederlande: "NL",
+  };
+  return map[s] || "DE";
+};
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
@@ -59,10 +80,27 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
+
+  // Wait for possible localStorage cart before redirecting
   useEffect(() => {
-    if (items.length === 0 && !skipCartGuardRef.current) {
-      navigate("/decorative-products");
-    }
+    if (skipCartGuardRef.current) return;
+    if (items.length > 0) return; // we have items, do nothing
+
+    // Double-check localStorage (supports your "cart" or "mm_cart" keys)
+    try {
+      const lsCart =
+        JSON.parse(localStorage.getItem("mm_cart") || "[]") ||
+        JSON.parse(localStorage.getItem("cart") || "[]");
+      if (Array.isArray(lsCart) && lsCart.length > 0) return; // still loading redux, don't redirect
+    } catch {}
+
+    // Use a tiny delay to let rehydration finish on slower devices
+    const id = setTimeout(() => {
+      if (!skipCartGuardRef.current && items.length === 0) {
+        navigate("/decorative-products");
+      }
+    }, 150);
+    return () => clearTimeout(id);
   }, [items.length, navigate]);
 
   const applyCoupon = async () => {
@@ -100,7 +138,7 @@ export default function Checkout() {
   // Address form
   const [form, setForm] = useState({
     email: "",
-    country: "Germany",
+    country: "DE",
     fullName: "",
     street: "",
     houseNumber: "",
@@ -111,27 +149,6 @@ export default function Checkout() {
   });
   const countryCode = normalizeCountry(form.country);
   const sepaAllowed = countryCode === "DE";
-
-  const normalizeCountry = (c) => {
-    if (!c) return "DE";
-    const s = String(c).trim();
-    if (s.length === 2) return s.toUpperCase();
-    const map = {
-      Germany: "DE",
-      Deutschland: "DE",
-      Austria: "AT",
-      Österreich: "AT",
-      Switzerland: "CH",
-      Schweiz: "CH",
-      Italy: "IT",
-      Italia: "IT",
-      France: "FR",
-      Frankreich: "FR",
-      Netherlands: "NL",
-      Niederlande: "NL",
-    };
-    return map[s] || "DE";
-  };
 
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -167,8 +184,7 @@ export default function Checkout() {
       is_default: true,
     };
   };
-  const addr = buildAddressPayload();
-  const country2 = normalizeCountry(addr?.country);
+
   // Prefill
   useEffect(() => {
     (async () => {
@@ -255,7 +271,7 @@ export default function Checkout() {
         }
       }
     })();
-  }, [navigate]);
+  }, [navigate, isAuth]);
 
   useEffect(() => {
     const saved = localStorage.getItem("coupon_auto");
@@ -289,6 +305,7 @@ export default function Checkout() {
             payload
           );
           setAddrSaved(true);
+          setTimeout(() => setAddrSaved(false), 2000);
         } else {
           const r = await http.post("dashboard/addresses/", payload);
           addressIdRef.current = r.data?.id ?? null;
@@ -421,34 +438,65 @@ export default function Checkout() {
               {/** read grouped data from i18n */}
               {/** `returnObjects: true` lets us get nested objects */}
               {(() => {
-                const countryGroups = t("countryGroups", {
-                  returnObjects: true,
-                });
-                const groupedCountries = t("countries", {
-                  returnObjects: true,
-                });
+                const groups = t("countryGroups", { returnObjects: true });
+                const grouped = t("countries", { returnObjects: true });
+
+                const isGrouped =
+                  grouped &&
+                  typeof grouped === "object" &&
+                  !Array.isArray(grouped) &&
+                  Object.values(grouped).every(
+                    (v) => v && typeof v === "object"
+                  );
+
+                if (!isGrouped) {
+                  // Flat fallback for early setups
+                  const flat =
+                    grouped && typeof grouped === "object"
+                      ? grouped
+                      : {
+                          DE: "Germany",
+                          AT: "Austria",
+                          CH: "Switzerland",
+                          IT: "Italy",
+                          FR: "France",
+                          NL: "Netherlands",
+                        };
+                  return (
+                    <select
+                      name="country"
+                      value={form.country}
+                      onChange={handleCountryChange}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      {Object.entries(flat).map(([code, label]) => (
+                        <option key={code} value={code}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                }
 
                 return (
                   <select
                     name="country"
-                    value={form.country} // holds "DE", "IT", ...
+                    value={form.country}
                     onChange={handleCountryChange}
                     className="w-full border rounded px-3 py-2"
                   >
-                    {Object.entries(groupedCountries).map(
-                      ([groupKey, countryMap]) => (
-                        <optgroup
-                          key={groupKey}
-                          label={countryGroups[groupKey] || groupKey}
-                        >
-                          {Object.entries(countryMap).map(([code, label]) => (
-                            <option key={code} value={code}>
-                              {label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )
-                    )}
+                    {Object.entries(grouped).map(([groupKey, countryMap]) => (
+                      <optgroup
+                        key={groupKey}
+                        label={(groups && groups[groupKey]) || groupKey}
+                      >
+                        {Object.entries(countryMap).map(([code, label]) => (
+                          <option key={code} value={code}>
+                            {label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 );
               })()}
