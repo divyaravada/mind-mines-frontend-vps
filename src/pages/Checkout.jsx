@@ -305,7 +305,18 @@ export default function Checkout() {
     else navigate("/dashboard/orders");
   };
 
-  const [payment, setPayment] = useState("card");
+  const [payment, setPayment] = useState("");
+
+  const setPaymentSafe = useCallback((next) => {
+    setPayment(next);
+    // if leaving card, clear card months
+    if (!next.startsWith("card")) setCardMonths(null);
+    // if leaving sepa, clear sepa months
+    if (!next.startsWith("sepa")) setSepaMonths(null);
+    // if choosing a base method (not installments), ensure its own months are cleared
+    if (next === "card") setCardMonths(null);
+    if (next === "sepa_debit") setSepaMonths(null);
+  }, []);
 
   const [cardMonths, setCardMonths] = useState(null);
   const [sepaMonths, setSepaMonths] = useState(null);
@@ -497,10 +508,14 @@ export default function Checkout() {
           <p className="text-sm text-gray-500 mb-4">
             {t("checkout.deliveryNote")}
           </p>
-
+          {!payment && (
+            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
+              Please choose a payment method to continue.
+            </div>
+          )}
           <StripeCard
             active={payment === "card"}
-            setActive={() => setPayment("card")}
+            setActive={() => setPaymentSafe("card")}
             lineItems={lineItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
@@ -526,8 +541,14 @@ export default function Checkout() {
                         key={`card-${m}`}
                         type="button"
                         onClick={() => {
-                          setCardMonths(m);
-                          setPayment(`card_installments_${m}`);
+                          setCardMonths((prev) => {
+                            const same = prev === m;
+                            const nextMonths = same ? null : m;
+                            setPaymentSafe(
+                              same ? "card" : `card_installments_${m}`
+                            );
+                            return nextMonths;
+                          });
                         }}
                         className={`px-2 py-1 rounded border text-sm ${
                           cardMonths === m
@@ -563,7 +584,7 @@ export default function Checkout() {
                 <StripeCardInstallments
                   active={payment === `card_installments_${cardMonths}`}
                   setActive={() =>
-                    setPayment(`card_installments_${cardMonths}`)
+                    setPaymentSafe(`card_installments_${cardMonths}`)
                   }
                   months={cardMonths}
                   lineItems={lineItems}
@@ -593,7 +614,7 @@ export default function Checkout() {
                 name="payment"
                 value="paypal"
                 checked={payment === "paypal"}
-                onChange={() => setPayment("paypal")}
+                onChange={() => setPaymentSafe("paypal")}
               />
               <span className="flex-1">PayPal</span>
               <span className="text-xs font-semibold text-[#003087]">
@@ -660,7 +681,7 @@ export default function Checkout() {
 
           <StripeSepa
             active={payment === "sepa_debit"}
-            setActive={() => setPayment("sepa_debit")}
+            setActive={() => setPaymentSafe("sepa_debit")}
             lineItems={lineItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
@@ -687,8 +708,14 @@ export default function Checkout() {
                         key={m}
                         type="button"
                         onClick={() => {
-                          setSepaMonths(m);
-                          setPayment(`sepa_installments_${m}`);
+                          setSepaMonths((prev) => {
+                            const same = prev === m;
+                            const nextMonths = same ? null : m;
+                            setPaymentSafe(
+                              same ? "sepa_debit" : `sepa_installments_${m}`
+                            );
+                            return nextMonths;
+                          });
                         }}
                         className={`px-2 py-1 rounded border text-sm ${
                           sepaMonths === m
@@ -725,7 +752,7 @@ export default function Checkout() {
                 <StripeSepaInstallments
                   active={payment === `sepa_installments_${sepaMonths}`}
                   setActive={() =>
-                    setPayment(`sepa_installments_${sepaMonths}`)
+                    setPaymentSafe(`sepa_installments_${sepaMonths}`)
                   }
                   months={sepaMonths}
                   lineItems={lineItems}
@@ -748,7 +775,7 @@ export default function Checkout() {
               name="payment"
               value="bank"
               checked={payment === "bank"}
-              onChange={() => setPayment("bank")}
+              onChange={() => setPaymentSafe("bank")}
             />
             <span className="flex-1">{t("checkout.bank")}</span>
             <span className="text-xs">{t("checkout.ibanbic")}</span>
