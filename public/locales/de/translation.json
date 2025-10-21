@@ -469,13 +469,64 @@
     "delete": "Löschen",
     "none": "Noch keine Adressen."
   },
+  "countryGroups": {
+    "western": "Westeuropa",
+    "nordic": "Nordische Länder",
+    "central": "Zentraleuropa",
+    "southern": "Südeuropa",
+    "eastern": "Osteuropa",
+    "benelux": "Benelux & Luxemburg",
+    "baltic": "Baltische Staaten",
+    "eea": "EWR (nicht EU)"
+  },
   "countries": {
-    "germany": "Deutschland",
-    "austria": "Österreich",
-    "switzerland": "Schweiz",
-    "france": "Frankreich",
-    "italy": "Italien",
-    "netherlands": "Niederlande"
+    "western": {
+      "DE": "Deutschland",
+      "FR": "Frankreich",
+      "IE": "Irland"
+    },
+    "benelux": {
+      "BE": "Belgien",
+      "NL": "Niederlande",
+      "LU": "Luxemburg"
+    },
+    "nordic": {
+      "DK": "Dänemark",
+      "SE": "Schweden",
+      "FI": "Finnland",
+      "NO": "Norwegen",
+      "IS": "Island"
+    },
+    "central": {
+      "AT": "Österreich",
+      "CH": "Schweiz",
+      "PL": "Polen",
+      "CZ": "Tschechien",
+      "HU": "Ungarn",
+      "SK": "Slowakei"
+    },
+    "southern": {
+      "IT": "Italien",
+      "ES": "Spanien",
+      "PT": "Portugal",
+      "MT": "Malta",
+      "GR": "Griechenland",
+      "CY": "Zypern"
+    },
+    "baltic": {
+      "EE": "Estland",
+      "LV": "Lettland",
+      "LT": "Litauen"
+    },
+    "eastern": {
+      "SI": "Slowenien",
+      "HR": "Kroatien",
+      "RO": "Rumänien",
+      "BG": "Bulgarien"
+    },
+    "eea": {
+      "LI": "Liechtenstein"
+    }
   },
   "wishlist": {
     "title": "Ihre Wunschliste",

@@ -139,13 +139,11 @@ export default function Checkout() {
       address_line2: form.apartment || "",
       postal_code: form.postalCode || "",
       city: form.city || "",
-      country: form.country || "Germany",
+      country: form.country || "DE",
       phone: form.telephone || "",
       is_default: true,
     };
   };
-  const addr = buildAddressPayload();
-  const country2 = (addr?.country || "").slice(0, 2).toUpperCase();
 
   // Prefill
   useEffect(() => {
@@ -336,26 +334,28 @@ export default function Checkout() {
   };
 
   const handleCountryChange = (e) => {
-    const newCountry = e.target.value;
-    if (setPaymentSafe === "sepa_debit" && newCountry !== "DE") {
+    const newCode = (e.target.value || "").toUpperCase();
+
+    // If user currently chose DE-only methods, force DE
+    if ((payment === "sepa_debit" || payment === "bank") && newCode !== "DE") {
       alert(
-        "⚠️ Direct Bank Transfer (SEPA) is only available for Germany (DE). Please select Germany or choose another payment method."
+        "⚠️ SEPA Lastschrift/Überweisung ist nur in Deutschland (DE) verfügbar. Bitte wählen Sie Deutschland oder eine andere Zahlungsart."
       );
-      // Revert the country back to DE
-      setFormValues((prev) => ({ ...prev, country: "DE" }));
+      setForm((prev) => ({ ...prev, country: "DE" }));
       return;
     }
-    setFormValues((prev) => ({ ...prev, country: newCountry }));
+    setForm((prev) => ({ ...prev, country: newCode }));
   };
 
+  // Safety net: if payment is DE-only and country changes elsewhere
   useEffect(() => {
-    if (setPaymentSafe === "sepa_debit" && formValues.country !== "DE") {
-      alert(
-        "⚠️ SEPA Direct Debit is only available in Germany (DE). Country has been reset to DE."
-      );
-      setFormValues((prev) => ({ ...prev, country: "DE" }));
+    if (
+      (payment === "sepa_debit" || payment === "bank") &&
+      form.country !== "DE"
+    ) {
+      setForm((prev) => ({ ...prev, country: "DE" }));
     }
-  }, [setPaymentSafe]);
+  }, [payment, form.country]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -383,22 +383,43 @@ export default function Checkout() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.country")}
               </label>
-              <select
-                name="country"
-                value={form.country}
-                onChange={handleCountryChange}
-                className="w-full border rounded px-3 py-2"
-              >
-                <option> {t("countries.germany")}</option>
-                <option> {t("countries.austria")}</option>
-                <option> {t("countries.switzerland")}</option>
-                <option>{t("countries.france")}</option>
-                <option>{t("countries.italy")}</option>
-                <option>{t("countries.netherlands")}</option>
-              </select>
+
+              {/** read grouped data from i18n */}
+              {/** `returnObjects: true` lets us get nested objects */}
+              {(() => {
+                const countryGroups = t("countryGroups", {
+                  returnObjects: true,
+                });
+                const groupedCountries = t("countries", {
+                  returnObjects: true,
+                });
+
+                return (
+                  <select
+                    name="country"
+                    value={form.country} // holds "DE", "IT", ...
+                    onChange={handleCountryChange}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    {Object.entries(groupedCountries).map(
+                      ([groupKey, countryMap]) => (
+                        <optgroup
+                          key={groupKey}
+                          label={countryGroups[groupKey] || groupKey}
+                        >
+                          {Object.entries(countryMap).map(([code, label]) => (
+                            <option key={code} value={code}>
+                              {label}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    )}
+                  </select>
+                );
+              })()}
             </div>
 
             <div className="md:col-span-2">

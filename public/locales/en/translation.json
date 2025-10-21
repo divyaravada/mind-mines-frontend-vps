@@ -452,13 +452,64 @@
     "delete": "Delete",
     "none": "No addresses yet."
   },
+  "countryGroups": {
+    "western": "Western Europe",
+    "nordic": "Nordic Countries",
+    "central": "Central Europe",
+    "southern": "Southern Europe",
+    "eastern": "Eastern Europe",
+    "benelux": "Benelux & Luxembourg",
+    "baltic": "Baltic States",
+    "eea": "EEA (non-EU)"
+  },
   "countries": {
-    "germany": "Germany",
-    "austria": "Austria",
-    "switzerland": "Switzerland",
-    "france": "France",
-    "italy": "Italy",
-    "netherlands": "Netherlands"
+    "western": {
+      "DE": "Germany",
+      "FR": "France",
+      "IE": "Ireland"
+    },
+    "benelux": {
+      "BE": "Belgium",
+      "NL": "Netherlands",
+      "LU": "Luxembourg"
+    },
+    "nordic": {
+      "DK": "Denmark",
+      "SE": "Sweden",
+      "FI": "Finland",
+      "NO": "Norway",
+      "IS": "Iceland"
+    },
+    "central": {
+      "AT": "Austria",
+      "CH": "Switzerland",
+      "PL": "Poland",
+      "CZ": "Czech Republic",
+      "HU": "Hungary",
+      "SK": "Slovakia"
+    },
+    "southern": {
+      "IT": "Italy",
+      "ES": "Spain",
+      "PT": "Portugal",
+      "MT": "Malta",
+      "GR": "Greece",
+      "CY": "Cyprus"
+    },
+    "baltic": {
+      "EE": "Estonia",
+      "LV": "Latvia",
+      "LT": "Lithuania"
+    },
+    "eastern": {
+      "SI": "Slovenia",
+      "HR": "Croatia",
+      "RO": "Romania",
+      "BG": "Bulgaria"
+    },
+    "eea": {
+      "LI": "Liechtenstein"
+    }
   },
   "wishlist": {
     "title": "Your Wishlist",
