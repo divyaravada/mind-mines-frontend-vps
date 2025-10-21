@@ -15,14 +15,8 @@ const stripePromise = loadStripe(
 );
 
 function CardInner({
-  clientSecret,
-  locale,
-  lineItems,
   addressPayload,
   customerEmail,
-  couponCode,
-  couponInfo,
-  setLocalOrderId,
   onSuccess,
   totalFormatted,
 }) {
@@ -166,7 +160,24 @@ export default function StripeCard({
       } catch (e) {
         if (!cancelled) {
           setClientSecret("");
-          console.error("Create intent failed", e?.response?.data || e);
+          const data = e?.response?.data;
+          // Prefer the structured DRF errors we now return
+          let msg =
+            (data?.errors &&
+              (data.errors.items ??
+                data.errors.non_field_errors ??
+                data.errors.detail)) ||
+            data?.detail ||
+            data?.error ||
+            "Failed to initialize payment.";
+          if (Array.isArray(msg)) msg = msg[0];
+          // If msg is an object (e.g., {0: "..."}), stringify first entry
+          if (typeof msg === "object" && msg !== null) {
+            const first = Object.values(msg)[0];
+            msg = Array.isArray(first) ? first[0] : String(first);
+          }
+          console.error("Create intent failed:", data || e);
+          alert(msg);
           // optionally show a toast/banner with e.response.data.detail or validation errors
         }
       } finally {
