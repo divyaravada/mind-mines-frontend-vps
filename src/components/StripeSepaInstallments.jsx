@@ -170,8 +170,24 @@ function InnerInstallments({
   );
 }
 
+const normalizeCountry = (c) => {
+  if (!c) return "DE";
+  const s = String(c).trim();
+  if (s.length === 2) return s.toUpperCase();
+  const map = {
+    Germany: "DE",
+    Deutschland: "DE",
+    Italy: "IT",
+    Österreich: "AT",
+    Austria: "AT",
+    Schweiz: "CH",
+    Switzerland: "CH",
+  };
+  return map[s] || "DE";
+};
+
 export default function StripeInstallments(props) {
-  const cc = (props.addressPayload?.country || "DE").slice(0, 2).toUpperCase();
+  const cc = normalizeCountry(props.addressPayload?.country);
   if (cc !== "DE") {
     return (
       <div className="text-sm text-gray-600">

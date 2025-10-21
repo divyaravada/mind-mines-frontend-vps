@@ -109,7 +109,30 @@ export default function Checkout() {
     city: "",
     telephone: "",
   });
-  const customerEmail = authEmail || form.email || "";
+  const countryCode = normalizeCountry(form.country);
+  const sepaAllowed = countryCode === "DE";
+
+  const normalizeCountry = (c) => {
+    if (!c) return "DE";
+    const s = String(c).trim();
+    if (s.length === 2) return s.toUpperCase();
+    const map = {
+      Germany: "DE",
+      Deutschland: "DE",
+      Austria: "AT",
+      Österreich: "AT",
+      Switzerland: "CH",
+      Schweiz: "CH",
+      Italy: "IT",
+      Italia: "IT",
+      France: "FR",
+      Frankreich: "FR",
+      Netherlands: "NL",
+      Niederlande: "NL",
+    };
+    return map[s] || "DE";
+  };
+
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -139,12 +162,13 @@ export default function Checkout() {
       address_line2: form.apartment || "",
       postal_code: form.postalCode || "",
       city: form.city || "",
-      country: form.country || "DE",
+      country: normalizeCountry(form.country),
       phone: form.telephone || "",
       is_default: true,
     };
   };
-
+  const addr = buildAddressPayload();
+  const country2 = normalizeCountry(addr?.country);
   // Prefill
   useEffect(() => {
     (async () => {
@@ -334,24 +358,32 @@ export default function Checkout() {
   };
 
   const handleCountryChange = (e) => {
-    const newCode = (e.target.value || "").toUpperCase();
+    const newCode = normalizeCountry(e.target.value);
 
-    // If user currently chose DE-only methods, force DE
-    if ((payment === "sepa_debit" || payment === "bank") && newCode !== "DE") {
+    const isDEOnlyMethod =
+      payment === "sepa_debit" ||
+      payment === "bank" ||
+      payment.startsWith("sepa_installments");
+
+    if (isDEOnlyMethod && newCode !== "DE") {
       alert(
-        "⚠️ SEPA Lastschrift/Überweisung ist nur in Deutschland (DE) verfügbar. Bitte wählen Sie Deutschland oder eine andere Zahlungsart."
+        "⚠️ Direct Bank Transfer / SEPA is only available in Germany (DE). Please choose Germany or select another payment method."
       );
-      setForm((prev) => ({ ...prev, country: "DE" }));
+      setForm((prev) => ({ ...prev, country: "DE" })); // revert to DE
       return;
     }
+
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
   // Safety net: if payment is DE-only and country changes elsewhere
   useEffect(() => {
+    const code = normalizeCountry(form.country);
     if (
-      (payment === "sepa_debit" || payment === "bank") &&
-      form.country !== "DE"
+      (payment === "sepa_debit" ||
+        payment === "bank" ||
+        payment.startsWith("sepa_installments")) &&
+      code !== "DE"
     ) {
       setForm((prev) => ({ ...prev, country: "DE" }));
     }
@@ -722,18 +754,39 @@ export default function Checkout() {
             )}
           </PayPalScriptProvider>
 
-          <StripeSepa
-            active={payment === "sepa_debit"}
-            setActive={() => setPaymentSafe("sepa_debit")}
-            lineItems={lineItems}
-            addressPayload={buildAddressPayload()}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            form={form}
-            total={payTotal}
-            couponCode={couponCode}
-            couponInfo={couponInfo}
-          />
+          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+            <input
+              type="radio"
+              name="payment"
+              value="sepa_debit"
+              checked={payment === "sepa_debit"}
+              onChange={() => {
+                if (!sepaAllowed) {
+                  alert(
+                    "SEPA Lastschrift ist nur in Deutschland (DE) verfügbar."
+                  );
+                  return;
+                }
+                setPaymentSafe("sepa_debit");
+              }}
+              disabled={!sepaAllowed}
+            />
+            <span className="flex-1">SEPA Lastschrift — DE only</span>
+          </label>
+          {payment === "sepa_debit" && (
+            <StripeSepa
+              active
+              setActive={() => setPaymentSafe("sepa_debit")}
+              lineItems={lineItems}
+              addressPayload={buildAddressPayload()}
+              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+              form={form}
+              total={payTotal}
+              couponCode={couponCode}
+              couponInfo={couponInfo}
+            />
+          )}
 
           {/* SEPA installments */}
           {(payment === "sepa_debit" ||
