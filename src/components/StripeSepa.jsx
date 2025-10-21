@@ -22,6 +22,7 @@ function SepaForm({
   onSuccess,
   setLocalOrderId,
   form,
+  customerEmail,
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -43,13 +44,14 @@ function SepaForm({
   const pay = async () => {
     setErr("");
     if (!stripe || !elements) return;
-
+    setLoading(true);
     try {
       // 1) Ask backend to create local order + SEPA PaymentIntent
       const res = await http.post("payments/stripe/sepa/create-intent/", {
         items: lineItems,
         payment_method: "sepa_debit",
         ...addressPayload,
+        email: (customerEmail || form?.email || "").trim(),
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
       });
       const clientSecret = res?.data?.clientSecret;

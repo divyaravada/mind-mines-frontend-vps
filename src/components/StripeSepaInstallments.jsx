@@ -54,6 +54,7 @@ function InnerInstallments({
   setLocalOrderId,
   onSuccess,
   total,
+  customerEmail,
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -114,7 +115,7 @@ function InnerInstallments({
         payment_method_id: pmId, // <-- REQUIRED
         method: "sepa_debit", // optional (defaults to sepa_debit)
         ...addressPayload, // your address fields
-        email: (customerEmail || form.email || "").trim(),
+        email: (customerEmail || form?.email || "").trim(),
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
       };
 

@@ -717,6 +717,7 @@ export default function Checkout() {
                   total={payTotal}
                   couponCode={couponCode}
                   couponInfo={couponInfo}
+                  customerEmail={authEmail || form.email || ""}
                 />
               )}
             </div>
@@ -833,6 +834,7 @@ export default function Checkout() {
               total={payTotal}
               couponCode={couponCode}
               couponInfo={couponInfo}
+              customerEmail={authEmail || form.email || ""}
             />
           )}
 
