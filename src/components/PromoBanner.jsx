@@ -23,7 +23,7 @@ export default function PromoBanner() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await http.get("promos/active/");
+        const r = await http.get("promotions/active/");
         if (r.data?.active) {
           setPromo(r.data);
           setRemaining(r.data.remaining_seconds ?? null);
