@@ -131,7 +131,12 @@ export default function Checkout() {
     return Number(Math.max(0, t).toFixed(2));
   }, [subtotal, shippingFee, discount]);
 
-  const lineItems = items.map((c) => ({ product: c.id, quantity: c.qty }));
+  const lineItems = items.map((c) => ({
+    product: c.id,
+    quantity: c.qty,
+    product_id: c.id,
+    qty: c.qty,
+  }));
 
   // Address form
   const [form, setForm] = useState({
