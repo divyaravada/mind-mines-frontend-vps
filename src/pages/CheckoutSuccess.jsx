@@ -13,7 +13,7 @@ export default function CheckoutSuccess() {
   const [loading, setLoading] = useState(true);
   const [bankInfo, setBankInfo] = useState(null);
   const [error, setError] = useState(null);
-
+  const hasAuth = !!localStorage.getItem("authTokens");
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("bank_checkout_info");
@@ -26,7 +26,7 @@ export default function CheckoutSuccess() {
   }, [orderId]);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !hasAuth) return;
     let timer;
     let stopped = false;
 
@@ -49,7 +49,7 @@ export default function CheckoutSuccess() {
     load();
     timer = setInterval(() => !stopped && load(), 5000);
     return () => clearInterval(timer);
-  }, [orderId, t]);
+  }, [orderId, t, hasAuth]);
 
   if (!orderId)
     return (
