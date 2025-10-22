@@ -82,7 +82,7 @@ function Inner({
       const payment_method_id = setupIntent.payment_method;
 
       // 2) Create the subscription schedule (installments) on your backend using CARD
-      const res = await http.post("payments/stripe/create-installments/", {
+      const res = await http.post("stripe/installments/sepa/", {
         months,
         method: "card",
         payment_method_id,
@@ -155,10 +155,7 @@ export default function StripeCardInstallments({
       if (!active) return;
       setLoading(true);
       try {
-        const res = await http.post(
-          "payments/stripe/card/create-setup-intent/",
-          {}
-        );
+        const res = await http.post("stripe/setup-intent/card/", {});
         if (!cancelled) setClientSecret(res.data?.clientSecret || "");
       } catch {
         if (!cancelled) setClientSecret("");

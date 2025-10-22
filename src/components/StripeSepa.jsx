@@ -47,7 +47,7 @@ function SepaForm({
     setLoading(true);
     try {
       // 1) Ask backend to create local order + SEPA PaymentIntent
-      const res = await http.post("payments/stripe/sepa/create-intent/", {
+      const res = await http.post("stripe/create-intent/sepa/", {
         items: lineItems,
         payment_method: "sepa_debit",
         ...addressPayload,

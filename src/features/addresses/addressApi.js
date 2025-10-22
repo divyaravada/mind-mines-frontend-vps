@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const addressApi = api.injectEndpoints({
   endpoints: (build) => ({
     getAddresses: build.query({
-      query: () => "dashboard/addresses/",
+      query: () => "addresses/",
       providesTags: (res) => {
         const list = res?.results ?? res ?? [];
         return Array.isArray(list)
@@ -18,7 +18,7 @@ export const addressApi = api.injectEndpoints({
     }),
     createAddress: build.mutation({
       query: (payload) => ({
-        url: "dashboard/addresses/",
+        url: "addresses/",
         method: "POST",
         body: payload,
       }),
@@ -26,7 +26,7 @@ export const addressApi = api.injectEndpoints({
     }),
     updateAddress: build.mutation({
       query: ({ id, ...payload }) => ({
-        url: `dashboard/addresses/${id}/`,
+        url: `addresses/${id}/`,
         method: "PUT",
         body: payload,
       }),
@@ -37,7 +37,7 @@ export const addressApi = api.injectEndpoints({
     }),
     deleteAddress: build.mutation({
       query: (id) => ({
-        url: `dashboard/addresses/${id}/`,
+        url: `addresses/${id}/`,
         method: "DELETE",
       }),
       invalidatesTags: (_r, _e, id) => [
@@ -47,7 +47,7 @@ export const addressApi = api.injectEndpoints({
     }),
     makeDefaultAddress: build.mutation({
       query: (id) => ({
-        url: `dashboard/addresses/${id}/`,
+        url: `addresses/${id}/`,
         method: "PATCH",
         body: { is_default: true },
       }),

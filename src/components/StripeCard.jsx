@@ -145,7 +145,7 @@ export default function StripeCard({
           const map = { Germany: "DE", Deutschland: "DE" };
           return map[up] || "DE";
         };
-        const res = await http.post("payments/stripe/create-intent/", {
+        const res = await http.post("stripe/create-intent/", {
           items: lineItems,
           payment_method: "card",
           ...addressPayload,

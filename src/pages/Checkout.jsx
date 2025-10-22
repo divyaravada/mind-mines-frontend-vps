@@ -222,7 +222,7 @@ export default function Checkout() {
 
       // Authenticated: prefill from backend (DO NOT redirect on 401)
       try {
-        const a = await http.get("dashboard/addresses/", {
+        const a = await http.get("addresses/", {
           params: { page_size: 20 },
         });
         const list = a.data?.results ?? a.data ?? [];
@@ -260,7 +260,7 @@ export default function Checkout() {
       }
 
       try {
-        const u = await http.get("dashboard/account/");
+        const u = await http.get("users/account/");
         setForm((p) => ({ ...p, email: u.data?.email || p.email }));
       } catch (err) {
         if (err?.response?.status === 401) {
@@ -298,14 +298,11 @@ export default function Checkout() {
       const payload = buildAddressPayload();
       if (isAuth) {
         if (addressIdRef.current) {
-          await http.put(
-            `dashboard/addresses/${addressIdRef.current}/`,
-            payload
-          );
+          await http.put(`addresses/${addressIdRef.current}/`, payload);
           setAddrSaved(true);
           setTimeout(() => setAddrSaved(false), 2000);
         } else {
-          const r = await http.post("dashboard/addresses/", payload);
+          const r = await http.post("addresses/", payload);
           addressIdRef.current = r.data?.id ?? null;
           setAddrSaved(true);
         }
@@ -339,7 +336,7 @@ export default function Checkout() {
   const onSuccessfulOrder = (id) => {
     wipeCart();
     if (id) navigate(`/checkout/success?order=${id}`);
-    else navigate("/orders/");
+    else navigate("orders/");
   };
   const isLoggedIn = isAuth;
   const [payment, setPayment] = useState("");

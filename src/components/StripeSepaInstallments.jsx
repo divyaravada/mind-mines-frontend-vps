@@ -76,9 +76,7 @@ function InnerInstallments({
     setLoading(true);
     try {
       // 1) Create SetupIntent for SEPA mandate
-      const siRes = await http.post(
-        "payments/stripe/sepa/create-setup-intent/"
-      );
+      const siRes = await http.post("stripe/setup-intent/sepa/");
       const clientSecret = siRes?.data?.clientSecret;
       if (!clientSecret) throw new Error("Missing SetupIntent client secret");
 
@@ -119,10 +117,7 @@ function InnerInstallments({
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
       };
 
-      const createRes = await http.post(
-        "payments/stripe/create-installments/",
-        payload
-      );
+      const createRes = await http.post("stripe/installments/sepa/", payload);
       const orderId = createRes?.data?.order_id;
       if (orderId) setLocalOrderId?.(orderId);
 
