@@ -65,10 +65,7 @@ export default function TopSellers() {
           <h2 className="text-2xl md:text-3xl font-bold">
             {t("home.topsellers.title")}
           </h2>
-          <a
-            href="/decorative-products"
-            className="text-sm underline underline-offset-4"
-          >
+          <a href="/products" className="text-sm underline underline-offset-4">
             {t("home.topsellers.seeAll")}
           </a>
         </div>

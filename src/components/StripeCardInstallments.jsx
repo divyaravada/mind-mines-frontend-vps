@@ -82,7 +82,7 @@ function Inner({
       const payment_method_id = setupIntent.payment_method;
 
       // 2) Create the subscription schedule (installments) on your backend using CARD
-      const res = await http.post("stripe/installments/sepa/", {
+      const res = await http.post("stripe/installments/card/", {
         months,
         method: "card",
         payment_method_id,

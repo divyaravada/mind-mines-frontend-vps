@@ -150,7 +150,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   // Return visible on delivered; disabled after 15 days
   const showReturnBtn = !!order && isDelivered;
-  const RETURN_WINDOW_DAYS = 5;
+  const RETURN_WINDOW_DAYS = 15;
   const returnDisabled =
     typeof ageDays === "number" ? ageDays > RETURN_WINDOW_DAYS : true;
   const daysLeft =

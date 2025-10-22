@@ -631,6 +631,7 @@ export default function Checkout() {
               Please choose a payment method to continue.
             </div>
           )}
+
           <StripeCard
             active={payment === "card"}
             setActive={() => setPaymentSafe("card")}
@@ -645,7 +646,7 @@ export default function Checkout() {
           />
 
           {/* CARD installments */}
-          {payment.startsWith("card") && (
+          {payment.startsWith("card") && isLoggedIn && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
