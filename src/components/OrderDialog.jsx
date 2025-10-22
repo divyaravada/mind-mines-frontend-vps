@@ -102,7 +102,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
       try {
         setLoading(true);
         setError(null);
-        const res = await http.get(`orders//${orderId}/`);
+        const res = await http.get(`orders/${orderId}/`);
         if (!cancelled) setOrder(res.data);
       } catch (err) {
         if (!cancelled) {

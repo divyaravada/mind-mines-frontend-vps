@@ -248,9 +248,7 @@ export default function ProductsPage() {
           {homeCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() =>
-                navigate(`/decorative-products/category/${cat.id}`)
-              }
+              onClick={() => navigate(`/products/category/${cat.id}`)}
               className={`flex flex-col items-center px-4 py-2 rounded border shadow-sm transition-all hover:scale-105 ${
                 categoryId === cat.id ? "bg-black text-white" : "bg-white"
               }`}

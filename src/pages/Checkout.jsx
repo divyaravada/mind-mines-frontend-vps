@@ -19,8 +19,6 @@ import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
 
-const INSTALLMENT_THRESHOLDS = { 3: 100, 6: 200, 9: 500 };
-
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 const splitInstallments = (total, months) => {
   const tc = toCents(total);
@@ -106,7 +104,7 @@ export default function Checkout() {
   const applyCoupon = async () => {
     setCouponErr("");
     try {
-      const r = await http.post("coupons/apply/", {
+      const r = await http.post("coupons/preview/", {
         code: couponCode.trim(),
         items: lineItems,
       });
@@ -279,7 +277,7 @@ export default function Checkout() {
       setCouponCode(saved.toUpperCase());
       (async () => {
         try {
-          const r = await http.post("coupons/apply/", {
+          const r = await http.post("coupons/preview/", {
             code: saved,
             items: lineItems,
           });
@@ -343,7 +341,7 @@ export default function Checkout() {
     if (id) navigate(`/checkout/success?order=${id}`);
     else navigate("/orders/");
   };
-
+  const isLoggedIn = isAuth;
   const [payment, setPayment] = useState("");
 
   const setPaymentSafe = useCallback((next) => {
@@ -656,37 +654,43 @@ export default function Checkout() {
                 <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
                   0% financing with card
                 </div>
-                <div className="text-sm text-gray-600">
-                  Choose term:
-                  <span className="ml-2 inline-flex gap-2">
-                    {[3, 6, 9].map((m) => (
-                      <button
-                        key={`card-${m}`}
-                        type="button"
-                        onClick={() => {
-                          setCardMonths((prev) => {
-                            const same = prev === m;
-                            const nextMonths = same ? null : m;
-                            setPaymentSafe(
-                              same ? "card" : `card_installments_${m}`
-                            );
-                            return nextMonths;
-                          });
-                        }}
-                        className={`px-2 py-1 rounded border text-sm ${
-                          cardMonths === m
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        {m} months
-                      </button>
-                    ))}
-                  </span>
-                </div>
+                {!isLoggedIn ? (
+                  <div className="text-xs text-gray-600">
+                    Sign in to use installments.
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-600">
+                    Choose term:
+                    <span className="ml-2 inline-flex gap-2">
+                      {[3, 6, 9].map((m) => (
+                        <button
+                          key={`card-${m}`}
+                          type="button"
+                          onClick={() => {
+                            setCardMonths((prev) => {
+                              const same = prev === m;
+                              const nextMonths = same ? null : m;
+                              setPaymentSafe(
+                                same ? "card" : `card_installments_${m}`
+                              );
+                              return nextMonths;
+                            });
+                          }}
+                          className={`px-2 py-1 rounded border text-sm ${
+                            cardMonths === m
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
+                          {m} months
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {cardMonths ? (
+              {isLoggedIn && cardMonths ? (
                 <div className="text-sm text-gray-700 mb-3">
                   <div className="font-medium">
                     Monthly payments ({cardMonths}):{" "}
@@ -703,7 +707,7 @@ export default function Checkout() {
                 </div>
               ) : null}
 
-              {cardMonths && (
+              {isLoggedIn && cardMonths && (
                 <StripeCardInstallments
                   active={payment === `card_installments_${cardMonths}`}
                   setActive={() =>
@@ -846,37 +850,41 @@ export default function Checkout() {
                 <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
                   0% Finanzierung verfügbar
                 </div>
-                <div className="text-sm text-gray-600">
-                  Wählen Sie die Laufzeit:
-                  <span className="ml-2 inline-flex gap-2">
-                    {[3, 6, 9].map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => {
-                          setSepaMonths((prev) => {
-                            const same = prev === m;
-                            const nextMonths = same ? null : m;
-                            setPaymentSafe(
-                              same ? "sepa_debit" : `sepa_installments_${m}`
-                            );
-                            return nextMonths;
-                          });
-                        }}
-                        className={`px-2 py-1 rounded border text-sm ${
-                          sepaMonths === m
-                            ? "bg-pink-600 text-white border-pink-600"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        {m} Monate
-                      </button>
-                    ))}
-                  </span>
-                </div>
+                {!isLoggedIn ? (
+                  <div className="text-xs text-gray-600">Bitte anmelden.</div>
+                ) : (
+                  <div className="text-sm text-gray-600">
+                    Wählen Sie die Laufzeit:
+                    <span className="ml-2 inline-flex gap-2">
+                      {[3, 6, 9].map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => {
+                            setSepaMonths((prev) => {
+                              const same = prev === m;
+                              const nextMonths = same ? null : m;
+                              setPaymentSafe(
+                                same ? "sepa_debit" : `sepa_installments_${m}`
+                              );
+                              return nextMonths;
+                            });
+                          }}
+                          className={`px-2 py-1 rounded border text-sm ${
+                            sepaMonths === m
+                              ? "bg-pink-600 text-white border-pink-600"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
+                          {m} Monate
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {sepaMonths ? (
+              {isLoggedIn && sepaMonths ? (
                 <div className="text-sm text-gray-700 mb-3">
                   <div className="font-medium">
                     Monatsraten ({sepaMonths}):{" "}
@@ -894,7 +902,7 @@ export default function Checkout() {
                 </div>
               ) : null}
 
-              {sepaMonths && (
+              {isLoggedIn && sepaMonths && (
                 <StripeSepaInstallments
                   active={payment === `sepa_installments_${sepaMonths}`}
                   setActive={() =>

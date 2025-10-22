@@ -32,7 +32,7 @@ export default function CheckoutSuccess() {
 
     const load = async () => {
       try {
-        const res = await http.get(`orders//${orderId}/`);
+        const res = await http.get(`orders/${orderId}/`);
         setOrder(res.data);
         setError(null);
         if (res.data?.invoice_pdf) {
