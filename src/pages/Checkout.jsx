@@ -134,6 +134,7 @@ export default function Checkout() {
   const lineItems = items.map((c) => ({
     product: c.id,
     quantity: c.qty,
+    product_id: c.id,
     id: c.id,
     qty: c.qty,
   }));
