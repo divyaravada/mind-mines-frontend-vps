@@ -66,7 +66,7 @@ export default function ProductDetailPage() {
     typeof window !== "undefined"
       ? window.location.origin
       : "https://mindmines.eu";
-  const url = `${currentOrigin}/decorative-products/${product.id}/`;
+  const url = `${currentOrigin}/products/${product.id}/`;
   const title = `${productTitle(product, lang)} | MindMines`;
   const description =
     product[`short_description1_${lang}`] ||
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: `${currentOrigin}/decorative-products/`,
+        item: `${currentOrigin}/products/`,
       },
       ...(product.category
         ? [
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
               "@type": "ListItem",
               position: 3,
               name: t("categories." + product.category + ".heading"),
-              item: `${currentOrigin}/decorative-products/category/${product.category}/`,
+              item: `${currentOrigin}/products/category/${product.category}/`,
             },
           ]
         : []),
@@ -408,7 +408,7 @@ export default function ProductDetailPage() {
             {recommend.map((p) => (
               <button
                 key={p.id}
-                onClick={() => navigate(`/decorative-products/${p.id}`)}
+                onClick={() => navigate(`/products/${p.id}`)}
                 className="bg-white rounded-xl p-4 shadow hover:shadow-md text-left"
               >
                 <img

@@ -69,7 +69,7 @@ export default function ProductTile({
   return (
     <article
       className="group rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
-      onClick={() => navigate(`/decorative-products/${product.id}`)}
+      onClick={() => navigate(`/products/${product.id}`)}
     >
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
         <img

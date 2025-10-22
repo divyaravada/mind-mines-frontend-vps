@@ -147,7 +147,7 @@ export default function AccountWishlist() {
                 src={p.image}
                 alt={title}
                 className="w-full h-44 object-cover rounded mb-3 cursor-pointer"
-                onClick={() => navigate(`/decorative-products/${p.id}`)}
+                onClick={() => navigate(`/products/${p.id}`)}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}

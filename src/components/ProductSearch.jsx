@@ -34,7 +34,7 @@ export default function ProductSearch({ t }) {
       setLoading(true);
       try {
         // DRF SearchFilter: ?search=<q>
-        const { data } = await http.get("decorative-products/", {
+        const { data } = await http.get("products/", {
           params: { search: dq, page_size: 6 },
         });
         if (!cancel) {
@@ -68,7 +68,7 @@ export default function ProductSearch({ t }) {
       setOpen(false);
       setQ("");
       // match your backend route
-      navigate(`/decorative-products/${item.id}`);
+      navigate(`/products/${item.id}`);
     },
     [navigate]
   );
