@@ -8,6 +8,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import http from "../services/http";
+import { getCheckoutIdem } from "../utils/idempotency";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -53,6 +54,7 @@ function SepaForm({
         ...addressPayload,
         email: (customerEmail || form?.email || "").trim(),
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
+        idempotency_key: getCheckoutIdem(),
       });
       const clientSecret = res?.data?.clientSecret;
       const orderId = res?.data?.order_id;

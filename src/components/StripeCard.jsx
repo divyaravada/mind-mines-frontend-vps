@@ -9,6 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import http from "../services/http";
 import { useTranslation } from "react-i18next";
+import { getCheckoutIdem } from "../utils/idempotency";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -152,6 +153,7 @@ export default function StripeCard({
           country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
           email: customerEmail || addressPayload?.email,
+          idempotency_key: getCheckoutIdem(),
         });
         if (!cancelled) {
           setClientSecret(res.data?.clientSecret || "");
