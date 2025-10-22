@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const reviewsApi = api.injectEndpoints({
   endpoints: (build) => ({
     getMyReviews: build.query({
-      query: () => "dashboard/reviews/",
+      query: () => "my/reviews/",
       transformResponse: (res) =>
         Array.isArray(res) ? res : res?.results ?? [],
       providesTags: (list) =>

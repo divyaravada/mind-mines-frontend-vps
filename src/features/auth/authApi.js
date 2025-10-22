@@ -24,7 +24,7 @@ export const authApi = api.injectEndpoints({
     }),
     googleAuth: build.mutation({
       query: ({ token }) => ({
-        url: "users/auth/google/",
+        url: "auth/google/",
         method: "POST",
         body: { token },
       }),
@@ -37,44 +37,30 @@ export const authApi = api.injectEndpoints({
         } catch {}
       },
     }),
-    facebookAuth: build.mutation({
-      query: ({ token }) => ({
-        url: "users/login/facebook/",
-        method: "POST",
-        body: { token },
-      }),
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(
-            setCredentials({ access: data.access, refresh: data.refresh })
-          );
-        } catch {}
-      },
-    }),
+
     requestPasswordReset: build.mutation({
       query: ({ email }) => ({
-        url: "users/reset-password/",
+        url: "auth/password/reset/",
         method: "POST",
         body: { email },
       }),
     }),
     resetPasswordConfirm: build.mutation({
       query: ({ uid, token, new_password1, new_password2 }) => ({
-        url: `users/reset-password/${uid}/${token}/`,
+        url: `auth/password/reset/confirm/${uid}/${token}/`,
         method: "POST",
         body: { new_password1, new_password2 },
       }),
     }),
     resendVerification: build.mutation({
       query: ({ email }) => ({
-        url: "users/resend-verification/",
+        url: "auth/resend-verification/",
         method: "POST",
         body: { email },
       }),
     }),
     verifyEmail: build.query({
-      query: ({ uidb64, token }) => `users/verify-email/${uidb64}/${token}/`,
+      query: ({ uidb64, token }) => `auth/verify-email/${uidb64}/${token}/`,
     }),
     doLogout: build.mutation({
       queryFn: async (_arg, { dispatch }) => {
@@ -89,7 +75,6 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGoogleAuthMutation,
-  useFacebookAuthMutation,
   useRequestPasswordResetMutation,
   useResetPasswordConfirmMutation,
   useResendVerificationMutation,

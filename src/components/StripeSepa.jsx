@@ -133,14 +133,6 @@ export default function StripeSepa(props) {
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-        <input
-          type="radio"
-          name="payment"
-          value="sepa"
-          checked={active && isDE}
-          onChange={() => isDE && setActive?.()}
-          disabled={!isDE}
-        />
         <span className="flex-1">
           Direct Bank Transfer (SEPA){!isDE ? " — DE only" : ""}
         </span>

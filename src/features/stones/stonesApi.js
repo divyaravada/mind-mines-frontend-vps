@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const stonesApi = api.injectEndpoints({
   endpoints: (build) => ({
     getNaturalStones: build.query({
-      query: () => ({ url: "natural-stone/" }),
+      query: () => ({ url: "stones/" }),
       transformResponse: (data) =>
         Array.isArray(data)
           ? data
@@ -18,7 +18,7 @@ export const stonesApi = api.injectEndpoints({
     }),
     sendStoneEnquiry: build.mutation({
       query: (body) => ({
-        url: "natural-stone/enquiry/",
+        url: "stones/enquiry/",
         method: "POST",
         body,
       }),

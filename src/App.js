@@ -34,6 +34,7 @@ import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import AboutContactPage from "./pages/AboutContactPage";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
 import { useEffect } from "react";
+import Unsubscribe from "./routes/Unsubscribe";
 
 export default function App() {
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/returns" element={<ReturnsPage />} />
           <Route path="/shipping" element={<ShippingPolicyPage />} />
-
+          <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
           {/* Account (protected) */}
           <Route
             path="/account"

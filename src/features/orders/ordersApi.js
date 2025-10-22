@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const ordersApi = api.injectEndpoints({
   endpoints: (build) => ({
     getOrders: build.query({
-      query: () => "dashboard/orders/",
+      query: () => "orders/",
       transformResponse: (res) =>
         Array.isArray(res) ? res : res?.results ?? [],
       providesTags: (list) =>
@@ -16,12 +16,33 @@ export const ordersApi = api.injectEndpoints({
           : [{ type: "Orders", id: "LIST" }],
     }),
     getOrder: build.query({
-      query: (id) => `dashboard/orders/${id}/`,
+      query: (id) => `orders/${id}/`,
       providesTags: (_r, _e, id) => [{ type: "Orders", id }],
+    }),
+    requestCancel: build.mutation({
+      query: ({ id, message }) => ({
+        url: `orders/${id}/request-cancel/`,
+        method: "POST",
+        data: { message },
+      }),
+      invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
+    }),
+    requestReturn: build.mutation({
+      query: ({ id, message, files }) => {
+        const fd = new FormData();
+        fd.append("message", message || "");
+        (files || []).forEach((f) => fd.append("files", f));
+        return {
+          url: `orders/${id}/request-return/`,
+          method: "POST",
+          data: fd,
+        };
+      },
+      invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
     }),
     guestLookup: build.mutation({
       query: ({ email, number }) => ({
-        url: "guest-lookup/",
+        url: "guest/order-lookup/",
         method: "POST",
         data: { email, number },
       }),
@@ -30,5 +51,10 @@ export const ordersApi = api.injectEndpoints({
   }),
 });
 
-export const { useGetOrdersQuery, useGetOrderQuery, useGuestLookupMutation } =
-  ordersApi;
+export const {
+  useGetOrdersQuery,
+  useGetOrderQuery,
+  useRequestCancelMutation,
+  useRequestReturnMutation,
+  useGuestLookupMutation,
+} = ordersApi;

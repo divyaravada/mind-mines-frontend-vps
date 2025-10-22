@@ -5,7 +5,7 @@ export const newsletterApi = api.injectEndpoints({
   endpoints: (build) => ({
     subscribeNewsletter: build.mutation({
       query: (email) => ({
-        url: "newsletter/",
+        url: "newsletter/subscribe/",
         method: "POST",
         body: { email },
       }),

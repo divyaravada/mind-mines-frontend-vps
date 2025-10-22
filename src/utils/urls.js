@@ -1,3 +1,4 @@
+//src/utils/urls.js
 import { API_BASE } from "../services/apiSlice";
 
 // API_BASE looks like "https://mindmines.eu/api/"

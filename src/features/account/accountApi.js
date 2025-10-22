@@ -4,14 +4,14 @@ import { api } from "../../services/apiSlice";
 export const accountApi = api.injectEndpoints({
   endpoints: (build) => ({
     getAccount: build.query({
-      query: () => "dashboard/account/",
+      query: () => "users/account/",
       providesTags: ["Account"],
       transformResponse: (res) => res,
     }),
     updateAccount: build.mutation({
       // expects a FormData (for avatar upload)
       query: (formData) => ({
-        url: "dashboard/account/",
+        url: "users/account/",
         method: "PUT",
         body: formData,
       }),
@@ -19,7 +19,7 @@ export const accountApi = api.injectEndpoints({
     }),
     requestDeletion: build.mutation({
       query: ({ reason }) => ({
-        url: "dashboard/account/delete-request/",
+        url: "users/account/delete-request/",
         method: "POST",
         body: { reason },
       }),

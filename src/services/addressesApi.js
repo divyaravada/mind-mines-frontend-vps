@@ -3,7 +3,7 @@ import { api } from "./apiSlice";
 export const addressesApi = api.injectEndpoints({
   endpoints: (build) => ({
     listAddresses: build.query({
-      query: () => "dashboard/addresses/",
+      query: () => "addresses/",
       transformResponse: (res) => res.results ?? res,
       providesTags: (result) =>
         result
@@ -14,12 +14,12 @@ export const addressesApi = api.injectEndpoints({
           : [{ type: "Addresses", id: "LIST" }],
     }),
     createAddress: build.mutation({
-      query: (body) => ({ url: "dashboard/addresses/", method: "POST", body }),
+      query: (body) => ({ url: "addresses/", method: "POST", body }),
       invalidatesTags: [{ type: "Addresses", id: "LIST" }],
     }),
     updateAddress: build.mutation({
       query: ({ id, ...body }) => ({
-        url: `dashboard/addresses/${id}/`,
+        url: `addresses/${id}/`,
         method: "PUT",
         body,
       }),
@@ -27,14 +27,14 @@ export const addressesApi = api.injectEndpoints({
     }),
     patchAddress: build.mutation({
       query: ({ id, ...body }) => ({
-        url: `dashboard/addresses/${id}/`,
+        url: `addresses/${id}/`,
         method: "PATCH",
         body,
       }),
       invalidatesTags: (_res, _err, { id }) => [{ type: "Addresses", id }],
     }),
     deleteAddress: build.mutation({
-      query: (id) => ({ url: `dashboard/addresses/${id}/`, method: "DELETE" }),
+      query: (id) => ({ url: `addresses/${id}/`, method: "DELETE" }),
       invalidatesTags: [{ type: "Addresses", id: "LIST" }],
     }),
   }),

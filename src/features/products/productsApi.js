@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const productsApi = api.injectEndpoints({
   endpoints: (b) => ({
     listProducts: b.query({
-      query: (params) => ({ url: "decorative-products/", params }),
+      query: (params) => ({ url: "products/", params }),
       providesTags: ["Products"],
     }),
     getTopProducts: b.query({
@@ -12,7 +12,7 @@ export const productsApi = api.injectEndpoints({
       // your API gateway will still honor the second call (fallback).
       async queryFn(arg, _q, _e, fetchWithBQ) {
         const featured = await fetchWithBQ({
-          url: "decorative-products/",
+          url: "products/",
           params: { page_size: 8, featured: true },
         });
         if (!featured.error && featured.data) {
@@ -23,7 +23,7 @@ export const productsApi = api.injectEndpoints({
         }
         // fallback to ordering by sold desc
         const best = await fetchWithBQ({
-          url: "decorative-products/",
+          url: "products/",
           params: { page_size: 8, ordering: "-sold" },
         });
         if (!best.error && best.data) {
@@ -41,18 +41,18 @@ export const productsApi = api.injectEndpoints({
     }),
 
     getProduct: b.query({
-      query: (id) => `decorative-products/${id}/`,
+      query: (id) => `products/${id}/`,
       providesTags: (_r, _e, id) => [{ type: "Product", id }],
     }),
 
     listProductReviews: b.query({
-      query: (id) => `decorative-products/${id}/reviews/`,
+      query: (id) => `products/${id}/reviews/`,
       providesTags: (_r, _e, id) => [{ type: "Reviews", id }],
     }),
 
     createProductReview: b.mutation({
       query: ({ id, form }) => ({
-        url: `decorative-products/${id}/reviews/`,
+        url: `products/${id}/reviews/`,
         method: "POST",
         body: form,
       }),

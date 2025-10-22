@@ -4,7 +4,7 @@ import { api } from "../../services/apiSlice";
 export const wishlistApi = api.injectEndpoints({
   endpoints: (build) => ({
     getWishlist: build.query({
-      query: () => "dashboard/wishlist/",
+      query: () => "wishlist/",
       // Always return an array
       transformResponse: (res) =>
         Array.isArray(res) ? res : res?.results ?? [],
@@ -16,7 +16,7 @@ export const wishlistApi = api.injectEndpoints({
 
     addToWishlist: build.mutation({
       query: (productId) => ({
-        url: "dashboard/wishlist/",
+        url: "wishlist/",
         method: "POST",
         body: { product: productId },
       }),
@@ -28,7 +28,7 @@ export const wishlistApi = api.injectEndpoints({
 
     removeFromWishlist: build.mutation({
       query: (productId) => ({
-        url: `dashboard/wishlist/${productId}/`,
+        url: `wishlist/${productId}/`,
         method: "DELETE",
       }),
       invalidatesTags: (_r, _e, id) => [

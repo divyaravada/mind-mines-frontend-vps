@@ -341,7 +341,7 @@ export default function Checkout() {
   const onSuccessfulOrder = (id) => {
     wipeCart();
     if (id) navigate(`/checkout/success?order=${id}`);
-    else navigate("/dashboard/orders");
+    else navigate("/orders/");
   };
 
   const [payment, setPayment] = useState("");
