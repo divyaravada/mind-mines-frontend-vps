@@ -1,20 +1,25 @@
 // src/features/addresses/addressApi.js
 import { api } from "../../services/apiSlice";
 
+function toArray(res) {
+  // Support both paginated and plain list responses
+  if (Array.isArray(res)) return res;
+  if (res && Array.isArray(res.results)) return res.results;
+  return [];
+}
+
 export const addressApi = api.injectEndpoints({
   endpoints: (build) => ({
     getAddresses: build.query({
       query: () => "addresses/",
-      providesTags: (res) => {
-        const list = res?.results ?? res ?? [];
-        return Array.isArray(list)
+      transformResponse: (res) => toArray(res),
+      providesTags: (list) =>
+        list?.length
           ? [
               ...list.map((a) => ({ type: "Addresses", id: a.id })),
               { type: "Addresses", id: "LIST" },
             ]
-          : [{ type: "Addresses", id: "LIST" }];
-      },
-      transformResponse: (res) => res?.results ?? res ?? [],
+          : [{ type: "Addresses", id: "LIST" }],
     }),
     createAddress: build.mutation({
       query: (payload) => ({
@@ -30,8 +35,19 @@ export const addressApi = api.injectEndpoints({
         method: "PUT",
         body: payload,
       }),
-      invalidatesTags: (_r, _e, arg) => [
-        { type: "Addresses", id: arg.id },
+      invalidatesTags: (_res, _err, { id }) => [
+        { type: "Addresses", id },
+        { type: "Addresses", id: "LIST" },
+      ],
+    }),
+    patchAddress: build.mutation({
+      query: ({ id, ...payload }) => ({
+        url: `addresses/${id}/`,
+        method: "PATCH",
+        body: payload,
+      }),
+      invalidatesTags: (_res, _err, { id }) => [
+        { type: "Addresses", id },
         { type: "Addresses", id: "LIST" },
       ],
     }),
@@ -40,16 +56,13 @@ export const addressApi = api.injectEndpoints({
         url: `addresses/${id}/`,
         method: "DELETE",
       }),
-      invalidatesTags: (_r, _e, id) => [
-        { type: "Addresses", id },
-        { type: "Addresses", id: "LIST" },
-      ],
+      invalidatesTags: [{ type: "Addresses", id: "LIST" }],
     }),
     makeDefaultAddress: build.mutation({
       query: (id) => ({
-        url: `addresses/${id}/`,
-        method: "PATCH",
-        body: { is_default: true },
+        url: `addresses/${id}/set-default/`,
+        method: "POST",
+        body: {},
       }),
       invalidatesTags: [{ type: "Addresses", id: "LIST" }],
     }),
@@ -60,6 +73,7 @@ export const {
   useGetAddressesQuery,
   useCreateAddressMutation,
   useUpdateAddressMutation,
+  usePatchAddressMutation,
   useDeleteAddressMutation,
   useMakeDefaultAddressMutation,
 } = addressApi;

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSubscribeNewsletterMutation } from "../features/newsletter/newsletterApi";
 
 export default function NewsletterSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
@@ -17,7 +17,10 @@ export default function NewsletterSection() {
     e.preventDefault();
     if (!accepted || !email) return;
     try {
-      await subscribeNewsletter(email).unwrap();
+      await subscribeNewsletter({
+        email,
+        language: i18n.language || "en",
+      }).unwrap();
       setEmail("");
       setAccepted(false);
     } catch {

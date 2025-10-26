@@ -36,14 +36,7 @@ function parseDateLoose(v) {
   );
   if (m) {
     const [, Y, M, D, h, mi, s] = m;
-    const d2 = new Date(
-      Number(Y),
-      Number(M) - 1,
-      Number(D),
-      Number(h),
-      Number(mi),
-      Number(s || 0)
-    );
+    const d2 = new Date(+Y, +M - 1, +D, +h, +mi, +(s || 0));
     if (!isNaN(d2.getTime())) return d2;
   }
 
@@ -60,23 +53,31 @@ export default function OrderDialog({ orderId, open, onClose }) {
   const locale = i18n.language || "en";
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
 
-  const [loading, setLoading] = useState(false);
-  const [order, setOrder] = useState(null);
-  const [error, setError] = useState(null);
+  // --- Load order via RTKQ ---
+  const {
+    data: order,
+    isFetching,
+    isError,
+  } = useGetOrderQuery(orderId, {
+    skip: !open || !orderId,
+  });
 
-  // Cancel modal
+  // mutations
+  const [requestCancel, { isLoading: canceling }] = useRequestCancelMutation();
+  const [requestReturn, { isLoading: returning }] = useRequestReturnMutation();
+
+  // Cancel modal state
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelMsg, setCancelMsg] = useState("");
   const cancelMsgTrimmed = cancelMsg.trim();
 
-  // Return modal
+  /// Return modal state
   const [retOpen, setRetOpen] = useState(false);
   const [retMsg, setRetMsg] = useState("");
   const retMsgTrimmed = retMsg.trim();
   const [retFiles, setRetFiles] = useState([]);
   const [retFilesError, setRetFilesError] = useState("");
 
-  // limit uploads to 10 MB total
   const MAX_UPLOAD_MB = 10;
   const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
@@ -95,28 +96,15 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   // Load order details when opened
   useEffect(() => {
-    if (!open || !orderId) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await http.get(`orders/${orderId}/`);
-        if (!cancelled) setOrder(res.data);
-      } catch (err) {
-        if (!cancelled) {
-          setError(t("order.loadError"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, orderId, t]);
+    if (!open) {
+      setCancelOpen(false);
+      setRetOpen(false);
+      setCancelMsg("");
+      setRetMsg("");
+      setRetFiles([]);
+      setRetFilesError("");
+    }
+  }, [open]);
 
   if (!open || !orderId) return null;
 
@@ -126,8 +114,10 @@ export default function OrderDialog({ orderId, open, onClose }) {
     p?.title_de ||
     t("order.item");
 
-  const totalQty =
-    order?.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) ?? 0;
+  const totalQty = useMemo(
+    () => order?.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) ?? 0,
+    [order]
+  );
 
   const isDelivered = order?.status === "delivered";
   const isPaidOrLater =
@@ -148,9 +138,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
     ? Math.floor((Date.now() - deliveredAt.getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  // Return visible on delivered; disabled after 15 days
-  const showReturnBtn = !!order && isDelivered;
   const RETURN_WINDOW_DAYS = 15;
+  const showReturnBtn = !!order && isDelivered;
   const returnDisabled =
     typeof ageDays === "number" ? ageDays > RETURN_WINDOW_DAYS : true;
   const daysLeft =
@@ -158,43 +147,10 @@ export default function OrderDialog({ orderId, open, onClose }) {
       ? Math.max(0, RETURN_WINDOW_DAYS - ageDays)
       : null;
 
-  // Cancel visible only before payment
   const showCancelBtn = !!order && isBeforePaid;
-
-  // Download visible once paid/shipped/delivered AND invoice exists
   const showDownload = !!order && isPaidOrLater && showInvoice;
 
-  async function submitCancel() {
-    if (!order) return;
-    if (!cancelMsgTrimmed) {
-      showMessage(
-        t("order.cancelReasonRequiredTitle"),
-        t("order.cancelReasonRequired"),
-        "error"
-      );
-      return;
-    }
-    try {
-      await http.post(`orders/${order.id}/request-cancel/`, {
-        message: cancelMsgTrimmed,
-      });
-      showMessage(
-        t("order.cancelRequestedTitle"),
-        t("order.cancelRequested"),
-        "success"
-      );
-      setCancelOpen(false);
-      setCancelMsg("");
-    } catch (e) {
-      showMessage(
-        t("order.cancelFailedTitle"),
-        e?.response?.data?.detail || t("order.cancelFailed"),
-        "error"
-      );
-    }
-  }
-
-  // ---------- Return validation helpers ----------
+  // ---------- Return validation ----------
   const totalBytes = (files) =>
     files.reduce((sum, f) => sum + (f?.size || 0), 0);
   const hasFiles = retFiles.length > 0;
@@ -207,12 +163,41 @@ export default function OrderDialog({ orderId, open, onClose }) {
     const size = totalBytes(files);
     if (size > MAX_UPLOAD_BYTES) {
       setRetFilesError(t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB }));
-      setRetFiles(files); // keep selection but block submit; remove if you prefer: setRetFiles([])
+      setRetFiles(files); // keep selection but disallow submit
     } else {
       setRetFilesError("");
       setRetFiles(files);
     }
   };
+
+  async function submitCancel() {
+    if (!order) return;
+    if (!cancelMsgTrimmed) {
+      showMessage(
+        t("order.cancelReasonRequiredTitle"),
+        t("order.cancelReasonRequired"),
+        "error"
+      );
+      return;
+    }
+    try {
+      await requestCancel({ id: order.id, message: cancelMsgTrimmed }).unwrap();
+      showMessage(
+        t("order.cancelRequestedTitle"),
+        t("order.cancelRequested"),
+        "success"
+      );
+      setCancelOpen(false);
+      setCancelMsg("");
+    } catch (e) {
+      showMessage(
+        t("order.cancelFailedTitle"),
+        e?.data?.detail || t("order.cancelFailed"),
+        "error"
+      );
+    }
+  }
+
   async function submitReturn() {
     if (!order) return;
 
@@ -244,10 +229,13 @@ export default function OrderDialog({ orderId, open, onClose }) {
     const fd = new FormData();
     fd.append("message", retMsgTrimmed);
     retFiles.forEach((f) => fd.append("files", f));
+
     try {
-      await http.post(`orders/${order.id}/request-return/`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await requestReturn({
+        id: order.id,
+        message: retMsgTrimmed,
+        files: retFiles,
+      }).unwrap();
       showMessage(
         t("order.returnRequestedTitle"),
         t("order.returnRequested"),
@@ -260,7 +248,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
     } catch (e) {
       showMessage(
         t("order.returnFailedTitle"),
-        e?.response?.data?.detail || t("order.returnFailed"),
+        e?.data?.detail || t("order.returnFailed"),
         "error"
       );
     }
@@ -291,7 +279,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative  bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
+      <div className="relative bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4 text-backnewswhite dark:text-backnewsdark">
           <div>
@@ -323,8 +311,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
         </div>
 
         {/* Body */}
-        {loading && <div>{t("common.loading")}</div>}
-        {error && <div className="text-red-600">{error}</div>}
+        {isFetching && <div>{t("common.loading")}</div>}
+        {isError && <div className="text-red-600">{t("order.loadError")}</div>}
 
         {order && (
           <div className="space-y-6 text-backnewswhite dark:text-backnewsdark">
@@ -354,14 +342,18 @@ export default function OrderDialog({ orderId, open, onClose }) {
             </div>
 
             {/* Items */}
-            <div className="space-y-3 max-h-[50vh] overflow-auto pr-1  ">
+            <div className="space-y-3 max-h-[50vh] overflow-auto pr-1">
               {order.items.map((it) => (
                 <div key={it.id} className="flex gap-4 items-center">
-                  <img
-                    src={it.product?.image}
-                    alt={productTitle(it.product)}
-                    className="w-20 h-20 object-cover rounded"
-                  />
+                  {it.product?.image ? (
+                    <img
+                      src={it.product.image}
+                      alt={productTitle(it.product)}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-gray-100 rounded" />
+                  )}
                   <div className="flex-1">
                     <div className="font-semibold">
                       {productTitle(it.product)}
@@ -504,7 +496,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 placeholder={t("order.cancelReasonPlaceholder")}
                 aria-invalid={!cancelMsgTrimmed}
               />
-              {/* Optional live hint */}
               {!cancelMsgTrimmed && (
                 <div className="mt-1 text-xs text-red-600">
                   {t("order.cancelReasonInline")}
@@ -517,18 +508,17 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 >
                   {t("common.close")}
                 </button>
-                {/* Disable submit until there is input */}
                 <button
                   onClick={submitCancel}
-                  disabled={!cancelMsgTrimmed}
+                  disabled={!cancelMsgTrimmed || canceling}
                   className={`px-3 py-2 rounded text-white ${
-                    cancelMsgTrimmed
+                    cancelMsgTrimmed && !canceling
                       ? "bg-black"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
-                  aria-disabled={!cancelMsgTrimmed}
+                  aria-disabled={!cancelMsgTrimmed || canceling}
                 >
-                  {t("order.submit")}
+                  {canceling ? t("common.loading") : t("order.submit")}
                 </button>
               </div>
             </div>
@@ -545,6 +535,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
               <p className="text-sm text-gray-600 mb-2">
                 {t("order.returnExplainRequired", { max: MAX_UPLOAD_MB })}
               </p>
+
               <label
                 className="block text-sm font-medium mb-1"
                 htmlFor="retMessage"
@@ -590,6 +581,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   {t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB })}
                 </div>
               )}
+
               <div className="mt-3 flex justify-end gap-2">
                 <button
                   onClick={() => setRetOpen(false)}
@@ -599,15 +591,15 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </button>
                 <button
                   onClick={submitReturn}
-                  disabled={!canSubmitReturn}
+                  disabled={!canSubmitReturn || returning}
                   className={`px-3 py-2 rounded text-white ${
-                    canSubmitReturn
+                    canSubmitReturn && !returning
                       ? "bg-black"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
-                  aria-disabled={!canSubmitReturn}
+                  aria-disabled={!canSubmitReturn || returning}
                 >
-                  {t("order.submit")}
+                  {returning ? t("common.loading") : t("order.submit")}
                 </button>
               </div>
             </div>

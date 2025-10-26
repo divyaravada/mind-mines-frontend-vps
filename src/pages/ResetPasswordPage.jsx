@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useResetPasswordConfirmMutation } from "../features/auth/authApi";
 
 export default function ResetPasswordPage() {
-  const { uid, token } = useParams();
+  const { uidb64, token } = useParams();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
     }
     try {
       await resetConfirm({
-        uid,
+        uid: uidb64,
         token,
         new_password1: password,
         new_password2: password2,

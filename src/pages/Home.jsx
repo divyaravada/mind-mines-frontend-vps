@@ -3,7 +3,6 @@ import HomeCarousel from "../components/HomeCarousel";
 import { CollectionRow } from "../components/CollectionRow";
 import { AboutUsRow } from "../components/AboutUsRow";
 import { FeatureStrip } from "../components/FeatureStrip";
-import CountertopCTA from "../components/CountertopCTA";
 import TopSellers from "../components/TopSellers";
 import HandmadeGuarantee from "../components/HandmadeGuarantee";
 import HomeTrustSection from "../components/HomeTrustSection";

@@ -19,9 +19,11 @@ export const authApi = api.injectEndpoints({
         } catch {}
       },
     }),
+
     register: build.mutation({
       query: (body) => ({ url: "users/register/", method: "POST", body }),
     }),
+
     googleAuth: build.mutation({
       query: ({ token }) => ({
         url: "auth/google/",
@@ -38,6 +40,27 @@ export const authApi = api.injectEndpoints({
       },
     }),
 
+    guestCheckoutLogin: build.mutation({
+      query: ({ email }) => ({
+        url: "guest/login/",
+        method: "POST",
+        body: { email },
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled; // expecting tokens
+          if (data?.access || data?.refresh) {
+            dispatch(
+              setCredentials({
+                access: data.access || null,
+                refresh: data.refresh || null,
+              })
+            );
+          }
+        } catch {}
+      },
+    }),
+
     requestPasswordReset: build.mutation({
       query: ({ email }) => ({
         url: "auth/password/reset/",
@@ -45,6 +68,7 @@ export const authApi = api.injectEndpoints({
         body: { email },
       }),
     }),
+
     resetPasswordConfirm: build.mutation({
       query: ({ uid, token, new_password1, new_password2 }) => ({
         url: `auth/password/reset/confirm/${uid}/${token}/`,
@@ -52,6 +76,7 @@ export const authApi = api.injectEndpoints({
         body: { new_password1, new_password2 },
       }),
     }),
+
     resendVerification: build.mutation({
       query: ({ email }) => ({
         url: "auth/resend-verification/",
@@ -59,9 +84,11 @@ export const authApi = api.injectEndpoints({
         body: { email },
       }),
     }),
+
     verifyEmail: build.query({
       query: ({ uidb64, token }) => `auth/verify-email/${uidb64}/${token}/`,
     }),
+
     doLogout: build.mutation({
       queryFn: async (_arg, { dispatch }) => {
         dispatch(logout());
@@ -75,6 +102,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGoogleAuthMutation,
+  useGuestCheckoutLoginMutation,
   useRequestPasswordResetMutation,
   useResetPasswordConfirmMutation,
   useResendVerificationMutation,

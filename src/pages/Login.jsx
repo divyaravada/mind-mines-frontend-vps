@@ -5,7 +5,10 @@ import RegisterForm from "./RegisterPage";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import GoogleLoginButton from "../components/GoogleLoginButton";
-import { useLoginMutation } from "../features/auth/authApi";
+import {
+  useGuestCheckoutLoginMutation,
+  useLoginMutation,
+} from "../features/auth/authApi";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -16,6 +19,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { isLoading }] = useLoginMutation();
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestLogin, { isLoading: guestLoading }] =
+    useGuestCheckoutLoginMutation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const rawNext = params.get("next") || "/";
@@ -136,6 +142,30 @@ export default function LoginPage() {
                   <div className="flex flex-col items-center mt-4 gap-2">
                     <div className="text-gray-500">{t("auth.or")}</div>
                     <GoogleLoginButton successRedirect={nextPath} />
+                    <div className="w-full mt-3 grid grid-cols-[1fr_auto] gap-2">
+                      <input
+                        className="w-full border px-3 py-3 rounded bg-transparent"
+                        type="email"
+                        placeholder={t("auth.enterEmailForGuest")}
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="px-4 rounded bg-gray-900 text-white disabled:opacity-60"
+                        disabled={!guestEmail || guestLoading}
+                        onClick={async () => {
+                          try {
+                            await guestLogin({ email: guestEmail }).unwrap();
+                            navigate(nextPath, { replace: true });
+                          } catch (e) {
+                            console.warn("Guest login failed", e);
+                          }
+                        }}
+                      >
+                        {t("auth.continueAsGuest")}
+                      </button>
+                    </div>
                   </div>
                 </form>
               ) : (

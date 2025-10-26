@@ -289,7 +289,8 @@
       "errorMessage": "There was an error subscribing. Please try again later.",
       "note": " Ich habe die",
       "privacy": " Datenschutzbestimmungen ",
-      "end": "gele..."
+      "end": "gele...",
+      "sending": "Senden…"
     },
     "payment": {
       "bank": "Direct-Überweisung",
@@ -335,6 +336,7 @@
     "qty": "Menge",
     "unit": "Einheit",
     "items": "Artikel",
+    "none": "Noch keine Bestellungen.",
     "subtotal": "Zwischensumme",
     "shipping": "Versand",
     "shippingAddress": "Lieferadresse",

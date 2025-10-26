@@ -21,9 +21,9 @@ export const ordersApi = api.injectEndpoints({
     }),
     requestCancel: build.mutation({
       query: ({ id, message }) => ({
-        url: `orders/${id}/request-cancel/`,
+        url: `orders/${id}/cancel-request/`,
         method: "POST",
-        data: { message },
+        body: { message: message || "" },
       }),
       invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
     }),
@@ -35,7 +35,7 @@ export const ordersApi = api.injectEndpoints({
         return {
           url: `orders/${id}/request-return/`,
           method: "POST",
-          data: fd,
+          body: fd,
         };
       },
       invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
@@ -44,7 +44,7 @@ export const ordersApi = api.injectEndpoints({
       query: ({ email, number }) => ({
         url: "guest/order-lookup/",
         method: "POST",
-        data: { email, number },
+        body: { email, number },
       }),
       transformResponse: (res) => res, // shape already fine
     }),

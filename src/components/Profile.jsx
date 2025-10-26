@@ -8,6 +8,7 @@ import {
   useUpdateAccountMutation,
   useRequestDeletionMutation,
 } from "../features/account/accountApi";
+import { toAbsoluteUrl } from "../utils/urls";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -35,7 +36,10 @@ export default function Profile() {
     }
   }, [account]);
 
-  const imgSrc = useMemo(() => account?.image || avatar, [account]);
+  const imgSrc = useMemo(
+    () => (account?.image ? toAbsoluteUrl(account.image) : avatar),
+    [account]
+  );
 
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));

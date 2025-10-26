@@ -273,7 +273,8 @@
       "errorMessage": "There was an error subscribing. Please try again later.",
       "note": "I have read and accept the",
       "privacy": "Privacy Policy",
-      "end": "."
+      "end": ".",
+      "sending": "Subscribing..."
     },
     "payment": {
       "bank": "Direct Manual Bank Transfer",
@@ -318,6 +319,7 @@
     "qty": "Qty",
     "unit": "Unit",
     "items": "Items",
+    "none": "No Orders yet",
     "subtotal": "Subtotal",
     "shipping": "Shipping",
     "shippingAddress": "Shipping address",
