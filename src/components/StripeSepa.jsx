@@ -9,6 +9,7 @@ import {
 } from "@stripe/react-stripe-js";
 import http from "../services/http";
 import { getCheckoutIdem } from "../utils/idempotency";
+import { useStripeCreateSepaIntentMutation } from "../features/payments/paymentsApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -27,6 +28,7 @@ function SepaForm({
 }) {
   const stripe = useStripe();
   const elements = useElements();
+  const [createSepaIntent] = useStripeCreateSepaIntentMutation();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -48,14 +50,14 @@ function SepaForm({
     setLoading(true);
     try {
       // 1) Ask backend to create local order + SEPA PaymentIntent
-      const res = await http.post("stripe/create-intent/sepa/", {
+      const res = await createSepaIntent({
         items: lineItems,
         payment_method: "sepa_debit",
         ...addressPayload,
         email: (customerEmail || form?.email || "").trim(),
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
         idempotency_key: getCheckoutIdem(),
-      });
+      }).unwrap();
       const clientSecret = res?.data?.clientSecret;
       const orderId = res?.data?.order_id;
       if (!clientSecret) throw new Error("Missing client secret");

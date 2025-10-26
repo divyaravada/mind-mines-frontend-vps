@@ -13,6 +13,7 @@ import {
   useGetProductQuery,
   useListProductsQuery,
   useCreateProductReviewMutation,
+  useSuggestProductsQuery,
 } from "../features/products/productsApi";
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
@@ -27,16 +28,30 @@ export default function ProductDetailPage() {
   const lang = i18n.language.startsWith("de") ? "de" : "en";
 
   const { data: product, isLoading } = useGetProductQuery(id);
+  const titleForSuggest = product
+    ? product.title_en || product.title_de || `${product.id}`
+    : "";
+
+  // Text-based suggestions (skip until we have a product)
+  const { data: suggestData } = useSuggestProductsQuery(titleForSuggest, {
+    skip: !titleForSuggest,
+  });
+  const suggested = Array.isArray(suggestData)
+    ? suggestData
+    : suggestData?.results ?? [];
   const { data: relatedResp } = useListProductsQuery(
     product?.category
       ? { category: product.category, page_size: 8 }
       : undefined,
     { skip: !product?.category }
   );
+  const relatedByCategory = Array.isArray(relatedResp)
+    ? relatedResp
+    : relatedResp?.results ?? [];
   const recommend = useMemo(() => {
-    const list = relatedResp?.results ?? relatedResp ?? [];
-    return list.filter((p) => String(p.id) !== String(id)).slice(0, 8);
-  }, [relatedResp, id]);
+    const base = (suggested.length ? suggested : relatedByCategory) || [];
+    return base.filter((p) => String(p.id) !== String(id)).slice(0, 8);
+  }, [suggested, relatedByCategory, id]);
 
   const [createReview] = useCreateProductReviewMutation();
   const [qty, setQty] = useState(1);

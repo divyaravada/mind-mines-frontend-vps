@@ -1,5 +1,5 @@
 // src/components/StripeInstallments.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -8,6 +8,10 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import http from "../services/http";
+import {
+  useStripeCreateSepaSetupIntentMutation,
+  useStripeSepaCreateInstallmentsMutation,
+} from "../features/payments/paymentsApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -33,16 +37,10 @@ const splitInstallments = (total, months) => {
   return parts.map((c) => Number((c / 100).toFixed(2)));
 };
 
-const fmtEUR = (n) => {
-  try {
-    return new Intl.NumberFormat("de-DE", {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-  } catch {
-    return `${Number(n || 0).toFixed(2)} €`;
-  }
-};
+const fmtEUR = (n) =>
+  new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(
+    n
+  );
 
 function InnerInstallments({
   months,
@@ -58,6 +56,8 @@ function InnerInstallments({
 }) {
   const stripe = useStripe();
   const elements = useElements();
+  const [createSetup] = useStripeCreateSepaSetupIntentMutation();
+  const [startSchedule] = useStripeSepaCreateInstallmentsMutation();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -76,8 +76,8 @@ function InnerInstallments({
     setLoading(true);
     try {
       // 1) Create SetupIntent for SEPA mandate
-      const siRes = await http.post("stripe/setup-intent/sepa/");
-      const clientSecret = siRes?.data?.clientSecret;
+      const si = await createSetup({}).unwrap();
+      const clientSecret = si?.clientSecret;
       if (!clientSecret) throw new Error("Missing SetupIntent client secret");
 
       // 2) Confirm SEPA mandate
@@ -117,8 +117,8 @@ function InnerInstallments({
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
       };
 
-      const createRes = await http.post("stripe/installments/sepa/", payload);
-      const orderId = createRes?.data?.order_id;
+      const res = await startSchedule(payload).unwrap();
+      const orderId = res?.order_id;
       if (orderId) setLocalOrderId?.(orderId);
 
       onSuccess?.(orderId);

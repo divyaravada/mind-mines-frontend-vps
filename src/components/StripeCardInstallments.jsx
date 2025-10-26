@@ -9,6 +9,10 @@ import {
 } from "@stripe/react-stripe-js";
 import http from "../services/http";
 import { useTranslation } from "react-i18next";
+import {
+  useStripeCardCreateInstallmentsMutation,
+  useStripeCreateCardSetupIntentMutation,
+} from "../features/payments/paymentsApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -29,6 +33,8 @@ function Inner({
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [createCardInstallments] = useStripeCardCreateInstallmentsMutation();
 
   const handleStartPlan = useCallback(async () => {
     if (!stripe || !elements) return;
@@ -82,7 +88,7 @@ function Inner({
       const payment_method_id = setupIntent.payment_method;
 
       // 2) Create the subscription schedule (installments) on your backend using CARD
-      const res = await http.post("stripe/installments/card/", {
+      const res = await createCardInstallments({
         months,
         method: "card",
         payment_method_id,
@@ -109,6 +115,7 @@ function Inner({
     onSuccess,
     setLocalOrderId,
     t,
+    createCardInstallments,
   ]);
 
   return (
@@ -147,6 +154,7 @@ export default function StripeCardInstallments({
   const { i18n } = useTranslation();
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
+  const [createSetup] = useStripeCreateCardSetupIntentMutation();
 
   // Create a CARD SetupIntent when this section becomes active
   useEffect(() => {
@@ -155,7 +163,7 @@ export default function StripeCardInstallments({
       if (!active) return;
       setLoading(true);
       try {
-        const res = await http.post("stripe/setup-intent/card/", {});
+        const res = await createSetup({}).unwrap();
         if (!cancelled) setClientSecret(res.data?.clientSecret || "");
       } catch {
         if (!cancelled) setClientSecret("");

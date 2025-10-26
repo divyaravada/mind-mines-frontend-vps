@@ -18,6 +18,17 @@ import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
+import { usePreviewCouponMutation } from "../features/promos/promosApi";
+import {
+  useBankTransferCreateOrderMutation,
+  usePaypalCaptureOrderMutation,
+  usePaypalCreateOrderMutation,
+} from "../features/payments/paymentsApi";
+import { useGetAccountQuery } from "../features/account/accountApi";
+import {
+  useCreateAddressMutation,
+  useUpdateAddressMutation,
+} from "../features/addresses/addressApi";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 const splitInstallments = (total, months) => {
@@ -69,6 +80,13 @@ export default function Checkout() {
   const subtotal = useSelector(selectCartSubtotal);
   const dispatch = useDispatch();
 
+  const [previewCoupon, { isLoading: couponLoading }] =
+    usePreviewCouponMutation();
+  const [paypalCreateOrder] = usePaypalCreateOrderMutation();
+  const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
+  const [bankCreateOrder, { isLoading: bankLoading }] =
+    useBankTransferCreateOrderMutation();
+
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
@@ -78,6 +96,26 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
+  const {
+    data: addrList = [],
+    isFetching: addrLoading,
+    isError: addrError,
+  } = useGetAccountQuery(undefined, { skip: !isAuth });
+
+  // NEW: create/update mutations
+  const [createAddress, { isLoading: creatingAddr }] =
+    useCreateAddressMutation();
+  const [updateAddress, { isLoading: updatingAddr }] =
+    useUpdateAddressMutation();
+
+  const { data: accountData } = useGetAccountQuery(undefined, {
+    skip: !isAuth,
+  });
+  useEffect(() => {
+    if (accountData?.email) {
+      setForm((p) => ({ ...p, email: p.email || accountData.email }));
+    }
+  }, [accountData]);
 
   // Wait for possible localStorage cart before redirecting
   useEffect(() => {
@@ -101,26 +139,52 @@ export default function Checkout() {
     return () => clearTimeout(id);
   }, [items.length, navigate]);
 
+  const shippingFee = 0;
+
+  const lineItems = items.map((c) => ({
+    product: c.id,
+    quantity: c.qty,
+    product_id: c.id,
+    id: c.id,
+    qty: c.qty,
+  }));
+
   const applyCoupon = async () => {
     setCouponErr("");
+    setCouponInfo(null);
+    const code = (couponCode || "").trim().toUpperCase();
+    if (!code) return;
     try {
-      const r = await http.post("coupons/preview/", {
-        code: couponCode.trim(),
-        items: lineItems,
-      });
-      if (r.data?.ok) {
-        setCouponInfo(r.data);
+      const r = await previewCoupon({ code, cart: lineItems }).unwrap();
+      if (r?.ok) {
+        setCouponInfo(r);
       } else {
-        setCouponInfo(null);
-        setCouponErr(r.data?.error || "Invalid coupon");
+        setCouponErr(r?.error || t("checkout.couponInvalid", "Invalid coupon"));
       }
     } catch (e) {
-      setCouponInfo(null);
-      setCouponErr(e?.response?.data?.error || "Invalid coupon");
+      setCouponErr(
+        e?.data?.error || t("checkout.couponInvalid", "Invalid coupon")
+      );
     }
   };
 
-  const shippingFee = 0;
+  useEffect(() => {
+    const saved = localStorage.getItem("coupon_auto");
+    if (!saved || couponInfo?.ok || couponCode) return;
+    (async () => {
+      try {
+        const r = await previewCoupon({
+          code: saved,
+          items: lineItems,
+        }).unwrap();
+        if (r?.ok) {
+          setCouponCode(saved.toUpperCase());
+          setCouponInfo(r);
+        }
+      } catch {}
+    })();
+  }, [couponCode, couponInfo, lineItems, previewCoupon]);
+
   const discount = useMemo(() => {
     const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
     return Number.isFinite(d) ? d : 0;
@@ -130,14 +194,6 @@ export default function Checkout() {
     const t = subtotal + shippingFee - discount;
     return Number(Math.max(0, t).toFixed(2));
   }, [subtotal, shippingFee, discount]);
-
-  const lineItems = items.map((c) => ({
-    product: c.id,
-    quantity: c.qty,
-    product_id: c.id,
-    id: c.id,
-    qty: c.qty,
-  }));
 
   // Address form
   const [form, setForm] = useState({
@@ -227,12 +283,8 @@ export default function Checkout() {
       }
 
       // Authenticated: prefill from backend (DO NOT redirect on 401)
-      try {
-        const a = await http.get("addresses/", {
-          params: { page_size: 20 },
-        });
-        const list = a.data?.results ?? a.data ?? [];
-        const main = list.find((x) => x?.is_default) ?? list[0] ?? null;
+      if (!addrLoading && Array.isArray(addrList) && addrList.length) {
+        const main = addrList.find((x) => x?.is_default) ?? addrList[0] ?? null;
         if (main) {
           addressIdRef.current = Number(main.id);
           const line1 =
@@ -258,42 +310,9 @@ export default function Checkout() {
             telephone: main.phone ?? p.telephone,
           }));
         }
-      } catch (err) {
-        if (err?.response?.status === 401) {
-          console.error("Unauthorized when fetching account data");
-          return;
-        }
-      }
-
-      try {
-        const u = await http.get("users/account/");
-        setForm((p) => ({ ...p, email: u.data?.email || p.email }));
-      } catch (err) {
-        if (err?.response?.status === 401) {
-          console.error("Unauthorized when fetching account data");
-          return;
-        }
       }
     })();
   }, [navigate, isAuth]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("coupon_auto");
-    if (saved && !couponInfo?.ok && !couponCode) {
-      setCouponCode(saved.toUpperCase());
-      (async () => {
-        try {
-          const r = await http.post("coupons/preview/", {
-            code: saved,
-            items: lineItems,
-          });
-          if (r.data?.ok) {
-            setCouponInfo(r.data);
-          }
-        } catch {}
-      })();
-    }
-  }, [couponCode, couponInfo, lineItems]);
 
   // Save address
   const [savingAddr, setSavingAddr] = useState(false);
@@ -304,12 +323,15 @@ export default function Checkout() {
       const payload = buildAddressPayload();
       if (isAuth) {
         if (addressIdRef.current) {
-          await http.put(`addresses/${addressIdRef.current}/`, payload);
+          await updateAddress({
+            id: addressIdRef.current,
+            ...payload,
+          }).unwrap();
           setAddrSaved(true);
           setTimeout(() => setAddrSaved(false), 2000);
         } else {
-          const r = await http.post("addresses/", payload);
-          addressIdRef.current = r.data?.id ?? null;
+          const res = await createAddress(payload).unwrap();
+          addressIdRef.current = res?.id ?? null;
           setAddrSaved(true);
         }
       } else {
@@ -321,9 +343,15 @@ export default function Checkout() {
         addressIdRef.current = null; // no server id for guests
         setAddrSaved(true);
       }
-    } catch {
+    } catch (e) {
       setAddrSaved(false);
-      alert("Failed to save address.");
+      // Prefer readable API error if available
+      const msg =
+        e?.data?.detail ||
+        e?.data?.non_field_errors?.[0] ||
+        e?.error ||
+        "Failed to save address.";
+      alert(msg);
     } finally {
       setSavingAddr(false);
     }
@@ -342,25 +370,13 @@ export default function Checkout() {
   const onSuccessfulOrder = (id) => {
     wipeCart();
     if (id) navigate(`/checkout/success?order=${id}`);
-    else navigate("orders/");
+    else navigate("/account/orders/");
   };
   const isLoggedIn = isAuth;
   const [payment, setPayment] = useState("");
-
-  const setPaymentSafe = useCallback((next) => {
-    setPayment(next);
-    // if leaving card, clear card months
-    if (!next.startsWith("card")) setCardMonths(null);
-    // if leaving sepa, clear sepa months
-    if (!next.startsWith("sepa")) setSepaMonths(null);
-    // if choosing a base method (not installments), ensure its own months are cleared
-    if (next === "card") setCardMonths(null);
-    if (next === "sepa_debit") setSepaMonths(null);
-  }, []);
-
+  const setPaymentSafe = useCallback((next) => setPayment(next), []);
   const [cardMonths, setCardMonths] = useState(null);
   const [sepaMonths, setSepaMonths] = useState(null);
-
   const localOrderIdRef = useRef(null);
 
   const hasMinimalAddress = () => {
@@ -625,6 +641,7 @@ export default function Checkout() {
           </div>
         </div>
 
+        {/* Payment */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">
             {t("checkout.payment")}
@@ -767,43 +784,26 @@ export default function Checkout() {
                     return actions.resolve();
                   }}
                   createOrder={async () => {
-                    try {
-                      const res = await http.post(
-                        "payments/paypal/create-order/",
-                        {
-                          items: lineItems,
-                          payment_method: "paypal",
-                          ...buildAddressPayload(),
-                          coupon_code: (
-                            couponCode ||
-                            couponInfo?.code ||
-                            ""
-                          ).trim(),
-                        }
-                      );
-                      localOrderIdRef.current = res.data.order_id;
-                      return res.data.id;
-                    } catch (e) {
-                      alert("Failed to create PayPal order.");
-                      throw e;
-                    }
+                    const payload = {
+                      items: lineItems,
+                      payment_method: "paypal",
+                      ...buildAddressPayload(),
+                      coupon_code: (
+                        couponCode ||
+                        couponInfo?.code ||
+                        ""
+                      ).trim(),
+                    };
+                    const res = await paypalCreateOrder(payload).unwrap();
+                    localOrderIdRef.current = res?.order_id;
+                    return res?.id; // PayPal order id
                   }}
                   onApprove={async (data) => {
-                    try {
-                      const cap = await http.post(
-                        `payments/paypal/capture/${data.orderID}/`,
-                        {
-                          local_order_id: localOrderIdRef.current,
-                        }
-                      );
-                      if (cap.data?.status === "COMPLETED") {
-                        onSuccessfulOrder(localOrderIdRef.current);
-                      } else {
-                        alert("Payment capture failed.");
-                      }
-                    } catch (e) {
-                      alert("Capture request failed.");
-                      throw e;
+                    const cap = await paypalCaptureOrder(data.orderID).unwrap();
+                    if (cap?.status === "COMPLETED") {
+                      onSuccessfulOrder(localOrderIdRef.current);
+                    } else {
+                      alert("Payment capture failed.");
                     }
                   }}
                 />
@@ -811,21 +811,16 @@ export default function Checkout() {
             )}
           </PayPalScriptProvider>
 
+          {/* SEPA (DE only) */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
               type="radio"
               name="payment"
               value="sepa_debit"
               checked={payment === "sepa_debit"}
-              onChange={() => {
-                if (!sepaAllowed) {
-                  alert(
-                    "SEPA Lastschrift ist nur in Deutschland (DE) verfügbar."
-                  );
-                  return;
-                }
-                setPaymentSafe("sepa_debit");
-              }}
+              onChange={() =>
+                sepaAllowed ? setPaymentSafe("sepa_debit") : null
+              }
               disabled={!sepaAllowed}
             />
             <span className="flex-1">SEPA Lastschrift — DE only</span>
@@ -944,7 +939,7 @@ export default function Checkout() {
               <button
                 onClick={async () => {
                   try {
-                    const res = await http.post("payments/bank/create/", {
+                    const res = await bankCreateOrder({
                       items: lineItems,
                       ...buildAddressPayload(),
                       coupon_code: (
@@ -953,8 +948,7 @@ export default function Checkout() {
                         ""
                       ).trim(),
                     });
-                    const id =
-                      res.data?.order_id ?? res.data?.order?.id ?? null;
+                    const id = res?.order_id ?? res?.order?.id ?? null;
 
                     sessionStorage.setItem(
                       "bank_checkout_info",
@@ -1045,7 +1039,7 @@ export default function Checkout() {
                 onClick={applyCoupon}
                 className="px-4 py-2 rounded bg-gray-900 text-white"
               >
-                Apply
+                {t("checkout.apply", "Apply")}
               </button>
             </div>
             {couponErr && (
@@ -1053,7 +1047,8 @@ export default function Checkout() {
             )}
             {couponInfo?.ok && (
               <div className="text-green-700 text-sm">
-                Applied <b>{couponInfo.code}</b>: −{couponInfo.discount} €
+                {t("checkout.applied", "Applied")} <b>{couponInfo.code}</b>: −
+                {couponInfo.discount} €
               </div>
             )}
           </div>

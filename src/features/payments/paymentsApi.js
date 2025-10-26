@@ -55,6 +55,13 @@ export const paymentsApi = api.injectEndpoints({
         body: payload, // { order_id, months, mandate, ... }
       }),
     }),
+    stripeCardCreateInstallments: build.mutation({
+      query: (payload) => ({
+        url: "stripe/installments/card/",
+        method: "POST",
+        body: payload, // { months, method: 'card', payment_method_id, items, ...address, coupon_code? }
+      }),
+    }),
 
     // Webhook is server-side only; no frontend endpoint.
 
@@ -77,5 +84,6 @@ export const {
   useStripeCreateSepaSetupIntentMutation,
   useStripeCreateSepaIntentMutation,
   useStripeSepaCreateInstallmentsMutation,
+  useStripeCardCreateInstallmentsMutation,
   useBankTransferCreateOrderMutation,
 } = paymentsApi;

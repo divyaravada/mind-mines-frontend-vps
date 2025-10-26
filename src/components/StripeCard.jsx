@@ -7,9 +7,9 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import http from "../services/http";
 import { useTranslation } from "react-i18next";
 import { getCheckoutIdem } from "../utils/idempotency";
+import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -21,7 +21,7 @@ function CardInner({
   onSuccess,
   totalFormatted,
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -92,7 +92,7 @@ function CardInner({
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
       setProcessing(false);
     }
-  }, [stripe, elements, addressPayload, onSuccess, t]);
+  }, [stripe, elements, addressPayload, onSuccess, t, customerEmail]);
 
   return (
     <div className="border rounded p-3 space-y-3">
@@ -124,12 +124,12 @@ export default function StripeCard({
   total,
   couponCode,
   couponInfo,
-  locale = "en",
   customerEmail,
 }) {
   const { i18n } = useTranslation();
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
+  const [createIntent] = useStripeCreateIntentMutation();
 
   // Create the PaymentIntent when section becomes active (or total changes)
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function StripeCard({
           const map = { Germany: "DE", Deutschland: "DE" };
           return map[up] || "DE";
         };
-        const res = await http.post("stripe/create-intent/", {
+        const res = await createIntent({
           items: lineItems,
           payment_method: "card",
           ...addressPayload,
@@ -154,7 +154,7 @@ export default function StripeCard({
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
           email: customerEmail || addressPayload?.email,
           idempotency_key: getCheckoutIdem(),
-        });
+        }).unwrap();
         if (!cancelled) {
           setClientSecret(res.data?.clientSecret || "");
           setLocalOrderId?.(res.data?.order_id);
@@ -162,25 +162,11 @@ export default function StripeCard({
       } catch (e) {
         if (!cancelled) {
           setClientSecret("");
-          const data = e?.response?.data;
-          // Prefer the structured DRF errors we now return
-          let msg =
-            (data?.errors &&
-              (data.errors.items ??
-                data.errors.non_field_errors ??
-                data.errors.detail)) ||
-            data?.detail ||
-            data?.error ||
+          const msg =
+            e?.data?.detail ||
+            e?.data?.error ||
             "Failed to initialize payment.";
-          if (Array.isArray(msg)) msg = msg[0];
-          // If msg is an object (e.g., {0: "..."}), stringify first entry
-          if (typeof msg === "object" && msg !== null) {
-            const first = Object.values(msg)[0];
-            msg = Array.isArray(first) ? first[0] : String(first);
-          }
-          console.error("Create intent failed:", data || e);
           alert(msg);
-          // optionally show a toast/banner with e.response.data.detail or validation errors
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -197,6 +183,7 @@ export default function StripeCard({
     addressPayload,
     setLocalOrderId,
     customerEmail,
+    createIntent,
   ]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
@@ -242,18 +229,12 @@ export default function StripeCard({
             options={{
               clientSecret,
               appearance,
-              locale: "de" === locale ? "de" : "en",
+              locale: i18n.language?.startsWith("de") ? "de" : "en",
             }}
           >
             <CardInner
-              clientSecret={clientSecret}
-              locale={i18n.language}
-              lineItems={lineItems}
               addressPayload={addressPayload}
               customerEmail={customerEmail || addressPayload?.email}
-              couponCode={couponCode}
-              couponInfo={couponInfo}
-              setLocalOrderId={setLocalOrderId}
               onSuccess={onSuccess}
               totalFormatted={new Intl.NumberFormat(i18n.language || "en", {
                 style: "currency",
