@@ -1,10 +1,15 @@
 // src/components/OrderDialog.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 // If you followed my earlier advice, use the axios client with auth:
 import http from "../services/http"; // <-- change to `../services/api` if that's your axios instance
 import MessageDialog from "./MessageDialog";
 import { toAbsoluteUrl } from "../utils/urls";
+import {
+  useGetOrderQuery,
+  useRequestCancelMutation,
+  useRequestReturnMutation,
+} from "../features/orders/ordersApi";
 
 function formatMoney(v, locale = "en") {
   let n =
@@ -105,8 +110,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
       setRetFilesError("");
     }
   }, [open]);
-
-  if (!open || !orderId) return null;
 
   const productTitle = (p) =>
     (lang === "de" ? p?.title_de : p?.title_en) ||
@@ -267,6 +270,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   const statusLabel = (s) =>
     t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1));
+
+  if (!open || !orderId) return null;
 
   return (
     <div
