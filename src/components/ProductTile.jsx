@@ -1,8 +1,9 @@
 //src/components/ProductTile.jsx
-import React from "react";
+
 import { Heart, ShoppingCart, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { fmtEUR, toNumberEUR } from "../lib/money";
 
 function toNum(v, fallback = 0) {
   const n = Number(v);
@@ -38,8 +39,10 @@ export default function ProductTile({
   onToggleWishlist,
   onAddToCart,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const locale = i18n.language || "en";
+  const priceNum = toNumberEUR(fmtEUR(priceNum, locale) ?? product?.price);
 
   const { gross, final, discounted, percent } = displayPrices(product);
   const base = gross;
@@ -136,7 +139,7 @@ export default function ProductTile({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (!isOut) onAddToCart?.(product, final);
+              if (!isOut) onAddToCart?.(product, priceNum);
             }}
             disabled={isOut}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-marbleblack text-white hover:bg-black transition disabled:opacity-50"

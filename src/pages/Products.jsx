@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
 import { addItem } from "../features/cart/cartSlice";
-
+ import { fmtEUR, toNumberEUR } from "../lib/money";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
@@ -35,6 +35,7 @@ const COLORS = [
 const PAGE_SIZE = 4;
 
 export default function ProductsPage() {
+  const locale = i18n.language || "en";
   const { t, i18n } = useTranslation();
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
@@ -60,7 +61,7 @@ export default function ProductsPage() {
     if (!data) return [];
     return Array.isArray(data) ? data : data.results || [];
   }, [data]);
-
+  console.log(products);
   const totalPages = useMemo(() => {
     if (!data || Array.isArray(data)) return 1;
     const count = data.count ?? products.length;
@@ -141,7 +142,7 @@ export default function ProductsPage() {
   };
   const dispatch = useDispatch();
   const onAddToCart = (p) => {
-    const price = typeof p.vat_price === "number" ? p.vat_price : p.price || 0;
+    const price = {fmtEUR(toNumberEUR(p.vat_price ?? p.price), locale)}
     dispatch(
       addItem({ id: p.id, title: productTitle(p, lang), price, image: p.image })
     );
