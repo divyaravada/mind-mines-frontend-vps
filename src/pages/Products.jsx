@@ -47,8 +47,8 @@ function getProductPrice(p) {
 }
 
 export default function ProductsPage() {
-  const locale = i18n.language || "en";
   const { t, i18n } = useTranslation();
+  const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
   const navigate = useNavigate();
