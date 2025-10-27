@@ -81,13 +81,13 @@ export default function Checkout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const hasUser = useSelector((s) => !!s.auth?.access); // real login
-  const hasGuest = useSelector((s) => !!s.auth?.isGuest); // guest session flag (set by your guest login)
+  const hasGuest = !!localStorage.getItem("guest_auth_email"); // guest session flag (set by your guest login)
   const canEnterCheckout = hasUser || hasGuest;
 
   // hard gate: must be logged-in OR guest-auth’d to be here
   useEffect(() => {
     if (!canEnterCheckout) {
-      navigate("/login?next=/checkout", { replace: true });
+      navigate("/users/login?next=/checkout", { replace: true });
     }
   }, [canEnterCheckout, navigate]);
   const [previewCoupon, { isLoading: couponLoading }] =
