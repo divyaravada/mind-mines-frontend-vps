@@ -15,30 +15,47 @@ import {
   useCreateProductReviewMutation,
   useSuggestProductsQuery,
 } from "../features/products/productsApi";
+import { fmtEUR, toNumberEUR } from "../lib/money";
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
 import LowStockBanner from "../components/LowStockBanner";
 import OutOfStockNotify from "../components/OutOfStockNotify";
 
+function getPriceNum(p) {
+  // Be resilient to model changes
+  return toNumberEUR(
+    p?.vat_price ??
+      p?.price_vat ??
+      p?.final_price ??
+      p?.gross_price ??
+      p?.price ??
+      0
+  );
+}
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
 
   const { data: product, isLoading } = useGetProductQuery(id);
-  const titleForSuggest = product
-    ? product.title_en || product.title_de || `${product.id}`
+
+  // Suggestion seed (safe if product not loaded yet)
+  const suggestSeed = product
+    ? product.title_en || product.title_de || String(product.id)
     : "";
 
-  // Text-based suggestions (skip until we have a product)
-  const { data: suggestData } = useSuggestProductsQuery(titleForSuggest, {
-    skip: !titleForSuggest,
+  // Text-based suggestions (skip until have a seed)
+  const { data: suggestData } = useSuggestProductsQuery(suggestSeed, {
+    skip: !suggestSeed,
   });
+
   const suggested = Array.isArray(suggestData)
     ? suggestData
     : suggestData?.results ?? [];
+
   const { data: relatedResp } = useListProductsQuery(
     product?.category
       ? { category: product.category, page_size: 8 }
@@ -48,6 +65,7 @@ export default function ProductDetailPage() {
   const relatedByCategory = Array.isArray(relatedResp)
     ? relatedResp
     : relatedResp?.results ?? [];
+
   const recommend = useMemo(() => {
     const base = (suggested.length ? suggested : relatedByCategory) || [];
     return base.filter((p) => String(p.id) !== String(id)).slice(0, 8);
@@ -166,7 +184,7 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    const unit = product.vat_price ?? product.price;
+    const unit = getPriceNum(product);
     dispatch(
       addItem({
         id: product.id,
@@ -263,7 +281,9 @@ export default function ProductDetailPage() {
           <div className="text-sm text-gray-500 mb-2">
             {t("home.categories." + product.category + ".heading")}
           </div>
-          <div className="text-xl font-bold">{product.vat_price} €</div>
+          <div className="text-xl font-bold">
+            {fmtEUR(getPriceNum(product), locale)}
+          </div>
 
           <div className="space-y-2">
             <p>{product[`short_description1_${lang}`]}</p>
@@ -383,7 +403,7 @@ export default function ProductDetailPage() {
           )}
         </div>
       </div>
-
+      {/* REVIEWS (kept BEFORE suggestions as requested) */}
       <ProductReviews productId={product.id} />
 
       <div className="p-4 rounded border bg-white shadow space-y-3">
@@ -437,6 +457,40 @@ export default function ProductDetailPage() {
                 <div className="text-sm text-gray-500">{p.vat_price} €</div>
               </button>
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* SUGGESTED PRODUCTS (placed down below details; after reviews per request wording) */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold mb-4">{t("You may also like")}</h2>
+        {recommend.length === 0 ? (
+          <div className="text-gray-500">{t("No suggestions found")}</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {recommend.map((p) => {
+              const priceNum = getPriceNum(p);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => navigate(`/products/${p.id}`)}
+                  className="bg-white rounded-xl p-4 shadow hover:shadow-md text-left"
+                >
+                  <img
+                    src={p.image}
+                    alt={productTitle(p, lang)}
+                    className="w-full h-40 object-cover rounded mb-2"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <div className="font-semibold truncate">
+                    {productTitle(p, lang)}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {fmtEUR(priceNum, locale)}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </section>

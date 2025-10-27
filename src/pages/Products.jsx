@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
 import { addItem } from "../features/cart/cartSlice";
- import { fmtEUR, toNumberEUR } from "../lib/money";
+import { fmtEUR, toNumberEUR } from "../lib/money";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
@@ -33,6 +33,18 @@ const COLORS = [
   { value: "green", label: "Green" },
 ];
 const PAGE_SIZE = 4;
+
+function getProductPrice(p) {
+  // Try common keys in order of preference
+  const raw =
+    p?.vat_price ??
+    p?.price_vat ??
+    p?.final_price ??
+    p?.gross_price ??
+    p?.price ??
+    0;
+  return toNumberEUR(raw);
+}
 
 export default function ProductsPage() {
   const locale = i18n.language || "en";
@@ -59,12 +71,21 @@ export default function ProductsPage() {
 
   const products = useMemo(() => {
     if (!data) return [];
-    return Array.isArray(data) ? data : data.results || [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.results)) return data.results;
+    if (Array.isArray(data.items)) return data.items;
+    return [];
   }, [data]);
-  console.log(products);
+  console.log(data);
+
   const totalPages = useMemo(() => {
     if (!data || Array.isArray(data)) return 1;
-    const count = data.count ?? products.length;
+    const count =
+      typeof data.count === "number"
+        ? data.count
+        : (Array.isArray(data.results) && data.results.length) ||
+          (Array.isArray(data.items) && data.items.length) ||
+          products.length;
     return Math.max(1, Math.ceil(count / PAGE_SIZE));
   }, [data, products.length]);
 
@@ -141,10 +162,19 @@ export default function ProductsPage() {
     }
   };
   const dispatch = useDispatch();
-  const onAddToCart = (p) => {
-    const price = {fmtEUR(toNumberEUR(p.vat_price ?? p.price), locale)}
+  const onAddToCart = (p, priceFromTile) => {
+    // Ensure we put a NUMBER in the cart
+    const unitPrice = Number.isFinite(priceFromTile)
+      ? priceFromTile
+      : getProductPrice(p);
+
     dispatch(
-      addItem({ id: p.id, title: productTitle(p, lang), price, image: p.image })
+      addItem({
+        id: p.id,
+        title: productTitle(p, lang),
+        price: unitPrice,
+        image: p.image,
+      })
     );
     navigate("/cart");
   };
@@ -238,7 +268,7 @@ export default function ProductsPage() {
           />
           <div className="flex justify-between text-xs">
             <span>0 €</span>
-            <span>{price} €</span>
+            <span>{fmtEUR(price, locale)} €</span>
           </div>
         </div>
       </aside>
@@ -293,7 +323,7 @@ export default function ProductsPage() {
                 image={p.image}
                 wished={wlIds.has(p.id)}
                 onToggleWishlist={toggleWishlist}
-                onAddToCart={() => onAddToCart(p)}
+                onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
               />
             ))}
           </div>

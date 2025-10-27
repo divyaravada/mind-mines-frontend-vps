@@ -42,7 +42,9 @@ export default function ProductTile({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const locale = i18n.language || "en";
-  const priceNum = toNumberEUR(fmtEUR(priceNum, locale) ?? product?.price);
+  const priceNum = toNumberEUR(
+    product?.vat_price ?? product?.price ?? product?.final_price
+  );
 
   const { gross, final, discounted, percent } = displayPrices(product);
   const base = gross;
@@ -135,7 +137,7 @@ export default function ProductTile({
         </div>
 
         <div className="flex items-center justify-between mt-3">
-          {priceEl}
+          {fmtEUR(priceNum, locale)}
           <button
             onClick={(e) => {
               e.stopPropagation();
