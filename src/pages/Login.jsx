@@ -42,6 +42,9 @@ export default function LoginPage() {
     if (!email || !password) return;
     try {
       await login({ email, password }).unwrap();
+      try {
+        localStorage.removeItem("guest_auth_email");
+      } catch {}
       navigate(nextPath, { replace: true });
     } catch (e) {
       console.warn("Login failed", e);
@@ -156,7 +159,15 @@ export default function LoginPage() {
                         disabled={!guestEmail || guestLoading}
                         onClick={async () => {
                           try {
-                            await guestLogin({ email: guestEmail }).unwrap();
+                            const res = await guestLogin({
+                              email: guestEmail,
+                            }).unwrap();
+                            try {
+                              localStorage.setItem(
+                                "guest_auth_email",
+                                guestEmail
+                              );
+                            } catch {}
                             navigate(nextPath, { replace: true });
                           } catch (e) {
                             console.warn("Guest login failed", e);

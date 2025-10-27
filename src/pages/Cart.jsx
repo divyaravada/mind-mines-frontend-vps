@@ -53,15 +53,6 @@ export default function CartPage() {
   const loggedIn = !!access;
   const canCheckout = loggedIn || isGuest;
 
-  const handleCheckoutClick = () => {
-    if (canCheckout) {
-      navigate("/checkout");
-    } else {
-      // force login checkpoint and return to checkout after
-      navigate("/login?next=/checkout");
-    }
-  };
-
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
   const wishlistIds = useMemo(
     () =>
@@ -296,7 +287,15 @@ export default function CartPage() {
           </div>
 
           <button
-            onClick={handleCheckoutClick}
+            onClick={() => {
+              const isLoggedIn = !!access;
+              const hasGuest = !!localStorage.getItem("guest_auth_email");
+              if (isLoggedIn || hasGuest) navigate("/checkout");
+              else
+                navigate(
+                  `/users/login?next=${encodeURIComponent("/checkout")}`
+                );
+            }}
             className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
             {t("cart.checkout")}
