@@ -79,6 +79,7 @@ export default function Checkout() {
   const subtotal = useSelector(selectCartSubtotal);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const hasUser = useSelector((s) => !!s.auth?.access); // real login
   const hasGuest = !!localStorage.getItem("guest_auth_email"); // guest session flag (set by your guest login)
   const canEnterCheckout = hasUser || hasGuest;
@@ -89,12 +90,11 @@ export default function Checkout() {
       navigate("/users/login?next=/checkout", { replace: true });
     }
   }, [canEnterCheckout, navigate]);
-  const [previewCoupon, { isLoading: couponLoading }] =
-    usePreviewCouponMutation();
+
+  const [previewCoupon] = usePreviewCouponMutation();
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
   const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
-  const [bankCreateOrder, { isLoading: bankLoading }] =
-    useBankTransferCreateOrderMutation();
+  const [bankCreateOrder] = useBankTransferCreateOrderMutation();
 
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
@@ -104,33 +104,154 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
-  const {
-    data: addrList = [],
-    isFetching: addrLoading,
-    isError: addrError,
-  } = useGetAccountQuery(undefined, { skip: !isAuth });
 
-  // NEW: create/update mutations
-  const [createAddress, { isLoading: creatingAddr }] =
-    useCreateAddressMutation();
-  const [updateAddress, { isLoading: updatingAddr }] =
-    useUpdateAddressMutation();
+  const { data: addrList = [], isFetching: addrLoading } = useGetAccountQuery(
+    undefined,
+    { skip: !isAuth }
+  );
 
-  const { data: accountData } = useGetAccountQuery(undefined, {
-    skip: !isAuth,
+  const [createAddress] = useCreateAddressMutation();
+  const [updateAddress] = useUpdateAddressMutation();
+  // ------------ Address form ------------
+  const [form, setForm] = useState({
+    email: "",
+    country: "DE",
+    fullName: "",
+    street: "",
+    houseNumber: "",
+    apartment: "",
+    postalCode: "",
+    city: "",
+    telephone: "",
   });
-  useEffect(() => {
-    if (accountData?.email) {
-      setForm((p) => ({ ...p, email: p.email || accountData.email }));
-    }
-  }, [accountData]);
 
-  // Wait for possible localStorage cart before redirecting
+  // Prefill guest email from localStorage for guests
+  useEffect(() => {
+    if (isAuth) return;
+    try {
+      const guestEmail = (
+        localStorage.getItem("guest_auth_email") || ""
+      ).trim();
+      if (guestEmail) {
+        setForm((p) => ({ ...p, email: p.email || guestEmail }));
+      }
+    } catch {}
+  }, [isAuth]);
+
+  // Prefill
+  useEffect(() => {
+    (async () => {
+      if (!isAuth) {
+        try {
+          const savedGuest = JSON.parse(
+            localStorage.getItem("guest_address") || "{}"
+          );
+          if (savedGuest && typeof savedGuest === "object") {
+            const splitAddressLine1 = (line) => {
+              const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
+              return m
+                ? { street: m[1], houseNumber: m[2] }
+                : { street: line || "", houseNumber: "" };
+            };
+            setForm((p) => ({
+              ...p,
+              email: savedGuest.email || p.email,
+              country: savedGuest.country || p.country,
+              fullName:
+                [savedGuest.first_name, savedGuest.last_name]
+                  .filter(Boolean)
+                  .join(" ") || p.fullName,
+              ...(() => {
+                const { street, houseNumber } = splitAddressLine1(
+                  savedGuest.address_line1 || ""
+                );
+                return {
+                  street: street || p.street,
+                  houseNumber: houseNumber || p.houseNumber,
+                };
+              })(),
+              apartment: savedGuest.address_line2 || p.apartment,
+              postalCode: savedGuest.postal_code || p.postalCode,
+              city: savedGuest.city || p.city,
+              telephone: savedGuest.phone || p.telephone,
+            }));
+          }
+        } catch {}
+        return;
+      }
+
+      if (!addrLoading && Array.isArray(addrList) && addrList.length) {
+        const splitAddressLine1 = (line) => {
+          const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
+          return m
+            ? { street: m[1], houseNumber: m[2] }
+            : { street: line || "", houseNumber: "" };
+        };
+        const main = addrList.find((x) => x?.is_default) ?? addrList[0] ?? null;
+        if (main) {
+          addressIdRef.current = Number(main.id);
+          const line1 =
+            main.address_line1 ||
+            `${main.street_name || ""} ${main.house_number || ""}`.trim();
+          const { street, houseNumber } = splitAddressLine1(line1);
+          const computedFullName =
+            [main.first_name, main.last_name]
+              .filter(Boolean)
+              .join(" ")
+              .trim() ||
+            main.full_name ||
+            "";
+          setForm((p) => ({
+            ...p,
+            fullName: computedFullName || p.fullName,
+            country: main.country ?? p.country ?? "Germany",
+            street,
+            houseNumber,
+            apartment: main.address_line2 ?? main.apartment ?? p.apartment,
+            postalCode: main.postal_code ?? main.pincode ?? p.postalCode,
+            city: main.city ?? main.state ?? p.city,
+            telephone: main.phone ?? p.telephone,
+          }));
+        }
+      }
+    })();
+  }, [addrLoading, addrList, isAuth]);
+
+  const onChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const splitName = (full) => {
+    const parts = (full || "").trim().split(/\s+/);
+    if (parts.length === 1) return { first_name: parts[0], last_name: "" };
+    return {
+      first_name: parts.slice(0, -1).join(" "),
+      last_name: parts.slice(-1).join(" "),
+    };
+  };
+
+  const buildAddressPayload = () => {
+    const { first_name, last_name } = splitName(form.fullName);
+    return {
+      address_id: addressIdRef.current ?? undefined,
+      first_name,
+      last_name,
+      address_line1: `${form.street}${
+        form.houseNumber ? ` ${form.houseNumber}` : ""
+      }`.trim(),
+      address_line2: form.apartment || "",
+      postal_code: form.postalCode || "",
+      city: form.city || "",
+      country: normalizeCountry(form.country),
+      phone: form.telephone || "",
+      is_default: true,
+    };
+  };
+
+  // cart guard
   useEffect(() => {
     if (skipCartGuardRef.current) return;
-    if (items.length > 0) return; // we have items, do nothing
+    if (items.length > 0) return;
 
-    // Double-check localStorage (supports your "cart" or "mm_cart" keys)
     try {
       const lsCart =
         JSON.parse(localStorage.getItem("mm_cart") || "[]") ||
@@ -138,7 +259,6 @@ export default function Checkout() {
       if (Array.isArray(lsCart) && lsCart.length > 0) return; // still loading redux, don't redirect
     } catch {}
 
-    // Use a tiny delay to let rehydration finish on slower devices
     const id = setTimeout(() => {
       if (!skipCartGuardRef.current && items.length === 0) {
         navigate("/decorative-products");
@@ -203,128 +323,9 @@ export default function Checkout() {
     return Number(Math.max(0, t).toFixed(2));
   }, [subtotal, shippingFee, discount]);
 
-  // Address form
-  const [form, setForm] = useState({
-    email: "",
-    country: "DE",
-    fullName: "",
-    street: "",
-    houseNumber: "",
-    apartment: "",
-    postalCode: "",
-    city: "",
-    telephone: "",
-  });
-  const countryCode = normalizeCountry(form.country);
-  const sepaAllowed = countryCode === "DE";
-
-  const onChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-
-  const splitName = (full) => {
-    const parts = (full || "").trim().split(/\s+/);
-    if (parts.length === 1) return { first_name: parts[0], last_name: "" };
-    return {
-      first_name: parts.slice(0, -1).join(" "),
-      last_name: parts.slice(-1).join(" "),
-    };
-  };
-  const splitAddressLine1 = (line) => {
-    const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
-    return m
-      ? { street: m[1], houseNumber: m[2] }
-      : { street: line || "", houseNumber: "" };
-  };
-  const buildAddressPayload = () => {
-    const { first_name, last_name } = splitName(form.fullName);
-    return {
-      address_id: addressIdRef.current ?? undefined,
-      first_name,
-      last_name,
-      address_line1: `${form.street}${
-        form.houseNumber ? ` ${form.houseNumber}` : ""
-      }`.trim(),
-      address_line2: form.apartment || "",
-      postal_code: form.postalCode || "",
-      city: form.city || "",
-      country: normalizeCountry(form.country),
-      phone: form.telephone || "",
-      is_default: true,
-    };
-  };
-
-  // Prefill
-  useEffect(() => {
-    (async () => {
-      if (!isAuth) {
-        // Guest: try to hydrate email/address from localStorage if available
-        try {
-          const savedGuest = JSON.parse(
-            localStorage.getItem("guest_address") || "{}"
-          );
-          if (savedGuest && typeof savedGuest === "object") {
-            setForm((p) => ({
-              ...p,
-              email: savedGuest.email || p.email,
-              country: savedGuest.country || p.country,
-              fullName:
-                [savedGuest.first_name, savedGuest.last_name]
-                  .filter(Boolean)
-                  .join(" ") || p.fullName,
-              ...(() => {
-                const { street, houseNumber } = splitAddressLine1(
-                  savedGuest.address_line1 || ""
-                );
-                return {
-                  street: street || p.street,
-                  houseNumber: houseNumber || p.houseNumber,
-                };
-              })(),
-              apartment: savedGuest.address_line2 || p.apartment,
-              postalCode: savedGuest.postal_code || p.postalCode,
-              city: savedGuest.city || p.city,
-              telephone: savedGuest.phone || p.telephone,
-            }));
-          }
-        } catch {}
-        return;
-      }
-
-      // Authenticated: prefill from backend (DO NOT redirect on 401)
-      if (!addrLoading && Array.isArray(addrList) && addrList.length) {
-        const main = addrList.find((x) => x?.is_default) ?? addrList[0] ?? null;
-        if (main) {
-          addressIdRef.current = Number(main.id);
-          const line1 =
-            main.address_line1 ||
-            `${main.street_name || ""} ${main.house_number || ""}`.trim();
-          const { street, houseNumber } = splitAddressLine1(line1);
-          const computedFullName =
-            [main.first_name, main.last_name]
-              .filter(Boolean)
-              .join(" ")
-              .trim() ||
-            main.full_name ||
-            "";
-          setForm((p) => ({
-            ...p,
-            fullName: computedFullName || p.fullName,
-            country: main.country ?? p.country ?? "Germany",
-            street,
-            houseNumber,
-            apartment: main.address_line2 ?? main.apartment ?? p.apartment,
-            postalCode: main.postal_code ?? main.pincode ?? p.postalCode,
-            city: main.city ?? main.state ?? p.city,
-            telephone: main.phone ?? p.telephone,
-          }));
-        }
-      }
-    })();
-  }, [navigate, isAuth]);
-
-  // Save address
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
+
   const saveAddress = async () => {
     setSavingAddr(true);
     try {
@@ -343,17 +344,15 @@ export default function Checkout() {
           setAddrSaved(true);
         }
       } else {
-        // Guest path: store locally so we can reuse during this session
         localStorage.setItem(
           "guest_address",
           JSON.stringify({ ...payload, email: form.email })
         );
-        addressIdRef.current = null; // no server id for guests
-        setAddrSaved(true);
+        addressIdRef.current = null;
       }
+      setAddrSaved(true);
+      setTimeout(() => setAddrSaved(false), 1800);
     } catch (e) {
-      setAddrSaved(false);
-      // Prefer readable API error if available
       const msg =
         e?.data?.detail ||
         e?.data?.non_field_errors?.[0] ||
@@ -365,7 +364,6 @@ export default function Checkout() {
     }
   };
 
-  // wipe cart after success
   const wipeCart = useCallback(() => {
     skipCartGuardRef.current = true;
     dispatch(clearCart());
@@ -380,6 +378,7 @@ export default function Checkout() {
     if (id) navigate(`/checkout/success?order=${id}`);
     else navigate("/account/orders/");
   };
+
   const isLoggedIn = isAuth;
   const [payment, setPayment] = useState("");
   const setPaymentSafe = useCallback((next) => setPayment(next), []);
@@ -418,7 +417,6 @@ export default function Checkout() {
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
-  // Safety net: if payment is DE-only and country changes elsewhere
   useEffect(() => {
     const code = normalizeCountry(form.country);
     if (
@@ -430,6 +428,20 @@ export default function Checkout() {
       setForm((prev) => ({ ...prev, country: "DE" }));
     }
   }, [payment, form.country]);
+
+  const { data: accountData } = useGetAccountQuery(undefined, {
+    skip: !isAuth,
+  });
+  useEffect(() => {
+    if (accountData?.email) {
+      setForm((p) => ({ ...p, email: p.email || accountData.email }));
+    }
+  }, [accountData]);
+
+  const countryCode = normalizeCountry(form.country);
+  const sepaAllowed = countryCode === "DE";
+
+  const unifiedEmail = (authEmail || form.email || "").trim();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -635,6 +647,7 @@ export default function Checkout() {
           </div>
         </div>
 
+        {/* Shipping */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-3">
             {t("checkout.shipment")}
@@ -662,20 +675,20 @@ export default function Checkout() {
               Please choose a payment method to continue.
             </div>
           )}
-
-          <StripeCard
-            active={payment === "card"}
-            setActive={() => setPaymentSafe("card")}
-            lineItems={lineItems}
-            addressPayload={buildAddressPayload()}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            total={payTotal}
-            couponCode={couponCode}
-            couponInfo={couponInfo}
-            customerEmail={(authEmail || form.email || "").trim()}
-          />
-
+          {payment === "card" && (
+            <StripeCard
+              active
+              setActive={() => setPaymentSafe("card")}
+              lineItems={lineItems}
+              addressPayload={buildAddressPayload()}
+              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+              total={payTotal}
+              couponCode={couponCode}
+              couponInfo={couponInfo}
+              customerEmail={unifiedEmail}
+            />
+          )}
           {/* CARD installments */}
           {payment.startsWith("card") && isLoggedIn && (
             <div className="mt-6">
@@ -750,11 +763,12 @@ export default function Checkout() {
                   total={payTotal}
                   couponCode={couponCode}
                   couponInfo={couponInfo}
-                  customerEmail={authEmail || form.email || ""}
                 />
               )}
             </div>
           )}
+
+          {/* PayPal */}
           <PayPalScriptProvider
             options={{
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
@@ -845,7 +859,7 @@ export default function Checkout() {
               total={payTotal}
               couponCode={couponCode}
               couponInfo={couponInfo}
-              customerEmail={authEmail || form.email || ""}
+              customerEmail={unifiedEmail}
             />
           )}
 

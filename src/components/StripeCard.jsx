@@ -85,10 +85,8 @@ function CardInner({
         onSuccess?.();
         return;
       }
-
-      // Other interim statuses: processing, requires_action (handled by Payment Element), etc.
       onSuccess?.();
-    } catch (e) {
+    } catch {
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
       setProcessing(false);
     }
@@ -136,9 +134,6 @@ export default function StripeCard({
     let cancelled = false;
     (async () => {
       if (!active) return;
-      const email = (customerEmail || "").trim();
-      if (!email) return;
-      if (!Number.isFinite(total) || Number(total) <= 0) return;
       setLoading(true);
       try {
         const normalizeCountry = (c) => {
@@ -155,12 +150,18 @@ export default function StripeCard({
           ...addressPayload,
           country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
-          email,
+          email: (customerEmail || addressPayload?.email || "").trim(),
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
         if (!cancelled) {
-          setClientSecret(res.data?.clientSecret || "");
-          setLocalOrderId?.(res.data?.order_id);
+          setClientSecret(
+            res?.data?.clientSecret ??
+              res?.clientSecret ??
+              res?.data?.client_secret ??
+              res?.client_secret ??
+              ""
+          );
+          setLocalOrderId?.(res.data?.order_id || res?.order_id);
         }
       } catch (e) {
         if (!cancelled) {
@@ -191,18 +192,7 @@ export default function StripeCard({
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
   if (!active) {
-    return (
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-        <input
-          type="radio"
-          name="payment"
-          value="card"
-          checked={false}
-          onChange={() => setActive?.("card")}
-        />
-        <span className="flex-1">Credit / Debit card</span>
-      </label>
-    );
+    return null;
   }
 
   return (

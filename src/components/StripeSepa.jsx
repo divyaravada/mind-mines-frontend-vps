@@ -7,7 +7,6 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import http from "../services/http";
 import { getCheckoutIdem } from "../utils/idempotency";
 import { useStripeCreateSepaIntentMutation } from "../features/payments/paymentsApi";
 
@@ -58,10 +57,14 @@ function SepaForm({
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
         idempotency_key: getCheckoutIdem(),
       }).unwrap();
-      const clientSecret = res?.data?.clientSecret;
-      const orderId = res?.data?.order_id;
+      const clientSecret =
+        res?.data?.clientSecret ??
+        res?.clientSecret ??
+        res?.data?.client_secret ??
+        res?.client_secret ??
+        null;
+      const orderId = res?.data?.order_id ?? res?.order_id ?? null;
       if (!clientSecret) throw new Error("Missing client secret");
-
       setLocalOrderId?.(orderId);
 
       // 2) Confirm SEPA with IBAN + mandate acceptance
