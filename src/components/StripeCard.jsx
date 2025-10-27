@@ -136,6 +136,9 @@ export default function StripeCard({
     let cancelled = false;
     (async () => {
       if (!active) return;
+      const email = (customerEmail || "").trim();
+      if (!email) return;
+      if (!Number.isFinite(total) || Number(total) <= 0) return;
       setLoading(true);
       try {
         const normalizeCountry = (c) => {
@@ -152,7 +155,7 @@ export default function StripeCard({
           ...addressPayload,
           country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
-          email: customerEmail || addressPayload?.email,
+          email,
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
         if (!cancelled) {

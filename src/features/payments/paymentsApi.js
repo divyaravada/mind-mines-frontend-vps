@@ -8,14 +8,14 @@ export const paymentsApi = api.injectEndpoints({
       query: (payload) => ({
         url: "paypal/create-order/",
         method: "POST",
-        body: payload, // e.g. { cart, shipping, ... }
+        body: payload,
       }),
     }),
     paypalCaptureOrder: build.mutation({
       query: (orderId) => ({
         url: `paypal/capture/${encodeURIComponent(orderId)}/`,
         method: "POST",
-        body: {}, // or pass anything required by the view
+        body: {},
       }),
     }),
 

@@ -9,7 +9,6 @@ import {
   selectCartSubtotal,
   clearCart,
 } from "../features/cart/cartSlice";
-import http from "../services/http";
 import { useTranslation } from "react-i18next";
 
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -674,7 +673,7 @@ export default function Checkout() {
             total={payTotal}
             couponCode={couponCode}
             couponInfo={couponInfo}
-            customerEmail={authEmail || form.email || ""}
+            customerEmail={(authEmail || form.email || "").trim()}
           />
 
           {/* CARD installments */}
