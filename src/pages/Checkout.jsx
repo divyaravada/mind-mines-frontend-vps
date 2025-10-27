@@ -83,6 +83,19 @@ export default function Checkout() {
   const hasUser = useSelector((s) => !!s.auth?.access); // real login
   const hasGuest = !!localStorage.getItem("guest_auth_email"); // guest session flag (set by your guest login)
   const canEnterCheckout = hasUser || hasGuest;
+  const lsGuestEmail = (localStorage.getItem("guest_auth_email") || "").trim();
+
+  const effectiveEmail = useMemo(() => {
+    const formEmail = (form.email || "").trim();
+    const storeEmail = (authEmail || "").trim();
+
+    // If this is a guest-auth session, prefer the form/guest email.
+    if (hasGuest) {
+      return formEmail || lsGuestEmail || storeEmail;
+    }
+    // Real signed-in user: still allow a typed email to override if present.
+    return formEmail || storeEmail;
+  }, [form.email, authEmail, hasGuest, lsGuestEmail]);
 
   // hard gate: must be logged-in OR guest-auth’d to be here
   useEffect(() => {
@@ -395,7 +408,10 @@ export default function Checkout() {
       "city",
       "country",
     ];
-    return needed.every((k) => (form[k] || "").toString().trim().length > 0);
+    return (
+      needed.every((k) => (form[k] || "").toString().trim().length > 0) &&
+      effectiveEmail.length > 3
+    );
   };
 
   const handleCountryChange = (e) => {
@@ -440,8 +456,6 @@ export default function Checkout() {
 
   const countryCode = normalizeCountry(form.country);
   const sepaAllowed = countryCode === "DE";
-
-  const unifiedEmail = (authEmail || form.email || "").trim();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -686,7 +700,7 @@ export default function Checkout() {
               total={payTotal}
               couponCode={couponCode}
               couponInfo={couponInfo}
-              customerEmail={unifiedEmail}
+              customerEmail={effectiveEmail}
             />
           )}
           {/* CARD installments */}
@@ -809,6 +823,7 @@ export default function Checkout() {
                     const payload = {
                       items: lineItems,
                       payment_method: "paypal",
+                      email: effectiveEmail,
                       ...buildAddressPayload(),
                       coupon_code: (
                         couponCode ||
@@ -859,7 +874,7 @@ export default function Checkout() {
               total={payTotal}
               couponCode={couponCode}
               couponInfo={couponInfo}
-              customerEmail={unifiedEmail}
+              customerEmail={effectiveEmail}
             />
           )}
 
@@ -963,6 +978,7 @@ export default function Checkout() {
                   try {
                     const res = await bankCreateOrder({
                       items: lineItems,
+                      email: effectiveEmail,
                       ...buildAddressPayload(),
                       coupon_code: (
                         couponCode ||
