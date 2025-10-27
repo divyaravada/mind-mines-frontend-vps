@@ -19,6 +19,15 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
+const bareBaseQuery = fetchBaseQuery({
+  baseUrl: API_BASE,
+  credentials: "include",
+  prepareHeaders: (headers) => {
+    headers.set("accept", "application/json");
+    return headers;
+  },
+});
+
 // Auto refresh
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
@@ -29,7 +38,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       api.dispatch({ type: "auth/logout" });
       return result;
     }
-    const refresh = await rawBaseQuery(
+    const refresh = await bareBaseQuery(
       {
         url: "token/refresh/",
         method: "POST",
