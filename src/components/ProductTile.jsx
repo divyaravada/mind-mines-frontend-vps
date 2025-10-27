@@ -3,32 +3,12 @@
 import { Heart, ShoppingCart, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { fmtEUR, toNumberEUR } from "../lib/money";
-
-function toNum(v, fallback = 0) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function displayPrices(p) {
-  // Ensure numeric inputs even if API sends strings
-  const vat = p?.vat_price;
-  const price = p?.price;
-
-  const gross = Number.isFinite(vat)
-    ? vat
-    : vat != null
-    ? toNum(vat)
-    : price != null
-    ? toNum(price) * 1.19
-    : 0;
-
-  const final = p?.final_price != null ? toNum(p.final_price, gross) : gross;
-  const discounted = !!p?.is_discounted && final < gross;
-  const percent =
-    discounted && gross > 0 ? Math.round(((gross - final) / gross) * 100) : 0;
-  return { gross, final, discounted, percent };
-}
+import {
+  fmtEUR,
+  resolveProductPrice,
+  resolveBaseGross,
+  isDiscounted,
+} from "../lib/money";
 
 export default function ProductTile({
   product,
@@ -42,24 +22,24 @@ export default function ProductTile({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const locale = i18n.language || "en";
-  const priceNum = toNumberEUR(
-    product?.vat_price ?? product?.price ?? product?.final_price
-  );
+  const baseGross = resolveBaseGross(product);
 
-  const { gross, final, discounted, percent } = displayPrices(product);
-  const base = gross;
-  const hasDiscount = discounted;
+  const hasDiscount = isDiscounted(product);
+  const percent =
+    hasDiscount && baseGross > 0
+      ? Math.round(((baseGross - priceNum) / baseGross) * 100)
+      : 0;
+  const priceNum = resolveProductPrice(product);
 
   const stockVal = product?.stock ?? product?.quantity ?? 0;
-  const stock = toNum(stockVal, 0);
+  const stock = Number.isFinite(Number(stockVal)) ? Number(stockVal) : 0;
   const isOut = stock <= 0;
   const isLow = !isOut && stock < 5;
-
   const priceEl = hasDiscount ? (
     <div className="flex items-center gap-2">
-      <span className="font-semibold">€ {final.toFixed(2)}</span>
+      <span className="font-semibold">{fmtEUR(priceNum, locale)}</span>
       <span className="text-xs line-through opacity-60">
-        € {base.toFixed(2)}
+        {fmtEUR(baseGross, locale)}
       </span>
       {percent > 0 && (
         <span className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 flex items-center gap-1">
@@ -68,9 +48,8 @@ export default function ProductTile({
       )}
     </div>
   ) : (
-    <div className="font-semibold">€ {base.toFixed(2)}</div>
+    <div className="font-semibold">{fmtEUR(baseGross || priceNum, locale)}</div>
   );
-
   return (
     <article
       className="group rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
@@ -137,7 +116,12 @@ export default function ProductTile({
         </div>
 
         <div className="flex items-center justify-between mt-3">
-          {fmtEUR(priceNum, locale)}
+          <div className="flex flex-col">
+            {priceEl}
+            <span className="text-[11px] text-gray-500">
+              {t("product.inclVat", "incl. 19% VAT")}
+            </span>
+          </div>
           <button
             onClick={(e) => {
               e.stopPropagation();

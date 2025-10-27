@@ -15,23 +15,18 @@ import {
   useCreateProductReviewMutation,
   useSuggestProductsQuery,
 } from "../features/products/productsApi";
-import { fmtEUR, toNumberEUR } from "../lib/money";
+import {
+  fmtEUR,
+  resolveProductPrice,
+  resolveBaseGross,
+  isDiscounted,
+  computeVatAmount,
+} from "../lib/money";
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
 import LowStockBanner from "../components/LowStockBanner";
 import OutOfStockNotify from "../components/OutOfStockNotify";
 
-function getPriceNum(p) {
-  // Be resilient to model changes
-  return toNumberEUR(
-    p?.vat_price ??
-      p?.price_vat ??
-      p?.final_price ??
-      p?.gross_price ??
-      p?.price ??
-      0
-  );
-}
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = "" } = useParams();
@@ -39,7 +34,7 @@ export default function ProductDetailPage() {
   const dispatch = useDispatch();
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
-
+  const getPriceNum = (p) => resolveProductPrice(p);
   const { data: product, isLoading } = useGetProductQuery(id);
 
   // Suggestion seed (safe if product not loaded yet)
@@ -114,12 +109,9 @@ export default function ProductDetailPage() {
     : [];
   const image =
     mediaImgs[0] || product.image || `${currentOrigin}/og-default.jpg`;
-  const priceNumber =
-    typeof product.vat_price === "number"
-      ? product.vat_price
-      : parseFloat(
-          String(product.vat_price || product.price || 0).replace(",", ".")
-        ) || 0;
+  const priceNumber = resolveProductPrice(product);
+  const baseGross = resolveBaseGross(product);
+  const discounted = isDiscounted(product);
   const inStock =
     typeof product.quantity === "number" ? product.quantity > 0 : true;
 
@@ -184,7 +176,7 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    const unit = getPriceNum(product);
+    const unit = resolveProductPrice(product);
     dispatch(
       addItem({
         id: product.id,
@@ -281,8 +273,16 @@ export default function ProductDetailPage() {
           <div className="text-sm text-gray-500 mb-2">
             {t("home.categories." + product.category + ".heading")}
           </div>
-          <div className="text-xl font-bold">
-            {fmtEUR(getPriceNum(product), locale)}
+          <div className="text-xl font-bold flex items-center gap-2">
+            <span>{fmtEUR(priceNumber, locale)}</span>
+            {discounted && baseGross > 0 && (
+              <span className="text-sm line-through text-gray-500">
+                {fmtEUR(baseGross, locale)}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-gray-500">
+            {t("product.inclVat", "incl. 19% VAT")}
           </div>
 
           <div className="space-y-2">
@@ -454,14 +454,16 @@ export default function ProductDetailPage() {
                 <div className="font-semibold truncate">
                   {productTitle(p, lang)}
                 </div>
-                <div className="text-sm text-gray-500">{p.vat_price} €</div>
+                <div className="text-sm text-gray-500">
+                  {fmtEUR(resolveProductPrice(p), locale)}
+                </div>
               </button>
             ))}
           </div>
         )}
       </section>
 
-      {/* SUGGESTED PRODUCTS (placed down below details; after reviews per request wording) */}
+      {/* SUGGESTED PRODUCTS (placed down below details; after reviews per request wording)
       <section className="mt-12">
         <h2 className="text-2xl font-bold mb-4">{t("You may also like")}</h2>
         {recommend.length === 0 ? (
@@ -493,7 +495,7 @@ export default function ProductDetailPage() {
             })}
           </div>
         )}
-      </section>
+      </section> */}
     </div>
   );
 }

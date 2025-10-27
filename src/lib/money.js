@@ -1,22 +1,50 @@
 // src/lib/money.js
-export function toNumberEUR(v) {
+export const toNumberEUR = (v) => {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
   const s = String(v ?? "")
-    .replace(/[^\d.,-]/g, "") // keep digits, comma, dot, minus
-    .replace(/\.(?=.*\.)/g, "") // keep only last dot if multiple
-    .replace(",", "."); // decimal comma -> dot
+    .replace(/[^\d.,-]/g, "")
+    .replace(",", ".");
   const n = parseFloat(s);
   return Number.isFinite(n) ? n : 0;
-}
+};
 
-export function fmtEUR(n, locale = "en") {
-  const val = Number.isFinite(n) ? n : 0;
+export const fmtEUR = (n, locale = "en") => {
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: "EUR",
-    }).format(val);
+    }).format(n);
   } catch {
-    return `${val.toFixed(2)} €`;
+    const x = Number.isFinite(n) ? n : 0;
+    return `${x.toFixed(2)} €`;
   }
-}
+};
+
+// current sell price (incl. VAT; sale > final > base)
+export const resolveProductPrice = (p) =>
+  toNumberEUR(
+    p?.final_price_gross ??
+      p?.sale_price_gross ??
+      p?.price_gross ??
+      p?.vat_price ?? // legacy
+      p?.final_price ?? // legacy
+      p?.price ?? // legacy (net sometimes; keep for safety)
+      0
+  );
+
+// original/base gross (without discount; used for strike-through)
+export const resolveBaseGross = (p) =>
+  toNumberEUR(p?.price_gross ?? p?.vat_price ?? p?.price ?? 0);
+
+// is discounted?
+export const isDiscounted = (p) => {
+  const cur = resolveProductPrice(p);
+  const base = resolveBaseGross(p);
+  return base > 0 && cur < base;
+};
+
+// VAT amount from gross if your VAT is fixed 19%
+export const computeVatAmount = (gross, rate = 0.19) => {
+  const net = gross / (1 + rate);
+  return gross - net;
+};

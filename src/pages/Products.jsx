@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
 import { addItem } from "../features/cart/cartSlice";
-import { fmtEUR, toNumberEUR } from "../lib/money";
+import { fmtEUR, resolveProductPrice } from "../lib/money";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
@@ -33,18 +33,6 @@ const COLORS = [
   { value: "green", label: "Green" },
 ];
 const PAGE_SIZE = 4;
-
-function getProductPrice(p) {
-  // Try common keys in order of preference
-  const raw =
-    p?.vat_price ??
-    p?.price_vat ??
-    p?.final_price ??
-    p?.gross_price ??
-    p?.price ??
-    0;
-  return toNumberEUR(raw);
-}
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
@@ -163,10 +151,9 @@ export default function ProductsPage() {
   };
   const dispatch = useDispatch();
   const onAddToCart = (p, priceFromTile) => {
-    // Ensure we put a NUMBER in the cart
     const unitPrice = Number.isFinite(priceFromTile)
       ? priceFromTile
-      : getProductPrice(p);
+      : resolveProductPrice(p);
 
     dispatch(
       addItem({
@@ -268,7 +255,7 @@ export default function ProductsPage() {
           />
           <div className="flex justify-between text-xs">
             <span>0 €</span>
-            <span>{fmtEUR(price, locale)} €</span>
+            <span>{fmtEUR(price, locale)} </span>
           </div>
         </div>
       </aside>

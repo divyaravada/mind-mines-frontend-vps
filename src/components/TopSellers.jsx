@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import ProductTile from "./ProductTile";
-import { useListProductReviewsQuery } from "../features/products/productsApi";
+import { useGetTopProductsQuery } from "../features/products/productsApi";
 import {
   useAddToWishlistMutation,
   useGetWishlistQuery,
@@ -22,7 +22,7 @@ export default function TopSellers() {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
-  const { data: topData, isLoading } = useListProductReviewsQuery();
+  const { data: topData, isLoading } = useGetTopProductsQuery();
   const top = Array.isArray(topData) ? topData : topData?.results ?? [];
 
   // wishlist state
