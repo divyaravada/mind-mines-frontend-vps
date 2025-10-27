@@ -8,6 +8,19 @@ export const toNumberEUR = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+// Base gross price (incl. 19% VAT)
+export const getBaseGross = (p) =>
+  toNumberEUR(
+    p?.price_gross ??
+      p?.vat_price ?? // legacy
+      p?.price ?? // legacy (might be net on some APIs, but used as fallback)
+      0
+  );
+
+// Candidate sale/final gross (incl. VAT)
+export const getCandidateSaleGross = (p) =>
+  toNumberEUR(p?.sale_price_gross ?? p?.final_price_gross ?? 0);
+
 export const fmtEUR = (n, locale = "en") => {
   try {
     return new Intl.NumberFormat(locale, {
@@ -38,9 +51,9 @@ export const resolveBaseGross = (p) =>
 
 // is discounted?
 export const isDiscounted = (p) => {
-  const cur = resolveProductPrice(p);
-  const base = resolveBaseGross(p);
-  return base > 0 && cur < base;
+  const base = getBaseGross(p);
+  const sale = getCandidateSaleGross(p);
+  return isDiscounted(p) ? sale : base;
 };
 
 // VAT amount from gross if your VAT is fixed 19%
