@@ -19,7 +19,7 @@ import {
   fmtEUR,
   resolveProductPrice,
   resolveBaseGross,
-  isDiscounted,
+  hasDiscount as hasDiscountCalc,
   computeVatAmount,
 } from "../lib/money";
 import StarRating from "../components/StarRating";
@@ -111,7 +111,10 @@ export default function ProductDetailPage() {
     mediaImgs[0] || product.image || `${currentOrigin}/og-default.jpg`;
   const priceNumber = resolveProductPrice(product);
   const baseGross = resolveBaseGross(product);
-  const discounted = isDiscounted(product);
+  const discounted =
+    typeof product?.is_discounted === "boolean"
+      ? product.is_discounted
+      : hasDiscountCalc(product);
   const inStock =
     typeof product.quantity === "number" ? product.quantity > 0 : true;
 

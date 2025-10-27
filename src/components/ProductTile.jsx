@@ -6,7 +6,7 @@ import {
   fmtEUR,
   resolveProductPrice,
   resolveBaseGross,
-  isDiscounted,
+  hasDiscount as hasDiscountCalc,
 } from "../lib/money";
 
 export default function ProductTile({
@@ -24,7 +24,10 @@ export default function ProductTile({
 
   const baseGross = resolveBaseGross(product);
   const priceNum = resolveProductPrice(product); // <-- move ABOVE percent
-  const hasDiscount = isDiscounted(product);
+  const hasDiscount =
+    typeof product?.is_discounted === "boolean"
+      ? product.is_discounted
+      : hasDiscountCalc(product);
 
   const percent =
     hasDiscount && baseGross > 0
