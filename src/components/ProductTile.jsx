@@ -1,5 +1,4 @@
-//src/components/ProductTile.jsx
-
+// src/components/ProductTile.jsx
 import { Heart, ShoppingCart, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -22,19 +21,21 @@ export default function ProductTile({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const locale = i18n.language || "en";
-  const baseGross = resolveBaseGross(product);
 
+  const baseGross = resolveBaseGross(product);
+  const priceNum = resolveProductPrice(product); // <-- move ABOVE percent
   const hasDiscount = isDiscounted(product);
+
   const percent =
     hasDiscount && baseGross > 0
       ? Math.round(((baseGross - priceNum) / baseGross) * 100)
       : 0;
-  const priceNum = resolveProductPrice(product);
 
   const stockVal = product?.stock ?? product?.quantity ?? 0;
   const stock = Number.isFinite(Number(stockVal)) ? Number(stockVal) : 0;
   const isOut = stock <= 0;
   const isLow = !isOut && stock < 5;
+
   const priceEl = hasDiscount ? (
     <div className="flex items-center gap-2">
       <span className="font-semibold">{fmtEUR(priceNum, locale)}</span>
@@ -50,6 +51,7 @@ export default function ProductTile({
   ) : (
     <div className="font-semibold">{fmtEUR(baseGross || priceNum, locale)}</div>
   );
+
   return (
     <article
       className="group rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
@@ -61,6 +63,7 @@ export default function ProductTile({
           alt={title}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
           loading="lazy"
+          onError={(e) => (e.currentTarget.style.display = "none")}
         />
         <button
           type="button"
@@ -77,7 +80,7 @@ export default function ProductTile({
         >
           <Heart className="w-5 h-5" />
         </button>
-        {/* Out of stock ribbon */}
+
         {isOut && (
           <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-gray-900/90 text-white text-xs font-semibold">
             {t("product.outOfStock", "Out of stock — arriving soon")}
@@ -87,13 +90,13 @@ export default function ProductTile({
           </div>
         )}
 
-        {/* Discount ribbon (only when discounted) */}
         {!isOut && hasDiscount && (
           <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-red-600 text-white text-xs font-semibold">
             -{percent}% {t("product.off", "OFF")}
           </div>
         )}
       </div>
+
       <div className="p-4">
         <h3 className="font-semibold line-clamp-2">{title}</h3>
         {subtitle && (
@@ -102,7 +105,6 @@ export default function ProductTile({
           </p>
         )}
 
-        {/* Stock messaging */}
         <div className="mt-2">
           {isOut ? (
             <div className="text-xs font-semibold text-red-600">
@@ -132,11 +134,6 @@ export default function ProductTile({
             title={isOut ? t("product.cannotAdd", "Out of stock") : undefined}
           >
             <ShoppingCart className="w-4 h-4" />
-            {/* <span>
-              {isOut
-                ? t("product.out", "Out")
-                : t("home.topsellers.addToCart", "Add to cart")}
-            </span> */}
           </button>
         </div>
       </div>
