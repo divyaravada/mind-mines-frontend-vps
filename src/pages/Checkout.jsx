@@ -85,18 +85,6 @@ export default function Checkout() {
   const canEnterCheckout = hasUser || hasGuest;
   const lsGuestEmail = (localStorage.getItem("guest_auth_email") || "").trim();
 
-  const effectiveEmail = useMemo(() => {
-    const formEmail = (form.email || "").trim();
-    const storeEmail = (authEmail || "").trim();
-
-    // If this is a guest-auth session, prefer the form/guest email.
-    if (hasGuest) {
-      return formEmail || lsGuestEmail || storeEmail;
-    }
-    // Real signed-in user: still allow a typed email to override if present.
-    return formEmail || storeEmail;
-  }, [form.email, authEmail, hasGuest, lsGuestEmail]);
-
   // hard gate: must be logged-in OR guest-auth’d to be here
   useEffect(() => {
     if (!canEnterCheckout) {
@@ -456,6 +444,18 @@ export default function Checkout() {
 
   const countryCode = normalizeCountry(form.country);
   const sepaAllowed = countryCode === "DE";
+
+  const effectiveEmail = useMemo(() => {
+    const formEmail = (form.email || "").trim();
+    const storeEmail = (authEmail || "").trim();
+
+    // If this is a guest-auth session, prefer the form/guest email.
+    if (hasGuest) {
+      return formEmail || lsGuestEmail || storeEmail;
+    }
+    // Real signed-in user: still allow a typed email to override if present.
+    return formEmail || storeEmail;
+  }, [form.email, authEmail, hasGuest, lsGuestEmail]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
