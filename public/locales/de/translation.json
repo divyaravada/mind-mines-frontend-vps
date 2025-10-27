@@ -185,7 +185,9 @@
     "passwordTooShort": "Das Passwort muss mindestens 12 Zeichen lang sein.",
     "passwordWeak": "Das Passwort sollte Buchstaben und Zahlen enthalten.",
     "or": "oder",
-    "googleLogin": "Mit Google fortfahren"
+    "googleLogin": "Mit Google fortfahren",
+    "continueAsGuest": "Als Gast fortfahren",
+    "enterEmailForGuest": "Geben Sie Ihre E-Mail-Adresse ein"
   },
   "logout": {
     "message": "Sie wurden abgemeldet.",

@@ -79,7 +79,17 @@ export default function Checkout() {
   const itemsCount = useSelector(selectCartCount);
   const subtotal = useSelector(selectCartSubtotal);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const hasUser = useSelector((s) => !!s.auth?.access); // real login
+  const hasGuest = useSelector((s) => !!s.auth?.isGuest); // guest session flag (set by your guest login)
+  const canEnterCheckout = hasUser || hasGuest;
 
+  // hard gate: must be logged-in OR guest-auth’d to be here
+  useEffect(() => {
+    if (!canEnterCheckout) {
+      navigate("/login?next=/checkout", { replace: true });
+    }
+  }, [canEnterCheckout, navigate]);
   const [previewCoupon, { isLoading: couponLoading }] =
     usePreviewCouponMutation();
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
@@ -91,7 +101,6 @@ export default function Checkout() {
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
-  const navigate = useNavigate();
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);

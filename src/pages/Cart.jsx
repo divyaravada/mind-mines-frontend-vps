@@ -1,7 +1,7 @@
 // src/pages/Cart.jsx
 import { useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   selectCartItems,
   selectCartCount,
@@ -41,6 +41,7 @@ const fmtEUR = (n, locale = "en") => {
 export default function CartPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
   const items = useSelector(selectCartItems);
@@ -48,7 +49,18 @@ export default function CartPage() {
   const subtotal = useSelector(selectCartSubtotal);
 
   const access = useSelector((s) => s.auth?.access);
+  const isGuest = useSelector((s) => !!s.auth?.isGuest);
   const loggedIn = !!access;
+  const canCheckout = loggedIn || isGuest;
+
+  const handleCheckoutClick = () => {
+    if (canCheckout) {
+      navigate("/checkout");
+    } else {
+      // force login checkpoint and return to checkout after
+      navigate("/login?next=/checkout");
+    }
+  };
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
   const wishlistIds = useMemo(
@@ -283,12 +295,12 @@ export default function CartPage() {
             </div>
           </div>
 
-          <Link
-            to="/checkout"
+          <button
+            onClick={handleCheckoutClick}
             className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
             {t("cart.checkout")}
-          </Link>
+          </button>
 
           <div className="mt-6 space-y-3 text-sm text-gray-700">
             <Badge

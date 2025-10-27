@@ -158,7 +158,9 @@
     "passwordTooShort": "Password must be at least 12 characters.",
     "passwordWeak": "Password should include letters and numbers.",
     "or": "or",
-    "googleLogin": "Continue with Google"
+    "googleLogin": "Continue with Google",
+    "continueAsGuest": "Continue as a Guest",
+    "enterEmailForGuest": "Enter you Email Address"
   },
   "logout": {
     "message": "You have been logged out.",
