@@ -192,7 +192,18 @@ export default function StripeCard({
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
   if (!active) {
-    return null;
+    return (
+      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+        <input
+          type="radio"
+          name="payment"
+          value="card"
+          checked={false}
+          onChange={() => setActive?.("card")}
+        />
+        <span className="flex-1">Credit / Debit card</span>
+      </label>
+    );
   }
 
   return (
