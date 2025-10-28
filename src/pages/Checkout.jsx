@@ -84,7 +84,7 @@ export default function Checkout() {
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
-  // Prefill guest email from localStorage for guests
+  // Prefill  email from localStorage for guests
   useEffect(() => {
     if (!isAuth) navigate("/users/login?next=/checkout", { replace: true });
   }, [isAuth, navigate]);
@@ -93,18 +93,29 @@ export default function Checkout() {
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
   const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
   const [bankCreateOrder] = useBankTransferCreateOrderMutation();
+  const { data: acct } = useGetAccountQuery(undefined, { skip: !isAuth });
+
+  // ---- fetch addresses ----
+  const { data: addrListRaw, isFetching: addrLoading } = useGetAddressesQuery(
+    undefined,
+    { skip: !isAuth }
+  );
 
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
   const skipCartGuardRef = useRef(false);
-  const addressIdRef = useRef(null);
+  // Normalize backend response to plain array
+  const addrList = Array.isArray(addrListRaw)
+    ? addrListRaw
+    : Array.isArray(addrListRaw?.results)
+    ? addrListRaw.results
+    : Array.isArray(addrListRaw?.addresses)
+    ? addrListRaw.addresses
+    : [];
 
-  const { data: addrList, isFetching: addrLoading } = useGetAddressesQuery(
-    undefined,
-    { skip: !isAuth }
-  );
+  const addressIdRef = useRef(null);
 
   const [createAddress] = useCreateAddressMutation();
   const [updateAddress] = useUpdateAddressMutation();
@@ -124,45 +135,46 @@ export default function Checkout() {
 
   // Prefill
   useEffect(() => {
-    (async () => {
-      if (!isAuth) return;
+    if (
+      !isAuth ||
+      addrLoading ||
+      !Array.isArray(addrList) ||
+      addrList.length === 0
+    )
+      return;
 
-      if (!addrLoading && Array.isArray(addrList) && addrList.length) {
-        const splitAddressLine1 = (line) => {
-          const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
-          return m
-            ? { street: m[1], houseNumber: m[2] }
-            : { street: line || "", houseNumber: "" };
-        };
-        const main = addrList.find((x) => x?.is_default) ?? addrList[0] ?? null;
-        if (main) {
-          addressIdRef.current = Number(main.id);
-          const line1 =
-            main.address_line1 ||
-            `${main.street_name || ""} ${main.house_number || ""}`.trim();
-          const { street, houseNumber } = splitAddressLine1(line1);
-          const computedFullName =
-            [main.first_name, main.last_name]
-              .filter(Boolean)
-              .join(" ")
-              .trim() ||
-            main.full_name ||
-            "";
-          setForm((p) => ({
-            ...p,
-            fullName: computedFullName || p.fullName,
-            country: main.country ?? p.country ?? "Germany",
-            street,
-            houseNumber,
-            apartment: main.address_line2 ?? main.apartment ?? p.apartment,
-            postalCode: main.postal_code ?? main.pincode ?? p.postalCode,
-            city: main.city ?? main.state ?? p.city,
-            telephone: main.phone ?? p.telephone,
-          }));
-        }
-      }
-    })();
-  }, [addrLoading, addrList, isAuth]);
+    const splitAddressLine1 = (line) => {
+      const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
+      return m
+        ? { street: m[1], houseNumber: m[2] }
+        : { street: line || "", houseNumber: "" };
+    };
+
+    const main = addrList.find((x) => x?.is_default) ?? addrList[0];
+    if (main) {
+      addressIdRef.current = Number(main.id);
+      const line1 =
+        main.address_line1 ||
+        `${main.street_name || ""} ${main.house_number || ""}`.trim();
+      const { street, houseNumber } = splitAddressLine1(line1);
+      const fullName =
+        [main.first_name, main.last_name].filter(Boolean).join(" ") ||
+        main.full_name ||
+        "";
+      setForm((p) => ({
+        ...p,
+        email: acct?.email || p.email,
+        fullName,
+        country: main.country || "DE",
+        street,
+        houseNumber,
+        apartment: main.address_line2 || "",
+        postalCode: main.postal_code || "",
+        city: main.city || "",
+        telephone: main.phone || "",
+      }));
+    }
+  }, [addrList, addrLoading, isAuth, acct?.email]);
 
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -223,9 +235,6 @@ export default function Checkout() {
     id: c.id,
     qty: c.qty,
   }));
-
-  // placeholder to satisfy lints before hook below
-  const { data: acct } = useGetAccountQuery(undefined, { skip: !isAuth });
 
   useEffect(() => {
     if (acct?.email) {
