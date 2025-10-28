@@ -32,10 +32,8 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import AboutContactPage from "./pages/AboutContactPage";
-import GuestOrderLookup from "./pages/GuestOrderLookup";
 import { useEffect } from "react";
 import Unsubscribe from "./routes/Unsubscribe";
-import RequireCheckoutAccess from "./routes/RequireCheckoutAccess";
 
 export default function App() {
   useEffect(() => {
@@ -72,16 +70,8 @@ export default function App() {
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/natural-stone" element={<NaturalStonePage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route
-            path="/checkout"
-            element={
-              <RequireCheckoutAccess>
-                <Checkout />
-              </RequireCheckoutAccess>
-            }
-          />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
-          <Route path="/order-lookup" element={<GuestOrderLookup />} />
           <Route path="/imprint" element={<ImprintPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />

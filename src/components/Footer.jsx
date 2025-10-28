@@ -79,11 +79,6 @@ export default function Footer() {
           </h2>
           <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
             <li>
-              <Link to="/order-lookup" className="hover:underline">
-                {t("footer.help.trackGuestOrder", "Track guest order")}
-              </Link>
-            </li>
-            <li>
               <Link to="/imprint" className="hover:underline">
                 {t("legal.nav.imprint")}
               </Link>

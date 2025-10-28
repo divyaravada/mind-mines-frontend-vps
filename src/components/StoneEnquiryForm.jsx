@@ -13,7 +13,7 @@ export default function StoneEnquiryForm({
 
   const [stoneType, setStoneType] = useState(presetStoneType || "");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); // only for guests
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
   const [sendEnquiry, { isLoading, isSuccess, isError, error }] =

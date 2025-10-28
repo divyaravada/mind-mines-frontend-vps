@@ -40,14 +40,6 @@ export const ordersApi = api.injectEndpoints({
       },
       invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
     }),
-    guestLookup: build.mutation({
-      query: ({ email, number }) => ({
-        url: "guest/order-lookup/",
-        method: "POST",
-        body: { email, number },
-      }),
-      transformResponse: (res) => res, // shape already fine
-    }),
   }),
 });
 
@@ -56,5 +48,4 @@ export const {
   useGetOrderQuery,
   useRequestCancelMutation,
   useRequestReturnMutation,
-  useGuestLookupMutation,
 } = ordersApi;

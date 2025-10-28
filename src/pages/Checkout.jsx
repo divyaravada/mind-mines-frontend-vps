@@ -80,17 +80,13 @@ export default function Checkout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const hasUser = useSelector((s) => !!s.auth?.access); // real login
-  const hasGuest = !!localStorage.getItem("guest_auth_email"); // guest session flag (set by your guest login)
-  const canEnterCheckout = hasUser || hasGuest;
-  const lsGuestEmail = (localStorage.getItem("guest_auth_email") || "").trim();
+  const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
+  const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
-  // hard gate: must be logged-in OR guest-auth’d to be here
+  // Prefill guest email from localStorage for guests
   useEffect(() => {
-    if (!canEnterCheckout) {
-      navigate("/users/login?next=/checkout", { replace: true });
-    }
-  }, [canEnterCheckout, navigate]);
+    if (!isAuth) navigate("/users/login?next=/checkout", { replace: true });
+  }, [isAuth, navigate]);
 
   const [previewCoupon] = usePreviewCouponMutation();
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
@@ -103,8 +99,6 @@ export default function Checkout() {
 
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
-  const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
-  const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
   const { data: addrList = [], isFetching: addrLoading } = useGetAccountQuery(
     undefined,
@@ -113,6 +107,7 @@ export default function Checkout() {
 
   const [createAddress] = useCreateAddressMutation();
   const [updateAddress] = useUpdateAddressMutation();
+
   // ------------ Address form ------------
   const [form, setForm] = useState({
     email: "",
@@ -126,60 +121,10 @@ export default function Checkout() {
     telephone: "",
   });
 
-  // Prefill guest email from localStorage for guests
-  useEffect(() => {
-    if (isAuth) return;
-    try {
-      const guestEmail = (
-        localStorage.getItem("guest_auth_email") || ""
-      ).trim();
-      if (guestEmail) {
-        setForm((p) => ({ ...p, email: p.email || guestEmail }));
-      }
-    } catch {}
-  }, [isAuth]);
-
   // Prefill
   useEffect(() => {
     (async () => {
-      if (!isAuth) {
-        try {
-          const savedGuest = JSON.parse(
-            localStorage.getItem("guest_address") || "{}"
-          );
-          if (savedGuest && typeof savedGuest === "object") {
-            const splitAddressLine1 = (line) => {
-              const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
-              return m
-                ? { street: m[1], houseNumber: m[2] }
-                : { street: line || "", houseNumber: "" };
-            };
-            setForm((p) => ({
-              ...p,
-              email: savedGuest.email || p.email,
-              country: savedGuest.country || p.country,
-              fullName:
-                [savedGuest.first_name, savedGuest.last_name]
-                  .filter(Boolean)
-                  .join(" ") || p.fullName,
-              ...(() => {
-                const { street, houseNumber } = splitAddressLine1(
-                  savedGuest.address_line1 || ""
-                );
-                return {
-                  street: street || p.street,
-                  houseNumber: houseNumber || p.houseNumber,
-                };
-              })(),
-              apartment: savedGuest.address_line2 || p.apartment,
-              postalCode: savedGuest.postal_code || p.postalCode,
-              city: savedGuest.city || p.city,
-              telephone: savedGuest.phone || p.telephone,
-            }));
-          }
-        } catch {}
-        return;
-      }
+      if (!isAuth) return;
 
       if (!addrLoading && Array.isArray(addrList) && addrList.length) {
         const splitAddressLine1 = (line) => {
@@ -278,6 +223,17 @@ export default function Checkout() {
     qty: c.qty,
   }));
 
+  // placeholder to satisfy lints before hook below
+  const { data: acct } = useGetAccountQuery(undefined, { skip: !isAuth });
+
+  useEffect(() => {
+    if (acct?.email) {
+      setForm((p) => ({ ...p, email: p.email || acct.email }));
+    }
+  }, [acct]);
+
+  // coupons
+  const [preview] = usePreviewCouponMutation();
   const applyCoupon = async () => {
     setCouponErr("");
     setCouponInfo(null);
@@ -331,25 +287,11 @@ export default function Checkout() {
     setSavingAddr(true);
     try {
       const payload = buildAddressPayload();
-      if (isAuth) {
-        if (addressIdRef.current) {
-          await updateAddress({
-            id: addressIdRef.current,
-            ...payload,
-          }).unwrap();
-          setAddrSaved(true);
-          setTimeout(() => setAddrSaved(false), 2000);
-        } else {
-          const res = await createAddress(payload).unwrap();
-          addressIdRef.current = res?.id ?? null;
-          setAddrSaved(true);
-        }
+      if (addressIdRef.current) {
+        await updateAddress({ id: addressIdRef.current, ...payload }).unwrap();
       } else {
-        localStorage.setItem(
-          "guest_address",
-          JSON.stringify({ ...payload, email: form.email })
-        );
-        addressIdRef.current = null;
+        const res = await createAddress(payload).unwrap();
+        addressIdRef.current = res?.id ?? null;
       }
       setAddrSaved(true);
       setTimeout(() => setAddrSaved(false), 1800);
@@ -396,10 +338,8 @@ export default function Checkout() {
       "city",
       "country",
     ];
-    return (
-      needed.every((k) => (form[k] || "").toString().trim().length > 0) &&
-      effectiveEmail.length > 3
-    );
+
+    return needed.every((k) => (form[k] || "").toString().trim().length > 0);
   };
 
   const handleCountryChange = (e) => {
@@ -446,16 +386,8 @@ export default function Checkout() {
   const sepaAllowed = countryCode === "DE";
 
   const effectiveEmail = useMemo(() => {
-    const formEmail = (form.email || "").trim();
-    const storeEmail = (authEmail || "").trim();
-
-    // If this is a guest-auth session, prefer the form/guest email.
-    if (hasGuest) {
-      return formEmail || lsGuestEmail || storeEmail;
-    }
-    // Real signed-in user: still allow a typed email to override if present.
-    return formEmail || storeEmail;
-  }, [form.email, authEmail, hasGuest, lsGuestEmail]);
+    return (form.email || accountData?.email || authEmail || "").trim();
+  }, [form.email, accountData?.email, authEmail]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">

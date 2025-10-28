@@ -49,9 +49,7 @@ export default function CartPage() {
   const subtotal = useSelector(selectCartSubtotal);
 
   const access = useSelector((s) => s.auth?.access);
-  const isGuest = useSelector((s) => !!s.auth?.isGuest);
   const loggedIn = !!access;
-  const canCheckout = loggedIn || isGuest;
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
   const wishlistIds = useMemo(
@@ -288,9 +286,7 @@ export default function CartPage() {
 
           <button
             onClick={() => {
-              const isLoggedIn = !!access;
-              const hasGuest = !!localStorage.getItem("guest_auth_email");
-              if (isLoggedIn || hasGuest) navigate("/checkout");
+              if (loggedIn) navigate("/checkout");
               else
                 navigate(
                   `/users/login?next=${encodeURIComponent("/checkout")}`
