@@ -25,6 +25,7 @@ import {
 } from "../features/payments/paymentsApi";
 import { useGetAccountQuery } from "../features/account/accountApi";
 import {
+  useGetAddressesQuery,
   useCreateAddressMutation,
   useUpdateAddressMutation,
 } from "../features/addresses/addressApi";
@@ -100,7 +101,7 @@ export default function Checkout() {
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
 
-  const { data: addrList = [], isFetching: addrLoading } = useGetAccountQuery(
+  const { data: addrList, isFetching: addrLoading } = useGetAddressesQuery(
     undefined,
     { skip: !isAuth }
   );
