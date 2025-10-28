@@ -631,20 +631,20 @@ export default function Checkout() {
               Please choose a payment method to continue.
             </div>
           )}
-          {payment === "card" && (
-            <StripeCard
-              active
-              setActive={() => setPaymentSafe("card")}
-              lineItems={lineItems}
-              addressPayload={buildAddressPayload()}
-              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-              total={payTotal}
-              couponCode={couponCode}
-              couponInfo={couponInfo}
-              customerEmail={effectiveEmail}
-            />
-          )}
+
+          <StripeCard
+            active={payment === "card"}
+            setActive={() => setPaymentSafe("card")}
+            lineItems={lineItems}
+            addressPayload={buildAddressPayload()}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+            total={payTotal}
+            couponCode={couponCode}
+            couponInfo={couponInfo}
+            customerEmail={effectiveEmail}
+          />
+
           {/* CARD installments */}
           {payment.startsWith("card") && isLoggedIn && (
             <div className="mt-6">
