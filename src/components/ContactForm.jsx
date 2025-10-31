@@ -3,11 +3,11 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSendContactMutation } from "../features/contact/contactApi";
 
-const PHONE = "+491704658288";
+const PHONE = "+491704658188";
 const WHATSAPP = "+491704658188";
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP.replace(/\D/g, "")}`;
 const PHONE_LINK = `tel:${PHONE}`;
-const SUPPORT_EMAIL = "support@mindmines.eu";
+const SUPPORT_EMAIL = "service@mindmines.eu";
 
 export default function ContactSection() {
   const { t } = useTranslation();

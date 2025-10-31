@@ -5,7 +5,7 @@ export default function LowStockBanner({ stock }) {
   if (n <= 0) {
     return (
       <div className="mt-3 p-3 rounded bg-gray-100 text-gray-800 font-semibold">
-        Out of stock — arriving soon. Add to wishlist to get notified!
+        Out of stock — arriving soon. Order can be taken on demand.
       </div>
     );
   }

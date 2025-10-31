@@ -267,7 +267,7 @@
       "returnOrder": "Rücksendung",
       "AllTopics": "Alle Hilfethemen",
       "contact": "Kontakt:",
-      "contactno": " +49 170 4658288",
+      "contactno": " +49 170 4658188",
       "emailtitle": "E-Mail:",
       "email": "info@mindmines.eu",
       "timings": "Timings: Mon–Fri, 9:00am–6:00pm (CET)",
@@ -587,6 +587,10 @@
       "sendRequest": "Anfrage senden"
     }
   },
+  "product": {
+    "orderOnDemand": "Auf Anfrage bestellbar",
+    "onDemandMsg": "Bestellung kann auf Anfrage entgegengenommen werden."
+  },
   "productReviews": {
     "title": "Bewertungen",
     "loginPrompt": "Melden Sie sich an, um eine Bewertung zu verfassen oder zu bearbeiten.",
@@ -799,7 +803,7 @@
       "intro": "Sie können die meisten Artikel innerhalb von 14 Tagen zurückgeben. Maßanfertigungen sind vom Widerruf ausgeschlossen.",
       "how": "So starten Sie eine Rückgabe",
       "howItems": [
-        "E-Mail an support@mindmines.eu mit Bestellnummer innerhalb von 14 Tagen nach Zustellung.",
+        "E-Mail an service@mindmines.eu mit Bestellnummer innerhalb von 14 Tagen nach Zustellung.",
         "Wenn möglich Originalverpackung verwenden; schwere Steinartikel sorgfältig polstern.",
         "An die unten stehende Adresse zurücksenden. Rücksendekosten tragen Sie, außer bei Defekt oder unserem Fehler."
       ],

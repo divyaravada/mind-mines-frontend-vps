@@ -33,7 +33,7 @@ export default function ImprintPage() {
           <strong>{t("legal.imprint.email")}:</strong> info@mindmines.eu
           <br />
           <strong>{t("legal.imprint.supportEmail")}:</strong>{" "}
-          support@mindmines.eu
+          service@mindmines.eu
           <br />
           <strong>{t("legal.imprint.whatsapp")}:</strong> +49 170 4658188
         </p>

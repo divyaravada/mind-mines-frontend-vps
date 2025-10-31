@@ -7,13 +7,14 @@ import ReactPlayer from "react-player";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { productTitle } from "../lib/i18n";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addItem } from "../features/cart/cartSlice";
 import {
   useGetProductQuery,
   useListProductsQuery,
   useCreateProductReviewMutation,
   useSuggestProductsQuery,
+  useCreateOnDemandRequestMutation,
 } from "../features/products/productsApi";
 import {
   fmtEUR,
@@ -25,6 +26,7 @@ import {
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
 import LowStockBanner from "../components/LowStockBanner";
+import OnDemandModal from "../components/OnDemandModal";
 import OutOfStockNotify from "../components/OutOfStockNotify";
 
 export default function ProductDetailPage() {
@@ -36,6 +38,12 @@ export default function ProductDetailPage() {
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const getPriceNum = (p) => resolveProductPrice(p);
   const { data: product, isLoading } = useGetProductQuery(id);
+  const userEmail = useSelector((s) => s?.auth?.user?.email);
+  const [openDemand, setOpenDemand] = useState(false);
+  const [
+    createDemand,
+    { isLoading: isSending, isSuccess: sentOk, error: sendErr },
+  ] = useCreateOnDemandRequestMutation();
 
   // Suggestion seed (safe if product not loaded yet)
   const suggestSeed = product
@@ -117,7 +125,8 @@ export default function ProductDetailPage() {
       : hasDiscountCalc(product);
   const inStock =
     typeof product.quantity === "number" ? product.quantity > 0 : true;
-
+  const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
+  const isOut = stockNum <= 0;
   // Product JSON-LD (all fields optional-safe)
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -317,8 +326,36 @@ export default function ProductDetailPage() {
             {" "}
             <strong>{t("stock")}:</strong> {product.quantity}
           </p>
-          <LowStockBanner stock={product.stock} />
-          {product?.stock <= 0 && <OutOfStockNotify productId={product.id} />}
+          <LowStockBanner stock={stockNum} />
+          {isOut && (
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                Order can be taken on demand.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenDemand(true)}
+                  className="px-4 py-2 rounded bg-marbleblack text-white hover:bg-black"
+                >
+                  Order on demand
+                </button>
+                {/* Keep your existing notify flow if desired */}
+                <OutOfStockNotify productId={product.id} />
+              </div>
+              {sendErr && (
+                <div className="text-xs text-red-600">
+                  {sendErr?.data?.detail ||
+                    "Couldn’t send your request. Please try again."}
+                </div>
+              )}
+              {sentOk && (
+                <div className="text-xs text-green-700">
+                  Thanks! We’ve received your request and will contact you soon.
+                </div>
+              )}
+            </div>
+          )}
           <button
             onClick={handleAddToCart}
             className="px-4 py-2 mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
@@ -465,7 +502,16 @@ export default function ProductDetailPage() {
           </div>
         )}
       </section>
-
+      <OnDemandModal
+        open={openDemand}
+        onClose={() => setOpenDemand(false)}
+        initialEmail={userEmail}
+        productId={product.id}
+        onSubmit={async (payload) => {
+          await createDemand(payload).unwrap();
+          setOpenDemand(false);
+        }}
+      />
       {/* SUGGESTED PRODUCTS (placed down below details; after reviews per request wording)
       <section className="mt-12">
         <h2 className="text-2xl font-bold mb-4">{t("You may also like")}</h2>

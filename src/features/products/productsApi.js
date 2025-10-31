@@ -70,6 +70,14 @@ export const productsApi = api.injectEndpoints({
         body: { product, email },
       }),
     }),
+
+    createOnDemandRequest: b.mutation({
+      query: (payload) => ({
+        url: "on-demand/",
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -82,4 +90,5 @@ export const {
   useLazyGetProductQuery,
   useGetTopProductsQuery,
   useSubscribeStockAlertMutation,
+  useCreateOnDemandRequestMutation,
 } = productsApi;

@@ -251,7 +251,7 @@
       "returnOrder": "Return your order",
       "allTopics": "All help topics",
       "contact": "Contact:",
-      "contactno": " +49 170 4658288",
+      "contactno": " +49 170 4658188",
       "emailtitle": "Email:",
       "email": "info@mindmines.eu",
       "timings": "Timings: Mon–Fri, 9:00am–6:00pm (CET)",
@@ -570,6 +570,10 @@
       "sendRequest": "Send request"
     }
   },
+  "product": {
+    "orderOnDemand": "Order on demand",
+    "onDemandMsg": "Order can be taken on demand."
+  },
   "productReviews": {
     "title": "Reviews",
     "loginPrompt": "Log in to post or edit your review.",
@@ -782,7 +786,7 @@
       "intro": "You have 14 days to return most items. Custom-made products are non-refundable.",
       "how": "How to start a return",
       "howItems": [
-        "Email support@mindmines.eu with your order number within 14 days of delivery.",
+        "Email service@mindmines.eu with your order number within 14 days of delivery.",
         "Use the original packaging when possible; protect heavy stone items carefully.",
         "Ship to the return address below. You are responsible for return shipping unless the item is defective or we made a mistake."
       ],
