@@ -1,4 +1,3 @@
-//src/components/StripeSepa.jsx
 import { useState, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -28,8 +27,12 @@ function SepaForm({
   const stripe = useStripe();
   const elements = useElements();
   const [createSepaIntent] = useStripeCreateSepaIntentMutation();
+
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  const [ibanComplete, setIbanComplete] = useState(false);
+  const [ibanError, setIbanError] = useState("");
 
   const totalLabel = useMemo(() => {
     const n = Number(total || 0);
@@ -43,9 +46,34 @@ function SepaForm({
     }
   }, [total]);
 
+  // *** helper to check we have minimal billing info before trying payment
+  const hasMinimalBilling = () => {
+    const requiredFields = [
+      form?.fullName,
+      form?.email,
+      addressPayload?.address_line1,
+      addressPayload?.postal_code,
+      addressPayload?.city,
+      addressPayload?.country,
+    ];
+    return requiredFields.every((v) => (v || "").toString().trim().length > 0);
+  };
+
   const pay = async () => {
     setErr("");
+
+    // *** guard before doing ANYTHING:
     if (!stripe || !elements) return;
+    if (loading) return;
+    if (!ibanComplete) {
+      setErr("Please enter a valid IBAN.");
+      return;
+    }
+    if (!hasMinimalBilling()) {
+      setErr("Please fill delivery/contact details first.");
+      return;
+    }
+
     setLoading(true);
     try {
       // 1) Ask backend to create local order + SEPA PaymentIntent
@@ -57,14 +85,17 @@ function SepaForm({
         coupon_code: (couponCode || couponInfo?.code || "").trim(),
         idempotency_key: getCheckoutIdem(),
       }).unwrap();
+
       const clientSecret =
         res?.data?.clientSecret ??
         res?.clientSecret ??
         res?.data?.client_secret ??
         res?.client_secret ??
         null;
+
       const orderId = res?.data?.order_id ?? res?.order_id ?? null;
-      if (!clientSecret) throw new Error("Missing client secret");
+
+      if (!clientSecret) throw new Error("Missing client secret from server.");
       setLocalOrderId?.(orderId);
 
       // 2) Confirm SEPA with IBAN + mandate acceptance
@@ -86,12 +117,13 @@ function SepaForm({
               },
             },
           },
-          // Mandate text is shown by Stripe automatically in the IbanElement flow
         }
       );
 
-      if (error) throw error;
-      // For SEPA, status will be 'processing' now. We rely on webhook to mark PAID later.
+      if (error) {
+        throw new Error(error.message || "SEPA payment failed.");
+      }
+
       if (
         paymentIntent?.status === "processing" ||
         paymentIntent?.status === "succeeded"
@@ -110,7 +142,18 @@ function SepaForm({
   return (
     <div className="space-y-3">
       <div className="border rounded p-3">
-        <IbanElement options={{ supportedCountries: ["SEPA"] }} />
+        <IbanElement
+          options={{ supportedCountries: ["SEPA"] }}
+          onChange={(event) => {
+            setIbanComplete(event.complete === true);
+
+            if (event.error && event.error.message) {
+              setIbanError(event.error.message);
+            } else {
+              setIbanError("");
+            }
+          }}
+        />
         <p className="text-xs text-gray-600 mt-2">
           By providing your IBAN and confirming this payment, you are
           authorizing MindMines and Stripe, our payment service provider, to
@@ -121,10 +164,17 @@ function SepaForm({
           your account was debited.
         </p>
       </div>
-      {err && <div className="text-red-600 text-sm">{String(err)}</div>}
+
+      {/* Show IBAN-specific validation before the generic err */}
+      {ibanError && <div className="text-red-600 text-sm">{ibanError}</div>}
+
+      {err && !ibanError && (
+        <div className="text-red-600 text-sm">{String(err)}</div>
+      )}
+
       <button
         onClick={pay}
-        disabled={loading || !stripe}
+        disabled={loading || !stripe || !ibanComplete || !hasMinimalBilling()}
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
       >
         {loading ? "Processing…" : `Pay by SEPA Direct Debit (${totalLabel})`}
@@ -134,7 +184,7 @@ function SepaForm({
 }
 
 export default function StripeSepa(props) {
-  const { active, setActive } = props;
+  const { active } = props;
   const cc = (props.addressPayload?.country || "DE").slice(0, 2).toUpperCase();
   const isDE = cc === "DE";
   return (

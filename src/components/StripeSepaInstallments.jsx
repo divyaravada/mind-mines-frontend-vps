@@ -60,19 +60,44 @@ function InnerInstallments({
   const [startSchedule] = useStripeSepaCreateInstallmentsMutation();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [ibanComplete, setIbanComplete] = useState(false);
+  const [ibanError, setIbanError] = useState("");
 
   const parts = splitInstallments(total, months);
-
   const perMonthLabel =
     Array.isArray(parts) && parts.length ? fmtEUR(parts[0]) : null;
-
   const breakdown = Array.isArray(splitInstallments(total, months))
     ? parts
     : [];
 
+  // helper: require minimal billing before starting installments
+  const hasMinimalBilling = () => {
+    const requiredFields = [
+      form?.fullName,
+      form?.email,
+      addressPayload?.address_line1,
+      addressPayload?.postal_code,
+      addressPayload?.city,
+      addressPayload?.country,
+    ];
+    return requiredFields.every((v) => (v || "").toString().trim().length > 0);
+  };
+
   const startInstallments = async () => {
     setErr("");
+
+    // guard BEFORE touching Stripe/Backend
     if (!stripe || !elements) return;
+    if (loading) return;
+    if (!ibanComplete) {
+      setErr("Please enter a valid IBAN.");
+      return;
+    }
+    if (!hasMinimalBilling()) {
+      setErr("Please fill delivery/contact details first.");
+      return;
+    }
+
     setLoading(true);
     try {
       // 1) Create SetupIntent for SEPA mandate
@@ -80,7 +105,7 @@ function InnerInstallments({
       const clientSecret = si?.clientSecret;
       if (!clientSecret) throw new Error("Missing SetupIntent client secret");
 
-      // 2) Confirm SEPA mandate
+      // 2) Confirm SEPA mandate with Stripe
       const { setupIntent, error } = await stripe.confirmSepaDebitSetup(
         clientSecret,
         {
@@ -101,12 +126,18 @@ function InnerInstallments({
           },
         }
       );
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "SEPA setup for installments failed.");
+      }
 
       const pmId = setupIntent?.payment_method;
-      if (!pmId) throw new Error("Payment method not returned from Stripe.");
+      if (!pmId) {
+        throw new Error("Payment method not returned from Stripe.");
+      }
 
       // 3) Start the installments schedule on backend
+      // This is where you create the order and schedule debits in backend.
+      // Only do this AFTER Stripe said OK above.
       const payload = {
         items: lineItems, // <-- REQUIRED
         months,
@@ -121,6 +152,7 @@ function InnerInstallments({
       const orderId = res?.order_id;
       if (orderId) setLocalOrderId?.(orderId);
 
+      // now installments "order" is created and valid
       onSuccess?.(orderId);
     } catch (e) {
       setErr(e?.message || "Failed to start SEPA installments.");
@@ -132,13 +164,30 @@ function InnerInstallments({
   return (
     <div className="space-y-3">
       <div className="border rounded p-3">
-        <IbanElement options={{ supportedCountries: ["SEPA"] }} />
+        <IbanElement
+          options={{ supportedCountries: ["SEPA"] }}
+          onChange={(event) => {
+            setIbanComplete(event.complete === true);
+            if (event.error && event.error.message) {
+              setIbanError(event.error.message);
+            } else {
+              setIbanError("");
+            }
+          }}
+        />
         <p className="text-xs text-gray-600 mt-2">
           By providing your IBAN and confirming, you authorize MindMines and
           Stripe to debit your account monthly. You can request a refund within
           8 weeks from the debit date per your bank’s terms.
         </p>
       </div>
+
+      {/* IBAN-specific error first */}
+      {ibanError && <div className="text-red-600 text-sm">{ibanError}</div>}
+
+      {err && !ibanError && (
+        <div className="text-red-600 text-sm">{String(err)}</div>
+      )}
 
       {breakdown.length > 0 && (
         <div className="text-sm text-gray-700">
@@ -150,11 +199,14 @@ function InnerInstallments({
         </div>
       )}
 
-      {err && <div className="text-red-600 text-sm">{String(err)}</div>}
-
       <button
         onClick={startInstallments}
-        disabled={loading || !stripe}
+        disabled={
+          loading ||
+          !stripe ||
+          !ibanComplete || // require IBAN valid before enabling button
+          !hasMinimalBilling()
+        }
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
       >
         {loading
