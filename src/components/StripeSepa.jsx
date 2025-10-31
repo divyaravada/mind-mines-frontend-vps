@@ -128,6 +128,21 @@ function SepaForm({
         paymentIntent?.status === "processing" ||
         paymentIntent?.status === "succeeded"
       ) {
+        try {
+          await fetch("/api/payments/sepa-post-confirm/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              order_id: orderId,
+              payment_intent_status: paymentIntent.status,
+            }),
+          });
+        } catch (postErr) {
+          // we intentionally ignore failures here so checkout still succeeds
+          console.warn("sepa-post-confirm failed", postErr);
+        }
         onSuccess?.(orderId);
       } else {
         throw new Error(`SEPA status: ${paymentIntent?.status || "unknown"}`);
