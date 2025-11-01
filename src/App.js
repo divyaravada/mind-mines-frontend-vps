@@ -34,6 +34,7 @@ import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import AboutContactPage from "./pages/AboutContactPage";
 import { useEffect } from "react";
 import Unsubscribe from "./routes/Unsubscribe";
+import CheckoutReturn from "./pages/CheckoutReturn";
 
 export default function App() {
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/imprint" element={<ImprintPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
