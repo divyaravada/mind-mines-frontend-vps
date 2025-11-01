@@ -286,11 +286,7 @@ export default function CartPage() {
 
           <button
             onClick={() => {
-              if (loggedIn) navigate("/checkout");
-              else
-                navigate(
-                  `/users/login?next=${encodeURIComponent("/checkout")}`
-                );
+              navigate("/checkout");
             }}
             className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
