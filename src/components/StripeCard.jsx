@@ -15,6 +15,7 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
+// ----------------- Inner payment handler -----------------
 function CardInner({
   addressPayload,
   customerEmail,
@@ -41,7 +42,7 @@ function CardInner({
       return map[up] || "DE";
     };
 
-    // save last order id (for thank-you page) before leaving page for redirect methods
+    // Save the latest order id so thank-you / /checkout/return can find it
     try {
       const oid = getPendingOrderId?.();
       if (oid) {
@@ -53,7 +54,7 @@ function CardInner({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          // this is REQUIRED for Klarna / Giropay / Sofort redirect
+          // REQUIRED for redirect methods like Klarna/Giropay
           return_url: `${window.location.origin}/checkout/return`,
           payment_method_data: {
             billing_details: {
@@ -85,7 +86,6 @@ function CardInner({
         return;
       }
 
-      // If we didn't get redirected (pure card), handle success inline
       if (
         paymentIntent &&
         (paymentIntent.status === "succeeded" ||
@@ -96,7 +96,6 @@ function CardInner({
         return;
       }
 
-      // fallback
       onSuccess?.();
     } catch {
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
@@ -106,10 +105,10 @@ function CardInner({
     stripe,
     elements,
     addressPayload,
-    onSuccess,
-    t,
     customerEmail,
     getPendingOrderId,
+    onSuccess,
+    t,
   ]);
 
   return (
@@ -132,6 +131,7 @@ function CardInner({
   );
 }
 
+// ----------------- Wrapper with createIntent -----------------
 export default function StripeCard({
   active,
   setActive,
@@ -148,42 +148,54 @@ export default function StripeCard({
   const { i18n } = useTranslation();
   const [createIntent] = useStripeCreateIntentMutation();
 
-  // local state we actually render
+  // Live state we render
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // cache so we don't create multiple Orders for tiny state changes
+  // Cache refs to PREVENT multiple backend calls
   const cachedOrderIdRef = useRef(null);
   const cachedClientSecretRef = useRef(null);
 
-  // snapshot key to know if cart actually changed
-  // If cart or total really changes, we DO want a new PI
-  const snapshotKey = JSON.stringify({
-    items: backendItems,
-    total,
-  });
+  // We now ALSO cache the cart signature (only product_id + qty),
+  // so if the cart items didn't change, we reuse the FIRST order,
+  // even if totals/coupons flip around after.
+  const buildCartSignature = (itemsArr) => {
+    // Only product_id + qty matters for signature
+    // Sort to make signature stable
+    const norm = [...itemsArr].map((it) => ({
+      product_id: it.product_id,
+      qty: it.qty,
+    }));
+    norm.sort((a, b) =>
+      a.product_id === b.product_id
+        ? a.qty - b.qty
+        : a.product_id - b.product_id
+    );
+    return JSON.stringify(norm);
+  };
 
-  const lastSnapshotRef = useRef(null);
+  const cartSig = buildCartSignature(backendItems);
+  const lastCartSigRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    // only run if user selected this method
     if (!active) return;
 
-    // RULE:
-    // - If we already created an order+PI for THIS cart snapshot, reuse it.
+    // 1. If we ALREADY have an order/clientSecret AND the cart signature
+    //    (products+qty) is the same as before, just reuse it.
     if (
-      lastSnapshotRef.current === snapshotKey &&
+      cachedOrderIdRef.current &&
       cachedClientSecretRef.current &&
-      cachedOrderIdRef.current
+      lastCartSigRef.current === cartSig
     ) {
+      // Reuse old PaymentIntent instead of creating a new order.
       setClientSecret(cachedClientSecretRef.current);
       setLocalOrderId?.(cachedOrderIdRef.current);
       return;
     }
 
-    // otherwise we need to create a new order + PI
+    // 2. Otherwise, we need a fresh order/intent from backend.
     (async () => {
       setLoading(true);
       try {
@@ -205,7 +217,6 @@ export default function StripeCard({
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
 
-        // normalize response
         const cs =
           res?.clientSecret ||
           res?.client_secret ||
@@ -215,14 +226,14 @@ export default function StripeCard({
         const oid = res?.order_id || res?.data?.order_id || null;
 
         if (!cancelled) {
-          // update live state
+          // set visible state
           setClientSecret(cs);
           setLocalOrderId?.(oid);
 
-          // update cache
+          // update caches
           cachedClientSecretRef.current = cs;
           cachedOrderIdRef.current = oid;
-          lastSnapshotRef.current = snapshotKey;
+          lastCartSigRef.current = cartSig;
         }
       } catch (e) {
         if (!cancelled) {
@@ -243,7 +254,7 @@ export default function StripeCard({
     };
   }, [
     active,
-    snapshotKey, // only recreate intent if cart/total truly changed
+    cartSig, // ONLY depends on product_id + qty
     addressPayload,
     couponCode,
     couponInfo,
@@ -264,7 +275,7 @@ export default function StripeCard({
     }
   }, [i18n.language, total]);
 
-  // collapsed view (not active yet)
+  // Collapsed radio (not active)
   if (!active) {
     return (
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -280,7 +291,7 @@ export default function StripeCard({
     );
   }
 
-  // expanded view
+  // Expanded
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
