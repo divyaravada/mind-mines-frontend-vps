@@ -899,64 +899,6 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Direct bank transfer*/}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-            <input
-              type="radio"
-              name="payment"
-              value="bank"
-              checked={payment === "bank"}
-              onChange={() => setPaymentSafe("bank")}
-            />
-            <span className="flex-1">{t("checkout.bank")}</span>
-            <span className="text-xs">{t("checkout.ibanbic")}</span>
-          </label>
-          {payment === "bank" && (
-            <div className="border rounded p-3 space-y-3">
-              <p className="text-sm text-gray-600">{t("checkout.bankNote")}</p>
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await bankCreateOrder({
-                      items: backendItems,
-                      email: effectiveEmail,
-                      ...buildAddressPayload(),
-                      coupon_code: (
-                        couponCode ||
-                        couponInfo?.code ||
-                        ""
-                      ).trim(),
-                    });
-                    const id = res?.order_id ?? res?.order?.id ?? null;
-
-                    sessionStorage.setItem(
-                      "bank_checkout_info",
-                      JSON.stringify({
-                        order_id: id,
-                        order_number: res.data?.order_number,
-                        amount: res.data?.amount,
-                        iban: res.data?.iban,
-                        bic: res.data?.bic,
-                        beneficiary: res.data?.beneficiary,
-                        reference: res.data?.reference,
-                        instructions: res.data?.instructions,
-                      })
-                    );
-                    onSuccessfulOrder(id);
-                  } catch {
-                    alert(t("checkout.bankCreateFailed"));
-                  }
-                }}
-                className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black"
-              >
-                {t("checkout.placeBankOrder", {
-                  total: fmtEUR(payTotal, locale),
-                  defaultValue: "Place order (bank transfer) — {{total}}",
-                })}
-              </button>
-            </div>
-          )}
-
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
             <Badge
               icon={<ShieldCheck className="w-4 h-4" />}
