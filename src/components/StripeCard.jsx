@@ -32,37 +32,43 @@ function CardInner({
     setProcessing(true);
     setErrorMsg("");
 
+    const normalizeCountry = (c) => {
+      if (!c) return "DE";
+      const up = ("" + c).trim();
+      if (up.length === 2) return up.toUpperCase();
+      const map = { Germany: "DE", Deutschland: "DE" };
+      return map[up] || "DE";
+    };
+
     try {
-      // stripe.confirmPayment will:
-      //  - handle card 3DS if needed
-      //  - handle redirect flows like giropay / klarna  automatically
+      // ⚠ IMPORTANT:
+      // We now include return_url so redirect methods (Klarna, Giropay, Sofort, etc.)
+      // know where to send the shopper back.
+      // This URL should be a page in your frontend that can read the PaymentIntent status.
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          // optional return_url: if you want full redirect roundtrip flow
-          // return_url: `${window.location.origin}/checkout/success`,
-          receipt_email: customerEmail || addressPayload?.email || undefined,
+          return_url: `${window.location.origin}/checkout/return`,
           payment_method_data: {
             billing_details: {
-              name:
-                addressPayload?.first_name || addressPayload?.last_name
-                  ? `${addressPayload.first_name || ""} ${
-                      addressPayload.last_name || ""
-                    }`.trim()
-                  : undefined,
+              name: addressPayload?.first_name
+                ? `${addressPayload.first_name} ${
+                    addressPayload.last_name || ""
+                  }`.trim()
+                : undefined,
               email: customerEmail || addressPayload?.email || undefined,
               address: {
                 line1: addressPayload?.address_line1 || undefined,
                 line2: addressPayload?.address_line2 || undefined,
                 postal_code: addressPayload?.postal_code || undefined,
                 city: addressPayload?.city || undefined,
-                country: (addressPayload?.country || "DE")
-                  .slice(0, 2)
-                  .toUpperCase(),
+                country: normalizeCountry(addressPayload?.country),
               },
             },
           },
         },
+        // "if_required": card will resolve inline,
+        // Klarna/Giropay/Sofort will do full redirect.
         redirect: "if_required",
       });
 
@@ -139,18 +145,32 @@ export default function StripeCard({
       if (!active) return;
       setLoading(true);
       try {
+        const normalizeCountry = (c) => {
+          if (!c) return "DE";
+          const up = ("" + c).trim();
+          if (up.length === 2) return up.toUpperCase();
+          const map = { Germany: "DE", Deutschland: "DE" };
+          return map[up] || "DE";
+        };
         const res = await createIntent({
           items: backendItems,
           payment_method: "card", // we still send "card" so Order.payment_method stores something meaningful
           ...addressPayload,
-          email: (customerEmail || addressPayload?.email || "").trim(),
+          country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
+          email: (customerEmail || addressPayload?.email || "").trim(),
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
 
         if (!cancelled) {
-          setClientSecret(res.clientSecret || res.client_secret || "");
-          setLocalOrderId?.(res.order_id);
+          setClientSecret(
+            res?.data?.clientSecret ??
+              res?.clientSecret ??
+              res?.data?.client_secret ??
+              res?.client_secret ??
+              ""
+          );
+          setLocalOrderId?.(res.data?.order_id || res?.order_id);
         }
       } catch (e) {
         if (!cancelled) {
@@ -181,6 +201,7 @@ export default function StripeCard({
   ]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
+
   const totalFormatted = useMemo(() => {
     try {
       return new Intl.NumberFormat(i18n.language || "en", {
