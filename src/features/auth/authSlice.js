@@ -2,13 +2,34 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
-const stored = localStorage.getItem("authTokens");
-const initialTokens = stored ? JSON.parse(stored) : null;
+function safeDecode(token) {
+  try {
+    return token ? jwtDecode(token) : null;
+  } catch {
+    return null;
+  }
+}
+
+function loadInitialTokens() {
+  try {
+    const raw = localStorage.getItem("authTokens");
+    if (!raw) return { access: null, refresh: null };
+    const parsed = JSON.parse(raw);
+    return {
+      access: parsed.access || null,
+      refresh: parsed.refresh || null,
+    };
+  } catch {
+    return { access: null, refresh: null };
+  }
+}
+
+const init = loadInitialTokens();
 
 const initialState = {
-  access: initialTokens?.access || null,
-  refresh: initialTokens?.refresh || null,
-  user: initialTokens?.access ? jwtDecode(initialTokens.access) : null,
+  access: init.access,
+  refresh: init.refresh,
+  user: safeDecode(init.access),
 };
 
 const authSlice = createSlice({
@@ -17,37 +38,44 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { access, refresh } = action.payload || {};
-      state.access = access || null;
-      state.refresh = refresh || null;
-      state.user = access ? jwtDecode(access) : null;
 
-      // keep axios-compatible storage in sync
-      if (access && refresh) {
-        localStorage.setItem("authTokens", JSON.stringify({ access, refresh }));
-      } else if (access) {
+      // Update Redux
+      if (access) state.access = access;
+      if (refresh) state.refresh = refresh ?? state.refresh;
+      state.user = access ? safeDecode(access) : state.user;
+
+      // Sync localStorage for axios/http and reload survival
+      try {
         const prev = JSON.parse(localStorage.getItem("authTokens") || "{}");
-        localStorage.setItem("authTokens", JSON.stringify({ ...prev, access }));
+        const next = {
+          ...prev,
+          ...(refresh !== undefined ? { refresh } : {}),
+          ...(access !== undefined ? { access } : {}),
+        };
+        localStorage.setItem("authTokens", JSON.stringify(next));
+      } catch {
+        // if storage is blocked just ignore
       }
     },
+
     logout: (state) => {
       state.access = null;
       state.refresh = null;
       state.user = null;
       localStorage.removeItem("authTokens");
     },
+
     hydrateFromStorage: (state) => {
-      const raw = localStorage.getItem("authTokens");
-      if (raw) {
-        const t = JSON.parse(raw);
-        state.access = t.access || null;
-        state.refresh = t.refresh || null;
-        state.user = t.access ? jwtDecode(t.access) : null;
-      }
+      const { access, refresh } = loadInitialTokens();
+      state.access = access;
+      state.refresh = refresh;
+      state.user = safeDecode(access);
     },
   },
 });
 
 export const { setCredentials, logout, hydrateFromStorage } = authSlice.actions;
+
 export const selectAccessToken = (state) => state.auth?.access || null;
 export const selectRefreshToken = (state) => state.auth?.refresh || null;
 export const selectUser = (state) => state.auth?.user || null;

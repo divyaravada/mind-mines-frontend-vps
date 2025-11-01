@@ -34,7 +34,8 @@ const fmtEUR = (n, locale = "en") => {
       currency: "EUR",
     }).format(n);
   } catch {
-    return `${n.toFixed(2)} €`;
+    const v = Number.isFinite(n) ? n : 0;
+    return `${v.toFixed(2)} €`;
   }
 };
 
@@ -64,20 +65,26 @@ export default function CartPage() {
   const [addW] = useAddToWishlistMutation();
   const [remW] = useRemoveFromWishlistMutation();
 
+  // shipping is 0 for now
   const shippingFee = subtotal >= 100 || subtotal === 0 ? 0 : 0;
   const total = subtotal + shippingFee;
 
   const toggleWishlist = async (productId) => {
     if (!loggedIn) return;
     try {
-      if (wishlistIds.includes(productId)) await remW(productId).unwrap();
-      else await addW(productId).unwrap();
-    } catch {}
+      if (wishlistIds.includes(productId)) {
+        await remW(productId).unwrap();
+      } else {
+        await addW(productId).unwrap();
+      }
+    } catch {
+      /* ignore */
+    }
   };
 
   if (items.length === 0) {
     return (
-      <div className="max-w-5xl mx-auto py-12 px-4  text-backnewswhite dark:text-backnewsdark">
+      <div className="max-w-5xl mx-auto py-12 px-4 text-backnewswhite dark:text-backnewsdark">
         <h1 className="text-2xl font-bold mb-4">
           {t("cart.title", { count: 0 })}
         </h1>
@@ -85,7 +92,7 @@ export default function CartPage() {
           <p className="mb-6 text-gray-600">{t("cart.empty")}</p>
           <Link
             to="/decorative-products"
-            className="inline-block px-5 py-3 rounded bg-marblewhite dark:text-backnewsdark text-white"
+            className="inline-block px-5 py-3 rounded bg-marbleblack text-white"
           >
             {t("cart.continue")}
           </Link>
@@ -95,7 +102,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1  dark:text-backnewsdark lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 dark:text-backnewsdark lg:grid-cols-3 gap-8">
       {/* LEFT */}
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-4">
@@ -111,25 +118,25 @@ export default function CartPage() {
           </button>
         </div>
 
-        <div className="space-y-4 ">
+        <div className="space-y-4">
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
             const lineTotal = item.price * item.qty;
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow p-4 flex gap-4  dark:bg-marbleblack"
+                className="bg-white rounded-lg shadow p-4 flex gap-4 dark:bg-marbleblack"
               >
                 <img
                   src={item.image}
                   alt={item.name}
                   className="w-28 h-28 object-cover rounded"
                 />
-                <div className="flex-1 ">
-                  <div className="flex items-start justify-between gap-3 ">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
-                      <div className="text-sm text-gray-500 capitalize text-backnewswhite dark:text-backnewsdark ">
+                      <div className="text-sm text-gray-500 capitalize text-backnewswhite dark:text-backnewsdark">
                         {item.category}
                       </div>
                     </div>
@@ -142,7 +149,7 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 text-backnewswhite dark:text-backnewsdark ">
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 text-backnewswhite dark:text-backnewsdark">
                     {item.dimensions && (
                       <div>
                         <span className="font-medium">
@@ -234,7 +241,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm text-gray-500 text-backnewswhite dark:text-backnewsdark ">
+                      <div className="text-sm text-gray-500 text-backnewswhite dark:text-backnewsdark">
                         {t("cart.total")}
                       </div>
                       <div className="text-lg font-semibold">

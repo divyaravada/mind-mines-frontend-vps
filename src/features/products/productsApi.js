@@ -3,14 +3,18 @@ import { api } from "../../services/apiSlice";
 
 export const productsApi = api.injectEndpoints({
   endpoints: (b) => ({
+    // List products with filters: category, material, price ranges...
+    // Backend view ProductListView / ProductListCreate handles these params.
     listProducts: b.query({
       query: (params) => ({ url: "products/list/", params }),
       providesTags: ["Products"],
     }),
+
+    // Optional "featured/bestsellers" helper.
+    // Safe fallback if backend ignores featured/sold.
     getTopProducts: b.query({
-      // First try a dedicated top endpoint; if your backend doesn’t have it,
-      // your API gateway will still honor the second call (fallback).
-      async queryFn(arg, _q, _e, fetchWithBQ) {
+      async queryFn(arg, _queryApi, _extraOptions, fetchWithBQ) {
+        // Try featured first
         const featured = await fetchWithBQ({
           url: "products/list/",
           params: { page_size: 8, featured: true },
@@ -21,7 +25,7 @@ export const productsApi = api.injectEndpoints({
             : featured.data.results ?? [];
           if (list.length) return { data: list };
         }
-        // fallback to ordering by sold desc
+        // fallback: try ordering
         const best = await fetchWithBQ({
           url: "products/list/",
           params: { page_size: 8, ordering: "-sold" },
@@ -40,16 +44,19 @@ export const productsApi = api.injectEndpoints({
       providesTags: ["Products"],
     }),
 
+    // Single product page
     getProduct: b.query({
       query: (id) => `products/${id}/`,
-      providesTags: (_r, _e, id) => [{ type: "Product", id }],
+      providesTags: (_r, _e, id) => [{ type: "Products", id }],
     }),
 
+    // Reviews list for product
     listProductReviews: b.query({
       query: (id) => `products/${id}/reviews/`,
       providesTags: (_r, _e, id) => [{ type: "Reviews", id }],
     }),
 
+    // Create new review (multipart form allowed: image, avatar, etc.)
     createProductReview: b.mutation({
       query: ({ id, form }) => ({
         url: `products/${id}/reviews/`,
@@ -59,10 +66,16 @@ export const productsApi = api.injectEndpoints({
       invalidatesTags: (_r, _e, arg) => [{ type: "Reviews", id: arg.id }],
     }),
 
+    // Autocomplete suggestions for search bar
+    // Backend expects ?search=... (NOT ?q=...)
     suggestProducts: b.query({
-      query: (q) => ({ url: "products/suggest/", params: { q } }),
+      query: (searchTerm) => ({
+        url: "products/suggest/",
+        params: { search: searchTerm },
+      }),
     }),
 
+    // "Notify me when back in stock"
     subscribeStockAlert: b.mutation({
       query: ({ product, email }) => ({
         url: "stock-alerts/",
@@ -71,6 +84,7 @@ export const productsApi = api.injectEndpoints({
       }),
     }),
 
+    // "Order on demand" for custom / out-of-stock sculptures etc.
     createOnDemandRequest: b.mutation({
       query: (payload) => ({
         url: "on-demand/",

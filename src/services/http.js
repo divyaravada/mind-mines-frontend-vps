@@ -8,18 +8,30 @@ export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
 
 const http = axios.create({
   baseURL: API_BASE,
-  headers: { Accept: "application/json" },
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+  withCredentials: true, // mirrors credentials:"include"
 });
 
-http.interceptors.request.use((config) => {
-  try {
-    const raw = localStorage.getItem("authTokens");
-    if (raw) {
-      const { access } = JSON.parse(raw);
-      if (access) config.headers.Authorization = `Bearer ${access}`;
+// Attach Bearer token from localStorage if present
+http.interceptors.request.use(
+  (config) => {
+    try {
+      const raw = localStorage.getItem("authTokens");
+      if (raw) {
+        const { access } = JSON.parse(raw);
+        if (access) {
+          config.headers.Authorization = `Bearer ${access}`;
+        }
+      }
+    } catch {
+      // ignore JSON parse issues
     }
-  } catch {}
-  return config;
-});
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default http;

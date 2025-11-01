@@ -16,12 +16,20 @@ export const authApi = api.injectEndpoints({
           dispatch(
             setCredentials({ access: data.access, refresh: data.refresh })
           );
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       },
+      invalidatesTags: ["Auth", "Account"],
     }),
 
     register: build.mutation({
-      query: (body) => ({ url: "users/register/", method: "POST", body }),
+      query: (body) => ({
+        url: "users/register/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Auth", "Account"],
     }),
 
     googleAuth: build.mutation({
@@ -36,8 +44,11 @@ export const authApi = api.injectEndpoints({
           dispatch(
             setCredentials({ access: data.access, refresh: data.refresh })
           );
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       },
+      invalidatesTags: ["Auth", "Account"],
     }),
 
     requestPasswordReset: build.mutation({
@@ -66,6 +77,7 @@ export const authApi = api.injectEndpoints({
 
     verifyEmail: build.query({
       query: ({ uidb64, token }) => `auth/verify-email/${uidb64}/${token}/`,
+      providesTags: ["Auth", "Account"],
     }),
 
     doLogout: build.mutation({
@@ -73,6 +85,7 @@ export const authApi = api.injectEndpoints({
         dispatch(logout());
         return { data: { ok: true } };
       },
+      invalidatesTags: ["Auth", "Account"],
     }),
   }),
 });

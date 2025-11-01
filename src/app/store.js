@@ -1,4 +1,4 @@
-//src/app/store.js
+// src/app/store.js
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import uiReducer from "../features/ui/uiSlice";
@@ -16,5 +16,9 @@ export const store = configureStore({
     cart: cartReducer,
     cookies: cookiesReducer,
   },
-  middleware: (getDefault) => getDefault().concat(api.middleware),
+  middleware: (getDefault) =>
+    getDefault({
+      serializableCheck: false,
+    }).concat(api.middleware),
+  devTools: process.env.NODE_ENV !== "production",
 });

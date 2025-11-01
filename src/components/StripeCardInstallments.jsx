@@ -12,6 +12,11 @@ import {
   useStripeCardCreateInstallmentsMutation,
   useStripeCreateCardSetupIntentMutation,
 } from "../features/payments/paymentsApi";
+import {
+  buildOrderPayload,
+  buildShippingSnapshot,
+  normalizeCountry,
+} from "../utils/orderPayload";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -19,47 +24,48 @@ const stripePromise = loadStripe(
 
 function Inner({
   months,
-  lineItems,
-  addressPayload,
+  form,
+  items,
   couponCode,
-  couponInfo,
   setLocalOrderId,
   onSuccess,
   totalFormatted,
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
+
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [createCardInstallments] = useStripeCardCreateInstallmentsMutation();
+
+  const shippingSnapshot = useMemo(() => buildShippingSnapshot(form), [form]);
 
   const handleStartPlan = useCallback(async () => {
     if (!stripe || !elements) return;
     setProcessing(true);
     setErrorMsg("");
 
+    // 1. Save card as a reusable method via SetupIntent
     try {
-      // 1) Confirm SetupIntent to get a reusable card PaymentMethod
       const { error, setupIntent } = await stripe.confirmSetup({
         elements,
         confirmParams: {
           payment_method_data: {
             billing_details: {
-              name: addressPayload?.first_name
-                ? `${addressPayload.first_name} ${
-                    addressPayload.last_name || ""
-                  }`.trim()
-                : undefined,
+              name:
+                shippingSnapshot.first_name || shippingSnapshot.last_name
+                  ? `${shippingSnapshot.first_name || ""} ${
+                      shippingSnapshot.last_name || ""
+                    }`.trim()
+                  : undefined,
               address: {
-                line1: addressPayload?.address_line1 || undefined,
-                line2: addressPayload?.address_line2 || undefined,
-                postal_code: addressPayload?.postal_code || undefined,
-                city: addressPayload?.city || undefined,
-                country: (addressPayload?.country || "DE")
-                  .slice(0, 2)
-                  .toUpperCase(),
+                line1: shippingSnapshot.line1 || undefined,
+                line2: shippingSnapshot.line2 || undefined,
+                postal_code: shippingSnapshot.postal_code || undefined,
+                city: shippingSnapshot.city || undefined,
+                country: normalizeCountry(shippingSnapshot.country),
               },
             },
           },
@@ -86,18 +92,25 @@ function Inner({
 
       const payment_method_id = setupIntent.payment_method;
 
-      // 2) Create the subscription schedule (installments) on your backend using CARD
-      const res = await createCardInstallments({
-        months,
-        method: "card",
-        payment_method_id,
-        items: lineItems,
-        ...addressPayload,
-        coupon_code: (couponCode || couponInfo?.code || "").trim(),
+      // 2. Tell backend to create an installments plan / order
+      const payload = buildOrderPayload({
+        form,
+        items,
+        email: (form.email || "").trim(),
+        couponCode,
+        payment_method: "card_installments",
+        extra: {
+          months,
+          payment_method_id,
+        },
       });
 
-      setLocalOrderId?.(res.data?.order_id);
-      onSuccess?.(); // you’ll transition to “Order placed” UI; webhook will send invoice emails per charge
+      const res = await createCardInstallments(payload).unwrap();
+
+      const orderId = res?.order_id;
+      if (orderId) setLocalOrderId?.(orderId);
+
+      onSuccess?.(orderId);
     } catch (e) {
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
       setProcessing(false);
@@ -106,15 +119,15 @@ function Inner({
   }, [
     stripe,
     elements,
-    addressPayload,
-    months,
-    lineItems,
+    shippingSnapshot,
+    form,
+    items,
     couponCode,
-    couponInfo,
+    months,
+    createCardInstallments,
     onSuccess,
     setLocalOrderId,
     t,
-    createCardInstallments,
   ]);
 
   return (
@@ -141,29 +154,35 @@ export default function StripeCardInstallments({
   active,
   setActive,
   months,
-  lineItems,
-  addressPayload,
+  form,
+  items,
   setLocalOrderId,
   onSuccess,
   total,
   couponCode,
-  couponInfo,
-  locale = "en",
 }) {
   const { i18n } = useTranslation();
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // We'll request a SetupIntent client_secret (for card, not SEPA) when active
   const [createSetup] = useStripeCreateCardSetupIntentMutation();
 
-  // Create a CARD SetupIntent when this section becomes active
   useEffect(() => {
     let cancelled = false;
+    if (!active) return;
+    setLoading(true);
     (async () => {
-      if (!active) return;
-      setLoading(true);
       try {
         const res = await createSetup({}).unwrap();
-        if (!cancelled) setClientSecret(res.data?.clientSecret || "");
+        if (!cancelled) {
+          setClientSecret(
+            res?.data?.clientSecret ||
+              res?.clientSecret ||
+              res?.client_secret ||
+              ""
+          );
+        }
       } catch {
         if (!cancelled) setClientSecret("");
       } finally {
@@ -173,13 +192,15 @@ export default function StripeCardInstallments({
     return () => {
       cancelled = true;
     };
-  }, [active]);
+  }, [active, createSetup]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
-  const totalFormatted = new Intl.NumberFormat(i18n.language || "en", {
-    style: "currency",
-    currency: "EUR",
-  }).format(total);
+  const totalFormatted = useMemo(() => {
+    return new Intl.NumberFormat(i18n.language || "en", {
+      style: "currency",
+      currency: "EUR",
+    }).format(total);
+  }, [i18n.language, total]);
 
   if (!active) {
     return (
@@ -219,17 +240,16 @@ export default function StripeCardInstallments({
           <Elements
             stripe={stripePromise}
             options={{
-              clientSecret, // this is a SETUP INTENT client secret
+              clientSecret, // SetupIntent client_secret
               appearance,
               locale: i18n.language === "de" ? "de" : "en",
             }}
           >
             <Inner
               months={months}
-              lineItems={lineItems}
-              addressPayload={addressPayload}
+              form={form}
+              items={items}
               couponCode={couponCode}
-              couponInfo={couponInfo}
               setLocalOrderId={setLocalOrderId}
               onSuccess={onSuccess}
               totalFormatted={totalFormatted}

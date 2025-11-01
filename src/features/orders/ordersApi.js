@@ -8,25 +8,31 @@ export const ordersApi = api.injectEndpoints({
       transformResponse: (res) =>
         Array.isArray(res) ? res : res?.results ?? [],
       providesTags: (list) =>
-        Array.isArray(list)
+        list?.length
           ? [
               ...list.map((o) => ({ type: "Orders", id: o.id })),
               { type: "Orders", id: "LIST" },
             ]
           : [{ type: "Orders", id: "LIST" }],
     }),
+
     getOrder: build.query({
       query: (id) => `orders/${id}/`,
-      providesTags: (_r, _e, id) => [{ type: "Orders", id }],
+      providesTags: (_res, _err, id) => [{ type: "Orders", id }],
     }),
+
     requestCancel: build.mutation({
       query: ({ id, message }) => ({
         url: `orders/${id}/cancel-request/`,
         method: "POST",
         body: { message: message || "" },
       }),
-      invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
+      invalidatesTags: (_res, _err, { id }) => [
+        { type: "Orders", id },
+        { type: "Orders", id: "LIST" },
+      ],
     }),
+
     requestReturn: build.mutation({
       query: ({ id, message, files }) => {
         const fd = new FormData();
@@ -38,7 +44,10 @@ export const ordersApi = api.injectEndpoints({
           body: fd,
         };
       },
-      invalidatesTags: (_res, _err, { id }) => [{ type: "Order", id }],
+      invalidatesTags: (_res, _err, { id }) => [
+        { type: "Orders", id },
+        { type: "Orders", id: "LIST" },
+      ],
     }),
   }),
 });

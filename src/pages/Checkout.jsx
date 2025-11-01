@@ -9,21 +9,24 @@ import {
   selectCartSubtotal,
   clearCart,
 } from "../features/cart/cartSlice";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "react-i18next";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
 import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
+
 import { usePreviewCouponMutation } from "../features/promos/promosApi";
+
 import {
-  useBankTransferCreateOrderMutation,
   usePaypalCaptureOrderMutation,
   usePaypalCreateOrderMutation,
 } from "../features/payments/paymentsApi";
+
 import { useGetAccountQuery } from "../features/account/accountApi";
+
 import {
   useGetAddressesQuery,
   useCreateAddressMutation,
@@ -31,6 +34,7 @@ import {
 } from "../features/addresses/addressApi";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
+
 const splitInstallments = (total, months) => {
   const tc = toCents(total);
   const base = Math.floor(tc / months);
@@ -39,6 +43,7 @@ const splitInstallments = (total, months) => {
   if (rem) parts[months - 1] += rem;
   return parts.map((c) => c / 100);
 };
+
 const fmtEUR = (n, locale = "en") => {
   try {
     return new Intl.NumberFormat(locale, {
@@ -51,6 +56,7 @@ const fmtEUR = (n, locale = "en") => {
   }
 };
 
+// normalize country codes
 const normalizeCountry = (c) => {
   if (!c) return "DE";
   const s = String(c).trim();
@@ -72,12 +78,87 @@ const normalizeCountry = (c) => {
   return map[s] || "DE";
 };
 
+// --- helper: split full name into first/last for address save and shipping snapshot
+function splitName(full) {
+  const parts = (full || "").trim().split(/\s+/);
+  if (parts.length === 1) {
+    return { first_name: parts[0], last_name: "" };
+  }
+  return {
+    first_name: parts.slice(0, -1).join(" "),
+    last_name: parts.slice(-1).join(" "),
+  };
+}
+
+// --- helper: snapshot of shipping address for OrderCreateSerializer
+function buildShippingSnapshot(form) {
+  const { first_name, last_name } = splitName(form.fullName);
+  return {
+    first_name,
+    last_name,
+    line1: `${form.street}${
+      form.houseNumber ? ` ${form.houseNumber}` : ""
+    }`.trim(),
+    line2: form.apartment || "",
+    postal_code: form.postalCode || "",
+    city: form.city || "",
+    country: normalizeCountry(form.country),
+    phone: form.telephone || "",
+    street_name: form.street || "",
+    house_number: form.houseNumber || "",
+  };
+}
+
+// --- helper: address payload for saving to /addresses/ (user profile)
+function buildAddressPayload(form, addressIdRef) {
+  const { first_name, last_name } = splitName(form.fullName);
+  return {
+    address_id: addressIdRef.current ?? undefined,
+    first_name,
+    last_name,
+    address_line1: `${form.street}${
+      form.houseNumber ? ` ${form.houseNumber}` : ""
+    }`.trim(),
+    address_line2: form.apartment || "",
+    postal_code: form.postalCode || "",
+    city: form.city || "",
+    country: normalizeCountry(form.country),
+    phone: form.telephone || "",
+    street_name: form.street || "",
+    house_number: form.houseNumber || "",
+    is_default: true,
+  };
+}
+
+// --- helper: final payload for checkout endpoints (Stripe/PayPal/etc.)
+function buildOrderPayload({
+  form,
+  items,
+  email,
+  couponCode,
+  payment_method,
+  extra = {},
+}) {
+  return {
+    email,
+    payment_method,
+    coupon_code: (couponCode || "").trim(),
+    items: items.map((c) => ({
+      product_id: c.id,
+      qty: c.qty,
+    })),
+    shipping: buildShippingSnapshot(form),
+    ...extra, // for installments (months, payment_method_id, country, etc.)
+  };
+}
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
   const subtotal = useSelector(selectCartSubtotal);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -85,23 +166,26 @@ export default function Checkout() {
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
   const [previewCoupon] = usePreviewCouponMutation();
+
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
   const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
-  const [bankCreateOrder] = useBankTransferCreateOrderMutation();
+
   const { data: acct } = useGetAccountQuery(undefined, { skip: !isAuth });
 
-  // ---- fetch addresses ----
+  // addresses for logged-in users
   const { data: addrListRaw, isFetching: addrLoading } = useGetAddressesQuery(
     undefined,
     { skip: !isAuth }
   );
 
+  // coupon state
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
   const skipCartGuardRef = useRef(false);
-  // Normalize backend response to plain array
+
+  // Normalize backend address list responses
   const addrList = Array.isArray(addrListRaw)
     ? addrListRaw
     : Array.isArray(addrListRaw?.results)
@@ -110,12 +194,13 @@ export default function Checkout() {
     ? addrListRaw.addresses
     : [];
 
+  // which address we are editing
   const addressIdRef = useRef(null);
 
   const [createAddress] = useCreateAddressMutation();
   const [updateAddress] = useUpdateAddressMutation();
 
-  // ------------ Address form ------------
+  // Address/delivery form
   const [form, setForm] = useState({
     email: "",
     country: "DE",
@@ -128,7 +213,7 @@ export default function Checkout() {
     telephone: "",
   });
 
-  // Prefill
+  // Prefill address from account default
   useEffect(() => {
     if (
       !isAuth ||
@@ -156,6 +241,7 @@ export default function Checkout() {
         [main.first_name, main.last_name].filter(Boolean).join(" ") ||
         main.full_name ||
         "";
+
       setForm((p) => ({
         ...p,
         email: acct?.email || p.email,
@@ -171,49 +257,23 @@ export default function Checkout() {
     }
   }, [addrList, addrLoading, isAuth, acct?.email]);
 
+  // keep form state in sync with text inputs
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const splitName = (full) => {
-    const parts = (full || "").trim().split(/\s+/);
-    if (parts.length === 1) return { first_name: parts[0], last_name: "" };
-    return {
-      first_name: parts.slice(0, -1).join(" "),
-      last_name: parts.slice(-1).join(" "),
-    };
-  };
-
-  const buildAddressPayload = () => {
-    const { first_name, last_name } = splitName(form.fullName);
-    return {
-      address_id: addressIdRef.current ?? undefined,
-      first_name,
-      last_name,
-      address_line1: `${form.street}${
-        form.houseNumber ? ` ${form.houseNumber}` : ""
-      }`.trim(),
-      address_line2: form.apartment || "",
-      postal_code: form.postalCode || "",
-      city: form.city || "",
-      country: normalizeCountry(form.country),
-      phone: form.telephone || "",
-      street_name: form.street || "",
-      house_number: form.houseNumber || "",
-      is_default: true,
-    };
-  };
-
-  // cart guard
+  // guard: don't allow checkout if cart is really empty
   useEffect(() => {
     if (skipCartGuardRef.current) return;
     if (items.length > 0) return;
 
     try {
-      const lsCart =
-        JSON.parse(localStorage.getItem("mm_cart") || "[]") ||
-        JSON.parse(localStorage.getItem("cart") || "[]");
-      if (Array.isArray(lsCart) && lsCart.length > 0) return; // still loading redux, don't redirect
-    } catch {}
+      // use correct key from cartSlice
+      const raw = localStorage.getItem("cart_v1");
+      const lsItems = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(lsItems) && lsItems.length > 0) return;
+    } catch {
+      /* ignore */
+    }
 
     const id = setTimeout(() => {
       if (!skipCartGuardRef.current && items.length === 0) {
@@ -223,8 +283,10 @@ export default function Checkout() {
     return () => clearTimeout(id);
   }, [items.length, navigate]);
 
+  // shipping right now is flat 0
   const shippingFee = 0;
 
+  // these `backendItems` are what we send to serializer
   const backendItems = useMemo(
     () =>
       items.map((c) => ({
@@ -234,21 +296,34 @@ export default function Checkout() {
     [items]
   );
 
+  // fill in email if we got it from account
   useEffect(() => {
     if (acct?.email) {
       setForm((p) => ({ ...p, email: p.email || acct.email }));
     }
   }, [acct]);
 
-  // coupons
-  const [preview] = usePreviewCouponMutation();
+  // override email from accountData again (in case it arrives later)
+  const { data: accountData } = useGetAccountQuery(undefined, {
+    skip: !isAuth,
+  });
+  useEffect(() => {
+    if (accountData?.email) {
+      setForm((p) => ({ ...p, email: p.email || accountData.email }));
+    }
+  }, [accountData]);
+
+  // coupon preview apply
   const applyCoupon = async () => {
     setCouponErr("");
     setCouponInfo(null);
+
     const code = (couponCode || "").trim().toUpperCase();
     if (!code) return;
+
     try {
-      const r = await previewCoupon({ code, cart: backendItems }).unwrap();
+      // Standardize on { code, items }
+      const r = await previewCoupon({ code, items: backendItems }).unwrap();
       if (r?.ok) {
         setCouponInfo(r);
       } else {
@@ -261,6 +336,7 @@ export default function Checkout() {
     }
   };
 
+  // auto-apply coupon if stored
   useEffect(() => {
     const saved = localStorage.getItem("coupon_auto");
     if (!saved || couponInfo?.ok || couponCode) return;
@@ -274,10 +350,13 @@ export default function Checkout() {
           setCouponCode(saved.toUpperCase());
           setCouponInfo(r);
         }
-      } catch {}
+      } catch {
+        /* ignore */
+      }
     })();
   }, [couponCode, couponInfo, backendItems, previewCoupon]);
 
+  // computed discounts, totals
   const discount = useMemo(() => {
     const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
     return Number.isFinite(d) ? d : 0;
@@ -288,13 +367,14 @@ export default function Checkout() {
     return Number(Math.max(0, t).toFixed(2));
   }, [subtotal, shippingFee, discount]);
 
+  // address save status
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
 
   const saveAddress = async () => {
     setSavingAddr(true);
     try {
-      const payload = buildAddressPayload();
+      const payload = buildAddressPayload(form, addressIdRef);
       if (addressIdRef.current) {
         await updateAddress({ id: addressIdRef.current, ...payload }).unwrap();
       } else {
@@ -315,28 +395,34 @@ export default function Checkout() {
     }
   };
 
+  // wipe cart after success
   const wipeCart = useCallback(() => {
     skipCartGuardRef.current = true;
     dispatch(clearCart());
     try {
-      localStorage.removeItem("cart");
-      localStorage.removeItem("mm_cart");
-    } catch {}
+      localStorage.removeItem("cart_v1");
+    } catch {
+      /* ignore */
+    }
   }, [dispatch]);
 
   const onSuccessfulOrder = (id) => {
     wipeCart();
-    if (id) navigate(`/checkout/success?order=${id}`);
-    else navigate("/account/orders/");
+    if (id) {
+      navigate(`/checkout/success?order=${id}`);
+    } else {
+      navigate("/account/orders/");
+    }
   };
 
-  const isLoggedIn = isAuth;
+  // state for payment UI
   const [payment, setPayment] = useState("");
   const setPaymentSafe = useCallback((next) => setPayment(next), []);
   const [cardMonths, setCardMonths] = useState(null);
   const [sepaMonths, setSepaMonths] = useState(null);
   const localOrderIdRef = useRef(null);
 
+  // validate minimum required address fields
   const hasMinimalAddress = () => {
     const needed = [
       "email",
@@ -346,13 +432,12 @@ export default function Checkout() {
       "city",
       "country",
     ];
-
     return needed.every((k) => (form[k] || "").toString().trim().length > 0);
   };
 
+  // handle country changes and payment restrictions
   const handleCountryChange = (e) => {
     const newCode = normalizeCountry(e.target.value);
-
     const isDEOnlyMethod =
       payment === "sepa_debit" ||
       payment === "bank" ||
@@ -362,13 +447,14 @@ export default function Checkout() {
       alert(
         "⚠️ Direct Bank Transfer / SEPA is only available in Germany (DE). Please choose Germany or select another payment method."
       );
-      setForm((prev) => ({ ...prev, country: "DE" })); // revert to DE
+      setForm((prev) => ({ ...prev, country: "DE" }));
       return;
     }
 
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
+  // force DE if SEPA selected and user tries to switch country
   useEffect(() => {
     const code = normalizeCountry(form.country);
     if (
@@ -381,25 +467,24 @@ export default function Checkout() {
     }
   }, [payment, form.country]);
 
-  const { data: accountData } = useGetAccountQuery(undefined, {
-    skip: !isAuth,
-  });
-  useEffect(() => {
-    if (accountData?.email) {
-      setForm((p) => ({ ...p, email: p.email || accountData.email }));
-    }
-  }, [accountData]);
-
   const countryCode = normalizeCountry(form.country);
   const sepaAllowed = countryCode === "DE";
 
+  // decide which email we actually use
   const effectiveEmail = useMemo(() => {
     return (form.email || accountData?.email || authEmail || "").trim();
   }, [form.email, accountData?.email, authEmail]);
 
+  // Build common info for checkout calls
+  const currentCoupon = (couponCode || couponInfo?.code || "")
+    .trim()
+    .toUpperCase();
+
+  // ---- RENDER ----
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
+        {/* Contact + Address */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">
             {t("checkout.contact")}
@@ -421,14 +506,13 @@ export default function Checkout() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Country dropdown */}
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">
                 {t("checkout.country")}
               </label>
-
-              {/** read grouped data from i18n */}
-              {/** `returnObjects: true` lets us get nested objects */}
               {(() => {
+                // reading options from i18n if available
                 const groups = t("countryGroups", { returnObjects: true });
                 const grouped = t("countries", { returnObjects: true });
 
@@ -441,8 +525,7 @@ export default function Checkout() {
                   );
 
                 if (!isGrouped) {
-                  // Flat fallback for early setups
-                  const flat =
+                  const fallback =
                     grouped && typeof grouped === "object"
                       ? grouped
                       : {
@@ -460,7 +543,7 @@ export default function Checkout() {
                       onChange={handleCountryChange}
                       className="w-full border rounded px-3 py-2"
                     >
-                      {Object.entries(flat).map(([code, label]) => (
+                      {Object.entries(fallback).map(([code, label]) => (
                         <option key={code} value={code}>
                           {label}
                         </option>
@@ -495,7 +578,6 @@ export default function Checkout() {
 
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.fullName")}
               </label>
               <input
@@ -508,7 +590,6 @@ export default function Checkout() {
 
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.streetAddress")}
               </label>
               <input
@@ -521,7 +602,6 @@ export default function Checkout() {
 
             <div>
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.houseNumber")}
               </label>
               <input
@@ -534,7 +614,6 @@ export default function Checkout() {
 
             <div>
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.apartment")}
               </label>
               <input
@@ -547,7 +626,6 @@ export default function Checkout() {
 
             <div>
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.postalCode")}
               </label>
               <input
@@ -560,7 +638,6 @@ export default function Checkout() {
 
             <div>
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.city")}
               </label>
               <input
@@ -573,7 +650,6 @@ export default function Checkout() {
 
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">
-                {" "}
                 {t("checkout.telephone")}
               </label>
               <input
@@ -624,34 +700,37 @@ export default function Checkout() {
           <p className="text-sm text-gray-500 mb-4">
             {t("checkout.deliveryNote")}
           </p>
+
           {!payment && (
             <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
               Please choose a payment method to continue.
             </div>
           )}
 
+          {/* CARD (Stripe one-shot) */}
           <StripeCard
             active={payment === "card"}
             setActive={() => setPaymentSafe("card")}
-            backendItems={backendItems}
-            addressPayload={buildAddressPayload()}
+            // we'll build payload in StripeCard the same way:
+            // buildOrderPayload({ form, items, email, couponCode, payment_method: "card" })
+            form={form}
+            items={items}
+            couponCode={currentCoupon}
+            total={payTotal}
+            customerEmail={effectiveEmail}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             getPendingOrderId={() => localOrderIdRef.current}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            total={payTotal}
-            couponCode={couponCode}
-            couponInfo={couponInfo}
-            customerEmail={effectiveEmail}
           />
 
           {/* CARD installments */}
-          {payment.startsWith("card") && isLoggedIn && (
+          {payment.startsWith("card") && isAuth && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
                   0% financing with card
                 </div>
-                {!isLoggedIn ? (
+                {!isAuth ? (
                   <div className="text-xs text-gray-600">
                     Sign in to use installments.
                   </div>
@@ -687,43 +766,42 @@ export default function Checkout() {
                 )}
               </div>
 
-              {isLoggedIn && cardMonths ? (
+              {isAuth && cardMonths ? (
                 <div className="text-sm text-gray-700 mb-3">
                   <div className="font-medium">
                     Monthly payments ({cardMonths}):{" "}
                     {(() => {
                       const parts = splitInstallments(payTotal, cardMonths);
-                      return Array.isArray(parts) && parts.length > 0
+                      return parts.length > 0
                         ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
                         : fmtEUR(payTotal, locale);
                     })()}
                   </div>
                   <div className="text-xs text-gray-500">
-                    Note: last month may differ by a few cents due to rounding.
+                    Last month may differ by a few cents due to rounding.
                   </div>
                 </div>
               ) : null}
 
-              {isLoggedIn && cardMonths && (
+              {isAuth && cardMonths && (
                 <StripeCardInstallments
                   active={payment === `card_installments_${cardMonths}`}
                   setActive={() =>
                     setPaymentSafe(`card_installments_${cardMonths}`)
                   }
                   months={cardMonths}
-                  backendItems={backendItems}
-                  addressPayload={buildAddressPayload()}
+                  form={form}
+                  items={items}
+                  couponCode={currentCoupon}
+                  total={payTotal}
                   setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                   onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                  total={payTotal}
-                  couponCode={couponCode}
-                  couponInfo={couponInfo}
                 />
               )}
             </div>
           )}
 
-          {/* PayPal */}
+          {/* PAYPAL */}
           <PayPalScriptProvider
             options={{
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
@@ -761,23 +839,29 @@ export default function Checkout() {
                     return actions.resolve();
                   }}
                   createOrder={async () => {
-                    const payload = {
-                      items: backendItems,
-                      payment_method: "paypal",
+                    // build payload for backend
+                    const orderPayload = buildOrderPayload({
+                      form,
+                      items,
                       email: effectiveEmail,
-                      ...buildAddressPayload(),
-                      coupon_code: (
-                        couponCode ||
-                        couponInfo?.code ||
-                        ""
-                      ).trim(),
-                    };
-                    const res = await paypalCreateOrder(payload).unwrap();
+                      couponCode: currentCoupon,
+                      payment_method: "paypal",
+                    });
+
+                    // send to /paypal/create-order/
+                    const res = await paypalCreateOrder(orderPayload).unwrap();
+                    // store our local order id
                     localOrderIdRef.current = res?.order_id;
-                    return res?.id; // PayPal order id
+                    // return PayPal order id for their SDK
+                    return res?.id;
                   }}
                   onApprove={async (data) => {
-                    const cap = await paypalCaptureOrder(data.orderID).unwrap();
+                    // capture with both paypal order id and local order id
+                    const cap = await paypalCaptureOrder({
+                      paypalOrderId: data.orderID,
+                      localOrderId: localOrderIdRef.current,
+                    }).unwrap();
+
                     if (cap?.status === "COMPLETED") {
                       onSuccessfulOrder(localOrderIdRef.current);
                     } else {
@@ -789,7 +873,7 @@ export default function Checkout() {
             )}
           </PayPalScriptProvider>
 
-          {/* SEPA (DE only) */}
+          {/* SEPA direct debit (DE only) */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
               type="radio"
@@ -803,23 +887,22 @@ export default function Checkout() {
             />
             <span className="flex-1">SEPA Lastschrift — DE only</span>
           </label>
+
           {payment === "sepa_debit" && (
             <StripeSepa
               active
               setActive={() => setPaymentSafe("sepa_debit")}
-              backendItems={backendItems}
-              addressPayload={buildAddressPayload()}
+              form={form}
+              items={items}
+              couponCode={currentCoupon}
+              total={payTotal}
+              customerEmail={effectiveEmail}
               setLocalOrderId={(id) => (localOrderIdRef.current = id)}
               onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-              form={form}
-              total={payTotal}
-              couponCode={couponCode}
-              couponInfo={couponInfo}
-              customerEmail={effectiveEmail}
             />
           )}
 
-          {/* SEPA installments */}
+          {/* SEPA installments (DE only) */}
           {(payment === "sepa_debit" ||
             payment.startsWith("sepa_installments")) && (
             <div className="mt-3">
@@ -827,7 +910,7 @@ export default function Checkout() {
                 <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
                   0% Finanzierung verfügbar
                 </div>
-                {!isLoggedIn ? (
+                {!isAuth ? (
                   <div className="text-xs text-gray-600">Bitte anmelden.</div>
                 ) : (
                   <div className="text-sm text-gray-600">
@@ -861,13 +944,13 @@ export default function Checkout() {
                 )}
               </div>
 
-              {isLoggedIn && sepaMonths ? (
+              {isAuth && sepaMonths ? (
                 <div className="text-sm text-gray-700 mb-3">
                   <div className="font-medium">
                     Monatsraten ({sepaMonths}):{" "}
                     {(() => {
                       const parts = splitInstallments(payTotal, sepaMonths);
-                      return Array.isArray(parts) && parts.length > 0
+                      return parts.length > 0
                         ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
                         : fmtEUR(payTotal, locale);
                     })()}
@@ -879,21 +962,19 @@ export default function Checkout() {
                 </div>
               ) : null}
 
-              {isLoggedIn && sepaMonths && (
+              {isAuth && sepaMonths && (
                 <StripeSepaInstallments
                   active={payment === `sepa_installments_${sepaMonths}`}
                   setActive={() =>
                     setPaymentSafe(`sepa_installments_${sepaMonths}`)
                   }
                   months={sepaMonths}
-                  backendItems={backendItems}
-                  addressPayload={buildAddressPayload()}
+                  form={form}
+                  items={items}
+                  couponCode={currentCoupon}
+                  total={payTotal}
                   setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                   onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                  form={form}
-                  total={payTotal}
-                  couponCode={couponCode}
-                  couponInfo={couponInfo}
                 />
               )}
             </div>
@@ -916,12 +997,13 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* RIGHT summary */}
+      {/* RIGHT Summary */}
       <aside className="lg:col-span-1">
         <div className="bg-white rounded-lg shadow p-6 sticky top-24">
           <h2 className="text-xl font-semibold mb-4">
             {t("checkout.overview")}
           </h2>
+
           <div className="space-y-4">
             {items.map((it) => (
               <div key={it.id} className="flex items-center gap-3">
@@ -946,6 +1028,7 @@ export default function Checkout() {
           </div>
 
           <hr className="my-4" />
+
           <div className="mt-3 border rounded p-3 space-y-2">
             <div className="flex gap-2">
               <input
@@ -973,7 +1056,8 @@ export default function Checkout() {
               </div>
             )}
           </div>
-          {discount > 0 && couponInfo?.code && (
+
+          {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
             <Row
               label={`Coupon (${couponInfo.code})`}
               value={`− ${fmtEUR(discount, locale)}`}

@@ -7,23 +7,26 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+
 import { getCheckoutIdem } from "../utils/idempotency";
 import { useStripeCreateSepaIntentMutation } from "../features/payments/paymentsApi";
+import {
+  buildOrderPayload,
+  buildShippingSnapshot,
+  normalizeCountry,
+} from "../utils/orderPayload";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
 function SepaForm({
-  backendItems,
-  addressPayload,
+  form,
+  items,
   total,
   couponCode,
-  couponInfo,
   onSuccess,
   setLocalOrderId,
-  form,
-  customerEmail,
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -47,16 +50,18 @@ function SepaForm({
     }
   }, [total]);
 
+  const shippingSnapshot = useMemo(() => buildShippingSnapshot(form), [form]);
+
   const hasMinimalBilling = () => {
-    const requiredFields = [
+    const required = [
       form?.fullName,
       form?.email,
-      addressPayload?.address_line1,
-      addressPayload?.postal_code,
-      addressPayload?.city,
-      addressPayload?.country,
+      shippingSnapshot.line1,
+      shippingSnapshot.postal_code,
+      shippingSnapshot.city,
+      shippingSnapshot.country,
     ];
-    return requiredFields.every((v) => (v || "").toString().trim().length > 0);
+    return required.every((v) => (v || "").toString().trim().length > 0);
   };
 
   const pay = async () => {
@@ -74,15 +79,19 @@ function SepaForm({
 
     setLoading(true);
     try {
-      // 1) create local order + SEPA PaymentIntent (pending)
-      const res = await createSepaIntent({
-        items: backendItems,
+      // 1) Ask backend to create local Order + Stripe PaymentIntent for SEPA
+      const payload = buildOrderPayload({
+        form,
+        items,
+        email: (form.email || "").trim(),
+        couponCode,
         payment_method: "sepa_debit",
-        ...addressPayload,
-        email: (customerEmail || form?.email || "").trim(),
-        coupon_code: (couponCode || couponInfo?.code || "").trim(),
-        idempotency_key: getCheckoutIdem(),
-      }).unwrap();
+        extra: {
+          idempotency_key: getCheckoutIdem(),
+        },
+      });
+
+      const res = await createSepaIntent(payload).unwrap();
 
       const clientSecret =
         res.clientSecret ||
@@ -96,7 +105,7 @@ function SepaForm({
       if (!clientSecret) throw new Error("Missing client secret from server.");
       setLocalOrderId?.(orderId);
 
-      // 2) confirm SEPA mandate & payment
+      // 2) Confirm mandate + payment with Stripe
       const { error, paymentIntent } = await stripe.confirmSepaDebitPayment(
         clientSecret,
         {
@@ -106,12 +115,10 @@ function SepaForm({
               name: form?.fullName || "",
               email: form?.email || "",
               address: {
-                line1: addressPayload?.address_line1 || "",
-                postal_code: addressPayload?.postal_code || "",
-                city: addressPayload?.city || "",
-                country: (addressPayload?.country || "DE")
-                  .slice(0, 2)
-                  .toUpperCase(),
+                line1: shippingSnapshot.line1 || "",
+                postal_code: shippingSnapshot.postal_code || "",
+                city: shippingSnapshot.city || "",
+                country: normalizeCountry(shippingSnapshot.country),
               },
             },
           },
@@ -126,6 +133,7 @@ function SepaForm({
         paymentIntent?.status === "processing" ||
         paymentIntent?.status === "succeeded"
       ) {
+        // optional post-confirm hook you had
         try {
           await fetch("/api/payments/sepa-post-confirm/", {
             method: "POST",
@@ -138,6 +146,7 @@ function SepaForm({
         } catch (postErr) {
           console.warn("sepa-post-confirm failed", postErr);
         }
+
         onSuccess?.(orderId);
       } else {
         throw new Error(`SEPA status: ${paymentIntent?.status || "unknown"}`);
@@ -186,9 +195,16 @@ function SepaForm({
   );
 }
 
-export default function StripeSepa(props) {
-  const { active, addressPayload } = props;
-  const cc = (addressPayload?.country || "DE").slice(0, 2).toUpperCase();
+export default function StripeSepa({
+  active,
+  form,
+  items,
+  total,
+  couponCode,
+  setLocalOrderId,
+  onSuccess,
+}) {
+  const cc = normalizeCountry(form?.country || "DE");
   const isDE = cc === "DE";
 
   return (
@@ -203,7 +219,14 @@ export default function StripeSepa(props) {
       {active && isDE && (
         <div className="border rounded p-3">
           <Elements stripe={stripePromise} options={{ locale: "de" }}>
-            <SepaForm {...props} />
+            <SepaForm
+              form={form}
+              items={items}
+              total={total}
+              couponCode={couponCode}
+              onSuccess={onSuccess}
+              setLocalOrderId={setLocalOrderId}
+            />
           </Elements>
         </div>
       )}
