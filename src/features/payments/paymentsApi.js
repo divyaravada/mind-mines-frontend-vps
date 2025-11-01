@@ -120,6 +120,13 @@ export const paymentsApi = api.injectEndpoints({
         body: payload,
       }),
     }),
+    updatePaymentStatus: build.mutation({
+      query: ({ orderId, status }) => ({
+        url: `orders/${orderId}/payment-status/`,
+        method: "POST",
+        body: { status }, // e.g. "paid", "processing", "failed"
+      }),
+    }),
   }),
 });
 
@@ -133,4 +140,5 @@ export const {
   useSepaPostConfirmMutation,
   useStripeSepaCreateInstallmentsMutation,
   useStripeCardCreateInstallmentsMutation,
+  useUpdatePaymentStatusMutation,
 } = paymentsApi;

@@ -35,6 +35,7 @@ import AboutContactPage from "./pages/AboutContactPage";
 import { useEffect } from "react";
 import Unsubscribe from "./routes/Unsubscribe";
 import CheckoutReturn from "./pages/CheckoutReturn";
+import GuestOrderLookup from "./pages/GuestOrderLookup";
 
 export default function App() {
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function App() {
 
           <Route path="/users/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
-
+          <Route path="/guest-order" element={<GuestOrderLookup />} />
           {/* Public pages */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<AboutContactPage />} />
