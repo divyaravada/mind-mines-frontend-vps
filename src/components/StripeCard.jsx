@@ -32,35 +32,33 @@ function CardInner({
     setProcessing(true);
     setErrorMsg("");
 
-    const normalizeCountry = (c) => {
-      if (!c) return "DE";
-      const up = ("" + c).trim();
-      if (up.length === 2) return up.toUpperCase();
-      const map = { Germany: "DE", Deutschland: "DE" };
-      return map[up] || "DE";
-    };
-
     try {
-      // confirm the payment (handles 3DS automatically; returns when completed or no redirect)
+      // stripe.confirmPayment will:
+      //  - handle card 3DS if needed
+      //  - handle redirect flows like giropay / klarna  automatically
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          // You can set a return_url if you prefer full redirect flow:
-          // return_url: `${window.location.origin}/checkout/return`,
+          // optional return_url: if you want full redirect roundtrip flow
+          // return_url: `${window.location.origin}/checkout/success`,
+          receipt_email: customerEmail || addressPayload?.email || undefined,
           payment_method_data: {
             billing_details: {
-              name: addressPayload?.first_name
-                ? `${addressPayload.first_name} ${
-                    addressPayload.last_name || ""
-                  }`.trim()
-                : undefined,
-              email: customerEmail || addressPayload?.email || undefined, // email usually captured earlier; optional here
+              name:
+                addressPayload?.first_name || addressPayload?.last_name
+                  ? `${addressPayload.first_name || ""} ${
+                      addressPayload.last_name || ""
+                    }`.trim()
+                  : undefined,
+              email: customerEmail || addressPayload?.email || undefined,
               address: {
                 line1: addressPayload?.address_line1 || undefined,
                 line2: addressPayload?.address_line2 || undefined,
                 postal_code: addressPayload?.postal_code || undefined,
                 city: addressPayload?.city || undefined,
-                country: normalizeCountry(addressPayload?.country),
+                country: (addressPayload?.country || "DE")
+                  .slice(0, 2)
+                  .toUpperCase(),
               },
             },
           },
@@ -77,14 +75,19 @@ function CardInner({
         return;
       }
 
+      // If redirect was required (giropay / klarna ),
+      // user may leave page and come back via return_url. If not redirected:
       if (
         paymentIntent &&
         (paymentIntent.status === "succeeded" ||
+          paymentIntent.status === "processing" ||
           paymentIntent.status === "requires_capture")
       ) {
         onSuccess?.();
         return;
       }
+
+      // fallback success
       onSuccess?.();
     } catch {
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
@@ -104,7 +107,7 @@ function CardInner({
         {processing
           ? t("checkout.processing", { defaultValue: "Processing..." })
           : t("checkout.payCard", {
-              defaultValue: "Pay by card — {{total}}",
+              defaultValue: "Pay securely — {{total}}",
               total: totalFormatted,
             })}
       </button>
@@ -115,7 +118,7 @@ function CardInner({
 export default function StripeCard({
   active,
   setActive,
-  lineItems,
+  backendItems, // 👈 UPDATED: pass [{product_id, qty}]
   addressPayload,
   setLocalOrderId,
   onSuccess,
@@ -129,39 +132,25 @@ export default function StripeCard({
   const [loading, setLoading] = useState(false);
   const [createIntent] = useStripeCreateIntentMutation();
 
-  // Create the PaymentIntent when section becomes active (or total changes)
+  // Create / refresh PaymentIntent whenever this block is selected
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!active) return;
       setLoading(true);
       try {
-        const normalizeCountry = (c) => {
-          if (!c) return "DE";
-          const up = ("" + c).trim();
-          if (up.length === 2) return up.toUpperCase();
-          // very small map for common names you use
-          const map = { Germany: "DE", Deutschland: "DE" };
-          return map[up] || "DE";
-        };
         const res = await createIntent({
-          items: lineItems,
-          payment_method: "card",
+          items: backendItems,
+          payment_method: "card", // we still send "card" so Order.payment_method stores something meaningful
           ...addressPayload,
-          country: normalizeCountry(addressPayload?.country),
-          coupon_code: (couponCode || couponInfo?.code || "").trim(),
           email: (customerEmail || addressPayload?.email || "").trim(),
+          coupon_code: (couponCode || couponInfo?.code || "").trim(),
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
+
         if (!cancelled) {
-          setClientSecret(
-            res?.data?.clientSecret ??
-              res?.clientSecret ??
-              res?.data?.client_secret ??
-              res?.client_secret ??
-              ""
-          );
-          setLocalOrderId?.(res.data?.order_id || res?.order_id);
+          setClientSecret(res.clientSecret || res.client_secret || "");
+          setLocalOrderId?.(res.order_id);
         }
       } catch (e) {
         if (!cancelled) {
@@ -176,11 +165,12 @@ export default function StripeCard({
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => (cancelled = true);
-    // re-create only when toggled active, items/total change, or coupon changes
+    return () => {
+      cancelled = true;
+    };
   }, [
     active,
-    JSON.stringify(lineItems),
+    JSON.stringify(backendItems),
     total,
     couponCode,
     couponInfo,
@@ -191,6 +181,17 @@ export default function StripeCard({
   ]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
+  const totalFormatted = useMemo(() => {
+    try {
+      return new Intl.NumberFormat(i18n.language || "en", {
+        style: "currency",
+        currency: "EUR",
+      }).format(total);
+    } catch {
+      return `${Number(total || 0).toFixed(2)} €`;
+    }
+  }, [i18n.language, total]);
+
   if (!active) {
     return (
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -201,7 +202,7 @@ export default function StripeCard({
           checked={false}
           onChange={() => setActive?.("card")}
         />
-        <span className="flex-1">Credit / Debit card</span>
+        <span className="flex-1">Card / Klarna / Giropay (Stripe)</span>
       </label>
     );
   }
@@ -216,13 +217,13 @@ export default function StripeCard({
           checked
           onChange={() => setActive?.("card")}
         />
-        <span className="flex-1">Credit / Debit card</span>
-        <span className="text-xs">Visa · Mastercard · Amex</span>
+        <span className="flex-1">Card / Klarna / Giropay (Stripe)</span>
+        <span className="text-xs">Visa · Mastercard · etc.</span>
       </label>
 
       {loading && (
         <div className="border rounded p-3 mt-2 text-sm text-gray-600">
-          Initializing secure card form…
+          Initializing secure payment form…
         </div>
       )}
 
@@ -240,10 +241,7 @@ export default function StripeCard({
               addressPayload={addressPayload}
               customerEmail={customerEmail || addressPayload?.email}
               onSuccess={onSuccess}
-              totalFormatted={new Intl.NumberFormat(i18n.language || "en", {
-                style: "currency",
-                currency: "EUR",
-              }).format(total)}
+              totalFormatted={totalFormatted}
             />
           </Elements>
         </div>

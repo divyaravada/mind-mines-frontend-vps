@@ -1,3 +1,4 @@
+// src/components/StripeSepa.jsx
 import { useState, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -14,7 +15,7 @@ const stripePromise = loadStripe(
 );
 
 function SepaForm({
-  lineItems,
+  backendItems,
   addressPayload,
   total,
   couponCode,
@@ -46,7 +47,6 @@ function SepaForm({
     }
   }, [total]);
 
-  // *** helper to check we have minimal billing info before trying payment
   const hasMinimalBilling = () => {
     const requiredFields = [
       form?.fullName,
@@ -61,8 +61,6 @@ function SepaForm({
 
   const pay = async () => {
     setErr("");
-
-    // *** guard before doing ANYTHING:
     if (!stripe || !elements) return;
     if (loading) return;
     if (!ibanComplete) {
@@ -76,9 +74,9 @@ function SepaForm({
 
     setLoading(true);
     try {
-      // 1) Ask backend to create local order + SEPA PaymentIntent
+      // 1) create local order + SEPA PaymentIntent (pending)
       const res = await createSepaIntent({
-        items: lineItems,
+        items: backendItems,
         payment_method: "sepa_debit",
         ...addressPayload,
         email: (customerEmail || form?.email || "").trim(),
@@ -87,18 +85,18 @@ function SepaForm({
       }).unwrap();
 
       const clientSecret =
-        res?.data?.clientSecret ??
-        res?.clientSecret ??
-        res?.data?.client_secret ??
-        res?.client_secret ??
+        res.clientSecret ||
+        res.client_secret ||
+        res.data?.clientSecret ||
+        res.data?.client_secret ||
         null;
 
-      const orderId = res?.data?.order_id ?? res?.order_id ?? null;
+      const orderId = res.order_id || res.data?.order_id || null;
 
       if (!clientSecret) throw new Error("Missing client secret from server.");
       setLocalOrderId?.(orderId);
 
-      // 2) Confirm SEPA with IBAN + mandate acceptance
+      // 2) confirm SEPA mandate & payment
       const { error, paymentIntent } = await stripe.confirmSepaDebitPayment(
         clientSecret,
         {
@@ -131,16 +129,13 @@ function SepaForm({
         try {
           await fetch("/api/payments/sepa-post-confirm/", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               order_id: orderId,
               payment_intent_status: paymentIntent.status,
             }),
           });
         } catch (postErr) {
-          // we intentionally ignore failures here so checkout still succeeds
           console.warn("sepa-post-confirm failed", postErr);
         }
         onSuccess?.(orderId);
@@ -161,7 +156,6 @@ function SepaForm({
           options={{ supportedCountries: ["SEPA"] }}
           onChange={(event) => {
             setIbanComplete(event.complete === true);
-
             if (event.error && event.error.message) {
               setIbanError(event.error.message);
             } else {
@@ -170,19 +164,13 @@ function SepaForm({
           }}
         />
         <p className="text-xs text-gray-600 mt-2">
-          By providing your IBAN and confirming this payment, you are
-          authorizing MindMines and Stripe, our payment service provider, to
-          send instructions to your bank to debit your account in accordance
-          with those instructions. You are entitled to a refund from your bank
-          under the terms and conditions of your agreement with your bank. A
-          refund must be claimed within 8 weeks starting from the date on which
-          your account was debited.
+          By providing your IBAN and confirming this payment, you authorize
+          MindMines and Stripe to debit your account in accordance with SEPA
+          rules. You can request a refund within 8 weeks from the debit date.
         </p>
       </div>
 
-      {/* Show IBAN-specific validation before the generic err */}
       {ibanError && <div className="text-red-600 text-sm">{ibanError}</div>}
-
       {err && !ibanError && (
         <div className="text-red-600 text-sm">{String(err)}</div>
       )}
@@ -199,17 +187,19 @@ function SepaForm({
 }
 
 export default function StripeSepa(props) {
-  const { active } = props;
-  const cc = (props.addressPayload?.country || "DE").slice(0, 2).toUpperCase();
+  const { active, addressPayload } = props;
+  const cc = (addressPayload?.country || "DE").slice(0, 2).toUpperCase();
   const isDE = cc === "DE";
+
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
         <span className="flex-1">
-          Direct Bank Transfer (SEPA){!isDE ? " — DE only" : ""}
+          Direct Bank Debit (SEPA){!isDE ? " — DE only" : ""}
         </span>
         <span className="text-xs">IBAN/BIC</span>
       </label>
+
       {active && isDE && (
         <div className="border rounded p-3">
           <Elements stripe={stripePromise} options={{ locale: "de" }}>

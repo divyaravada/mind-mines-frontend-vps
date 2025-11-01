@@ -84,11 +84,6 @@ export default function Checkout() {
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
   const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
-  // Prefill  email from localStorage for guests
-  useEffect(() => {
-    if (!isAuth) navigate("/users/login?next=/checkout", { replace: true });
-  }, [isAuth, navigate]);
-
   const [previewCoupon] = usePreviewCouponMutation();
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
   const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
@@ -202,6 +197,8 @@ export default function Checkout() {
       city: form.city || "",
       country: normalizeCountry(form.country),
       phone: form.telephone || "",
+      street_name: form.street || "",
+      house_number: form.houseNumber || "",
       is_default: true,
     };
   };
@@ -228,13 +225,14 @@ export default function Checkout() {
 
   const shippingFee = 0;
 
-  const lineItems = items.map((c) => ({
-    product: c.id,
-    quantity: c.qty,
-    product_id: c.id,
-    id: c.id,
-    qty: c.qty,
-  }));
+  const backendItems = useMemo(
+    () =>
+      items.map((c) => ({
+        product_id: c.id,
+        qty: c.qty,
+      })),
+    [items]
+  );
 
   useEffect(() => {
     if (acct?.email) {
@@ -250,7 +248,7 @@ export default function Checkout() {
     const code = (couponCode || "").trim().toUpperCase();
     if (!code) return;
     try {
-      const r = await previewCoupon({ code, cart: lineItems }).unwrap();
+      const r = await previewCoupon({ code, cart: backendItems }).unwrap();
       if (r?.ok) {
         setCouponInfo(r);
       } else {
@@ -270,7 +268,7 @@ export default function Checkout() {
       try {
         const r = await previewCoupon({
           code: saved,
-          items: lineItems,
+          items: backendItems,
         }).unwrap();
         if (r?.ok) {
           setCouponCode(saved.toUpperCase());
@@ -278,7 +276,7 @@ export default function Checkout() {
         }
       } catch {}
     })();
-  }, [couponCode, couponInfo, lineItems, previewCoupon]);
+  }, [couponCode, couponInfo, backendItems, previewCoupon]);
 
   const discount = useMemo(() => {
     const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
@@ -635,7 +633,7 @@ export default function Checkout() {
           <StripeCard
             active={payment === "card"}
             setActive={() => setPaymentSafe("card")}
-            lineItems={lineItems}
+            backendItems={backendItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
@@ -712,7 +710,7 @@ export default function Checkout() {
                     setPaymentSafe(`card_installments_${cardMonths}`)
                   }
                   months={cardMonths}
-                  lineItems={lineItems}
+                  backendItems={backendItems}
                   addressPayload={buildAddressPayload()}
                   setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                   onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
@@ -763,7 +761,7 @@ export default function Checkout() {
                   }}
                   createOrder={async () => {
                     const payload = {
-                      items: lineItems,
+                      items: backendItems,
                       payment_method: "paypal",
                       email: effectiveEmail,
                       ...buildAddressPayload(),
@@ -808,7 +806,7 @@ export default function Checkout() {
             <StripeSepa
               active
               setActive={() => setPaymentSafe("sepa_debit")}
-              lineItems={lineItems}
+              backendItems={backendItems}
               addressPayload={buildAddressPayload()}
               setLocalOrderId={(id) => (localOrderIdRef.current = id)}
               onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
@@ -887,7 +885,7 @@ export default function Checkout() {
                     setPaymentSafe(`sepa_installments_${sepaMonths}`)
                   }
                   months={sepaMonths}
-                  lineItems={lineItems}
+                  backendItems={backendItems}
                   addressPayload={buildAddressPayload()}
                   setLocalOrderId={(id) => (localOrderIdRef.current = id)}
                   onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
@@ -919,7 +917,7 @@ export default function Checkout() {
                 onClick={async () => {
                   try {
                     const res = await bankCreateOrder({
-                      items: lineItems,
+                      items: backendItems,
                       email: effectiveEmail,
                       ...buildAddressPayload(),
                       coupon_code: (
