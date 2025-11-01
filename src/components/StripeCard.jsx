@@ -20,6 +20,7 @@ function CardInner({
   customerEmail,
   onSuccess,
   totalFormatted,
+  getPendingOrderId,
 }) {
   const { t } = useTranslation();
   const stripe = useStripe();
@@ -39,6 +40,12 @@ function CardInner({
       const map = { Germany: "DE", Deutschland: "DE" };
       return map[up] || "DE";
     };
+    try {
+      const oid = getPendingOrderId?.();
+      if (oid) {
+        sessionStorage.setItem("last_order_id", String(oid));
+      }
+    } catch {}
 
     try {
       // ⚠ IMPORTANT:
@@ -124,9 +131,10 @@ function CardInner({
 export default function StripeCard({
   active,
   setActive,
-  backendItems, // 👈 UPDATED: pass [{product_id, qty}]
+  backendItems,
   addressPayload,
   setLocalOrderId,
+  getPendingOrderId,
   onSuccess,
   total,
   couponCode,
@@ -263,6 +271,7 @@ export default function StripeCard({
               customerEmail={customerEmail || addressPayload?.email}
               onSuccess={onSuccess}
               totalFormatted={totalFormatted}
+              getPendingOrderId={getPendingOrderId}
             />
           </Elements>
         </div>

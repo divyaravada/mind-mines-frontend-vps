@@ -636,6 +636,7 @@ export default function Checkout() {
             backendItems={backendItems}
             addressPayload={buildAddressPayload()}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            getPendingOrderId={() => localOrderIdRef.current}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
             total={payTotal}
             couponCode={couponCode}
