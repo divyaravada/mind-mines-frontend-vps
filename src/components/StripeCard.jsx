@@ -1,5 +1,5 @@
 // src/components/StripeCard.jsx
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -40,6 +40,8 @@ function CardInner({
       const map = { Germany: "DE", Deutschland: "DE" };
       return map[up] || "DE";
     };
+
+    // save last order id (for thank-you page) before leaving page for redirect methods
     try {
       const oid = getPendingOrderId?.();
       if (oid) {
@@ -48,13 +50,10 @@ function CardInner({
     } catch {}
 
     try {
-      // ⚠ IMPORTANT:
-      // We now include return_url so redirect methods (Klarna, Giropay, Sofort, etc.)
-      // know where to send the shopper back.
-      // This URL should be a page in your frontend that can read the PaymentIntent status.
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
+          // this is REQUIRED for Klarna / Giropay / Sofort redirect
           return_url: `${window.location.origin}/checkout/return`,
           payment_method_data: {
             billing_details: {
@@ -74,8 +73,6 @@ function CardInner({
             },
           },
         },
-        // "if_required": card will resolve inline,
-        // Klarna/Giropay/Sofort will do full redirect.
         redirect: "if_required",
       });
 
@@ -88,8 +85,7 @@ function CardInner({
         return;
       }
 
-      // If redirect was required (giropay / klarna ),
-      // user may leave page and come back via return_url. If not redirected:
+      // If we didn't get redirected (pure card), handle success inline
       if (
         paymentIntent &&
         (paymentIntent.status === "succeeded" ||
@@ -100,13 +96,21 @@ function CardInner({
         return;
       }
 
-      // fallback success
+      // fallback
       onSuccess?.();
     } catch {
       setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
       setProcessing(false);
     }
-  }, [stripe, elements, addressPayload, onSuccess, t, customerEmail]);
+  }, [
+    stripe,
+    elements,
+    addressPayload,
+    onSuccess,
+    t,
+    customerEmail,
+    getPendingOrderId,
+  ]);
 
   return (
     <div className="border rounded p-3 space-y-3">
@@ -142,15 +146,45 @@ export default function StripeCard({
   customerEmail,
 }) {
   const { i18n } = useTranslation();
-  const [clientSecret, setClientSecret] = useState("");
-  const [loading, setLoading] = useState(false);
   const [createIntent] = useStripeCreateIntentMutation();
 
-  // Create / refresh PaymentIntent whenever this block is selected
+  // local state we actually render
+  const [clientSecret, setClientSecret] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // cache so we don't create multiple Orders for tiny state changes
+  const cachedOrderIdRef = useRef(null);
+  const cachedClientSecretRef = useRef(null);
+
+  // snapshot key to know if cart actually changed
+  // If cart or total really changes, we DO want a new PI
+  const snapshotKey = JSON.stringify({
+    items: backendItems,
+    total,
+  });
+
+  const lastSnapshotRef = useRef(null);
+
   useEffect(() => {
     let cancelled = false;
+
+    // only run if user selected this method
+    if (!active) return;
+
+    // RULE:
+    // - If we already created an order+PI for THIS cart snapshot, reuse it.
+    if (
+      lastSnapshotRef.current === snapshotKey &&
+      cachedClientSecretRef.current &&
+      cachedOrderIdRef.current
+    ) {
+      setClientSecret(cachedClientSecretRef.current);
+      setLocalOrderId?.(cachedOrderIdRef.current);
+      return;
+    }
+
+    // otherwise we need to create a new order + PI
     (async () => {
-      if (!active) return;
       setLoading(true);
       try {
         const normalizeCountry = (c) => {
@@ -160,9 +194,10 @@ export default function StripeCard({
           const map = { Germany: "DE", Deutschland: "DE" };
           return map[up] || "DE";
         };
+
         const res = await createIntent({
           items: backendItems,
-          payment_method: "card", // we still send "card" so Order.payment_method stores something meaningful
+          payment_method: "card",
           ...addressPayload,
           country: normalizeCountry(addressPayload?.country),
           coupon_code: (couponCode || couponInfo?.code || "").trim(),
@@ -170,15 +205,24 @@ export default function StripeCard({
           idempotency_key: getCheckoutIdem(),
         }).unwrap();
 
+        // normalize response
+        const cs =
+          res?.clientSecret ||
+          res?.client_secret ||
+          res?.data?.clientSecret ||
+          res?.data?.client_secret ||
+          "";
+        const oid = res?.order_id || res?.data?.order_id || null;
+
         if (!cancelled) {
-          setClientSecret(
-            res?.data?.clientSecret ??
-              res?.clientSecret ??
-              res?.data?.client_secret ??
-              res?.client_secret ??
-              ""
-          );
-          setLocalOrderId?.(res.data?.order_id || res?.order_id);
+          // update live state
+          setClientSecret(cs);
+          setLocalOrderId?.(oid);
+
+          // update cache
+          cachedClientSecretRef.current = cs;
+          cachedOrderIdRef.current = oid;
+          lastSnapshotRef.current = snapshotKey;
         }
       } catch (e) {
         if (!cancelled) {
@@ -193,23 +237,22 @@ export default function StripeCard({
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
   }, [
     active,
-    JSON.stringify(backendItems),
-    total,
+    snapshotKey, // only recreate intent if cart/total truly changed
+    addressPayload,
     couponCode,
     couponInfo,
-    addressPayload,
-    setLocalOrderId,
     customerEmail,
     createIntent,
+    setLocalOrderId,
   ]);
 
   const appearance = useMemo(() => ({ theme: "stripe" }), []);
-
   const totalFormatted = useMemo(() => {
     try {
       return new Intl.NumberFormat(i18n.language || "en", {
@@ -221,6 +264,7 @@ export default function StripeCard({
     }
   }, [i18n.language, total]);
 
+  // collapsed view (not active yet)
   if (!active) {
     return (
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -236,6 +280,7 @@ export default function StripeCard({
     );
   }
 
+  // expanded view
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -271,7 +316,7 @@ export default function StripeCard({
               customerEmail={customerEmail || addressPayload?.email}
               onSuccess={onSuccess}
               totalFormatted={totalFormatted}
-              getPendingOrderId={getPendingOrderId}
+              getPendingOrderId={() => cachedOrderIdRef.current}
             />
           </Elements>
         </div>
