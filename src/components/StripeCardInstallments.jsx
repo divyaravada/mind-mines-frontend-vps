@@ -7,7 +7,6 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import http from "../services/http";
 import { useTranslation } from "react-i18next";
 import {
   useStripeCardCreateInstallmentsMutation,

@@ -21,7 +21,6 @@ import {
   resolveProductPrice,
   resolveBaseGross,
   hasDiscount as hasDiscountCalc,
-  computeVatAmount,
 } from "../lib/money";
 import StarRating from "../components/StarRating";
 import ProductReviews from "../components/ProductReviews";
@@ -36,7 +35,6 @@ export default function ProductDetailPage() {
   const dispatch = useDispatch();
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
-  const getPriceNum = (p) => resolveProductPrice(p);
   const { data: product, isLoading } = useGetProductQuery(id);
   const userEmail = useSelector((s) => s?.auth?.user?.email);
   const [openDemand, setOpenDemand] = useState(false);
