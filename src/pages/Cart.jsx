@@ -53,6 +53,7 @@ export default function CartPage() {
   const loggedIn = !!access;
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
+
   const wishlistIds = useMemo(
     () =>
       wl?.results

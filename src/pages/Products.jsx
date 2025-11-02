@@ -124,9 +124,7 @@ export default function ProductsPage() {
     ],
   };
 
-  const { data: wlRaw } = useGetWishlistQuery(undefined, {
-    skip: !isLoggedIn,
-  });
+  const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
 
   const wl = useMemo(() => {
     if (!wlRaw) return [];

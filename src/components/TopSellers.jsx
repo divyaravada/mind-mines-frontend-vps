@@ -51,7 +51,12 @@ export default function TopSellers() {
 
   const onAddToCart = (p, price) => {
     dispatch(
-      addItem({ id: p.id, title: productTitle(p, lang), price, image: p.image })
+      addItem({
+        id: p.id,
+        title: productTitle(p, lang),
+        price,
+        image: p.image || p.image_url,
+      })
     );
     navigate("/cart");
   };

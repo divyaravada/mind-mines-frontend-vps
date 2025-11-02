@@ -47,50 +47,48 @@ export default function AccountWishlist() {
     error,
   } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
 
-  // normalize to an array
-  const items = Array.isArray(itemsRaw) ? itemsRaw : itemsRaw?.results ?? [];
-
   const [removeWishlist] = useRemoveFromWishlistMutation();
   const [triggerGetProduct] = useLazyGetProductQuery();
+
+  // normalize wishlist array shape
+  const items = Array.isArray(itemsRaw)
+    ? itemsRaw
+    : Array.isArray(itemsRaw?.results)
+    ? itemsRaw.results
+    : [];
 
   const [products, setProducts] = useState({});
 
   useEffect(() => {
     let cancelled = false;
-    async function loadMissing() {
-      if (!isLoggedIn) {
-        // when logged out, don't waste effort
-        return;
-      }
+    const loadMissing = async () => {
+      if (!isLoggedIn) return;
+
       const map = {};
       items.forEach((w) => {
-        if (w.product_obj && w.product_obj.id) {
-          map[w.product_obj.id] = w.product_obj;
-        }
+        if (w.product_obj) map[w.product_obj.id] = w.product_obj;
       });
-      const missingIds = items.map((w) => w.product).filter((id) => !map[id]);
+      const missing = items.map((w) => w.product).filter((id) => !map[id]);
 
-      if (missingIds.length) {
+      if (missing.length) {
         const results = await Promise.all(
-          missingIds.map((id) =>
+          missing.map((id) =>
             triggerGetProduct(id)
               .unwrap()
               .catch(() => null)
           )
         );
         results.forEach((p) => {
-          if (p && p.id) {
-            map[p.id] = p;
-          }
+          if (p && p.id) map[p.id] = p;
         });
       }
       if (!cancelled) setProducts(map);
-    }
+    };
     loadMissing();
     return () => {
       cancelled = true;
     };
-  }, [items, isLoggedIn, triggerGetProduct]);
+  }, [items, triggerGetProduct, isLoggedIn]);
 
   const count = items.length;
   const list = useMemo(
@@ -104,28 +102,30 @@ export default function AccountWishlist() {
     [items, products]
   );
 
+  // 1. Guest user: don't even try API, just show message
   if (!isLoggedIn) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-16 text-center">
+      <div className="max-w-5xl mx-auto px-6 py-16 text-backnewswhite dark:text-backnewsdark ">
         <h1 className="text-2xl font-light mb-4">
-          {t("wishlist.guestTitle", "Your Wishlist")}
+          {t("wishlist.title", "Your Wishlist")}
         </h1>
         <p className="mb-8 text-gray-600">
           {t(
-            "wishlist.guestMsg",
-            "Please sign in to view and manage your wishlist."
+            "wishlist.loginPrompt",
+            "Please log in to view and manage your wishlist."
           )}
         </p>
         <Link
-          to="/users/login"
+          to="/login"
           className="inline-block bg-black text-white px-8 py-4 rounded"
         >
-          {t("wishlist.loginBtn", "Sign in")}
+          {t("wishlist.goToLogin", "Go to Login")}
         </Link>
       </div>
     );
   }
 
+  // 2. Loading (user is logged in, we are fetching)
   if (isFetching) {
     return (
       <div className="text-center text-gray-500 py-16">
@@ -134,17 +134,41 @@ export default function AccountWishlist() {
     );
   }
 
-  // Backend error for logged-in user
+  // 3. Backend threw 500 / parse error
   if (isError) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-16 text-center text-red-600">
-        {t(
-          "wishlist.errorGeneric",
-          "We couldn't load your wishlist right now."
-        )}
-        <div className="text-xs text-gray-500 mt-2">
-          {error?.data?.detail || error?.error || ""}
-        </div>
+      <div className="max-w-5xl mx-auto px-6 py-16 text-backnewswhite dark:text-backnewsdark ">
+        <h1 className="text-2xl font-light mb-4">
+          {t("wishlist.title", "Your Wishlist")}
+        </h1>
+        <p className="mb-8 text-red-600">
+          {t(
+            "wishlist.loadError",
+            "We couldn't load your wishlist right now. Please try again later."
+          )}
+        </p>
+        <Link
+          to="/decorative-products"
+          className="inline-block bg-black text-white px-8 py-4 rounded"
+        >
+          {t("wishlist.startShopping", "Start shopping")}
+        </Link>
+      </div>
+    );
+  }
+
+  // 4. Empty wishlist
+  if (!list.length) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-16 text-backnewswhite dark:text-backnewsdark ">
+        <h1 className="text-2xl font-light mb-4">{t("wishlist.emptyTitle")}</h1>
+        <p className="mb-8 text-gray-600">{t("wishlist.emptySubtitle")}</p>
+        <Link
+          to="/decorative-products"
+          className="inline-block bg-black text-white px-8 py-4 rounded"
+        >
+          {t("wishlist.startShopping", "Start shopping")}
+        </Link>
       </div>
     );
   }
@@ -172,7 +196,7 @@ export default function AccountWishlist() {
             {t("wishlist.title", "Your Wishlist")}
           </h1>
           <span className="text-sm text-gray-500 block mt-1">
-            {t("wishlist.count", { count })}
+            {t("wishlist.count", { count: list.length })}
           </span>
         </div>
 
@@ -180,7 +204,9 @@ export default function AccountWishlist() {
           to="/account"
           className="text-sm underline underline-offset-4 md:ml-auto"
         >
-          {t("backtoAccount", "Back to Account")}
+          <h6 className="text-xl font-light">
+            {t("backtoAccount", "Back to Account")}
+          </h6>
         </Link>
       </div>
 
