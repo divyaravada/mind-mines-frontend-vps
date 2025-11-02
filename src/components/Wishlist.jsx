@@ -11,7 +11,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
-import { resolveProductPrice } from "../lib/money";
+import { fmtEUR, resolveProductPrice } from "../lib/money";
 
 const fmtMoney = (v, locale = "en") => {
   let n =
