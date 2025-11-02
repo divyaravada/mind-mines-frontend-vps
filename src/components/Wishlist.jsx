@@ -11,6 +11,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
+import { resolveProductPrice } from "../lib/money";
 
 const fmtMoney = (v, locale = "en") => {
   let n =
@@ -260,7 +261,8 @@ export default function AccountWishlist() {
 
               {/* product price */}
               <div className="text-gray-600 text-sm mt-1">
-                {t("wishlist.price", "Price")}: {fmtMoney(p.vat_price, locale)}
+                {t("wishlist.price", "Price")}:{" "}
+                {fmtEUR(resolveProductPrice(p), locale)}
               </div>
             </div>
           );
