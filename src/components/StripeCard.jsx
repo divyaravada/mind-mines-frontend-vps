@@ -131,7 +131,7 @@ function CardInner({
   );
 }
 
-// -------- wrapper that calls backend /stripe/create-intent/card --------
+// -------- wrapper that calls backend /stripe/create-intent/ --------
 export default function StripeCard({
   active,
   setActive,
@@ -203,7 +203,7 @@ export default function StripeCard({
           },
         });
 
-        // Step 2: hit backend /stripe/create-intent/card
+        // Step 2: hit backend /stripe/create-intent/
         const res = await createIntent(payload).unwrap();
 
         const cs =

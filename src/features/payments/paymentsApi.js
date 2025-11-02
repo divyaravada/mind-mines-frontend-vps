@@ -36,7 +36,7 @@ export const paymentsApi = api.injectEndpoints({
     // backend will override payment_method if Klarna/Giropay is actually used.
     stripeCreateIntent: build.mutation({
       query: (payload) => ({
-        url: "stripe/create-intent/card",
+        url: "stripe/create-intent/",
         method: "POST",
         body: payload,
       }),
