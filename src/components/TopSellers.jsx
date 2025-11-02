@@ -29,6 +29,7 @@ export default function TopSellers() {
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
   const wl = Array.isArray(wlRaw) ? wlRaw : wlRaw?.results ?? [];
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
+
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 

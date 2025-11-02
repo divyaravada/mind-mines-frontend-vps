@@ -27,16 +27,67 @@ import ProductReviews from "../components/ProductReviews";
 import LowStockBanner from "../components/LowStockBanner";
 import OnDemandModal from "../components/OnDemandModal";
 import OutOfStockNotify from "../components/OutOfStockNotify";
+import { Heart } from "lucide-react";
+import { selectIsAuthenticated } from "../features/auth/authSlice";
+import {
+  useAddToWishlistMutation,
+  useGetWishlistQuery,
+  useRemoveFromWishlistMutation,
+} from "../features/wishlist/wishlistApi";
 
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
+
   const { data: product, isLoading } = useGetProductQuery(id);
+  // auth info
+  const isLoggedIn = useSelector(selectIsAuthenticated);
   const userEmail = useSelector((s) => s?.auth?.user?.email);
+
+  // wishlist hooks
+  const { data: wlRaw } = useGetWishlistQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+  const [addWish] = useAddToWishlistMutation();
+  const [removeWish] = useRemoveFromWishlistMutation();
+
+  // normalize wishlist array
+  const wl = useMemo(() => {
+    if (!wlRaw) return [];
+    if (Array.isArray(wlRaw)) return wlRaw;
+    if (Array.isArray(wlRaw?.results)) return wlRaw.results;
+    return [];
+  }, [wlRaw]);
+
+  // set of wished product IDs
+  const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
+
+  const wished = useMemo(
+    () => (product ? wlIds.has(Number(product.id)) : false),
+    [product, wlIds]
+  );
+
+  const toggleWishlist = async () => {
+    if (!product) return;
+    if (!isLoggedIn) {
+      alert(t("Please log in to use the wishlist"));
+      return;
+    }
+    try {
+      if (wished) {
+        await removeWish(product.id).unwrap();
+      } else {
+        await addWish(product.id).unwrap();
+      }
+    } catch {
+      // we won't toast here to keep page lean, but you can add toast.error(...)
+    }
+  };
   const [openDemand, setOpenDemand] = useState(false);
   const [
     createDemand,
@@ -273,15 +324,36 @@ export default function ProductDetailPage() {
           </Carousel>
         </div>
 
+        {/* RIGHT: info */}
         <div className="flex-1 flex flex-col gap-4">
           <div className="text-xs text-gray-400 mb-2">
             {t("Key")}: {product.key}
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-1">
-            {productTitle(product, lang)}
-          </h1>
-          <div className="text-sm text-gray-500 mb-2">
-            {t("home.categories." + product.category + ".heading")}
+
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl md:text-3xl font-bold mb-1">
+                {productTitle(product, lang)}
+              </h1>
+              <div className="text-sm text-gray-500 mb-2">
+                {t("home.categories." + product.category + ".heading")}
+              </div>
+            </div>
+
+            {/* Wishlist heart */}
+            <button
+              onClick={toggleWishlist}
+              className={`p-2 rounded ${
+                wished ? "text-red-500" : "text-gray-400"
+              }`}
+              title={t("wishlist.addRemove", "Add / remove from wishlist")}
+              aria-label={t("wishlist.addRemove", "Add / remove from wishlist")}
+            >
+              <Heart
+                className="w-6 h-6"
+                fill={wished ? "currentColor" : "none"}
+              />
+            </button>
           </div>
           <div className="text-xl font-bold flex items-center gap-2">
             <span>{fmtEUR(priceNumber, locale)}</span>
@@ -510,39 +582,6 @@ export default function ProductDetailPage() {
           setOpenDemand(false);
         }}
       />
-      {/* SUGGESTED PRODUCTS (placed down below details; after reviews per request wording)
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">{t("You may also like")}</h2>
-        {recommend.length === 0 ? (
-          <div className="text-gray-500">{t("No suggestions found")}</div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {recommend.map((p) => {
-              const priceNum = getPriceNum(p);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => navigate(`/products/${p.id}`)}
-                  className="bg-white rounded-xl p-4 shadow hover:shadow-md text-left"
-                >
-                  <img
-                    src={p.image}
-                    alt={productTitle(p, lang)}
-                    className="w-full h-40 object-cover rounded mb-2"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <div className="font-semibold truncate">
-                    {productTitle(p, lang)}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {fmtEUR(priceNum, locale)}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section> */}
     </div>
   );
 }

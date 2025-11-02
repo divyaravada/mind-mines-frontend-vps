@@ -40,6 +40,7 @@ export default function ProductsPage() {
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
   const navigate = useNavigate();
+
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
   const [page, setPage] = useState(1);
@@ -123,9 +124,19 @@ export default function ProductsPage() {
     ],
   };
 
-  const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
-  const wl = Array.isArray(wlRaw) ? wlRaw : wlRaw?.results ?? [];
+  const { data: wlRaw } = useGetWishlistQuery(undefined, {
+    skip: !isLoggedIn,
+  });
+
+  const wl = useMemo(() => {
+    if (!wlRaw) return [];
+    if (Array.isArray(wlRaw)) return wlRaw;
+    if (Array.isArray(wlRaw?.results)) return wlRaw.results;
+    return [];
+  }, [wlRaw]);
+
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
+
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 
@@ -149,7 +160,9 @@ export default function ProductsPage() {
       toast.error(t("Action failed"));
     }
   };
+
   const dispatch = useDispatch();
+
   const onAddToCart = (p, priceFromTile) => {
     const unitPrice = Number.isFinite(priceFromTile)
       ? priceFromTile
