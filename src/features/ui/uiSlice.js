@@ -1,17 +1,34 @@
-// src/features/ui/uiSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const prefersDark =
-  typeof window !== "undefined" && window.matchMedia
-    ? window.matchMedia("(prefers-color-scheme: dark)").matches
-    : false;
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-const initialDark =
-  (typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark")) ||
-  (typeof localStorage !== "undefined" &&
-    localStorage.getItem("theme") === "dark") ||
-  prefersDark;
+function getInitialDark() {
+  try {
+    const ls =
+      typeof localStorage !== "undefined" && localStorage.getItem("theme");
+    if (ls === "dark") return true;
+    if (ls === "light") return false;
+  } catch {}
+  // if <html class="dark"> is already applied (SSR/tailwind)
+  if (
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+  )
+    return true;
+  return !!prefersDark;
+}
+
+function applyDarkClass(enabled) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.toggle("dark", !!enabled);
+}
+
+const initialDark = getInitialDark();
+applyDarkClass(initialDark);
 
 const initialState = {
   darkMode: initialDark,
@@ -26,18 +43,19 @@ const uiSlice = createSlice({
   reducers: {
     toggleDarkMode(state) {
       state.darkMode = !state.darkMode;
+      applyDarkClass(state.darkMode);
       try {
         localStorage.setItem("theme", state.darkMode ? "dark" : "light");
       } catch {}
     },
     setLangMenuOpen(state, action) {
-      state.langMenuOpen = action.payload;
+      state.langMenuOpen = !!action.payload;
     },
     setLegalMenuOpen(state, action) {
-      state.legalMenuOpen = action.payload;
+      state.legalMenuOpen = !!action.payload;
     },
     setMobileMenuOpen(state, action) {
-      state.mobileMenuOpen = action.payload;
+      state.mobileMenuOpen = !!action.payload;
     },
     closeAllMenus(state) {
       state.langMenuOpen = false;

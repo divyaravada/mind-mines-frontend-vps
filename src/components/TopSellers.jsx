@@ -1,4 +1,3 @@
-// src/components/TopSellers.jsx
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +13,7 @@ import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { addItem } from "../features/cart/cartSlice";
 import { productTitle } from "../lib/i18n";
 import { useNavigate } from "react-router-dom";
+import { resolveProductPrice } from "../lib/money";
 
 export default function TopSellers() {
   const { t, i18n } = useTranslation();
@@ -25,7 +25,6 @@ export default function TopSellers() {
   const { data: topData, isLoading } = useGetTopProductsQuery();
   const top = Array.isArray(topData) ? topData : topData?.results ?? [];
 
-  // wishlist state
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
   const wl = Array.isArray(wlRaw) ? wlRaw : wlRaw?.results ?? [];
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
@@ -49,11 +48,12 @@ export default function TopSellers() {
     }
   };
 
-  const onAddToCart = (p, price) => {
+  const onAddToCart = (p) => {
+    const price = resolveProductPrice(p);
     dispatch(
       addItem({
         id: p.id,
-        title: productTitle(p, lang),
+        name: productTitle(p, lang), // ✅ cart expects 'name'
         price,
         image: p.image || p.image_url,
       })
@@ -68,10 +68,14 @@ export default function TopSellers() {
           <h2 className="text-2xl md:text-3xl font-bold">
             {t("home.topsellers.title")}
           </h2>
-          <a href="/products" className="text-sm underline underline-offset-4">
+          <a
+            href="/decorative-products"
+            className="text-sm underline underline-offset-4"
+          >
             {t("home.topsellers.seeAll")}
           </a>
         </div>
+
         {isLoading ? (
           <div className="text-gray-500">{t("Loading...", "Loading...")}</div>
         ) : top.length === 0 ? (

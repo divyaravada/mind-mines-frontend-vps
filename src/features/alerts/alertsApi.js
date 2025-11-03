@@ -1,4 +1,3 @@
-// src/features/alerts/alertsApi.js
 import { api } from "../../services/apiSlice";
 
 export const alertsApi = api.injectEndpoints({
@@ -7,17 +6,16 @@ export const alertsApi = api.injectEndpoints({
       async queryFn(token, _api, _extra, fetchWithBQ) {
         const path = `stock-alerts/unsubscribe/${encodeURIComponent(token)}/`;
 
-        // try POST first
+        // try POST first (some backends prefer it)
         let res = await fetchWithBQ({ url: path, method: "POST" });
 
-        // fallback to GET if backend only supports GET
+        // fallback to GET for your current backend
         if (
           res.error &&
           (res.error.status === 405 || res.error.status === 404)
         ) {
           res = await fetchWithBQ({ url: path, method: "GET" });
         }
-
         if (res.error) return { error: res.error };
 
         const raw = res.data || {};

@@ -1,4 +1,3 @@
-// src/features/auth/authApi.js
 import { api } from "../../services/apiSlice";
 import { setCredentials, logout } from "./authSlice";
 

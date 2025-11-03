@@ -1,9 +1,43 @@
-// src/pages/CheckoutSuccess.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import http from "../services/http";
 import { toAbsoluteUrl } from "../utils/urls";
 import { useTranslation } from "react-i18next";
+import { API_BASE } from "../services/config";
+
+function KV({ k, v }) {
+  return (
+    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
+      <div className="text-gray-500">{k}</div>
+      <div className="font-medium">{v}</div>
+    </div>
+  );
+}
+
+function BankBlock({ bankInfo, t }) {
+  return (
+    <div className="mb-6 border rounded p-4 bg-gray-50">
+      <h2 className="font-semibold mb-2">{t("checkoutSuccess.bankTitle")}</h2>
+      <p className="text-sm text-gray-600 mb-3">
+        {t("checkoutSuccess.bankIntro")}
+        <span className="font-semibold">{bankInfo.amount} €</span>
+        {t("checkoutSuccess.bankIntro2")}
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} €`} />
+        <KV k={t("checkoutSuccess.reference")} v={bankInfo.reference} />
+        <KV k={t("checkoutSuccess.iban")} v={bankInfo.iban} />
+        <KV k={t("checkoutSuccess.bic")} v={bankInfo.bic} />
+        <KV k={t("checkoutSuccess.beneficiary")} v={bankInfo.beneficiary} />
+      </div>
+
+      {bankInfo.instructions && (
+        <p className="text-xs text-gray-500 mt-3">{bankInfo.instructions}</p>
+      )}
+    </div>
+  );
+}
 
 export default function CheckoutSuccess() {
   const { t } = useTranslation();
@@ -15,12 +49,9 @@ export default function CheckoutSuccess() {
   const [bankInfo, setBankInfo] = useState(null);
   const [error, setError] = useState(null);
 
-  const hasAuth = !!localStorage.getItem("authTokens");
+  const hasAuth = useMemo(() => !!localStorage.getItem("authTokens"), []);
 
-  // ★ NEW FOR GUEST
-  const [guestInfo, setGuestInfo] = useState(null);
-
-  // 1. Restore bank info (you already do this)
+  // Restore bank info if present
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("bank_checkout_info");
@@ -32,14 +63,14 @@ export default function CheckoutSuccess() {
     } catch {}
   }, [orderId]);
 
-  // ★ 2. Restore guest checkout info
+  // Guest restore
+  const [guestInfo, setGuestInfo] = useState(null);
   useEffect(() => {
-    if (hasAuth) return; // only for guests
+    if (hasAuth) return;
     try {
       const raw = sessionStorage.getItem("guest_checkout_info");
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      // we trust the orderId from URL:
       if (parsed && String(parsed.order_id) === String(orderId)) {
         setGuestInfo(parsed);
       }
@@ -47,10 +78,10 @@ export default function CheckoutSuccess() {
     setLoading(false);
   }, [orderId, hasAuth]);
 
-  // 3. Authenticated user polling their order (unchanged)
+  // Authenticated fetch
   useEffect(() => {
     if (!orderId || !hasAuth) {
-      setLoading(false); // ★ don't stay in spinner forever for guest
+      setLoading(false);
       return;
     }
 
@@ -79,28 +110,19 @@ export default function CheckoutSuccess() {
     return () => clearInterval(timer);
   }, [orderId, t, hasAuth]);
 
-  // ---- RENDER ----
-
   if (!orderId) {
     return (
       <div className="p-10 text-center">{t("checkoutSuccess.noOrder")}</div>
     );
   }
-
-  // While authenticated user is still fetching
   if (hasAuth && loading) {
     return <div className="p-10 text-center">{t("common.loading")}</div>;
   }
-
   if (hasAuth && error) {
     return <div className="p-10 text-center text-red-600">{error}</div>;
   }
 
-  // now we have two modes:
-  // MODE A: logged-in user => use `order`
-  // MODE B: guest => use `guestInfo`
-
-  // --- MODE A: logged-in ---
+  // ---- Logged-in mode ----
   if (hasAuth) {
     const hasInvoice = !!order?.invoice_pdf;
     const isBank = order?.payment_method === "bank";
@@ -108,12 +130,12 @@ export default function CheckoutSuccess() {
 
     return (
       <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10 text-center">
-        <h1 className="text-2xl font-bold mb-2 text-center">
+        <h1 className="text-2xl font-bold mb-2">
           {t("checkoutSuccess.thankYou")}
         </h1>
-        <p className="text-gray-600 mb-6 text-center">
+        <p className="text-gray-600 mb-6">
           {t("checkoutSuccess.created", {
-            number: order.number,
+            number: order?.number || orderId,
             defaultValue: "Your order {{number}} was created.",
           })}
         </p>
@@ -143,7 +165,7 @@ export default function CheckoutSuccess() {
           )}
         </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6">
           <Link to="/account/orders" className="text-blue-600 underline">
             {t("checkoutSuccess.goToOrders")}
           </Link>
@@ -152,23 +174,14 @@ export default function CheckoutSuccess() {
     );
   }
 
-  // --- MODE B: guest ---
-  // guestInfo looks like:
-  // {
-  //   order_id: 406,
-  //   order_number: "MM00000406",
-  //   email: "someone@example.com",
-  //   bank: {...optional bank details...}
-  // }
-
-  // Guest fallback
+  // ---- Guest mode ----
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10 text-center">
-      <h1 className="text-2xl font-bold mb-2 text-center">
+      <h1 className="text-2xl font-bold mb-2">
         {t("checkoutSuccess.thankYou")}
       </h1>
 
-      <p className="text-gray-600 mb-4 text-center">
+      <p className="text-gray-600 mb-4">
         {guestInfo
           ? t("checkoutSuccess.created", {
               number: guestInfo.order_number || orderId,
@@ -179,7 +192,6 @@ export default function CheckoutSuccess() {
             })}
       </p>
 
-      {/* Bank transfer block for guest, if we saved it */}
       {guestInfo?.bank && (
         <div className="mb-6 border rounded p-4 bg-gray-50 text-left">
           <h2 className="font-semibold mb-2">
@@ -216,14 +228,17 @@ export default function CheckoutSuccess() {
         </div>
       )}
 
-      {/* Invoice link for guest */}
       {guestInfo && (
         <div className="text-center mb-6">
           <a
             className="inline-block px-4 py-2 rounded bg-gray-900 text-white"
-            href={`/api/orders/guest-invoice-download/?order_number=${encodeURIComponent(
-              guestInfo.order_number || ""
-            )}&email=${encodeURIComponent(guestInfo.email || "")}`}
+            href={
+              `${API_BASE}orders/guest-invoice-download/` +
+              `?order_number=${encodeURIComponent(
+                guestInfo.order_number || ""
+              )}` +
+              `&email=${encodeURIComponent(guestInfo.email || "")}`
+            }
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -234,7 +249,7 @@ export default function CheckoutSuccess() {
         </div>
       )}
 
-      <div className="mt-6 text-center space-y-2">
+      <div className="mt-6 space-y-2">
         <Link to="/guest-order" className="text-blue-600 underline block">
           {t("checkoutSuccess.trackGuest", {
             defaultValue: "Track / view my order as guest",
@@ -242,45 +257,9 @@ export default function CheckoutSuccess() {
         </Link>
 
         <Link to="/" className="text-gray-700 underline block">
-          {t("checkoutSuccess.backHome", {
-            defaultValue: "Back to home",
-          })}
+          {t("checkoutSuccess.backHome", { defaultValue: "Back to home" })}
         </Link>
       </div>
-    </div>
-  );
-}
-
-function KV({ k, v }) {
-  return (
-    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-      <div className="text-gray-500">{k}</div>
-      <div className="font-medium">{v}</div>
-    </div>
-  );
-}
-
-function BankBlock({ bankInfo, t }) {
-  return (
-    <div className="mb-6 border rounded p-4 bg-gray-50">
-      <h2 className="font-semibold mb-2">{t("checkoutSuccess.bankTitle")}</h2>
-      <p className="text-sm text-gray-600 mb-3">
-        {t("checkoutSuccess.bankIntro")}
-        <span className="font-semibold">{bankInfo.amount} €</span>
-        {t("checkoutSuccess.bankIntro2")}
-      </p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} €`} />
-        <KV k={t("checkoutSuccess.reference")} v={bankInfo.reference} />
-        <KV k={t("checkoutSuccess.iban")} v={bankInfo.iban} />
-        <KV k={t("checkoutSuccess.bic")} v={bankInfo.bic} />
-        <KV k={t("checkoutSuccess.beneficiary")} v={bankInfo.beneficiary} />
-      </div>
-
-      {bankInfo.instructions && (
-        <p className="text-xs text-gray-500 mt-3">{bankInfo.instructions}</p>
-      )}
     </div>
   );
 }

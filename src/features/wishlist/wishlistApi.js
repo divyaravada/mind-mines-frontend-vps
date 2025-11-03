@@ -1,11 +1,9 @@
-// src/features/wishlist/wishlistApi.js
 import { api } from "../../services/apiSlice";
 
 export const wishlistApi = api.injectEndpoints({
   endpoints: (build) => ({
     getWishlist: build.query({
       query: () => "wishlist/",
-      // Always return an array
       transformResponse: (res) =>
         Array.isArray(res) ? res : res?.results ?? [],
       providesTags: (list) => [

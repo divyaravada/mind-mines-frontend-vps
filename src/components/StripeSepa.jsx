@@ -16,6 +16,16 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
+function pickErr(e, fallback) {
+  return (
+    e?.data?.detail ||
+    e?.data?.error ||
+    e?.error ||
+    (typeof e === "string" ? e : "") ||
+    fallback
+  );
+}
+
 function SepaInner({ orderId, clientSecret, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -31,7 +41,6 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
       const { error, paymentIntent } = await stripe.confirmSepaDebitPayment(
         clientSecret,
         {
-          // mandate/billing details are collected by <PaymentElement/>
           redirect: "if_required",
         }
       );
@@ -43,13 +52,10 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
       }
 
       const status = paymentIntent?.status || "processing";
-
-      // tell backend so it can mark order "processing", reserve stock, send pending mail
       await postConfirm({
         order_id: orderId,
         payment_intent_status: status,
-      });
-
+      }).unwrap();
       onSuccess?.(orderId);
     } catch (e) {
       setErr("Payment error.");
@@ -123,17 +129,15 @@ export default function StripeSepa({
           "";
         const oid = res?.order_id || res?.data?.order_id || null;
 
+        if (!cs || !oid) throw new Error("Incomplete Stripe init.");
+
         if (!cancelled) {
           setClientSecret(cs);
           setOrderId(oid);
           setLocalOrderId?.(oid);
         }
       } catch (e) {
-        if (!cancelled) {
-          setInitErr(
-            e?.data?.detail || e?.data?.error || "Failed to init SEPA."
-          );
-        }
+        if (!cancelled) setInitErr(pickErr(e, "Failed to init SEPA."));
       } finally {
         if (!cancelled) setLoadingInit(false);
       }

@@ -1,5 +1,4 @@
-// src/pages/Cart.jsx
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -32,57 +31,59 @@ export default function CartPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
+
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCartCount);
   const subtotal = useSelector(selectCartSubtotal);
-
-  const access = useSelector((s) => s.auth?.access);
-  const loggedIn = !!access;
+  const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
+  const wishlistIds = useMemo(() => {
+    const list = Array.isArray(wl)
+      ? wl
+      : Array.isArray(wl?.results)
+      ? wl.results
+      : [];
+    return list.map((w) => Number(w.product));
+  }, [wl]);
 
-  const wishlistIds = useMemo(
-    () =>
-      wl?.results
-        ? wl.results.map((w) => Number(w.product))
-        : Array.isArray(wl)
-        ? wl.map((w) => Number(w.product))
-        : [],
-    [wl]
-  );
   const [addW] = useAddToWishlistMutation();
   const [remW] = useRemoveFromWishlistMutation();
 
-  // shipping is 0 for now
-  const shippingFee = subtotal >= 100 || subtotal === 0 ? 0 : 0;
+  // Shipping: currently free — keep as constant for now
+  const shippingFee = 0;
   const total = subtotal + shippingFee;
 
-  const toggleWishlist = async (productId) => {
-    if (!loggedIn) return;
-    try {
-      if (wishlistIds.includes(productId)) {
-        await remW(productId).unwrap();
-      } else {
-        await addW(productId).unwrap();
+  const toggleWishlist = useCallback(
+    async (productId) => {
+      if (!loggedIn) return;
+      try {
+        if (wishlistIds.includes(productId)) {
+          await remW(productId).unwrap();
+        } else {
+          await addW(productId).unwrap();
+        }
+      } catch {
+        /* silent */
       }
-    } catch {
-      /* ignore */
-    }
-  };
+    },
+    [loggedIn, wishlistIds, addW, remW]
+  );
 
   if (items.length === 0) {
     return (
-      <div className="max-w-5xl mx-auto py-12 px-4 text-backnewswhite dark:text-backnewsdark">
+      <div className="max-w-5xl mx-auto py-12 px-4 text-gray-900 dark:text-gray-100">
         <h1 className="text-2xl font-bold mb-4">
           {t("cart.title", { count: 0 })}
         </h1>
-        <div className="bg-white rounded shadow p-8 text-center dark:bg-marbleblack">
-          <p className="mb-6 text-gray-600">{t("cart.empty")}</p>
+        <div className="bg-white dark:bg-neutral-900 rounded shadow p-8 text-center">
+          <p className="mb-6 text-gray-600 dark:text-gray-300">
+            {t("cart.empty")}
+          </p>
           <Link
             to="/decorative-products"
-            className="inline-block px-5 py-3 rounded bg-marbleblack text-white"
+            className="inline-block px-5 py-3 rounded bg-gray-900 text-white hover:bg-black"
           >
             {t("cart.continue")}
           </Link>
@@ -92,16 +93,17 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 dark:text-backnewsdark lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 text-gray-900 dark:text-gray-100">
       {/* LEFT */}
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">
-            {t("cart.title_one")} ({count} {count === 1 ? "item" : "items"})
+            {t("cart.title_one")} ({count}{" "}
+            {count === 1 ? t("cart.item") : t("cart.items")})
           </h1>
           <button
             onClick={() => dispatch(clearCart())}
-            className="text-red-500 hover:underline flex items-center gap-2"
+            className="text-red-600 hover:underline flex items-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
             {t("cart.clear")}
@@ -115,7 +117,7 @@ export default function CartPage() {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow p-4 flex gap-4 dark:bg-marbleblack"
+                className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex gap-4"
               >
                 <img
                   src={item.image}
@@ -126,46 +128,44 @@ export default function CartPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
-                      <div className="text-sm text-gray-500 capitalize text-backnewswhite dark:text-backnewsdark">
-                        {item.category}
-                      </div>
+                      {item.category && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                          {item.category}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}
                       className="text-red-500 hover:text-red-600"
-                      title="Remove"
+                      title={t("cart.remove")}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 text-backnewswhite dark:text-backnewsdark">
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-gray-300">
                     {item.dimensions && (
                       <div>
                         <span className="font-medium">
-                          {t("cart.measurements")}:{" "}
-                        </span>
+                          {t("cart.measurements")}:
+                        </span>{" "}
                         <span>{item.dimensions}</span>
                       </div>
                     )}
                     {item.weight && (
                       <div>
-                        <span className="font-medium">
-                          {t("cart.weight")}:{" "}
-                        </span>
+                        <span className="font-medium">{t("cart.weight")}:</span>{" "}
                         <span>{item.weight}</span>
                       </div>
                     )}
                     {item.color && (
                       <div className="capitalize">
-                        <span className="font-medium">{t("cart.color")}: </span>
+                        <span className="font-medium">{t("cart.color")}:</span>{" "}
                         <span>{item.color}</span>
                       </div>
                     )}
                     <div>
-                      <span className="font-medium">
-                        {t("cart.delivery")}:{" "}
-                      </span>
+                      <span className="font-medium">{t("cart.delivery")}:</span>{" "}
                       <span>{t("cart.deliveryTime")}</span>
                     </div>
                   </div>
@@ -177,7 +177,10 @@ export default function CartPage() {
                           className="px-2 py-1"
                           onClick={() =>
                             dispatch(
-                              updateQty({ id: item.id, qty: item.qty - 1 })
+                              updateQty({
+                                id: item.id,
+                                qty: Math.max(1, item.qty - 1),
+                              })
                             )
                           }
                           aria-label={t("cart.decreaseQty")}
@@ -197,7 +200,7 @@ export default function CartPage() {
                               })
                             )
                           }
-                          className="w-12 text-center outline-none p-1"
+                          className="w-12 text-center outline-none p-1 bg-transparent"
                           aria-label={t("cart.quantity")}
                         />
                         <button
@@ -217,10 +220,11 @@ export default function CartPage() {
                       <button
                         className={`rounded p-2 ${
                           inWishlist ? "text-red-500" : "text-gray-400"
-                        }`}
-                        onClick={() => loggedIn && toggleWishlist(item.id)}
+                        } ${!loggedIn ? "opacity-50 cursor-not-allowed" : ""}`}
+                        onClick={() => toggleWishlist(item.id)}
                         title={t("cart.wishlist")}
                         aria-label={t("cart.wishlist")}
+                        disabled={!loggedIn}
                       >
                         {inWishlist ? (
                           <Heart className="w-5 h-5" />
@@ -231,7 +235,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm text-gray-500 text-backnewswhite dark:text-backnewsdark">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {t("cart.total")}
                       </div>
                       <div className="text-lg font-semibold">
@@ -245,8 +249,10 @@ export default function CartPage() {
           })}
         </div>
 
-        <div className="mt-6 bg-white rounded-lg shadow p-4 dark:bg-marbleback">
-          <div className="text-sm text-gray-600 mb-3">{t("cart.weAccept")}</div>
+        <div className="mt-6 bg-white dark:bg-neutral-900 rounded-lg shadow p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+            {t("cart.weAccept")}
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <BrandBadge label="PayPal" />
             <BrandBadge label="Mastercard" />
@@ -259,7 +265,7 @@ export default function CartPage() {
 
       {/* RIGHT */}
       <aside className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6 sticky top-24">
           <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
           <div className="space-y-3 text-sm">
             <Row label={t("cart.subtotal")} value={fmtEUR(subtotal, locale)} />
@@ -276,21 +282,19 @@ export default function CartPage() {
                 <span className="font-semibold">{fmtEUR(total, locale)}</span>
               }
             />
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {t("cart.inclTax")}
             </div>
           </div>
 
           <button
-            onClick={() => {
-              navigate("/checkout");
-            }}
-            className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
+            onClick={() => navigate("/checkout")}
+            className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black transition"
           >
             {t("cart.checkout")}
           </button>
 
-          <div className="mt-6 space-y-3 text-sm text-gray-700">
+          <div className="mt-6 space-y-3 text-sm text-gray-700 dark:text-gray-300">
             <Badge
               icon={<ShieldCheck className="w-4 h-4" />}
               text={t("cart.badgeSecure")}
@@ -322,7 +326,7 @@ function Row({ label, value }) {
 function Badge({ icon, text }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="p-1 bg-gray-100 rounded">{icon}</div>
+      <div className="p-1 bg-gray-100 dark:bg-neutral-800 rounded">{icon}</div>
       <span>{text}</span>
     </div>
   );
@@ -330,7 +334,7 @@ function Badge({ icon, text }) {
 
 function BrandBadge({ label }) {
   return (
-    <div className="px-3 py-1.5 rounded border bg-white shadow-sm text-xs font-semibold">
+    <div className="px-3 py-1.5 rounded border bg-white dark:bg-neutral-800 shadow-sm text-xs font-semibold">
       {label}
     </div>
   );

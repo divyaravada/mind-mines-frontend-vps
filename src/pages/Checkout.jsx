@@ -1,4 +1,3 @@
-// src/pages/Checkout.jsx
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
@@ -19,18 +18,13 @@ import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
 
 import { usePreviewCouponMutation } from "../features/promos/promosApi";
-import {
-  normalizeCountry,
-  buildOrderPayload,
-  buildAddressPayload,
-} from "../utils/orderPayload";
+import { normalizeCountry, buildAddressPayload } from "../utils/invoice";
 import {
   usePaypalCaptureOrderMutation,
   usePaypalCreateOrderMutation,
 } from "../features/payments/paymentsApi";
 
 import { useGetAccountQuery } from "../features/account/accountApi";
-
 import {
   useGetAddressesQuery,
   useCreateAddressMutation,
@@ -39,15 +33,6 @@ import {
 import { fmtEUR } from "../lib/money";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
-
-const splitInstallments = (total, months) => {
-  const tc = toCents(total);
-  const base = Math.floor(tc / months);
-  const rem = tc - base * months;
-  const parts = Array(months).fill(base);
-  if (rem) parts[months - 1] += rem;
-  return parts.map((c) => c / 100);
-};
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
@@ -62,17 +47,23 @@ export default function Checkout() {
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
-
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
   const [paypalCaptureOrder] = usePaypalCaptureOrderMutation();
-
   const { data: acct } = useGetAccountQuery(undefined, { skip: !isAuth });
 
-  // addresses for logged-in users
   const { data: addrListRaw, isFetching: addrLoading } = useGetAddressesQuery(
     undefined,
     { skip: !isAuth }
   );
+  const addrList = useMemo(() => {
+    if (Array.isArray(addrListRaw)) return addrListRaw;
+    if (Array.isArray(addrListRaw?.results)) return addrListRaw.results;
+    if (Array.isArray(addrListRaw?.addresses)) return addrListRaw.addresses;
+    return [];
+  }, [addrListRaw]);
+
+  const [createAddress] = useCreateAddressMutation();
+  const [updateAddress] = useUpdateAddressMutation();
 
   // Address/delivery form
   const [form, setForm] = useState({
@@ -92,32 +83,14 @@ export default function Checkout() {
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
+  // single guard flag for redirects related to cart clearing
   const skipCartGuardRef = useRef(false);
-
-  // Normalize backend address list responses
-  const addrList = Array.isArray(addrListRaw)
-    ? addrListRaw
-    : Array.isArray(addrListRaw?.results)
-    ? addrListRaw.results
-    : Array.isArray(addrListRaw?.addresses)
-    ? addrListRaw.addresses
-    : [];
-
-  // which address we are editing
   const addressIdRef = useRef(null);
+  const localOrderIdRef = useRef(null);
 
-  const [createAddress] = useCreateAddressMutation();
-  const [updateAddress] = useUpdateAddressMutation();
-
-  // Prefill address from account default
+  // Prefill address from default
   useEffect(() => {
-    if (
-      !isAuth ||
-      addrLoading ||
-      !Array.isArray(addrList) ||
-      addrList.length === 0
-    )
-      return;
+    if (!isAuth || addrLoading || addrList.length === 0) return;
 
     const splitAddressLine1 = (line) => {
       const m = (line || "").trim().match(/^(.+?)\s+(\d+[a-zA-Z]?)$/);
@@ -153,20 +126,21 @@ export default function Checkout() {
     }
   }, [addrList, addrLoading, isAuth, acct?.email]);
 
-  // guard: don't allow checkout if cart is really empty
+  // also prefill email if we get account later
   useEffect(() => {
-    if (skipCartGuardRef.current) return;
-    if (items.length > 0) return;
+    if (acct?.email) {
+      setForm((p) => ({ ...p, email: p.email || acct.email }));
+    }
+  }, [acct?.email]);
 
+  // redirect away if cart is empty (single guard)
+  useEffect(() => {
+    if (skipCartGuardRef.current || items.length > 0) return;
     try {
-      // use correct key from cartSlice
       const raw = localStorage.getItem("cart_v1");
       const lsItems = raw ? JSON.parse(raw) : [];
       if (Array.isArray(lsItems) && lsItems.length > 0) return;
-    } catch {
-      /* ignore */
-    }
-
+    } catch {}
     const id = setTimeout(() => {
       if (!skipCartGuardRef.current && items.length === 0) {
         navigate("/decorative-products");
@@ -175,10 +149,10 @@ export default function Checkout() {
     return () => clearTimeout(id);
   }, [items.length, navigate]);
 
-  // shipping right now is flat 0
+  // shipping flat (0 for now)
   const shippingFee = 0;
 
-  // these `backendItems` are what we send to serializer
+  // backend items snapshot
   const backendItems = useMemo(
     () =>
       items.map((c) => ({
@@ -188,39 +162,18 @@ export default function Checkout() {
     [items]
   );
 
-  // fill in email if we got it from account
-  useEffect(() => {
-    if (acct?.email) {
-      setForm((p) => ({ ...p, email: p.email || acct.email }));
-    }
-  }, [acct]);
-
-  // override email from accountData again (in case it arrives later)
-  const { data: accountData } = useGetAccountQuery(undefined, {
-    skip: !isAuth,
-  });
-  useEffect(() => {
-    if (accountData?.email) {
-      setForm((p) => ({ ...p, email: p.email || accountData.email }));
-    }
-  }, [accountData]);
-
   // coupon preview apply
   const applyCoupon = async () => {
     setCouponErr("");
     setCouponInfo(null);
-
     const code = (couponCode || "").trim().toUpperCase();
     if (!code) return;
 
     try {
-      // Standardize on { code, items }
       const r = await previewCoupon({ code, items: backendItems }).unwrap();
-      if (r?.ok) {
-        setCouponInfo(r);
-      } else {
+      if (r?.ok) setCouponInfo(r);
+      else
         setCouponErr(r?.error || t("checkout.couponInvalid", "Invalid coupon"));
-      }
     } catch (e) {
       setCouponErr(
         e?.data?.error || t("checkout.couponInvalid", "Invalid coupon")
@@ -228,7 +181,7 @@ export default function Checkout() {
     }
   };
 
-  // auto-apply coupon if stored
+  // auto-apply coupon from storage (once)
   useEffect(() => {
     const saved = localStorage.getItem("coupon_auto");
     if (!saved || couponInfo?.ok || couponCode) return;
@@ -248,18 +201,17 @@ export default function Checkout() {
     })();
   }, [couponCode, couponInfo, backendItems, previewCoupon]);
 
-  // computed discounts, totals
   const discount = useMemo(() => {
     const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
     return Number.isFinite(d) ? d : 0;
   }, [couponInfo]);
 
   const payTotal = useMemo(() => {
-    const t = subtotal + shippingFee - discount;
-    return Number(Math.max(0, t).toFixed(2));
+    const ttotal = subtotal + shippingFee - discount;
+    return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, discount]);
 
-  // address save status
+  // address save
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
 
@@ -280,7 +232,7 @@ export default function Checkout() {
         e?.data?.detail ||
         e?.data?.non_field_errors?.[0] ||
         e?.error ||
-        "Failed to save address.";
+        t("checkout.addrFail");
       alert(msg);
     } finally {
       setSavingAddr(false);
@@ -293,31 +245,25 @@ export default function Checkout() {
     dispatch(clearCart());
     try {
       localStorage.removeItem("cart_v1");
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [dispatch]);
 
   const onSuccessfulOrder = (id) => {
     wipeCart();
-    if (id) {
-      navigate(`/checkout/success?order=${id}`);
-    } else {
-      navigate("/account/orders/");
-    }
+    if (id) navigate(`/checkout/success?order=${encodeURIComponent(id)}`);
+    else navigate("/account/orders/");
   };
 
-  // state for payment UI
+  // payment UI state
   const [payment, setPayment] = useState("");
   const setPaymentSafe = useCallback((next) => setPayment(next), []);
   const [cardMonths, setCardMonths] = useState(null);
   const [sepaMonths, setSepaMonths] = useState(null);
-  const localOrderIdRef = useRef(null);
 
   const [savedCardPaymentMethodId] = useState(null);
   const [savedSepaPaymentMethodId] = useState(null);
 
-  // validate minimum required address fields
+  // minimal address check
   const hasMinimalAddress = () => {
     const needed = [
       "email",
@@ -330,34 +276,38 @@ export default function Checkout() {
     return needed.every((k) => (form[k] || "").toString().trim().length > 0);
   };
 
-  // handle country changes and payment restrictions
+  // handle country + DE-only restriction
   const handleCountryChange = (e) => {
     const newCode = normalizeCountry(e.target.value);
-    const isDEOnlyMethod =
+    const isDEOnly =
       payment === "sepa_debit" ||
       payment === "bank" ||
-      payment.startsWith("sepa_installments");
+      (typeof payment === "string" && payment.startsWith("sepa_installments"));
 
-    if (isDEOnlyMethod && newCode !== "DE") {
+    if (isDEOnly && newCode !== "DE") {
       alert(
-        "⚠️ Direct Bank Transfer / SEPA is only available in Germany (DE). Please choose Germany or select another payment method."
+        t(
+          "checkout.deOnly",
+          "SEPA / Bank Transfer is only available in Germany (DE)."
+        )
       );
       setForm((prev) => ({ ...prev, country: "DE" }));
       return;
     }
-
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
   const countryCode = normalizeCountry(form.country);
-  const deOnlyMethod =
-    payment === "sepa_debit" || payment.startsWith("sepa_installments");
+  const deOnlyActive =
+    payment === "sepa_debit" ||
+    (typeof payment === "string" && payment.startsWith("sepa_installments"));
   useEffect(() => {
-    if (deOnlyMethod && countryCode !== "DE") {
+    if (deOnlyActive && countryCode !== "DE") {
       setForm((prev) => ({ ...prev, country: "DE" }));
     }
-  }, [countryCode, deOnlyMethod]);
+  }, [countryCode, deOnlyActive]);
 
+  // PayPal block
   const renderPayPalSection = () => (
     <PayPalScriptProvider
       options={{
@@ -383,24 +333,26 @@ export default function Checkout() {
       {payment === "paypal" && (
         <div className="border rounded p-3">
           <PayPalButtons
-            fundingSource={undefined} // allow PayPal to offer Pay Later
+            fundingSource={undefined}
             style={{ layout: "horizontal", label: "paypal" }}
             onClick={async (_, actions) => {
               if (!hasMinimalAddress()) {
-                alert("Please fill in contact + delivery first.");
+                alert(
+                  t(
+                    "checkout.fillFirst",
+                    "Please fill in contact + delivery first."
+                  )
+                );
                 return actions.reject();
               }
               return actions.resolve();
             }}
             createOrder={async () => {
-              const orderPayload = {
+              const res = await paypalCreateOrder({
                 email: form.email,
                 payment_method: "paypal",
-                coupon_code: couponCode,
-                items: items.map((c) => ({
-                  product_id: c.id,
-                  qty: c.qty,
-                })),
+                coupon_code: (couponCode || "").trim(),
+                items: backendItems,
                 shipping: {
                   first_name: form.fullName.split(" ")[0] || form.fullName,
                   last_name: form.fullName.split(" ").slice(1).join(" "),
@@ -411,11 +363,11 @@ export default function Checkout() {
                   country: normalizeCountry(form.country),
                   phone: form.telephone || "",
                 },
-              };
+              }).unwrap();
 
-              const res = await paypalCreateOrder(orderPayload).unwrap();
+              // backend should return both: { id: <paypal_id>, order_id: <local_order_id> }
               localOrderIdRef.current = res?.order_id;
-              return res?.id; // PayPal order id
+              return res?.id;
             }}
             onApprove={async (data) => {
               const cap = await paypalCaptureOrder({
@@ -426,7 +378,7 @@ export default function Checkout() {
               if (cap?.status === "COMPLETED") {
                 onSuccessfulOrder(localOrderIdRef.current);
               } else {
-                alert("Payment capture failed.");
+                alert(t("checkout.captureFailed", "Payment capture failed."));
               }
             }}
           />
@@ -435,15 +387,15 @@ export default function Checkout() {
     </PayPalScriptProvider>
   );
 
-  // UI for card installments choice
+  // Card installments toggle + component
   const renderCardInstallmentsBlock = () => (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
-          0% financing with card
+          {t("checkout.card0", "0% financing with card")}
         </div>
         <div className="text-sm text-gray-600">
-          Choose term:
+          {t("checkout.chooseTerm", "Choose term:")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
               <button
@@ -463,7 +415,7 @@ export default function Checkout() {
                     : "hover:bg-gray-50"
                 }`}
               >
-                {m} months
+                {m} {t("checkout.months", "months")}
               </button>
             ))}
           </span>
@@ -486,15 +438,15 @@ export default function Checkout() {
     </div>
   );
 
-  // UI for SEPA installments (DE only)
+  // SEPA installments (DE only)
   const renderSepaInstallmentsBlock = () => (
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
-          0% Finanzierung (SEPA Lastschrift)
+          {t("checkout.sepa0", "0% Finanzierung (SEPA Lastschrift)")}
         </div>
         <div className="text-sm text-gray-600">
-          Laufzeit:
+          {t("checkout.term", "Laufzeit:")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
               <button
@@ -516,7 +468,7 @@ export default function Checkout() {
                     : "hover:bg-gray-50"
                 }`}
               >
-                {m} Monate
+                {m} {t("checkout.months_de", "Monate")}
               </button>
             ))}
           </span>
@@ -540,36 +492,6 @@ export default function Checkout() {
     </div>
   );
 
-  // redirect away if cart is empty
-  useEffect(() => {
-    if (skipCartGuardRef.current) return;
-    if (items.length > 0) return;
-
-    try {
-      const raw = localStorage.getItem("cart_v1");
-      const lsItems = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(lsItems) && lsItems.length > 0) return;
-    } catch {}
-
-    const id = setTimeout(() => {
-      if (!skipCartGuardRef.current && items.length === 0) {
-        navigate("/decorative-products");
-      }
-    }, 150);
-    return () => clearTimeout(id);
-  }, [items.length, navigate]);
-
-  const fmtEUR = (n) => {
-    try {
-      return new Intl.NumberFormat(i18n.language || "en", {
-        style: "currency",
-        currency: "EUR",
-      }).format(n);
-    } catch {
-      return `${Number(n || 0).toFixed(2)} €`;
-    }
-  };
-
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -578,7 +500,7 @@ export default function Checkout() {
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-6">
         {/* Contact + Address */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">
             {t("checkout.contact")}
           </h2>
@@ -588,27 +510,25 @@ export default function Checkout() {
             placeholder={t("checkout.emailPlaceholder")}
             value={form.email}
             onChange={onChange}
-            className="w-full border rounded px-3 py-2 mb-4"
+            className="w-full border rounded px-3 py-2 mb-4 bg-transparent"
           />
 
           <h2 className="text-lg font-semibold mb-2">
             {t("checkout.delivery")}
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             {t("checkout.deliveryNote")}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Country dropdown */}
+            {/* Country */}
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.country")}
               </label>
               {(() => {
-                // reading options from i18n if available
                 const groups = t("countryGroups", { returnObjects: true });
                 const grouped = t("countries", { returnObjects: true });
-
                 const isGrouped =
                   grouped &&
                   typeof grouped === "object" &&
@@ -634,7 +554,7 @@ export default function Checkout() {
                       name="country"
                       value={form.country}
                       onChange={handleCountryChange}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border rounded px-3 py-2 bg-transparent"
                     >
                       {Object.entries(fallback).map(([code, label]) => (
                         <option key={code} value={code}>
@@ -650,7 +570,7 @@ export default function Checkout() {
                     name="country"
                     value={form.country}
                     onChange={handleCountryChange}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 bg-transparent"
                   >
                     {Object.entries(grouped).map(([groupKey, countryMap]) => (
                       <optgroup
@@ -670,86 +590,86 @@ export default function Checkout() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.fullName")}
               </label>
               <input
                 name="fullName"
                 value={form.fullName}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.streetAddress")}
               </label>
               <input
                 name="street"
                 value={form.street}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.houseNumber")}
               </label>
               <input
                 name="houseNumber"
                 value={form.houseNumber}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.apartment")}
               </label>
               <input
                 name="apartment"
                 value={form.apartment}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.postalCode")}
               </label>
               <input
                 name="postalCode"
                 value={form.postalCode}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.city")}
               </label>
               <input
                 name="city"
                 value={form.city}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 {t("checkout.telephone")}
               </label>
               <input
                 name="telephone"
                 value={form.telephone}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 bg-transparent"
               />
             </div>
           </div>
@@ -771,7 +691,7 @@ export default function Checkout() {
         </div>
 
         {/* Shipping */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-3">
             {t("checkout.shipment")}
           </h2>
@@ -786,24 +706,29 @@ export default function Checkout() {
         </div>
 
         {/* Payment */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">
             {t("checkout.payment")}
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             {t("checkout.deliveryNote")}
           </p>
 
           {!payment && (
             <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
-              Please choose a payment method to continue.
+              {t(
+                "checkout.choosePayment",
+                "Please choose a payment method to continue."
+              )}
             </div>
           )}
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}
           <StripeCard
             active={
-              payment === "card" || payment.startsWith("card_installments")
+              payment === "card" ||
+              (typeof payment === "string" &&
+                payment.startsWith("card_installments"))
             }
             setActive={(val) => setPaymentSafe(val)}
             form={form}
@@ -822,10 +747,12 @@ export default function Checkout() {
           {/* PayPal / PayPal Pay Later */}
           {renderPayPalSection()}
 
+          {/* SEPA (one-shot + installments) */}
           <StripeSepa
             active={
               payment === "sepa_debit" ||
-              payment.startsWith("sepa_installments")
+              (typeof payment === "string" &&
+                payment.startsWith("sepa_installments"))
             }
             setActive={(val) => setPaymentSafe(val)}
             form={form}
@@ -840,7 +767,7 @@ export default function Checkout() {
           {/* SEPA installments (DE only) */}
           {renderSepaInstallmentsBlock()}
 
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
             <Badge
               icon={<ShieldCheck className="w-4 h-4" />}
               text={t("checkout.badgeSecure")}
@@ -859,7 +786,7 @@ export default function Checkout() {
 
       {/* RIGHT Summary */}
       <aside className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6 sticky top-24">
           <h2 className="text-xl font-semibold mb-4">
             {t("checkout.overview")}
           </h2>
@@ -892,8 +819,8 @@ export default function Checkout() {
           <div className="mt-3 border rounded p-3 space-y-2">
             <div className="flex gap-2">
               <input
-                className="flex-1 border rounded px-3 py-2"
-                placeholder="Coupon code"
+                className="flex-1 border rounded px-3 py-2 bg-transparent"
+                placeholder={t("checkout.couponPlaceholder", "Coupon code")}
                 value={couponCode}
                 onChange={(e) =>
                   setCouponCode((e.target.value || "").toUpperCase())
@@ -944,7 +871,7 @@ export default function Checkout() {
               {fmtEUR(payTotal, locale)}
             </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {t("checkout.inclTax")}
           </div>
 
@@ -963,7 +890,7 @@ export default function Checkout() {
 function Row({ label, value }) {
   return (
     <div className="flex items-center justify-between text-sm mt-1">
-      <div className="text-gray-600">{label}</div>
+      <div className="text-gray-600 dark:text-gray-300">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
   );
@@ -972,7 +899,7 @@ function Row({ label, value }) {
 function Badge({ icon, text }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="p-1 bg-gray-100 rounded">{icon}</div>
+      <div className="p-1 bg-gray-100 dark:bg-neutral-800 rounded">{icon}</div>
       <span>{text}</span>
     </div>
   );

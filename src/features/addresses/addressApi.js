@@ -1,18 +1,13 @@
-// src/features/addresses/addressApi.js
 import { api } from "../../services/apiSlice";
 
-function toArray(res) {
-  // Support both paginated and plain list responses
-  if (Array.isArray(res)) return res;
-  if (res && Array.isArray(res.results)) return res.results;
-  return [];
-}
+const toArray = (res) =>
+  Array.isArray(res) ? res : Array.isArray(res?.results) ? res.results : [];
 
 export const addressApi = api.injectEndpoints({
   endpoints: (build) => ({
     getAddresses: build.query({
       query: () => "addresses/",
-      transformResponse: (res) => toArray(res),
+      transformResponse: toArray,
       providesTags: (list) =>
         list?.length
           ? [

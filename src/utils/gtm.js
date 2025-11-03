@@ -1,4 +1,3 @@
-// src/utils/gtm.js
 const GTM_SCRIPT_ID = "mm-gtm-script";
 
 function setDataLayerBoot() {
@@ -35,7 +34,8 @@ export function injectGTM(gtmId) {
 /** Best-effort removal (cookies may require a reload to fully stop tracking) */
 export function removeGTM() {
   try {
-    const s = document.getElementById(GTM_SCRIPT_ID);
+    const s =
+      typeof document !== "undefined" && document.getElementById(GTM_SCRIPT_ID);
     if (s && s.parentNode) s.parentNode.removeChild(s);
     if (typeof window !== "undefined") {
       window.dataLayer = [];
@@ -47,7 +47,6 @@ export function removeGTM() {
 export function deleteAnalyticsCookies() {
   try {
     const names = ["_ga", "_gid", "_gat", "_gcl_au"];
-    // Use window.location (guarded) to satisfy no-restricted-globals
     const host =
       typeof window !== "undefined" &&
       window.location &&

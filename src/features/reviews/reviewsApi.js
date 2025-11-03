@@ -1,4 +1,3 @@
-// src/features/reviews/reviewsApi.js
 import { api } from "../../services/apiSlice";
 
 export const reviewsApi = api.injectEndpoints({
@@ -16,7 +15,6 @@ export const reviewsApi = api.injectEndpoints({
           : [{ type: "Reviews", id: "LIST" }],
     }),
     updateReview: build.mutation({
-      // pass { id, formData }
       query: ({ id, formData }) => ({
         url: `reviews/${id}/`,
         method: "PATCH",
@@ -28,10 +26,7 @@ export const reviewsApi = api.injectEndpoints({
       ],
     }),
     deleteReview: build.mutation({
-      query: (id) => ({
-        url: `reviews/${id}/`,
-        method: "DELETE",
-      }),
+      query: (id) => ({ url: `reviews/${id}/`, method: "DELETE" }),
       invalidatesTags: (_r, _e, id) => [
         { type: "Reviews", id },
         { type: "Reviews", id: "LIST" },

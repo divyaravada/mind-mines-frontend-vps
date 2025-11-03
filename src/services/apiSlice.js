@@ -1,9 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_BASE } from "./config";
 
-const RAW = (
-  process.env.REACT_APP_API_URL || "https://mindmines.eu/api"
-).trim();
-export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
+// tiny in-memory gate so multiple 401s don't stampede the refresh endpoint
+let refreshPromise = null;
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE,
@@ -25,36 +24,46 @@ const bareBaseQuery = fetchBaseQuery({
   },
 });
 
-// auto-refresh access token on 401
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await rawBaseQuery(args, api, extraOptions);
+const baseQueryWithReauth = async (args, api, extra) => {
+  // First try normally
+  let result = await rawBaseQuery(args, api, extra);
 
-  if (result?.error?.status === 401) {
-    const refreshToken = api.getState()?.auth?.refresh;
-    if (!refreshToken) {
-      api.dispatch({ type: "auth/logout" });
-      return result;
-    }
+  if (result?.error?.status !== 401) return result;
 
-    const refresh = await bareBaseQuery(
+  // No refresh token → log out and return
+  const refreshToken = api.getState()?.auth?.refresh;
+  if (!refreshToken) {
+    api.dispatch({ type: "auth/logout" });
+    return result;
+  }
+
+  // Only one refresh request at a time
+  if (!refreshPromise) {
+    refreshPromise = bareBaseQuery(
       {
         url: "token/refresh/",
         method: "POST",
         body: { refresh: refreshToken },
       },
       api,
-      extraOptions
-    );
+      extra
+    ).finally(() => {
+      refreshPromise = null;
+    });
+  }
 
-    if (refresh?.data?.access) {
-      api.dispatch({
-        type: "auth/setCredentials",
-        payload: { access: refresh.data.access, refresh: refreshToken },
-      });
-      result = await rawBaseQuery(args, api, extraOptions);
-    } else {
-      api.dispatch({ type: "auth/logout" });
-    }
+  const refreshRes = await refreshPromise;
+
+  if (refreshRes?.data?.access) {
+    api.dispatch({
+      type: "auth/setCredentials",
+      payload: { access: refreshRes.data.access, refresh: refreshToken },
+    });
+    // Retry original request with new access token
+    result = await rawBaseQuery(args, api, extra);
+  } else {
+    // hard logout if refresh fails or is invalid
+    api.dispatch({ type: "auth/logout" });
   }
 
   return result;
@@ -72,6 +81,7 @@ export const api = createApi({
     "Wishlist",
     "Orders",
     "Promos",
+    "Newsletter",
   ],
   endpoints: () => ({}),
 });

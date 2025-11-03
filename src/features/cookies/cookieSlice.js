@@ -1,9 +1,8 @@
-// src/features/cookies/cookieSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { injectGTM, removeGTM, deleteAnalyticsCookies } from "../../utils/gtm";
 
 const KEY = "mm_cookie_consent_v1";
-const GTM_ID = process.env.REACT_APP_GTM_ID; // CRA-style env var
+const GTM_ID = process.env.REACT_APP_GTM_ID;
 
 const defaultConsent = {
   essential: true,
@@ -12,17 +11,13 @@ const defaultConsent = {
   decided: false,
 };
 
-const initialState = {
-  open: false,
-  consent: { ...defaultConsent },
-};
+const initialState = { open: false, consent: { ...defaultConsent } };
 
 export const initConsent = createAsyncThunk("cookies/init", async () => {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) {
+    if (!raw)
       return { open: true, consent: { ...defaultConsent, decided: false } };
-    }
     const parsed = JSON.parse(raw);
     const safe = {
       essential: true,
@@ -30,7 +25,6 @@ export const initConsent = createAsyncThunk("cookies/init", async () => {
       marketing: !!parsed.marketing,
       decided: !!parsed.decided,
     };
-    // load GTM only if user allowed analytics
     if (safe.decided && safe.analytics) injectGTM(GTM_ID);
     return { open: false, consent: safe };
   } catch {
@@ -51,7 +45,6 @@ export const saveConsent = createAsyncThunk("cookies/save", async (consent) => {
   if (decided.analytics) {
     injectGTM(GTM_ID);
   } else {
-    // turn off GTM as best-effort and clear related cookies
     removeGTM();
     deleteAnalyticsCookies();
   }
@@ -69,16 +62,14 @@ const cookiesSlice = createSlice({
       state.open = false;
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(initConsent.fulfilled, (state, { payload }) => {
-        state.open = payload.open;
-        state.consent = payload.consent;
-      })
-      .addCase(saveConsent.fulfilled, (state, { payload }) => {
-        state.consent = payload;
-        state.open = false;
-      });
+  extraReducers: (b) => {
+    b.addCase(initConsent.fulfilled, (s, { payload }) => {
+      s.open = payload.open;
+      s.consent = payload.consent;
+    }).addCase(saveConsent.fulfilled, (s, { payload }) => {
+      s.consent = payload;
+      s.open = false;
+    });
   },
 });
 

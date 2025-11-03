@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import http from "../services/http";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { API_BASE } from "../services/config";
+
+function pickErr(e, fallback) {
+  return (
+    e?.response?.data?.detail ||
+    e?.response?.data?.error ||
+    (typeof e === "string" ? e : "") ||
+    fallback
+  );
+}
 
 export default function GuestOrderLookupPage() {
   const { t } = useTranslation();
@@ -12,17 +22,28 @@ export default function GuestOrderLookupPage() {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
-  // result will look like:
-  // {
-  //   order_number: "MM00000406",
-  //   status: "paid" | "pending" | "failed" | "refunded" | ...,
-  //   payment_method: "card" | "sepa_debit" | "bank" | "paypal" | ...
-  //   total_price: "59.95",
-  //   invoice_available: true/false,
-  //   shipping_address: { ... },
-  //   created_at: "2025-11-01T15:37:00Z",
-  //   // etc. whatever backend returns
-  // }
+  // prefill from prior lookup (quality of life)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("guest_lookup_last");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.order_number) setOrderNumber(parsed.order_number);
+      if (parsed?.email) setEmail(parsed.email);
+    } catch {}
+  }, []);
+
+  const invoiceHref = useMemo(() => {
+    if (!result?.invoice_available) return null;
+    const num = result?.order_number || orderNumber.trim();
+    const em = email.trim();
+    if (!num || !em) return null;
+    return (
+      `${API_BASE}orders/guest-invoice-download/` +
+      `?order_number=${encodeURIComponent(num)}` +
+      `&email=${encodeURIComponent(em)}`
+    );
+  }, [result, orderNumber, email]);
 
   const onLookup = async (e) => {
     e.preventDefault();
@@ -33,7 +54,11 @@ export default function GuestOrderLookupPage() {
     const em = email.trim();
 
     if (!num || !em) {
-      setError("Please enter order number and email.");
+      setError(
+        t("guest.formError", {
+          defaultValue: "Please enter order number and email.",
+        })
+      );
       return;
     }
 
@@ -46,36 +71,28 @@ export default function GuestOrderLookupPage() {
 
       setResult(res.data || null);
       setError("");
-
-      // Optionally cache so we can skip retyping later
       sessionStorage.setItem(
         "guest_lookup_last",
         JSON.stringify({ order_number: num, email: em })
       );
     } catch (err) {
       setError(
-        err?.response?.data?.detail ||
-          err?.response?.data?.error ||
-          "We couldn't find an order with that email / number."
+        pickErr(
+          err,
+          t("guest.notFound", {
+            defaultValue: "We couldn't find an order with that email / number.",
+          })
+        )
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper for invoice URL
-  const invoiceHref = result?.invoice_available
-    ? `/api/orders/guest-invoice-download/?order_number=${encodeURIComponent(
-        result?.order_number || orderNumber.trim()
-      )}&email=${encodeURIComponent(email.trim())}`
-    : null;
-
   return (
     <div className="max-w-xl mx-auto py-12 px-4">
       <h1 className="text-2xl font-semibold mb-2 text-center">
-        {t("guest.lookupTitle", {
-          defaultValue: "Track your order (guest)",
-        })}
+        {t("guest.lookupTitle", { defaultValue: "Track your order (guest)" })}
       </h1>
       <p className="text-gray-600 text-center mb-8 text-sm">
         {t("guest.lookupDesc", {
@@ -91,9 +108,7 @@ export default function GuestOrderLookupPage() {
       >
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            {t("guest.orderNumber", {
-              defaultValue: "Order number",
-            })}{" "}
+            {t("guest.orderNumber", { defaultValue: "Order number" })}{" "}
             <span className="text-gray-400 text-xs">(e.g. MM00000406)</span>
           </label>
           <input
@@ -101,6 +116,7 @@ export default function GuestOrderLookupPage() {
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
             placeholder="MM00000406"
+            autoComplete="off"
           />
         </div>
 
@@ -114,6 +130,7 @@ export default function GuestOrderLookupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            autoComplete="email"
           />
         </div>
 
@@ -145,30 +162,24 @@ export default function GuestOrderLookupPage() {
           />
 
           <Row
-            label={t("guest.resultStatus", {
-              defaultValue: "Status",
-            })}
+            label={t("guest.resultStatus", { defaultValue: "Status" })}
             value={prettyStatus(result.status)}
           />
 
           <Row
             label={t("guest.resultTotal", { defaultValue: "Total" })}
-            value={result.total_price ? `${result.total_price} €` : "--"}
+            value={result.total_price ? `${result.total_price} €` : "—"}
           />
 
           <Row
-            label={t("guest.resultPayment", {
-              defaultValue: "Payment method",
-            })}
+            label={t("guest.resultPayment", { defaultValue: "Payment method" })}
             value={prettyPayment(result.payment_method)}
           />
 
           {result?.shipping_address && (
             <div>
               <div className="text-sm text-gray-500">
-                {t("guest.shippingTo", {
-                  defaultValue: "Shipping to",
-                })}
+                {t("guest.shippingTo", { defaultValue: "Shipping to" })}
               </div>
               <div className="text-sm font-medium">
                 {renderAddress(result.shipping_address)}
@@ -199,8 +210,8 @@ export default function GuestOrderLookupPage() {
       )}
 
       {/* back links */}
-      <div className="text-center mt-8 space-y-2">
-        <Link to="/" className="text-gray-700 underline block text-sm">
+      <div className="text-center mt-8">
+        <Link to="/" className="text-gray-700 underline text-sm">
           {t("guest.backHome", { defaultValue: "Back to Home" })}
         </Link>
       </div>
@@ -217,18 +228,17 @@ function Row({ label, value }) {
   );
 }
 
-// Make status human friendly for display
 function prettyStatus(statusRaw) {
   const s = (statusRaw || "").toLowerCase();
   if (s === "paid") return "Paid ✅";
-  if (s === "pending") return "Pending / Processing";
+  if (s === "pending" || s === "processing") return "Pending / Processing";
   if (s === "unpaid" || s === "awaiting_payment") return "Awaiting payment";
   if (s === "shipped") return "Shipped 📦";
   if (s === "cancelled" || s === "canceled") return "Canceled";
+  if (s === "refunded") return "Refunded";
   return statusRaw || "-";
 }
 
-// Make payment method human readable
 function prettyPayment(pm) {
   const p = (pm || "").toLowerCase();
   if (p === "bank") return "Bank Transfer";
@@ -238,10 +248,8 @@ function prettyPayment(pm) {
   return pm || "-";
 }
 
-// Render address object
 function renderAddress(a) {
   if (!a) return "";
-  // We try common naming patterns from your backend
   const line1 =
     a.address_line1 ||
     [a.street_name, a.house_number].filter(Boolean).join(" ") ||

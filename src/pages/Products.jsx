@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
@@ -33,11 +32,12 @@ const COLORS = [
   { value: "green", label: "Green" },
 ];
 const PAGE_SIZE = 4;
+const BASE_PATH = "/decorative-products";
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
-  const lang = i18n.language.startsWith("de") ? "de" : "en";
+  const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
   const navigate = useNavigate();
 
@@ -65,29 +65,22 @@ export default function ProductsPage() {
     if (Array.isArray(data.items)) return data.items;
     return [];
   }, [data]);
-  console.log(data);
 
   const totalPages = useMemo(() => {
     if (!data || Array.isArray(data)) return 1;
-    const count =
-      typeof data.count === "number"
-        ? data.count
-        : (Array.isArray(data.results) && data.results.length) ||
-          (Array.isArray(data.items) && data.items.length) ||
-          products.length;
-    return Math.max(1, Math.ceil(count / PAGE_SIZE));
-  }, [data, products.length]);
+    const count = typeof data.count === "number" ? data.count : products.length;
+    return Math.max(1, Math.ceil(Number(count || 0) / PAGE_SIZE));
+  }, [data, products]);
 
-  // ---- SEO helpers (safe defaults) ----
+  // SEO helpers
   const currentOrigin =
     typeof window !== "undefined"
       ? window.location.origin
       : "https://mindmines.eu";
-  const basePath = "/decorative-products";
   const listUrl = categoryId
-    ? `${currentOrigin}${basePath}/category/${categoryId}?page=${page}`
-    : `${currentOrigin}${basePath}?page=${page}`;
-  const canonUrl = listUrl; // keep params so page 2/3 are distinct
+    ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${page}`
+    : `${currentOrigin}${BASE_PATH}?page=${page}`;
+  const canonUrl = listUrl;
 
   const categoryObj = homeCategories.find(
     (c) => String(c.id) === String(categoryId)
@@ -99,7 +92,6 @@ export default function ProductsPage() {
     ? t("Browse {{cat}} at MindMines", { cat: t(categoryObj.label) })
     : t("Browse products at MindMines");
 
-  // Breadcrumb JSON-LD (works with or without category)
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -109,7 +101,7 @@ export default function ProductsPage() {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: `${currentOrigin}${basePath}/`,
+        item: `${currentOrigin}${BASE_PATH}/`,
       },
       ...(categoryObj
         ? [
@@ -117,24 +109,22 @@ export default function ProductsPage() {
               "@type": "ListItem",
               position: 3,
               name: t(categoryObj.label),
-              item: `${currentOrigin}${basePath}/category/${categoryId}/`,
+              item: `${currentOrigin}${BASE_PATH}/category/${categoryId}/`,
             },
           ]
         : []),
     ],
   };
 
+  // wishlist
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
-
   const wl = useMemo(() => {
     if (!wlRaw) return [];
     if (Array.isArray(wlRaw)) return wlRaw;
-    if (Array.isArray(wlRaw?.results)) return wlRaw.results;
+    if (Array.isArray(wlRaw.results)) return wlRaw.results;
     return [];
   }, [wlRaw]);
-
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
-
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 
@@ -160,22 +150,21 @@ export default function ProductsPage() {
   };
 
   const dispatch = useDispatch();
-
   const onAddToCart = (p, priceFromTile) => {
     const unitPrice = Number.isFinite(priceFromTile)
       ? priceFromTile
       : resolveProductPrice(p);
-
     dispatch(
       addItem({
         id: p.id,
-        title: productTitle(p, lang),
+        name: productTitle(p, lang), // ✅ cart expects 'name'
         price: unitPrice,
         image: p.image,
       })
     );
     navigate("/cart");
   };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 flex gap-6">
       <Helmet>
@@ -187,10 +176,10 @@ export default function ProductsPage() {
             rel="prev"
             href={
               categoryId
-                ? `${currentOrigin}${basePath}/category/${categoryId}?page=${
+                ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${
                     page - 1
                   }`
-                : `${currentOrigin}${basePath}?page=${page - 1}`
+                : `${currentOrigin}${BASE_PATH}?page=${page - 1}`
             }
           />
         )}
@@ -199,10 +188,10 @@ export default function ProductsPage() {
             rel="next"
             href={
               categoryId
-                ? `${currentOrigin}${basePath}/category/${categoryId}?page=${
+                ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${
                     page + 1
                   }`
-                : `${currentOrigin}${basePath}?page=${page + 1}`
+                : `${currentOrigin}${BASE_PATH}?page=${page + 1}`
             }
           />
         )}
@@ -210,6 +199,7 @@ export default function ProductsPage() {
           {JSON.stringify(breadcrumbJsonLd)}
         </script>
       </Helmet>
+
       {/* Filters */}
       <aside className="w-64 hidden md:block">
         <div className="mb-6 p-4 rounded shadow bg-white">
@@ -266,7 +256,7 @@ export default function ProductsPage() {
           />
           <div className="flex justify-between text-xs">
             <span>0 €</span>
-            <span>{fmtEUR(price, locale)} </span>
+            <span>{fmtEUR(price, locale)}</span>
           </div>
         </div>
       </aside>
@@ -277,9 +267,11 @@ export default function ProductsPage() {
           {homeCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => navigate(`/products/category/${cat.id}`)}
+              onClick={() => navigate(`${BASE_PATH}/category/${cat.id}`)}
               className={`flex flex-col items-center px-4 py-2 rounded border shadow-sm transition-all hover:scale-105 ${
-                categoryId === cat.id ? "bg-black text-white" : "bg-white"
+                String(categoryId) === String(cat.id)
+                  ? "bg-black text-white"
+                  : "bg-white"
               }`}
             >
               <img
@@ -291,7 +283,7 @@ export default function ProductsPage() {
             </button>
           ))}
           <button
-            onClick={() => navigate("/decorative-products")}
+            onClick={() => navigate(BASE_PATH)}
             className={`flex flex-col items-center px-4 py-2 rounded border shadow-sm transition-all hover:scale-105 ${
               !categoryId ? "bg-black text-white" : "bg-white"
             }`}

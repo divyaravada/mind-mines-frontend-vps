@@ -1,4 +1,3 @@
-// src/features/orders/ordersApi.js
 import { api } from "../../services/apiSlice";
 
 export const ordersApi = api.injectEndpoints({

@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useStripeCardInstallmentsMutation } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
 
+function pickErr(e, fallback) {
+  return (
+    e?.data?.detail ||
+    e?.data?.error ||
+    e?.error ||
+    (typeof e === "string" ? e : "") ||
+    fallback
+  );
+}
+
 /**
- * Props:
- *  active, setActive
- *  months (3,6,9) chosen
- *  form, items, couponCode, total
- *  setLocalOrderId, onSuccess
- *
- * NOTE: You still need UI somewhere to run a Stripe SetupIntent for card
- * to get payment_method_id (saved card). That UI is not in this snippet
- * because it's usually a separate <CardSetupForm /> step.
+ * Requires a saved card payment_method_id (from a prior SetupIntent).
  */
 export default function StripeCardInstallments({
   active,
@@ -27,6 +29,11 @@ export default function StripeCardInstallments({
   const [createPlan, { isLoading }] = useStripeCardInstallmentsMutation();
   const [errorMsg, setErrorMsg] = useState("");
 
+  const monthsSafe = useMemo(() => {
+    const m = Number(months);
+    return [3, 6, 9].includes(m) ? m : 3;
+  }, [months]);
+
   async function handleStartPlan() {
     setErrorMsg("");
     try {
@@ -37,28 +44,27 @@ export default function StripeCardInstallments({
         couponCode,
         payment_method: "card_installments",
         extra: {
-          months,
+          months: monthsSafe,
           payment_method_id: paymentMethodId,
         },
       });
 
       const res = await createPlan(payload).unwrap();
-      // backend returns {order_id, schedule_id}
-      setLocalOrderId?.(res.order_id);
-      onSuccess?.(res.order_id);
+      const orderId = res?.order_id ?? res?.data?.order_id ?? null;
+      if (!orderId) throw new Error("Order not created.");
+
+      setLocalOrderId?.(orderId);
+      onSuccess?.(orderId);
     } catch (e) {
-      setErrorMsg(
-        e?.data?.detail || e?.data?.error || "Failed to start installments."
-      );
+      setErrorMsg(pickErr(e, "Failed to start installments."));
     }
   }
 
   if (!active) {
     return (
       <div className="border rounded p-3 mt-4">
-        {/* Radio/summary is handled by parent (Checkout) */}
         <div className="text-sm text-gray-600">
-          0% financing with card ({months} months)
+          0% financing with card ({monthsSafe} months)
         </div>
       </div>
     );
@@ -67,7 +73,7 @@ export default function StripeCardInstallments({
   return (
     <div className="border rounded p-3 mt-2 space-y-2">
       <div className="text-sm">
-        Confirm card-based installments ({months} months).
+        Confirm card-based installments ({monthsSafe} months).
       </div>
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
       <button

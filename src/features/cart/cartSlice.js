@@ -1,9 +1,8 @@
-// src/features/cart/cartSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const LS_KEY = "cart_v1";
 
-function load() {
+const load = () => {
   try {
     const raw = localStorage.getItem(LS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
@@ -11,12 +10,12 @@ function load() {
   } catch {
     return [];
   }
-}
-function save(items) {
+};
+const save = (items) => {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(items));
   } catch {}
-}
+};
 
 const initialState = { items: load() };
 
@@ -31,7 +30,6 @@ const cartSlice = createSlice({
       const found = state.items.find((i) => i.id === id);
       if (found) {
         found.qty = Math.max(1, Number(found.qty || 1) + 1);
-        // keep latest title/image/price in sync
         found.name = itemTitle;
         found.title = itemTitle;
         found.price = p;
@@ -51,8 +49,7 @@ const cartSlice = createSlice({
       save(state.items);
     },
     removeItem: (state, action) => {
-      const id = action.payload;
-      state.items = state.items.filter((i) => i.id !== id);
+      state.items = state.items.filter((i) => i.id !== action.payload);
       save(state.items);
     },
     setQty: (state, action) => {
@@ -74,11 +71,11 @@ export const { addItem, removeItem, setQty, clearCart } = cartSlice.actions;
 
 export const updateQty = cartSlice.actions.setQty;
 
-export const selectCartItems = (state) => state.cart?.items || [];
-export const selectCartCount = (state) =>
-  (state.cart?.items || []).reduce((n, i) => n + (Number(i.qty) || 0), 0);
-export const selectCartSubtotal = (state) =>
-  (state.cart?.items || []).reduce(
+export const selectCartItems = (s) => s.cart?.items || [];
+export const selectCartCount = (s) =>
+  (s.cart?.items || []).reduce((n, i) => n + (Number(i.qty) || 0), 0);
+export const selectCartSubtotal = (s) =>
+  (s.cart?.items || []).reduce(
     (sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 0),
     0
   );

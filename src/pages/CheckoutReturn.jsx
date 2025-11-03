@@ -1,8 +1,6 @@
-// src/pages/CheckoutReturn.jsx
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
-import { Spinner } from "../components/Spinner"; // if you don't have Spinner just remove and show text
 import { useTranslation } from "react-i18next";
 
 const stripePromise = loadStripe(
@@ -10,11 +8,11 @@ const stripePromise = loadStripe(
 );
 
 export default function CheckoutReturn() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [status, setStatus] = useState("checking"); // "checking" | "succeeded" | "processing" | "failed"
+  const [status, setStatus] = useState("checking"); // checking | succeeded | processing | failed
   const [message, setMessage] = useState("");
   const [piId, setPiId] = useState("");
 
@@ -24,7 +22,6 @@ export default function CheckoutReturn() {
       const paymentIntentId = searchParams.get("payment_intent");
       setPiId(paymentIntentId || "");
 
-      // safety: if no client secret, we just fallback to generic thank you
       if (!clientSecret) {
         setStatus("processing");
         setMessage(
@@ -48,7 +45,6 @@ export default function CheckoutReturn() {
         return;
       }
 
-      // Ask Stripe what happened
       const { paymentIntent, error } = await stripe.retrievePaymentIntent(
         clientSecret
       );
@@ -64,7 +60,6 @@ export default function CheckoutReturn() {
         return;
       }
 
-      // Interpret Stripe status
       switch (paymentIntent.status) {
         case "succeeded":
           setStatus("succeeded");
@@ -97,12 +92,8 @@ export default function CheckoutReturn() {
           break;
       }
 
-      // Optional auto-forward to success/orders after a short delay
-      // We'll try to show the user their order if we still have it.
-      // We stored last order id in sessionStorage (we'll do that next step).
       const storedOrderId = sessionStorage.getItem("last_order_id");
       if (storedOrderId && paymentIntent.status !== "requires_payment_method") {
-        // redirect to success page with order param
         setTimeout(() => {
           navigate(
             `/checkout/success?order=${encodeURIComponent(storedOrderId)}`
@@ -120,9 +111,7 @@ export default function CheckoutReturn() {
               defaultValue: "Thank you for your order!",
             })
           : status === "failed"
-          ? t("checkout.returnTitleFailed", {
-              defaultValue: "Payment issue",
-            })
+          ? t("checkout.returnTitleFailed", { defaultValue: "Payment issue" })
           : t("checkout.returnTitleProcessing", {
               defaultValue: "Processing payment…",
             })}
@@ -141,9 +130,7 @@ export default function CheckoutReturn() {
           to="/account/orders"
           className="block w-full border rounded py-2 text-center hover:bg-gray-50"
         >
-          {t("checkout.viewOrders", {
-            defaultValue: "View my orders",
-          })}
+          {t("checkout.viewOrders", { defaultValue: "View my orders" })}
         </Link>
 
         <Link

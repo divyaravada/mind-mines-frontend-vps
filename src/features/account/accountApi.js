@@ -1,4 +1,3 @@
-// src/features/account/accountApi.js
 import { api } from "../../services/apiSlice";
 
 function normalizeAccount(res) {
@@ -33,10 +32,9 @@ export const accountApi = api.injectEndpoints({
     getAccount: build.query({
       query: () => "users/account/",
       providesTags: ["Account"],
-      transformResponse: (res) => normalizeAccount(res),
+      transformResponse: normalizeAccount,
     }),
     updateAccount: build.mutation({
-      // expects a FormData (for avatar upload)
       query: (formData) => ({
         url: "users/account/",
         method: "PUT",

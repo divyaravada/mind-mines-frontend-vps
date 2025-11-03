@@ -1,4 +1,3 @@
-// src/features/newsletter/newsletterApi.js
 import { api } from "../../services/apiSlice";
 
 export const newsletterApi = api.injectEndpoints({

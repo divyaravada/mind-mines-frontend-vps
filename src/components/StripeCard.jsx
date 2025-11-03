@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -32,18 +32,15 @@ function InnerPay({
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handlePay = useCallback(async () => {
+  const handlePay = async () => {
     if (!stripe || !elements) return;
     setProcessing(true);
     setErrorMsg("");
 
-    // keep last order id around for thank-you screen
     try {
       const oid = getPendingOrderId?.();
       if (oid) sessionStorage.setItem("last_order_id", String(oid));
-    } catch {
-      /* ignore */
-    }
+    } catch {}
 
     try {
       const { error, paymentIntent } = await stripe.confirmPayment({
@@ -52,10 +49,9 @@ function InnerPay({
           return_url: `${window.location.origin}/checkout/return`,
           payment_method_data: {
             billing_details: {
-              name:
-                (shippingSnapshot.first_name || "") +
-                " " +
-                (shippingSnapshot.last_name || ""),
+              name: `${shippingSnapshot.first_name || ""} ${
+                shippingSnapshot.last_name || ""
+              }`.trim(),
               email: customerEmail || undefined,
               address: {
                 line1: shippingSnapshot.line1 || undefined,
@@ -78,7 +74,6 @@ function InnerPay({
         return;
       }
 
-      // treat succeeded/processing as success UX
       if (
         paymentIntent &&
         ["succeeded", "processing", "requires_capture"].includes(
@@ -94,15 +89,7 @@ function InnerPay({
       setErrorMsg(t("checkout.cardError", "Payment failed."));
       setProcessing(false);
     }
-  }, [
-    stripe,
-    elements,
-    shippingSnapshot,
-    customerEmail,
-    getPendingOrderId,
-    onSuccess,
-    t,
-  ]);
+  };
 
   return (
     <div className="border rounded p-3 space-y-3">
@@ -142,17 +129,12 @@ export default function StripeCard({
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // caching per cart signature
   const cachedOrderIdRef = useRef(null);
   const cachedClientSecretRef = useRef(null);
   const lastCartSigRef = useRef(null);
 
-  // cartSig: stable signature of product_id+qty pairs
   const cartSig = useMemo(() => {
-    const norm = items.map((it) => ({
-      product_id: it.id,
-      qty: it.qty,
-    }));
+    const norm = items.map((it) => ({ product_id: it.id, qty: it.qty }));
     norm.sort((a, b) =>
       a.product_id === b.product_id
         ? a.qty - b.qty
@@ -163,12 +145,10 @@ export default function StripeCard({
 
   const shippingSnapshot = useMemo(() => buildShippingSnapshot(form), [form]);
 
-  // Init PaymentIntent on first expand or when cart changed
   useEffect(() => {
     let cancelled = false;
     if (!active) return;
 
-    // reused?
     if (
       cachedOrderIdRef.current &&
       cachedClientSecretRef.current &&
@@ -179,7 +159,6 @@ export default function StripeCard({
       return;
     }
 
-    // block 0€ case
     if (Number(total) <= 0) {
       setClientSecret("");
       setLocalOrderId?.(null);
@@ -194,10 +173,8 @@ export default function StripeCard({
           items,
           email: (customerEmail || form.email || "").trim(),
           couponCode,
-          payment_method: "card", // backend will also allow klarna/giropay/sofort
-          extra: {
-            idempotency_key: getCheckoutIdem(cartSig),
-          },
+          payment_method: "card", // server can switch to klarna/sofort/giropay later
+          extra: { idempotency_key: getCheckoutIdem(cartSig) },
         });
 
         const res = await createIntent(payload).unwrap();
@@ -212,7 +189,6 @@ export default function StripeCard({
         if (!cancelled) {
           setClientSecret(cs);
           setLocalOrderId?.(oid);
-
           cachedClientSecretRef.current = cs;
           cachedOrderIdRef.current = oid;
           lastCartSigRef.current = cartSig;
@@ -256,7 +232,6 @@ export default function StripeCard({
     }
   }, [i18n.language, total]);
 
-  // collapsed radio
   if (!active) {
     return (
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -274,7 +249,6 @@ export default function StripeCard({
     );
   }
 
-  // expanded
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
