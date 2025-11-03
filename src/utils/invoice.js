@@ -1,5 +1,4 @@
-// src/utils/invoice.js
-import { API_BASE } from "../services/apiSlice";
+import { API_BASE } from "../services/config";
 
 export function downloadPublicInvoice({ orderId, number, token }) {
   const url =
@@ -16,12 +15,110 @@ export function downloadPublicInvoice({ orderId, number, token }) {
   a.remove();
 }
 
+// --- idempotency (simple)
 export function getCheckoutIdem() {
   const KEY = "checkout_idem";
-  let v = sessionStorage.getItem(KEY);
-  if (!v) {
-    v = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem(KEY, v);
+  try {
+    let v = sessionStorage.getItem(KEY);
+    if (!v) {
+      v = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem(KEY, v);
+    }
+    return v;
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
-  return v;
+}
+
+// --- country helpers
+export function normalizeCountry(c) {
+  if (!c) return "DE";
+  const s = String(c).trim();
+  if (s.length === 2) return s.toUpperCase();
+  const map = {
+    Germany: "DE",
+    Deutschland: "DE",
+    Austria: "AT",
+    Österreich: "AT",
+    Switzerland: "CH",
+    Schweiz: "CH",
+    Italy: "IT",
+    Italia: "IT",
+    France: "FR",
+    Frankreich: "FR",
+    Netherlands: "NL",
+    Niederlande: "NL",
+  };
+  return map[s] || "DE";
+}
+
+function splitName(full) {
+  const parts = (full || "").trim().split(/\s+/);
+  if (parts.length === 1) return { first_name: parts[0], last_name: "" };
+  return {
+    first_name: parts.slice(0, -1).join(" "),
+    last_name: parts.slice(-1).join(" "),
+  };
+}
+
+// shape we send into OrderCreateSerializer.shipping
+export function buildShippingSnapshot(form) {
+  const { first_name, last_name } = splitName(form.fullName);
+  return {
+    first_name,
+    last_name,
+    line1: `${form.street}${
+      form.houseNumber ? ` ${form.houseNumber}` : ""
+    }`.trim(),
+    line2: form.apartment || "",
+    postal_code: form.postalCode || "",
+    city: form.city || "",
+    country: normalizeCountry(form.country),
+    phone: form.telephone || "",
+    street_name: form.street || "",
+    house_number: form.houseNumber || "",
+  };
+}
+
+// final payload for backend checkout endpoints
+export function buildOrderPayload({
+  form,
+  items,
+  email,
+  couponCode,
+  payment_method,
+  extra = {},
+}) {
+  return {
+    email,
+    payment_method,
+    coupon_code: (couponCode || "").trim(),
+    items: (items || []).map((c) => ({
+      product_id: c.id,
+      qty: c.qty,
+    })),
+    shipping: buildShippingSnapshot(form),
+    ...extra, // idempotency_key, installments data, etc.
+  };
+}
+
+// --- helper: address payload for saving to /addresses/ (user profile)
+export function buildAddressPayload(form, addressIdRef) {
+  const { first_name, last_name } = splitName(form.fullName);
+  return {
+    address_id: addressIdRef?.current ?? undefined,
+    first_name,
+    last_name,
+    address_line1: `${form.street}${
+      form.houseNumber ? ` ${form.houseNumber}` : ""
+    }`.trim(),
+    address_line2: form.apartment || "",
+    postal_code: form.postalCode || "",
+    city: form.city || "",
+    country: normalizeCountry(form.country),
+    phone: form.telephone || "",
+    street_name: form.street || "",
+    house_number: form.houseNumber || "",
+    is_default: true,
+  };
 }
