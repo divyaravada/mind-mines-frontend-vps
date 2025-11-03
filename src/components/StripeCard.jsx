@@ -1,4 +1,3 @@
-// src/components/StripeCard.jsx
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -8,20 +7,19 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useTranslation } from "react-i18next";
-import { getCheckoutIdem } from "../utils/idempotency";
-import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
 import {
   buildOrderPayload,
   buildShippingSnapshot,
   normalizeCountry,
 } from "../utils/orderPayload";
+import { getCheckoutIdem } from "../utils/idempotency";
+import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-// -------- inner button / confirm flow --------
-function CardInner({
+function InnerPay({
   shippingSnapshot,
   customerEmail,
   onSuccess,
@@ -39,12 +37,10 @@ function CardInner({
     setProcessing(true);
     setErrorMsg("");
 
-    // persist last order id for thank-you page
+    // keep last order id around for thank-you screen
     try {
       const oid = getPendingOrderId?.();
-      if (oid) {
-        sessionStorage.setItem("last_order_id", String(oid));
-      }
+      if (oid) sessionStorage.setItem("last_order_id", String(oid));
     } catch {
       /* ignore */
     }
@@ -57,11 +53,9 @@ function CardInner({
           payment_method_data: {
             billing_details: {
               name:
-                shippingSnapshot.first_name || shippingSnapshot.last_name
-                  ? `${shippingSnapshot.first_name || ""} ${
-                      shippingSnapshot.last_name || ""
-                    }`.trim()
-                  : undefined,
+                (shippingSnapshot.first_name || "") +
+                " " +
+                (shippingSnapshot.last_name || ""),
               email: customerEmail || undefined,
               address: {
                 line1: shippingSnapshot.line1 || undefined,
@@ -78,19 +72,18 @@ function CardInner({
 
       if (error) {
         setErrorMsg(
-          error.message ||
-            t("checkout.cardError", { defaultValue: "Payment failed." })
+          error.message || t("checkout.cardError", "Payment failed.")
         );
         setProcessing(false);
         return;
       }
 
-      // Treat succeeded / processing / requires_capture as success state
+      // treat succeeded/processing as success UX
       if (
         paymentIntent &&
-        (paymentIntent.status === "succeeded" ||
-          paymentIntent.status === "processing" ||
-          paymentIntent.status === "requires_capture")
+        ["succeeded", "processing", "requires_capture"].includes(
+          paymentIntent.status
+        )
       ) {
         onSuccess?.();
         return;
@@ -98,7 +91,7 @@ function CardInner({
 
       onSuccess?.();
     } catch {
-      setErrorMsg(t("checkout.cardError", { defaultValue: "Payment failed." }));
+      setErrorMsg(t("checkout.cardError", "Payment failed."));
       setProcessing(false);
     }
   }, [
@@ -121,7 +114,7 @@ function CardInner({
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
       >
         {processing
-          ? t("checkout.processing", { defaultValue: "Processing..." })
+          ? t("checkout.processing", "Processing…")
           : t("checkout.payCard", {
               defaultValue: "Pay securely — {{total}}",
               total: totalFormatted,
@@ -131,32 +124,30 @@ function CardInner({
   );
 }
 
-// -------- wrapper that calls backend /stripe/create-intent/ --------
 export default function StripeCard({
   active,
   setActive,
-  form, // checkout form state
-  items, // [{id, qty, price, ...}]
+  form,
+  items,
+  couponCode,
+  total,
+  customerEmail,
   setLocalOrderId,
   getPendingOrderId,
   onSuccess,
-  total,
-  couponCode,
-  customerEmail,
 }) {
   const { i18n } = useTranslation();
   const [createIntent] = useStripeCreateIntentMutation();
 
-  // UI state
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // cache to avoid multiple orders for same cart
+  // caching per cart signature
   const cachedOrderIdRef = useRef(null);
   const cachedClientSecretRef = useRef(null);
   const lastCartSigRef = useRef(null);
 
-  // only product_id+qty defines cartSig
+  // cartSig: stable signature of product_id+qty pairs
   const cartSig = useMemo(() => {
     const norm = items.map((it) => ({
       product_id: it.id,
@@ -170,14 +161,14 @@ export default function StripeCard({
     return JSON.stringify(norm);
   }, [items]);
 
-  // Get shipping snapshot once so we can use in billing_details + payload
   const shippingSnapshot = useMemo(() => buildShippingSnapshot(form), [form]);
 
+  // Init PaymentIntent on first expand or when cart changed
   useEffect(() => {
     let cancelled = false;
     if (!active) return;
 
-    // Reuse if cart signature is same
+    // reused?
     if (
       cachedOrderIdRef.current &&
       cachedClientSecretRef.current &&
@@ -188,24 +179,28 @@ export default function StripeCard({
       return;
     }
 
+    // block 0€ case
+    if (Number(total) <= 0) {
+      setClientSecret("");
+      setLocalOrderId?.(null);
+      return;
+    }
+
     (async () => {
       setLoading(true);
       try {
-        // Step 1: build unified payload
         const payload = buildOrderPayload({
           form,
           items,
           email: (customerEmail || form.email || "").trim(),
           couponCode,
-          payment_method: "card",
+          payment_method: "card", // backend will also allow klarna/giropay/sofort
           extra: {
-            idempotency_key: getCheckoutIdem(),
+            idempotency_key: getCheckoutIdem(cartSig),
           },
         });
 
-        // Step 2: hit backend /stripe/create-intent/
         const res = await createIntent(payload).unwrap();
-
         const cs =
           res?.clientSecret ||
           res?.client_secret ||
@@ -225,11 +220,9 @@ export default function StripeCard({
       } catch (e) {
         if (!cancelled) {
           setClientSecret("");
-          const msg =
-            e?.data?.detail ||
-            e?.data?.error ||
-            "Failed to initialize payment.";
-          alert(msg);
+          alert(
+            e?.data?.detail || e?.data?.error || "Failed to initialize payment."
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -242,11 +235,12 @@ export default function StripeCard({
   }, [
     active,
     cartSig,
-    form,
     items,
-    createIntent,
-    customerEmail,
     couponCode,
+    customerEmail,
+    total,
+    createIntent,
+    form,
     setLocalOrderId,
   ]);
 
@@ -262,7 +256,7 @@ export default function StripeCard({
     }
   }, [i18n.language, total]);
 
-  // collapsed radio (when not selected)
+  // collapsed radio
   if (!active) {
     return (
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -273,12 +267,14 @@ export default function StripeCard({
           checked={false}
           onChange={() => setActive?.("card")}
         />
-        <span className="flex-1">Card / Klarna / Giropay (Stripe)</span>
+        <span className="flex-1">
+          Card / Klarna / Giropay / Sofort (Stripe)
+        </span>
       </label>
     );
   }
 
-  // expanded content
+  // expanded
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -289,7 +285,9 @@ export default function StripeCard({
           checked
           onChange={() => setActive?.("card")}
         />
-        <span className="flex-1">Card / Klarna / Giropay (Stripe)</span>
+        <span className="flex-1">
+          Card / Klarna / Giropay / Sofort (Stripe)
+        </span>
         <span className="text-xs">Visa · Mastercard · etc.</span>
       </label>
 
@@ -309,7 +307,7 @@ export default function StripeCard({
               locale: i18n.language?.startsWith("de") ? "de" : "en",
             }}
           >
-            <CardInner
+            <InnerPay
               shippingSnapshot={shippingSnapshot}
               customerEmail={customerEmail || form.email}
               onSuccess={onSuccess}

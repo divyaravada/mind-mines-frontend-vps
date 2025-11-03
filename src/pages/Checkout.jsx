@@ -19,7 +19,11 @@ import StripeCard from "../components/StripeCard";
 import StripeCardInstallments from "../components/StripeCardInstallments";
 
 import { usePreviewCouponMutation } from "../features/promos/promosApi";
-
+import {
+  normalizeCountry,
+  buildOrderPayload,
+  buildAddressPayload,
+} from "../utils/orderPayload";
 import {
   usePaypalCaptureOrderMutation,
   usePaypalCreateOrderMutation,
@@ -32,6 +36,7 @@ import {
   useCreateAddressMutation,
   useUpdateAddressMutation,
 } from "../features/addresses/addressApi";
+import { fmtEUR } from "../lib/money";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 
@@ -44,126 +49,17 @@ const splitInstallments = (total, months) => {
   return parts.map((c) => c / 100);
 };
 
-const fmtEUR = (n, locale = "en") => {
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-  } catch {
-    const v = Number.isFinite(n) ? n : 0;
-    return `${v.toFixed(2)} €`;
-  }
-};
-
-// normalize country codes
-const normalizeCountry = (c) => {
-  if (!c) return "DE";
-  const s = String(c).trim();
-  if (s.length === 2) return s.toUpperCase();
-  const map = {
-    Germany: "DE",
-    Deutschland: "DE",
-    Austria: "AT",
-    Österreich: "AT",
-    Switzerland: "CH",
-    Schweiz: "CH",
-    Italy: "IT",
-    Italia: "IT",
-    France: "FR",
-    Frankreich: "FR",
-    Netherlands: "NL",
-    Niederlande: "NL",
-  };
-  return map[s] || "DE";
-};
-
-// --- helper: split full name into first/last for address save and shipping snapshot
-function splitName(full) {
-  const parts = (full || "").trim().split(/\s+/);
-  if (parts.length === 1) {
-    return { first_name: parts[0], last_name: "" };
-  }
-  return {
-    first_name: parts.slice(0, -1).join(" "),
-    last_name: parts.slice(-1).join(" "),
-  };
-}
-
-// --- helper: snapshot of shipping address for OrderCreateSerializer
-function buildShippingSnapshot(form) {
-  const { first_name, last_name } = splitName(form.fullName);
-  return {
-    first_name,
-    last_name,
-    line1: `${form.street}${
-      form.houseNumber ? ` ${form.houseNumber}` : ""
-    }`.trim(),
-    line2: form.apartment || "",
-    postal_code: form.postalCode || "",
-    city: form.city || "",
-    country: normalizeCountry(form.country),
-    phone: form.telephone || "",
-    street_name: form.street || "",
-    house_number: form.houseNumber || "",
-  };
-}
-
-// --- helper: address payload for saving to /addresses/ (user profile)
-function buildAddressPayload(form, addressIdRef) {
-  const { first_name, last_name } = splitName(form.fullName);
-  return {
-    address_id: addressIdRef.current ?? undefined,
-    first_name,
-    last_name,
-    address_line1: `${form.street}${
-      form.houseNumber ? ` ${form.houseNumber}` : ""
-    }`.trim(),
-    address_line2: form.apartment || "",
-    postal_code: form.postalCode || "",
-    city: form.city || "",
-    country: normalizeCountry(form.country),
-    phone: form.telephone || "",
-    street_name: form.street || "",
-    house_number: form.houseNumber || "",
-    is_default: true,
-  };
-}
-
-// --- helper: final payload for checkout endpoints (Stripe/PayPal/etc.)
-function buildOrderPayload({
-  form,
-  items,
-  email,
-  couponCode,
-  payment_method,
-  extra = {},
-}) {
-  return {
-    email,
-    payment_method,
-    coupon_code: (couponCode || "").trim(),
-    items: items.map((c) => ({
-      product_id: c.id,
-      qty: c.qty,
-    })),
-    shipping: buildShippingSnapshot(form),
-    ...extra, // for installments (months, payment_method_id, country, etc.)
-  };
-}
-
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
   const subtotal = useSelector(selectCartSubtotal);
 
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
-  const authEmail = useSelector((s) => s.auth?.user?.email) || "";
 
   const [previewCoupon] = usePreviewCouponMutation();
 
@@ -177,6 +73,19 @@ export default function Checkout() {
     undefined,
     { skip: !isAuth }
   );
+
+  // Address/delivery form
+  const [form, setForm] = useState({
+    email: "",
+    country: "DE",
+    fullName: "",
+    street: "",
+    houseNumber: "",
+    apartment: "",
+    postalCode: "",
+    city: "",
+    telephone: "",
+  });
 
   // coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -199,19 +108,6 @@ export default function Checkout() {
 
   const [createAddress] = useCreateAddressMutation();
   const [updateAddress] = useUpdateAddressMutation();
-
-  // Address/delivery form
-  const [form, setForm] = useState({
-    email: "",
-    country: "DE",
-    fullName: "",
-    street: "",
-    houseNumber: "",
-    apartment: "",
-    postalCode: "",
-    city: "",
-    telephone: "",
-  });
 
   // Prefill address from account default
   useEffect(() => {
@@ -256,10 +152,6 @@ export default function Checkout() {
       }));
     }
   }, [addrList, addrLoading, isAuth, acct?.email]);
-
-  // keep form state in sync with text inputs
-  const onChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   // guard: don't allow checkout if cart is really empty
   useEffect(() => {
@@ -422,6 +314,9 @@ export default function Checkout() {
   const [sepaMonths, setSepaMonths] = useState(null);
   const localOrderIdRef = useRef(null);
 
+  const [savedCardPaymentMethodId] = useState(null);
+  const [savedSepaPaymentMethodId] = useState(null);
+
   // validate minimum required address fields
   const hasMinimalAddress = () => {
     const needed = [
@@ -454,31 +349,229 @@ export default function Checkout() {
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
-  // force DE if SEPA selected and user tries to switch country
+  const countryCode = normalizeCountry(form.country);
+  const deOnlyMethod =
+    payment === "sepa_debit" || payment.startsWith("sepa_installments");
   useEffect(() => {
-    const code = normalizeCountry(form.country);
-    if (
-      (payment === "sepa_debit" ||
-        payment === "bank" ||
-        payment.startsWith("sepa_installments")) &&
-      code !== "DE"
-    ) {
+    if (deOnlyMethod && countryCode !== "DE") {
       setForm((prev) => ({ ...prev, country: "DE" }));
     }
-  }, [payment, form.country]);
+  }, [countryCode, deOnlyMethod]);
 
-  const countryCode = normalizeCountry(form.country);
-  const sepaAllowed = countryCode === "DE";
+  const renderPayPalSection = () => (
+    <PayPalScriptProvider
+      options={{
+        clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
+        currency: "EUR",
+        intent: "capture",
+        components: "buttons",
+        locale: i18n.language === "de" ? "de_DE" : "en_US",
+      }}
+    >
+      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+        <input
+          type="radio"
+          name="payment"
+          value="paypal"
+          checked={payment === "paypal"}
+          onChange={() => setPaymentSafe("paypal")}
+        />
+        <span className="flex-1">PayPal / PayPal Pay Later</span>
+        <span className="text-xs font-semibold text-[#003087]">PayPal</span>
+      </label>
 
-  // decide which email we actually use
-  const effectiveEmail = useMemo(() => {
-    return (form.email || accountData?.email || authEmail || "").trim();
-  }, [form.email, accountData?.email, authEmail]);
+      {payment === "paypal" && (
+        <div className="border rounded p-3">
+          <PayPalButtons
+            fundingSource={undefined} // allow PayPal to offer Pay Later
+            style={{ layout: "horizontal", label: "paypal" }}
+            onClick={async (_, actions) => {
+              if (!hasMinimalAddress()) {
+                alert("Please fill in contact + delivery first.");
+                return actions.reject();
+              }
+              return actions.resolve();
+            }}
+            createOrder={async () => {
+              const orderPayload = {
+                email: form.email,
+                payment_method: "paypal",
+                coupon_code: couponCode,
+                items: items.map((c) => ({
+                  product_id: c.id,
+                  qty: c.qty,
+                })),
+                shipping: {
+                  first_name: form.fullName.split(" ")[0] || form.fullName,
+                  last_name: form.fullName.split(" ").slice(1).join(" "),
+                  line1: `${form.street} ${form.houseNumber}`.trim(),
+                  line2: form.apartment || "",
+                  postal_code: form.postalCode,
+                  city: form.city,
+                  country: normalizeCountry(form.country),
+                  phone: form.telephone || "",
+                },
+              };
 
-  // Build common info for checkout calls
-  const currentCoupon = (couponCode || couponInfo?.code || "")
-    .trim()
-    .toUpperCase();
+              const res = await paypalCreateOrder(orderPayload).unwrap();
+              localOrderIdRef.current = res?.order_id;
+              return res?.id; // PayPal order id
+            }}
+            onApprove={async (data) => {
+              const cap = await paypalCaptureOrder({
+                paypalOrderId: data.orderID,
+                localOrderId: localOrderIdRef.current,
+              }).unwrap();
+
+              if (cap?.status === "COMPLETED") {
+                onSuccessfulOrder(localOrderIdRef.current);
+              } else {
+                alert("Payment capture failed.");
+              }
+            }}
+          />
+        </div>
+      )}
+    </PayPalScriptProvider>
+  );
+
+  // UI for card installments choice
+  const renderCardInstallmentsBlock = () => (
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
+          0% financing with card
+        </div>
+        <div className="text-sm text-gray-600">
+          Choose term:
+          <span className="ml-2 inline-flex gap-2">
+            {[3, 6, 9].map((m) => (
+              <button
+                key={`card-${m}`}
+                type="button"
+                onClick={() => {
+                  setCardMonths((prev) => {
+                    const same = prev === m;
+                    const next = same ? null : m;
+                    setPaymentSafe(same ? "card" : `card_installments_${m}`);
+                    return next;
+                  });
+                }}
+                className={`px-2 py-1 rounded border text-sm ${
+                  cardMonths === m
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {m} months
+              </button>
+            ))}
+          </span>
+        </div>
+      </div>
+
+      {cardMonths && (
+        <StripeCardInstallments
+          active={payment === `card_installments_${cardMonths}`}
+          setActive={() => setPaymentSafe(`card_installments_${cardMonths}`)}
+          months={cardMonths}
+          form={form}
+          items={items}
+          couponCode={couponCode}
+          paymentMethodId={savedCardPaymentMethodId}
+          setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+          onSuccess={(id) => onSuccessfulOrder(id)}
+        />
+      )}
+    </div>
+  );
+
+  // UI for SEPA installments (DE only)
+  const renderSepaInstallmentsBlock = () => (
+    <div className="mt-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
+          0% Finanzierung (SEPA Lastschrift)
+        </div>
+        <div className="text-sm text-gray-600">
+          Laufzeit:
+          <span className="ml-2 inline-flex gap-2">
+            {[3, 6, 9].map((m) => (
+              <button
+                key={`sepa-${m}`}
+                type="button"
+                onClick={() => {
+                  setSepaMonths((prev) => {
+                    const same = prev === m;
+                    const next = same ? null : m;
+                    setPaymentSafe(
+                      same ? "sepa_debit" : `sepa_installments_${m}`
+                    );
+                    return next;
+                  });
+                }}
+                className={`px-2 py-1 rounded border text-sm ${
+                  sepaMonths === m
+                    ? "bg-pink-600 text-white border-pink-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {m} Monate
+              </button>
+            ))}
+          </span>
+        </div>
+      </div>
+
+      {sepaMonths && (
+        <StripeSepaInstallments
+          active={payment === `sepa_installments_${sepaMonths}`}
+          setActive={() => setPaymentSafe(`sepa_installments_${sepaMonths}`)}
+          months={sepaMonths}
+          form={form}
+          items={items}
+          couponCode={couponCode}
+          paymentMethodId={savedSepaPaymentMethodId}
+          countryCode={normalizeCountry(form.country)}
+          setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+          onSuccess={(id) => onSuccessfulOrder(id)}
+        />
+      )}
+    </div>
+  );
+
+  // redirect away if cart is empty
+  useEffect(() => {
+    if (skipCartGuardRef.current) return;
+    if (items.length > 0) return;
+
+    try {
+      const raw = localStorage.getItem("cart_v1");
+      const lsItems = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(lsItems) && lsItems.length > 0) return;
+    } catch {}
+
+    const id = setTimeout(() => {
+      if (!skipCartGuardRef.current && items.length === 0) {
+        navigate("/decorative-products");
+      }
+    }, 150);
+    return () => clearTimeout(id);
+  }, [items.length, navigate]);
+
+  const fmtEUR = (n) => {
+    try {
+      return new Intl.NumberFormat(i18n.language || "en", {
+        style: "currency",
+        currency: "EUR",
+      }).format(n);
+    } catch {
+      return `${Number(n || 0).toFixed(2)} €`;
+    }
+  };
+
+  const onChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   // ---- RENDER ----
   return (
@@ -707,278 +800,45 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* CARD (Stripe one-shot) */}
+          {/* Stripe Card / Klarna / Giropay / Sofort */}
           <StripeCard
-            active={payment === "card"}
-            setActive={() => setPaymentSafe("card")}
-            // we'll build payload in StripeCard the same way:
-            // buildOrderPayload({ form, items, email, couponCode, payment_method: "card" })
+            active={
+              payment === "card" || payment.startsWith("card_installments")
+            }
+            setActive={(val) => setPaymentSafe(val)}
             form={form}
             items={items}
-            couponCode={currentCoupon}
+            couponCode={couponCode}
             total={payTotal}
-            customerEmail={effectiveEmail}
+            customerEmail={form.email}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             getPendingOrderId={() => localOrderIdRef.current}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
           />
 
-          {/* CARD installments */}
-          {payment.startsWith("card") && isAuth && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
-                  0% financing with card
-                </div>
-                {!isAuth ? (
-                  <div className="text-xs text-gray-600">
-                    Sign in to use installments.
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-600">
-                    Choose term:
-                    <span className="ml-2 inline-flex gap-2">
-                      {[3, 6, 9].map((m) => (
-                        <button
-                          key={`card-${m}`}
-                          type="button"
-                          onClick={() => {
-                            setCardMonths((prev) => {
-                              const same = prev === m;
-                              const nextMonths = same ? null : m;
-                              setPaymentSafe(
-                                same ? "card" : `card_installments_${m}`
-                              );
-                              return nextMonths;
-                            });
-                          }}
-                          className={`px-2 py-1 rounded border text-sm ${
-                            cardMonths === m
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "hover:bg-gray-50"
-                          }`}
-                        >
-                          {m} months
-                        </button>
-                      ))}
-                    </span>
-                  </div>
-                )}
-              </div>
+          {/* Card installments */}
+          {renderCardInstallmentsBlock()}
 
-              {isAuth && cardMonths ? (
-                <div className="text-sm text-gray-700 mb-3">
-                  <div className="font-medium">
-                    Monthly payments ({cardMonths}):{" "}
-                    {(() => {
-                      const parts = splitInstallments(payTotal, cardMonths);
-                      return parts.length > 0
-                        ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
-                        : fmtEUR(payTotal, locale);
-                    })()}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Last month may differ by a few cents due to rounding.
-                  </div>
-                </div>
-              ) : null}
+          {/* PayPal / PayPal Pay Later */}
+          {renderPayPalSection()}
 
-              {isAuth && cardMonths && (
-                <StripeCardInstallments
-                  active={payment === `card_installments_${cardMonths}`}
-                  setActive={() =>
-                    setPaymentSafe(`card_installments_${cardMonths}`)
-                  }
-                  months={cardMonths}
-                  form={form}
-                  items={items}
-                  couponCode={currentCoupon}
-                  total={payTotal}
-                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                />
-              )}
-            </div>
-          )}
-
-          {/* PAYPAL */}
-          <PayPalScriptProvider
-            options={{
-              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID || "",
-              currency: "EUR",
-              intent: "capture",
-              components: "buttons",
-              locale: i18n.language === "de" ? "de_DE" : "en_US",
-              disableFunding: "card",
-            }}
-          >
-            <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
-              <input
-                type="radio"
-                name="payment"
-                value="paypal"
-                checked={payment === "paypal"}
-                onChange={() => setPaymentSafe("paypal")}
-              />
-              <span className="flex-1">PayPal</span>
-              <span className="text-xs font-semibold text-[#003087]">
-                PayPal
-              </span>
-            </label>
-
-            {payment === "paypal" && (
-              <div className="border rounded p-3">
-                <PayPalButtons
-                  fundingSource="paypal"
-                  style={{ layout: "horizontal", label: "paypal" }}
-                  onClick={async (_, actions) => {
-                    if (!hasMinimalAddress()) {
-                      alert(t("checkout.saveAddressFirst"));
-                      return actions.reject();
-                    }
-                    return actions.resolve();
-                  }}
-                  createOrder={async () => {
-                    // build payload for backend
-                    const orderPayload = buildOrderPayload({
-                      form,
-                      items,
-                      email: effectiveEmail,
-                      couponCode: currentCoupon,
-                      payment_method: "paypal",
-                    });
-
-                    // send to /paypal/create-order/
-                    const res = await paypalCreateOrder(orderPayload).unwrap();
-                    // store our local order id
-                    localOrderIdRef.current = res?.order_id;
-                    // return PayPal order id for their SDK
-                    return res?.id;
-                  }}
-                  onApprove={async (data) => {
-                    // capture with both paypal order id and local order id
-                    const cap = await paypalCaptureOrder({
-                      paypalOrderId: data.orderID,
-                      localOrderId: localOrderIdRef.current,
-                    }).unwrap();
-
-                    if (cap?.status === "COMPLETED") {
-                      onSuccessfulOrder(localOrderIdRef.current);
-                    } else {
-                      alert("Payment capture failed.");
-                    }
-                  }}
-                />
-              </div>
-            )}
-          </PayPalScriptProvider>
-
-          {/* SEPA direct debit (DE only) */}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-            <input
-              type="radio"
-              name="payment"
-              value="sepa_debit"
-              checked={payment === "sepa_debit"}
-              onChange={() =>
-                sepaAllowed ? setPaymentSafe("sepa_debit") : null
-              }
-              disabled={!sepaAllowed}
-            />
-            <span className="flex-1">SEPA Lastschrift — DE only</span>
-          </label>
-
-          {payment === "sepa_debit" && (
-            <StripeSepa
-              active
-              setActive={() => setPaymentSafe("sepa_debit")}
-              form={form}
-              items={items}
-              couponCode={currentCoupon}
-              total={payTotal}
-              customerEmail={effectiveEmail}
-              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            />
-          )}
+          <StripeSepa
+            active={
+              payment === "sepa_debit" ||
+              payment.startsWith("sepa_installments")
+            }
+            setActive={(val) => setPaymentSafe(val)}
+            form={form}
+            items={items}
+            couponCode={couponCode}
+            total={payTotal}
+            customerEmail={form.email}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={(id) => onSuccessfulOrder(id || localOrderIdRef.current)}
+          />
 
           {/* SEPA installments (DE only) */}
-          {(payment === "sepa_debit" ||
-            payment.startsWith("sepa_installments")) && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
-                  0% Finanzierung verfügbar
-                </div>
-                {!isAuth ? (
-                  <div className="text-xs text-gray-600">Bitte anmelden.</div>
-                ) : (
-                  <div className="text-sm text-gray-600">
-                    Wählen Sie die Laufzeit:
-                    <span className="ml-2 inline-flex gap-2">
-                      {[3, 6, 9].map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => {
-                            setSepaMonths((prev) => {
-                              const same = prev === m;
-                              const nextMonths = same ? null : m;
-                              setPaymentSafe(
-                                same ? "sepa_debit" : `sepa_installments_${m}`
-                              );
-                              return nextMonths;
-                            });
-                          }}
-                          className={`px-2 py-1 rounded border text-sm ${
-                            sepaMonths === m
-                              ? "bg-pink-600 text-white border-pink-600"
-                              : "hover:bg-gray-50"
-                          }`}
-                        >
-                          {m} Monate
-                        </button>
-                      ))}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {isAuth && sepaMonths ? (
-                <div className="text-sm text-gray-700 mb-3">
-                  <div className="font-medium">
-                    Monatsraten ({sepaMonths}):{" "}
-                    {(() => {
-                      const parts = splitInstallments(payTotal, sepaMonths);
-                      return parts.length > 0
-                        ? parts.map((amt) => fmtEUR(amt, locale)).join(" • ")
-                        : fmtEUR(payTotal, locale);
-                    })()}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Hinweis: Die letzte Rate kann wegen Rundung ein paar Cent
-                    abweichen.
-                  </div>
-                </div>
-              ) : null}
-
-              {isAuth && sepaMonths && (
-                <StripeSepaInstallments
-                  active={payment === `sepa_installments_${sepaMonths}`}
-                  setActive={() =>
-                    setPaymentSafe(`sepa_installments_${sepaMonths}`)
-                  }
-                  months={sepaMonths}
-                  form={form}
-                  items={items}
-                  couponCode={currentCoupon}
-                  total={payTotal}
-                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                />
-              )}
-            </div>
-          )}
+          {renderSepaInstallmentsBlock()}
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700">
             <Badge

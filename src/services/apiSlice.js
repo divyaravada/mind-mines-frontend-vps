@@ -1,29 +1,22 @@
-// src/services/apiSlice.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { logout, setCredentials } from "../features/auth/authSlice";
 
-// CRA-friendly env
 const RAW = (
   process.env.REACT_APP_API_URL || "https://mindmines.eu/api"
 ).trim();
 export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
 
-// --- base query that attaches Authorization header if we have access token ---
-const authBaseQuery = fetchBaseQuery({
+const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE,
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const token = getState()?.auth?.access;
-    if (token) {
-      headers.set("authorization", `Bearer ${token}`);
-    }
+    if (token) headers.set("authorization", `Bearer ${token}`);
     headers.set("accept", "application/json");
     return headers;
   },
 });
 
-// --- base query WITHOUT Authorization, for refresh flow ---
-const anonBaseQuery = fetchBaseQuery({
+const bareBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE,
   credentials: "include",
   prepareHeaders: (headers) => {
@@ -32,21 +25,18 @@ const anonBaseQuery = fetchBaseQuery({
   },
 });
 
-// --- wrapper to auto-handle 401 and refresh ---
+// auto-refresh access token on 401
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  // 1. try original
-  let result = await authBaseQuery(args, api, extraOptions);
+  let result = await rawBaseQuery(args, api, extraOptions);
 
-  // 2. if 401 -> try refresh
   if (result?.error?.status === 401) {
     const refreshToken = api.getState()?.auth?.refresh;
-
     if (!refreshToken) {
-      api.dispatch(logout());
+      api.dispatch({ type: "auth/logout" });
       return result;
     }
 
-    const refreshResult = await anonBaseQuery(
+    const refresh = await bareBaseQuery(
       {
         url: "token/refresh/",
         method: "POST",
@@ -56,20 +46,14 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       extraOptions
     );
 
-    if (refreshResult?.data?.access) {
-      // store new access token in Redux
-      api.dispatch(
-        setCredentials({
-          access: refreshResult.data.access,
-          refresh: refreshToken,
-        })
-      );
-
-      // retry the original query with the new token
-      result = await authBaseQuery(args, api, extraOptions);
+    if (refresh?.data?.access) {
+      api.dispatch({
+        type: "auth/setCredentials",
+        payload: { access: refresh.data.access, refresh: refreshToken },
+      });
+      result = await rawBaseQuery(args, api, extraOptions);
     } else {
-      // refresh also failed → force logout
-      api.dispatch(logout());
+      api.dispatch({ type: "auth/logout" });
     }
   }
 
@@ -83,12 +67,11 @@ export const api = createApi({
     "Auth",
     "Account",
     "Addresses",
-    "Stones",
     "Products",
     "Reviews",
-    "Newsletter",
     "Wishlist",
     "Orders",
+    "Promos",
   ],
   endpoints: () => ({}),
 });

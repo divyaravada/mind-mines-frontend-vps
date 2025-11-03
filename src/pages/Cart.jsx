@@ -26,18 +26,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const fmtEUR = (n, locale = "en") => {
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-  } catch {
-    const v = Number.isFinite(n) ? n : 0;
-    return `${v.toFixed(2)} €`;
-  }
-};
+import { fmtEUR } from "../lib/money";
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
