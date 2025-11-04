@@ -90,10 +90,10 @@ function InnerPay({
         fetch(`/api/orders/${localOrderId}/payment-status/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // add credentials: "include" if your API needs cookies
+          credentials: "include", // add credentials: "include" if your API needs cookies
           body: JSON.stringify({
             intent_id: paymentIntent.id,
-            status: paymentIntent.status,
+            payment_status: paymentIntent.status,
           }),
         }).catch(() => {});
       }
