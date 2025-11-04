@@ -1,5 +1,5 @@
-// components/StripeCardSimple.jsx
-import { useEffect, useMemo, useState, useRef } from "react";
+// src/components/StripeCardSimple.jsx
+import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -12,7 +12,7 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function PayForm({ clientSecret, orderId, billing, onSuccess }) {
+function PayForm({ orderId, billing, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -26,7 +26,6 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Optional: you can omit return_url because we use redirect:"if_required"
         return_url: `${window.location.origin}/checkout/return`,
         payment_method_data: {
           billing_details: {
@@ -51,8 +50,8 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
       return;
     }
 
-    // Optional: inform backend immediately (webhook still handles the source of truth)
-    if (paymentIntent) {
+    // ping backend (webhook is still source of truth)
+    if (paymentIntent && orderId) {
       fetch(`/api/orders/${orderId}/payment-status/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +63,7 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
       }).catch(() => {});
     }
 
-    onSuccess?.();
+    onSuccess?.(orderId);
   };
 
   return (
@@ -83,8 +82,7 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
 }
 
 export default function StripeCardSimple({ orderPayload, onSuccess }) {
-  // orderPayload = { email, items:[{product_id,qty}], shipping:{...} }
-  if (!orderPayload) return null;
+  // 🧠 Hooks must be at top-level, always called
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -104,16 +102,20 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+
+    const init = async () => {
+      // If payload incomplete, clear state and exit gracefully
       if (
         !orderPayload?.email ||
         !Array.isArray(orderPayload?.items) ||
-        orderPayload.items.length === 0
+        orderPayload.items.length === 0 ||
+        !orderPayload?.shipping
       ) {
         setClientSecret("");
         setOrderId(null);
         return;
       }
+
       setLoading(true);
       try {
         const res = await fetch("/api/stripe/create-intent/", {
@@ -141,15 +143,17 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
         }
         alert(e.message || "Failed to initialize payment.");
       } finally {
-        active = false;
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    })();
+    };
+
+    init();
     return () => {
       active = false;
     };
   }, [orderPayload]);
 
+  // Render states (no hooks below this point)
   if (!process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY) {
     return <div className="text-red-600">Missing Stripe publishable key.</div>;
   }
@@ -160,20 +164,17 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
       </div>
     );
   }
-  if (!clientSecret) return null;
+  if (!clientSecret) {
+    // No form until we have a clientSecret
+    return null;
+  }
 
   return (
     <Elements
       stripe={stripePromise}
-      ac
       options={{ clientSecret, appearance: { theme: "stripe" } }}
     >
-      <PayForm
-        clientSecret={clientSecret}
-        orderId={orderId}
-        billing={billing}
-        onSuccess={onSuccess}
-      />
+      <PayForm orderId={orderId} billing={billing} onSuccess={onSuccess} />
     </Elements>
   );
 }

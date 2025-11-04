@@ -754,7 +754,7 @@ export default function Checkout() {
           />
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}
-          <StripeCard
+          {/* <StripeCard
             active={
               payment === "card" ||
               (typeof payment === "string" &&
@@ -769,7 +769,7 @@ export default function Checkout() {
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
             getPendingOrderId={() => localOrderIdRef.current}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-          />
+          /> */}
 
           {/* Card installments */}
           {renderCardInstallmentsBlock()}
