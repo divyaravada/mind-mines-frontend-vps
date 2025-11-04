@@ -3,12 +3,13 @@ import { api } from "../../services/apiSlice";
 export const paymentsApi = api.injectEndpoints({
   endpoints: (build) => ({
     stripeCreateIntent: build.mutation({
-      query: (payload) => ({
-        url: "stripe/create-intent/",
+      query: (body) => ({
+        url: "/stripe/create-intent/",
         method: "POST",
-        body: payload,
+        body,
       }),
     }),
+
     stripeCardInstallments: build.mutation({
       query: (payload) => ({
         url: "stripe/installments/card/",

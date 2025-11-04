@@ -31,9 +31,6 @@ import {
   useUpdateAddressMutation,
 } from "../features/addresses/addressApi";
 import { fmtEUR } from "../lib/money";
-import StripeCardSimple from "../components/StripeCardSimple";
-
-const toCents = (n) => Math.round(Number(n || 0) * 100);
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
@@ -308,6 +305,82 @@ export default function Checkout() {
     }
   }, [countryCode, deOnlyActive]);
 
+  // === NEW: Create a local order for Stripe card ===
+  const ensureStripeOrder = useCallback(
+    async (pm) => {
+      if (localOrderIdRef.current) return localOrderIdRef.current;
+      if (!hasMinimalAddress()) {
+        alert(
+          t("checkout.fillFirst", "Please fill in contact + delivery first.")
+        );
+        return null;
+      }
+      if (items.length === 0) {
+        alert(t("checkout.emptyCart", "Your cart is empty."));
+        return null;
+      }
+
+      const installments_months =
+        pm && pm.startsWith("card_installments_")
+          ? Number(pm.split("_").pop())
+          : null;
+
+      try {
+        const res = await createOrder({
+          email: (form.email || "").trim(),
+          payment_method: installments_months ? "card_installments" : "card",
+          installments_months,
+          coupon_code: (couponCode || "").trim(),
+          items: backendItems,
+          shipping: {
+            first_name: form.fullName.split(" ")[0] || form.fullName,
+            last_name: form.fullName.split(" ").slice(1).join(" "),
+            line1: `${form.street} ${form.houseNumber}`.trim(),
+            line2: form.apartment || "",
+            postal_code: form.postalCode,
+            city: form.city,
+            country: normalizeCountry(form.country),
+            phone: form.telephone || "",
+            street_name: form.street || "",
+            house_number: form.houseNumber || "",
+          },
+        }).unwrap();
+
+        // Expecting { id, number, ... }
+        localOrderIdRef.current = res?.id;
+        return res?.id || null;
+      } catch (e) {
+        const msg =
+          e?.data?.detail ||
+          e?.data?.non_field_errors?.[0] ||
+          e?.error ||
+          "Order creation failed.";
+        alert(msg);
+        return null;
+      }
+    },
+    [
+      createOrder,
+      form,
+      items.length,
+      backendItems,
+      couponCode,
+      t,
+      normalizeCountry,
+    ]
+  );
+
+  // If user switches to card or card installments, pre-create the order
+  useEffect(() => {
+    if (!payment) return;
+    const isCard =
+      payment === "card" ||
+      (typeof payment === "string" && payment.startsWith("card_installments"));
+    if (isCard) {
+      ensureStripeOrder(payment);
+    }
+  }, [payment, ensureStripeOrder]);
+
   // PayPal block
   const renderPayPalSection = () => (
     <PayPalScriptProvider
@@ -495,44 +568,6 @@ export default function Checkout() {
 
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-
-  // Build the payload StripeCardSimple expects
-  const orderPayload = useMemo(() => {
-    const [firstName, ...rest] = (form.fullName || "").trim().split(/\s+/);
-    const lastName = rest.join(" ");
-
-    return {
-      email: (form.email || "").trim(),
-      items: backendItems,
-      shipping: {
-        first_name: firstName || form.fullName || "",
-        last_name: lastName || "",
-        line1: `${form.street || ""}${
-          form.houseNumber ? " " + form.houseNumber : ""
-        }`.trim(),
-        line2: form.apartment || "",
-        postal_code: form.postalCode || "",
-        city: form.city || "",
-        country: normalizeCountry(form.country),
-        phone: form.telephone || "",
-      },
-    };
-  }, [form, backendItems]);
-
-  const addressReady = useMemo(() => {
-    const s = orderPayload.shipping;
-    return (
-      !!orderPayload.email &&
-      !!s.first_name &&
-      !!s.last_name &&
-      !!s.line1 &&
-      !!s.postal_code &&
-      !!s.city &&
-      !!s.country &&
-      Array.isArray(orderPayload.items) &&
-      orderPayload.items.length > 0
-    );
-  }, [orderPayload]);
 
   // ---- RENDER ----
   return (
@@ -761,36 +796,46 @@ export default function Checkout() {
               )}
             </div>
           )}
-          {addressReady ? (
-            <StripeCardSimple
-              orderPayload={orderPayload}
-              onInit={(id) => (localOrderIdRef.current = id)}
-              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-            />
-          ) : (
-            <div className="border rounded p-3 mt-2 text-sm text-amber-700 bg-amber-50">
-              Please fill contact & delivery first (email, full name, street +
-              house no., postal code, city).
-            </div>
-          )}
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}
-          {/* <StripeCard
-            active={
-              payment === "card" ||
-              (typeof payment === "string" &&
-                payment.startsWith("card_installments"))
-            }
-            setActive={(val) => setPaymentSafe(val)}
-            form={form}
-            items={items}
-            couponCode={couponCode}
-            total={payTotal}
-            customerEmail={form.email}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            getPendingOrderId={() => localOrderIdRef.current}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-          /> */}
+          {/* === NEW: Card selector (Stripe) === */}
+          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
+            <input
+              type="radio"
+              name="payment"
+              value="card"
+              checked={payment === "card"}
+              onChange={() => setPaymentSafe("card")}
+            />
+            <span className="flex-1">
+              {t("checkout.card", "Credit/Debit Card")}
+            </span>
+            <span className="text-xs font-semibold">Stripe</span>
+          </label>
+
+          {/* When Card is chosen: ensure local order, then show StripeCard */}
+          {payment === "card" && (
+            <div className="border rounded p-3 mt-3">
+              {!localOrderIdRef.current ? (
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
+                  disabled={creatingOrder}
+                  onClick={() => ensureStripeOrder("card")}
+                >
+                  {creatingOrder
+                    ? t("checkout.initializing", "Initializing…")
+                    : t("checkout.continueCard", "Continue to card payment")}
+                </button>
+              ) : (
+                <StripeCard
+                  orderId={localOrderIdRef.current}
+                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                  onError={(m) => alert(m)}
+                />
+              )}
+            </div>
+          )}
 
           {/* Card installments */}
           {renderCardInstallmentsBlock()}
