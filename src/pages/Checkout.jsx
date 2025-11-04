@@ -747,10 +747,30 @@ export default function Checkout() {
             </div>
           )}
           <StripeCardSimple
-            orderPayload={orderPayload}
-            onSuccess={(orderId) =>
-              onSuccessfulOrder(orderId || localOrderIdRef.current)
-            }
+            orderPayload={{
+              email: (form.email || "").trim(),
+              items: backendItems, // [{ product_id, qty }]
+              shipping: {
+                first_name:
+                  (form.fullName || "").split(" ")[0] || form.fullName || "",
+                last_name: (form.fullName || "").split(" ").slice(1).join(" "),
+                line1: `${(form.street || "").trim()} ${(
+                  form.houseNumber || ""
+                ).trim()}`.trim(),
+                line2: form.apartment || "",
+                postal_code: (form.postalCode || "").trim(),
+                city: (form.city || "").trim(),
+                country: (form.country || "DE").toUpperCase(),
+                phone: (form.telephone || "").trim(),
+              },
+              payment_method: "card", // important
+              coupon_code: (couponCode || "").trim(),
+              idempotency_key: `idem_${btoa(JSON.stringify(backendItems)).slice(
+                0,
+                24
+              )}`,
+            }}
+            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
           />
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}

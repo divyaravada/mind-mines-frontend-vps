@@ -1,4 +1,4 @@
-// src/components/StripeCardSimple.jsx
+// components/StripeCardSimple.jsx
 import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -12,7 +12,7 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function PayForm({ orderId, billing, onSuccess }) {
+function PayForm({ clientSecret, orderId, billing, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -50,7 +50,7 @@ function PayForm({ orderId, billing, onSuccess }) {
       return;
     }
 
-    // ping backend (webhook is still source of truth)
+    // Optional echo to backend (webhook is the source of truth).
     if (paymentIntent && orderId) {
       fetch(`/api/orders/${orderId}/payment-status/`, {
         method: "POST",
@@ -63,7 +63,7 @@ function PayForm({ orderId, billing, onSuccess }) {
       }).catch(() => {});
     }
 
-    onSuccess?.(orderId);
+    onSuccess?.();
   };
 
   return (
@@ -82,10 +82,18 @@ function PayForm({ orderId, billing, onSuccess }) {
 }
 
 export default function StripeCardSimple({ orderPayload, onSuccess }) {
-  // 🧠 Hooks must be at top-level, always called
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Guard: don’t try init without the minimum
+  const hasMinimum =
+    orderPayload &&
+    orderPayload.email &&
+    Array.isArray(orderPayload.items) &&
+    orderPayload.items.length > 0 &&
+    orderPayload.shipping &&
+    orderPayload.shipping.first_name !== undefined;
 
   const billing = useMemo(() => {
     const s = orderPayload?.shipping || {};
@@ -102,20 +110,13 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
 
   useEffect(() => {
     let active = true;
+    if (!hasMinimum) {
+      setClientSecret("");
+      setOrderId(null);
+      return;
+    }
 
-    const init = async () => {
-      // If payload incomplete, clear state and exit gracefully
-      if (
-        !orderPayload?.email ||
-        !Array.isArray(orderPayload?.items) ||
-        orderPayload.items.length === 0 ||
-        !orderPayload?.shipping
-      ) {
-        setClientSecret("");
-        setOrderId(null);
-        return;
-      }
-
+    (async () => {
       setLoading(true);
       try {
         const res = await fetch("/api/stripe/create-intent/", {
@@ -124,39 +125,49 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
           credentials: "include",
           body: JSON.stringify({
             email: orderPayload.email,
-            payment_method: "card",
+            payment_method: orderPayload.payment_method || "card",
+            coupon_code: orderPayload.coupon_code || "",
+            idempotency_key: orderPayload.idempotency_key || "",
             items: orderPayload.items,
             shipping: orderPayload.shipping,
           }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.detail || "Init failed");
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          // Surface the exact server error
+          const detail =
+            data?.detail ||
+            (data?.errors && JSON.stringify(data.errors)) ||
+            JSON.stringify(data);
+          throw new Error(detail || "Init failed");
+        }
+
         if (active) {
-          setClientSecret(data.clientSecret);
-          setOrderId(data.order_id);
+          setClientSecret(data?.clientSecret || data?.client_secret || "");
+          setOrderId(data?.order_id || null);
         }
       } catch (e) {
-        console.error(e);
+        console.error("Stripe init error:", e);
         if (active) {
           setClientSecret("");
           setOrderId(null);
         }
-        alert(e.message || "Failed to initialize payment.");
+        alert(e?.message || "Failed to initialize payment.");
       } finally {
         if (active) setLoading(false);
       }
-    };
+    })();
 
-    init();
     return () => {
       active = false;
     };
-  }, [orderPayload]);
+  }, [hasMinimum, orderPayload]);
 
-  // Render states (no hooks below this point)
   if (!process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY) {
     return <div className="text-red-600">Missing Stripe publishable key.</div>;
   }
+  if (!hasMinimum) return null;
   if (loading) {
     return (
       <div className="border rounded p-3 mt-2 text-sm text-gray-600">
@@ -164,17 +175,19 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
       </div>
     );
   }
-  if (!clientSecret) {
-    // No form until we have a clientSecret
-    return null;
-  }
+  if (!clientSecret) return null;
 
   return (
     <Elements
       stripe={stripePromise}
       options={{ clientSecret, appearance: { theme: "stripe" } }}
     >
-      <PayForm orderId={orderId} billing={billing} onSuccess={onSuccess} />
+      <PayForm
+        clientSecret={clientSecret}
+        orderId={orderId}
+        billing={billing}
+        onSuccess={onSuccess}
+      />
     </Elements>
   );
 }
