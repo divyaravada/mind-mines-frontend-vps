@@ -248,7 +248,16 @@ export default function StripeCard({
       </label>
     );
   }
-
+  if (!process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY) {
+    console.error("Missing REACT_APP_STRIPE_PUBLISHABLE_KEY");
+  }
+  if (!stripePromise) {
+    return (
+      <div className="border rounded p-3 mt-2 text-sm text-red-600">
+        Payment temporarily unavailable. Please reload or try again later.
+      </div>
+    );
+  }
   return (
     <>
       <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
@@ -271,7 +280,7 @@ export default function StripeCard({
         </div>
       )}
 
-      {clientSecret && (
+      {clientSecret && stripePromise && (
         <div className="mt-2">
           <Elements
             stripe={stripePromise}
