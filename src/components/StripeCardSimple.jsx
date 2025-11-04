@@ -84,6 +84,7 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
 
 export default function StripeCardSimple({ orderPayload, onSuccess }) {
   // orderPayload = { email, items:[{product_id,qty}], shipping:{...} }
+  if (!orderPayload) return null;
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -104,6 +105,15 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
   useEffect(() => {
     let active = true;
     (async () => {
+      if (
+        !orderPayload?.email ||
+        !Array.isArray(orderPayload?.items) ||
+        orderPayload.items.length === 0
+      ) {
+        setClientSecret("");
+        setOrderId(null);
+        return;
+      }
       setLoading(true);
       try {
         const res = await fetch("/api/stripe/create-intent/", {
@@ -155,6 +165,7 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
   return (
     <Elements
       stripe={stripePromise}
+      ac
       options={{ clientSecret, appearance: { theme: "stripe" } }}
     >
       <PayForm

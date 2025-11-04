@@ -496,6 +496,29 @@ export default function Checkout() {
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
+  // Build the payload StripeCardSimple expects
+  const orderPayload = useMemo(() => {
+    const [firstName, ...rest] = (form.fullName || "").trim().split(/\s+/);
+    const lastName = rest.join(" ");
+
+    return {
+      email: (form.email || "").trim(),
+      items: backendItems,
+      shipping: {
+        first_name: firstName || form.fullName || "",
+        last_name: lastName || "",
+        line1: `${form.street || ""}${
+          form.houseNumber ? " " + form.houseNumber : ""
+        }`.trim(),
+        line2: form.apartment || "",
+        postal_code: form.postalCode || "",
+        city: form.city || "",
+        country: normalizeCountry(form.country),
+        phone: form.telephone || "",
+      },
+    };
+  }, [form, backendItems]);
+
   // ---- RENDER ----
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -723,7 +746,12 @@ export default function Checkout() {
               )}
             </div>
           )}
-          <StripeCardSimple />
+          <StripeCardSimple
+            orderPayload={orderPayload}
+            onSuccess={(orderId) =>
+              onSuccessfulOrder(orderId || localOrderIdRef.current)
+            }
+          />
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}
           <StripeCard
