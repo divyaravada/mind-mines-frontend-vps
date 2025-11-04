@@ -497,6 +497,28 @@ export default function Checkout() {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   // Build the payload StripeCardSimple expects
+  const orderPayload = useMemo(() => {
+    const [firstName, ...rest] = (form.fullName || "").trim().split(/\s+/);
+    const lastName = rest.join(" ");
+
+    return {
+      email: (form.email || "").trim(),
+      items: backendItems,
+      shipping: {
+        first_name: firstName || form.fullName || "",
+        last_name: lastName || "",
+        line1: `${form.street || ""}${
+          form.houseNumber ? " " + form.houseNumber : ""
+        }`.trim(),
+        line2: form.apartment || "",
+        postal_code: form.postalCode || "",
+        city: form.city || "",
+        country: normalizeCountry(form.country),
+        phone: form.telephone || "",
+      },
+    };
+  }, [form, backendItems]);
+
   const addressReady = useMemo(() => {
     const s = orderPayload.shipping;
     return (
