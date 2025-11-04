@@ -32,6 +32,7 @@ import {
 } from "../features/addresses/addressApi";
 import { fmtEUR } from "../lib/money";
 import { useCreateOrderMutation } from "../features/orders/ordersApi";
+import StripeProvider from "../components/StripeProvider";
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
@@ -830,11 +831,13 @@ export default function Checkout() {
                     : t("checkout.continueCard", "Continue to card payment")}
                 </button>
               ) : (
-                <StripeCard
-                  orderId={localOrderIdRef.current}
-                  onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-                  onError={(m) => alert(m)}
-                />
+                <StripeProvider>
+                  <StripeCard
+                    orderId={localOrderIdRef.current}
+                    onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                    onError={(m) => alert(m)}
+                  />
+                </StripeProvider>
               )}
             </div>
           )}
