@@ -37,9 +37,12 @@ function InnerPay({
     setProcessing(true);
     setErrorMsg("");
 
+    // cache the local order id if we have it
+    let localOrderId = undefined;
     try {
-      const oid = getPendingOrderId?.();
-      if (oid) sessionStorage.setItem("last_order_id", String(oid));
+      localOrderId = getPendingOrderId?.();
+      if (localOrderId)
+        sessionStorage.setItem("last_order_id", String(localOrderId));
     } catch {}
 
     try {
@@ -66,6 +69,7 @@ function InnerPay({
         redirect: "if_required",
       });
 
+      // If Stripe returned an error, surface it and stop.
       if (error) {
         setErrorMsg(
           error.message || t("checkout.cardError", "Payment failed.")
@@ -74,16 +78,27 @@ function InnerPay({
         return;
       }
 
+      // Webhook safety net: tell backend that PI succeeded/processing.
       if (
         paymentIntent &&
+        localOrderId &&
         ["succeeded", "processing", "requires_capture"].includes(
           paymentIntent.status
         )
       ) {
-        onSuccess?.();
-        return;
+        // Send but don't block UX on this call.
+        fetch(`/api/orders/${localOrderId}/payment-status/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // add credentials: "include" if your API needs cookies
+          body: JSON.stringify({
+            intent_id: paymentIntent.id,
+            status: paymentIntent.status,
+          }),
+        }).catch(() => {});
       }
 
+      // Navigate / mark success immediately (webhook or the call above will finalize).
       onSuccess?.();
     } catch {
       setErrorMsg(t("checkout.cardError", "Payment failed."));
