@@ -32,7 +32,6 @@ import {
 } from "../features/addresses/addressApi";
 import { fmtEUR } from "../lib/money";
 import StripeCardSimple from "../components/StripeCardSimple";
-import { getCheckoutIdem } from "../utils/idempotency";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 
@@ -498,38 +497,21 @@ export default function Checkout() {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   // Build the payload StripeCardSimple expects
-  const orderPayload = useMemo(() => {
-    const email = (form.email || "").trim();
+  const addressReady = useMemo(() => {
+    const s = orderPayload.shipping;
+    return (
+      !!orderPayload.email &&
+      !!s.first_name &&
+      !!s.last_name &&
+      !!s.line1 &&
+      !!s.postal_code &&
+      !!s.city &&
+      !!s.country &&
+      Array.isArray(orderPayload.items) &&
+      orderPayload.items.length > 0
+    );
+  }, [orderPayload]);
 
-    const full = (form.fullName || "").trim();
-    const parts = full.split(/\s+/).filter(Boolean);
-    const firstName = parts[0] || "Customer";
-    const lastName = parts.slice(1).join(" ") || "-";
-
-    const line1 = `${(form.street || "").trim()} ${(
-      form.houseNumber || ""
-    ).trim()}`.trim();
-
-    return {
-      email,
-      payment_method: "card",
-      coupon_code: (couponCode || "").trim(),
-      idempotency_key: getCheckoutIdem(
-        JSON.stringify(items.map((c) => ({ product_id: c.id, qty: c.qty })))
-      ),
-      items: items.map((c) => ({ product_id: c.id, qty: c.qty })),
-      shipping: {
-        first_name: firstName,
-        last_name: lastName,
-        line1,
-        line2: (form.apartment || "").trim(),
-        postal_code: (form.postalCode || "").trim(),
-        city: (form.city || "").trim(),
-        country: normalizeCountry(form.country), // e.g. "DE"
-        phone: (form.telephone || "").trim(),
-      },
-    };
-  }, [form, items, couponCode]);
   // ---- RENDER ----
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -757,10 +739,19 @@ export default function Checkout() {
               )}
             </div>
           )}
-          <StripeCardSimple
-            orderPayload={orderPayload}
-            onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
-          />
+          {addressReady ? (
+            <StripeCardSimple
+              orderPayload={orderPayload}
+              onInit={(id) => (localOrderIdRef.current = id)}
+              onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+            />
+          ) : (
+            <div className="border rounded p-3 mt-2 text-sm text-amber-700 bg-amber-50">
+              Please fill contact & delivery first (email, full name, street +
+              house no., postal code, city).
+            </div>
+          )}
+
           {/* Stripe Card / Klarna / Giropay / Sofort */}
           {/* <StripeCard
             active={

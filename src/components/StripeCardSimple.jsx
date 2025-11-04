@@ -81,7 +81,7 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
   );
 }
 
-export default function StripeCardSimple({ orderPayload, onSuccess }) {
+export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -150,6 +150,9 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
         if (active) {
           setClientSecret(data?.clientSecret || data?.client_secret || "");
           setOrderId(data?.order_id || null);
+          if (typeof onInit === "function" && data?.order_id) {
+            onInit(data.order_id);
+          }
         }
       } catch (e) {
         console.error("Stripe init error:", e);
