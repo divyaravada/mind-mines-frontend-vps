@@ -31,6 +31,7 @@ import {
   useUpdateAddressMutation,
 } from "../features/addresses/addressApi";
 import { fmtEUR } from "../lib/money";
+import StripeCardSimple from "../components/StripeCardSimple";
 
 const toCents = (n) => Math.round(Number(n || 0) * 100);
 
@@ -722,6 +723,7 @@ export default function Checkout() {
               )}
             </div>
           )}
+          <StripeCardSimple />
 
           {/* Stripe Card / Klarna / Giropay / Sofort */}
           <StripeCard
