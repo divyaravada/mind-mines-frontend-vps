@@ -19,7 +19,15 @@ export const ordersApi = api.injectEndpoints({
       query: (id) => `orders/${id}/`,
       providesTags: (_res, _err, id) => [{ type: "Orders", id }],
     }),
-
+    createOrder: build.mutation({
+      query: (payload) => ({
+        url: "orders/",
+        method: "POST",
+        body: payload,
+      }),
+      // After a create, the list may be stale (for authed users)
+      invalidatesTags: [{ type: "Orders", id: "LIST" }],
+    }),
     requestCancel: build.mutation({
       query: ({ id, message }) => ({
         url: `orders/${id}/cancel-request/`,
@@ -48,12 +56,18 @@ export const ordersApi = api.injectEndpoints({
         { type: "Orders", id: "LIST" },
       ],
     }),
+    getOrderPublic: build.query({
+      query: (id) => `orders/public/${id}/`,
+    }),
   }),
+  overrideExisting: false,
 });
 
 export const {
   useGetOrdersQuery,
   useGetOrderQuery,
+  useCreateOrderMutation,
   useRequestCancelMutation,
   useRequestReturnMutation,
+  useGetOrderPublicQuery,
 } = ordersApi;

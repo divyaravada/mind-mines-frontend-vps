@@ -31,6 +31,7 @@ import {
   useUpdateAddressMutation,
 } from "../features/addresses/addressApi";
 import { fmtEUR } from "../lib/money";
+import { useCreateOrderMutation } from "../features/orders/ordersApi";
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
@@ -62,6 +63,7 @@ export default function Checkout() {
 
   const [createAddress] = useCreateAddressMutation();
   const [updateAddress] = useUpdateAddressMutation();
+  const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
 
   // Address/delivery form
   const [form, setForm] = useState({
