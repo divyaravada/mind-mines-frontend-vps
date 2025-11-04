@@ -21,7 +21,7 @@ export const ordersApi = api.injectEndpoints({
     }),
     createOrder: build.mutation({
       query: (payload) => ({
-        url: "orders/",
+        url: "orders/create/",
         method: "POST",
         body: payload,
       }),
