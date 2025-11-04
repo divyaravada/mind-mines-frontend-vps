@@ -749,11 +749,21 @@ export default function Checkout() {
           <StripeCardSimple
             orderPayload={{
               email: (form.email || "").trim(),
+              payment_method: "card",
+              coupon_code: (couponCode || "").trim(),
+              idempotency_key: `idem_${btoa(JSON.stringify(backendItems)).slice(
+                0,
+                24
+              )}`,
               items: backendItems, // [{ product_id, qty }]
+
               shipping: {
                 first_name:
-                  (form.fullName || "").split(" ")[0] || form.fullName || "",
-                last_name: (form.fullName || "").split(" ").slice(1).join(" "),
+                  (form.fullName || "").split(" ")[0] ||
+                  form.fullName ||
+                  "Customer",
+                last_name:
+                  (form.fullName || "").split(" ").slice(1).join(" ") || "-",
                 line1: `${(form.street || "").trim()} ${(
                   form.houseNumber || ""
                 ).trim()}`.trim(),
@@ -763,12 +773,6 @@ export default function Checkout() {
                 country: (form.country || "DE").toUpperCase(),
                 phone: (form.telephone || "").trim(),
               },
-              payment_method: "card", // important
-              coupon_code: (couponCode || "").trim(),
-              idempotency_key: `idem_${btoa(JSON.stringify(backendItems)).slice(
-                0,
-                24
-              )}`,
             }}
             onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
           />

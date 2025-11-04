@@ -135,14 +135,18 @@ export default function StripeCardSimple({ orderPayload, onSuccess }) {
 
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          // Surface the exact server error
-          const detail =
-            data?.detail ||
-            (data?.errors && JSON.stringify(data.errors)) ||
-            JSON.stringify(data);
-          throw new Error(detail || "Init failed");
+          // Build a readable error message from DRF's "errors"
+          let message = data?.detail || "Init failed";
+          if (data?.errors && typeof data.errors === "object") {
+            const lines = Object.entries(data.errors).map(([k, v]) => {
+              const text = Array.isArray(v) ? v.join(", ") : String(v);
+              return `${k}: ${text}`;
+            });
+            message += `\n\n` + lines.join("\n");
+          }
+          console.error("Stripe init error — response:", data);
+          throw new Error(message);
         }
-
         if (active) {
           setClientSecret(data?.clientSecret || data?.client_secret || "");
           setOrderId(data?.order_id || null);
