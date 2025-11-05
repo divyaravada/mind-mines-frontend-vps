@@ -249,11 +249,65 @@ export default function Checkout() {
     } catch {}
   }, [dispatch]);
 
-  const onSuccessfulOrder = (id) => {
-    wipeCart();
-    if (id) navigate(`/checkout/success?order=${encodeURIComponent(id)}`);
-    else navigate("/account/orders/");
-  };
+  const persistGuestInfo = useCallback(
+    async (orderId) => {
+      if (isAuth || !orderId) return;
+      const guestEmail = (form.email || "").trim();
+      if (!guestEmail) return;
+      try {
+        const { data } = await http.get(`orders/public/${orderId}/`);
+        const orderNumber = data?.number || data?.id || orderId;
+        const payload = {
+          order_id: orderId,
+          order_number: String(orderNumber || orderId),
+          email: guestEmail,
+        };
+        sessionStorage.setItem("guest_checkout_info", JSON.stringify(payload));
+        sessionStorage.setItem(
+          "guest_lookup_last",
+          JSON.stringify({
+            order_number: payload.order_number,
+            email: guestEmail,
+          })
+        );
+      } catch (err) {
+        try {
+          const fallbackNumber = String(orderId);
+          sessionStorage.setItem(
+            "guest_checkout_info",
+            JSON.stringify({
+              order_id: orderId,
+              order_number: fallbackNumber,
+              email: guestEmail,
+            })
+          );
+          sessionStorage.setItem(
+            "guest_lookup_last",
+            JSON.stringify({
+              order_number: fallbackNumber,
+              email: guestEmail,
+            })
+          );
+        } catch {
+          // ignore storage failures
+        }
+      }
+    },
+    [isAuth, form.email]
+  );
+
+  const onSuccessfulOrder = useCallback(
+    async (id) => {
+      await persistGuestInfo(id);
+      wipeCart();
+      if (id) {
+        navigate(`/checkout/success?order=${encodeURIComponent(id)}`);
+      } else {
+        navigate("/account/orders/");
+      }
+    },
+    [navigate, persistGuestInfo, wipeCart]
+  );
 
   // payment UI state
   const [payment, setPayment] = useState("");
@@ -453,7 +507,7 @@ export default function Checkout() {
               }).unwrap();
 
               if (cap?.status === "COMPLETED") {
-                onSuccessfulOrder(localOrderIdRef.current);
+                await onSuccessfulOrder(localOrderIdRef.current);
               } else {
                 alert(t("checkout.captureFailed", "Payment capture failed."));
               }
@@ -509,7 +563,9 @@ export default function Checkout() {
           couponCode={couponCode}
           paymentMethodId={savedCardPaymentMethodId}
           setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-          onSuccess={(id) => onSuccessfulOrder(id)}
+          onSuccess={async (id) => {
+            await onSuccessfulOrder(id);
+          }}
         />
       )}
     </div>
@@ -563,7 +619,9 @@ export default function Checkout() {
           paymentMethodId={savedSepaPaymentMethodId}
           countryCode={normalizeCountry(form.country)}
           setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-          onSuccess={(id) => onSuccessfulOrder(id)}
+          onSuccess={async (id) => {
+            await onSuccessfulOrder(id);
+          }}
         />
       )}
     </div>
@@ -834,7 +892,9 @@ export default function Checkout() {
                 <StripeProvider>
                   <StripeCard
                     orderId={localOrderIdRef.current}
-                    onSuccess={() => onSuccessfulOrder(localOrderIdRef.current)}
+                    onSuccess={async () => {
+                      await onSuccessfulOrder(localOrderIdRef.current);
+                    }}
                     onError={(m) => alert(m)}
                   />
                 </StripeProvider>
@@ -862,7 +922,9 @@ export default function Checkout() {
             total={payTotal}
             customerEmail={form.email}
             setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={(id) => onSuccessfulOrder(id || localOrderIdRef.current)}
+            onSuccess={async (id) => {
+              await onSuccessfulOrder(id || localOrderIdRef.current);
+            }}
           />
 
           {/* SEPA installments (DE only) */}

@@ -3,7 +3,6 @@ import { useSearchParams, Link } from "react-router-dom";
 import http from "../services/http";
 import { toAbsoluteUrl } from "../utils/urls";
 import { useTranslation } from "react-i18next";
-import { API_BASE } from "../services/config";
 
 function KV({ k, v }) {
   return (
@@ -20,12 +19,12 @@ function BankBlock({ bankInfo, t }) {
       <h2 className="font-semibold mb-2">{t("checkoutSuccess.bankTitle")}</h2>
       <p className="text-sm text-gray-600 mb-3">
         {t("checkoutSuccess.bankIntro")}
-        <span className="font-semibold">{bankInfo.amount} €</span>
+        <span className="font-semibold">{bankInfo.amount} Ã¢â€šÂ¬</span>
         {t("checkoutSuccess.bankIntro2")}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} €`} />
+        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} Ã¢â€šÂ¬`} />
         <KV k={t("checkoutSuccess.reference")} v={bankInfo.reference} />
         <KV k={t("checkoutSuccess.iban")} v={bankInfo.iban} />
         <KV k={t("checkoutSuccess.bic")} v={bankInfo.bic} />
@@ -65,18 +64,109 @@ export default function CheckoutSuccess() {
 
   // Guest restore
   const [guestInfo, setGuestInfo] = useState(null);
+  const [guestOrder, setGuestOrder] = useState(null);
+  const [guestLookupError, setGuestLookupError] = useState("");
+
+  const guestSummary = useMemo(() => guestOrder || guestInfo, [guestOrder, guestInfo]);
+  const guestOrderNumber = useMemo(() => {
+    if (guestSummary?.order_number) return guestSummary.order_number;
+    if (guestSummary?.orderNumber) return guestSummary.orderNumber;
+    if (guestSummary?.order_id) return String(guestSummary.order_id);
+    if (guestSummary?.orderId) return String(guestSummary.orderId);
+    return orderId;
+  }, [guestSummary, orderId]);
+
+  const guestInvoiceUrl = guestSummary?.invoice_download_url || null;
+  const guestStatus = guestOrder?.status || guestSummary?.status || null;
+  const guestTotal = guestOrder?.total_price || guestSummary?.total_price || null;
+  const guestCurrency = guestOrder?.currency || guestSummary?.currency || "EUR";
+  const guestPaymentMethod =
+    guestOrder?.payment_method_label ||
+    guestOrder?.payment_method ||
+    guestSummary?.payment_method_label ||
+    guestSummary?.payment_method ||
+    null;
   useEffect(() => {
     if (hasAuth) return;
     try {
       const raw = sessionStorage.getItem("guest_checkout_info");
-      if (!raw) return;
+      if (!raw) {
+        setLoading(false);
+        return;
+      }
       const parsed = JSON.parse(raw);
-      if (parsed && String(parsed.order_id) === String(orderId)) {
-        setGuestInfo(parsed);
+      if (parsed) {
+        const matches =
+          !orderId ||
+          !parsed.order_id ||
+          String(parsed.order_id) === String(orderId);
+        if (matches) {
+          setGuestInfo(parsed);
+          return;
+        }
       }
     } catch {}
     setLoading(false);
   }, [orderId, hasAuth]);
+  useEffect(() => {
+    if (hasAuth) return;
+
+    if (!guestInfo) {
+      setGuestOrder(null);
+      setGuestLookupError("");
+      setLoading(false);
+      return;
+    }
+
+    const guestEmail = (guestInfo.email || "").trim();
+    const lookupNumber =
+      guestInfo.order_number ||
+      guestInfo.orderNumber ||
+      guestInfo.order_id ||
+      guestInfo.orderId ||
+      orderId;
+
+    if (!guestEmail || !lookupNumber) {
+      setGuestLookupError("");
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const payload = {
+      order_number: String(lookupNumber),
+      email: guestEmail,
+    };
+
+    (async () => {
+      if (!cancelled) setLoading(true);
+      try {
+        const res = await http.post("orders/guest-lookup/", payload);
+        if (!cancelled) {
+          setGuestOrder(res.data || null);
+          setGuestLookupError("");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setGuestOrder(null);
+          setGuestLookupError(
+            t("checkoutSuccess.guestLookupFailed", {
+              defaultValue:
+                "We could not fetch the latest order status. You can try again from the guest order lookup page.",
+            })
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasAuth, guestInfo, orderId, t]);
 
   // Authenticated fetch
   useEffect(() => {
@@ -120,6 +210,9 @@ export default function CheckoutSuccess() {
   }
   if (hasAuth && error) {
     return <div className="p-10 text-center text-red-600">{error}</div>;
+  }
+  if (!hasAuth && loading) {
+    return <div className="p-10 text-center">{t("common.loading")}</div>;
   }
 
   // ---- Logged-in mode ----
@@ -182,15 +275,44 @@ export default function CheckoutSuccess() {
       </h1>
 
       <p className="text-gray-600 mb-4">
-        {guestInfo
+        {guestOrderNumber
           ? t("checkoutSuccess.created", {
-              number: guestInfo.order_number || orderId,
+              number: guestOrderNumber,
               defaultValue: "Your order {{number}} was created.",
             })
           : t("checkoutSuccess.createdNoNumber", {
               defaultValue: "Your order was created.",
             })}
       </p>
+
+      {(guestStatus || guestTotal || guestPaymentMethod) && (
+        <div className="text-sm text-gray-600 mb-4 space-y-1">
+          {guestStatus && (
+            <div>
+              {t("checkoutSuccess.statusNow", {
+                defaultValue: "Current status: {{status}}",
+                status: guestStatus,
+              })}
+            </div>
+          )}
+          {guestTotal && (
+            <div>
+              {t("checkoutSuccess.totalGuest", {
+                defaultValue: "Order total: {{amount}}",
+                amount: `${guestTotal} ${guestCurrency}`,
+              })}
+            </div>
+          )}
+          {guestPaymentMethod && (
+            <div>
+              {t("checkoutSuccess.paymentMethodGuest", {
+                defaultValue: "Payment method: {{method}}",
+                method: guestPaymentMethod,
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {guestInfo?.bank && (
         <div className="mb-6 border rounded p-4 bg-gray-50 text-left">
@@ -199,14 +321,14 @@ export default function CheckoutSuccess() {
           </h2>
           <p className="text-sm text-gray-600 mb-3">
             {t("checkoutSuccess.bankIntro")}
-            <span className="font-semibold">{guestInfo.bank.amount} €</span>
+            <span className="font-semibold">{guestInfo.bank.amount} â‚¬</span>
             {t("checkoutSuccess.bankIntro2")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <KV
               k={t("checkoutSuccess.amount")}
-              v={`${guestInfo.bank.amount} €`}
+              v={`${guestInfo.bank.amount} â‚¬`}
             />
             <KV
               k={t("checkoutSuccess.reference")}
@@ -228,17 +350,11 @@ export default function CheckoutSuccess() {
         </div>
       )}
 
-      {guestInfo && (
+      {guestInvoiceUrl ? (
         <div className="text-center mb-6">
           <a
             className="inline-block px-4 py-2 rounded bg-gray-900 text-white"
-            href={
-              `${API_BASE}orders/guest-invoice-download/` +
-              `?order_number=${encodeURIComponent(
-                guestInfo.order_number || ""
-              )}` +
-              `&email=${encodeURIComponent(guestInfo.email || "")}`
-            }
+            href={guestInvoiceUrl}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -246,6 +362,19 @@ export default function CheckoutSuccess() {
               defaultValue: "Download invoice",
             })}
           </a>
+        </div>
+      ) : guestSummary ? (
+        <div className="text-xs text-gray-500 text-center mb-6">
+          {t("checkoutSuccess.guestInvoicePending", {
+            defaultValue:
+              "Your invoice will be available once payment is confirmed. You can download it later via the guest order lookup page.",
+          })}
+        </div>
+      ) : null}
+
+      {guestLookupError && (
+        <div className="text-xs text-red-600 text-center mb-4">
+          {guestLookupError}
         </div>
       )}
 

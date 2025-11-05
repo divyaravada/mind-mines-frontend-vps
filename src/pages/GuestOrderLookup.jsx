@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import http from "../services/http";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { API_BASE } from "../services/config";
 
 function pickErr(e, fallback) {
   return (
@@ -13,16 +12,158 @@ function pickErr(e, fallback) {
   );
 }
 
+function formatCurrency(value, currency = "EUR") {
+  if (value === null || value === undefined || value === "") return "-";
+  let num = Number(value);
+  if (!Number.isFinite(num)) {
+    const parsed = Number(String(value).replace(/[^0-9.,-]/g, "").replace(",", "."));
+    if (Number.isFinite(parsed)) num = parsed;
+  }
+  if (Number.isFinite(num)) {
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency,
+      }).format(num);
+    } catch (err) {
+      return `${num.toFixed(2)} ${currency}`;
+    }
+  }
+  return String(value);
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  try {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleString();
+    }
+  } catch (err) {
+    // ignore
+  }
+  return String(value);
+}
+
+function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <div className="text-gray-500">{label}</div>
+      <div className="font-medium text-right">{value}</div>
+    </div>
+  );
+}
+
+function ItemsList({ items, currency, t }) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return null;
+  }
+  return (
+    <div>
+      <div className="text-sm text-gray-500 mb-2">
+        {t("guest.items", { defaultValue: "Items" })}
+      </div>
+      <ul className="border rounded divide-y divide-gray-200">
+        {items.map((item, idx) => {
+          const key = `${item?.product_id ?? idx}-${idx}`;
+          const qty = item?.quantity ?? item?.qty ?? 1;
+          return (
+            <li
+              key={key}
+              className="px-3 py-2 flex items-start justify-between text-sm"
+            >
+              <div className="pr-3">
+                <div className="font-medium">
+                  {item?.name || item?.product_name ||
+                    t("guest.item", { defaultValue: "Item" })}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} ·
+                  {" "}
+                  {formatCurrency(item?.unit_price, currency)}
+                </div>
+              </div>
+              <div className="font-medium whitespace-nowrap">
+                {formatCurrency(item?.line_total, currency)}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function renderAddress(addr) {
+  if (!addr) return null;
+  const parts = [];
+  const first = addr.first_name || addr.firstName;
+  const last = addr.last_name || addr.lastName;
+  if (first || last) {
+    parts.push([first, last].filter(Boolean).join(" "));
+  }
+  const line1 = addr.line1 || addr.address_line1 || "";
+  const line2 = addr.line2 || addr.address_line2 || "";
+  if (line1) parts.push(line1);
+  if (line2) parts.push(line2);
+  const postal = addr.postal_code || addr.postalCode || "";
+  const city = addr.city || "";
+  const cityLine = [postal, city].filter(Boolean).join(" ");
+  if (cityLine) parts.push(cityLine);
+  const country = addr.country || addr.country_code || addr.countryCode;
+  if (country) parts.push(country);
+  if (addr.phone) parts.push(addr.phone);
+  return (
+    <>
+      {parts.map((part, idx) => (
+        <div key={`${part}-${idx}`}>{part}</div>
+      ))}
+    </>
+  );
+}
+
+function prettyStatus(statusRaw) {
+  const key = (statusRaw || "").toLowerCase();
+  const map = {
+    pending: "Pending",
+    processing: "Processing",
+    paid: "Paid",
+    shipped: "Shipped",
+    delivered: "Delivered",
+    cancelled: "Canceled",
+    canceled: "Canceled",
+    failed: "Failed",
+    awaiting_payment: "Awaiting payment",
+  };
+  return map[key] || statusRaw || "-";
+}
+
+function prettyPayment(pm) {
+  if (!pm) return "-";
+  const key = String(pm).toLowerCase();
+  const map = {
+    bank: "Bank Transfer",
+    bank_transfer: "Bank Transfer",
+    sepa: "SEPA Direct Debit",
+    sepa_debit: "SEPA Direct Debit",
+    sepa_installments: "SEPA Installments",
+    card: "Card / Stripe",
+    card_installments: "Card Installments",
+    paypal: "PayPal",
+    giropay: "Giropay",
+    klarna: "Klarna",
+  };
+  return map[key] || pm;
+}
+
 export default function GuestOrderLookupPage() {
   const { t } = useTranslation();
   const [orderNumber, setOrderNumber] = useState("");
   const [email, setEmail] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
-  // prefill from prior lookup (quality of life)
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("guest_lookup_last");
@@ -30,20 +171,10 @@ export default function GuestOrderLookupPage() {
       const parsed = JSON.parse(raw);
       if (parsed?.order_number) setOrderNumber(parsed.order_number);
       if (parsed?.email) setEmail(parsed.email);
-    } catch {}
+    } catch (err) {
+      // ignore
+    }
   }, []);
-
-  const invoiceHref = useMemo(() => {
-    if (!result?.invoice_available) return null;
-    const num = result?.order_number || orderNumber.trim();
-    const em = email.trim();
-    if (!num || !em) return null;
-    return (
-      `${API_BASE}orders/guest-invoice-download/` +
-      `?order_number=${encodeURIComponent(num)}` +
-      `&email=${encodeURIComponent(em)}`
-    );
-  }, [result, orderNumber, email]);
 
   const onLookup = async (e) => {
     e.preventDefault();
@@ -80,7 +211,7 @@ export default function GuestOrderLookupPage() {
         pickErr(
           err,
           t("guest.notFound", {
-            defaultValue: "We couldn't find an order with that email / number.",
+            defaultValue: "We could not find an order with that email and number.",
           })
         )
       );
@@ -88,6 +219,11 @@ export default function GuestOrderLookupPage() {
       setLoading(false);
     }
   };
+
+  const invoiceHref = result?.invoice_download_url || null;
+  const shippingSnapshot = result?.shipping || result?.shipping_address || null;
+  const trackingUrl = result?.tracking_url;
+  const trackingNumber = result?.tracking_number;
 
   return (
     <div className="max-w-xl mx-auto py-12 px-4">
@@ -97,19 +233,17 @@ export default function GuestOrderLookupPage() {
       <p className="text-gray-600 text-center mb-8 text-sm">
         {t("guest.lookupDesc", {
           defaultValue:
-            "Enter the order number from your email confirmation and the same email address you used at checkout.",
+            "Enter the order number from your confirmation email and the same email address you used at checkout.",
         })}
       </p>
 
-      {/* Form */}
       <form
         onSubmit={onLookup}
         className="bg-white rounded shadow p-6 space-y-4"
       >
         <div>
           <label className="block text-sm text-gray-600 mb-1">
-            {t("guest.orderNumber", { defaultValue: "Order number" })}{" "}
-            <span className="text-gray-400 text-xs">(e.g. MM00000406)</span>
+            {t("guest.orderNumber", { defaultValue: "Order number" })}
           </label>
           <input
             className="w-full border rounded px-3 py-2"
@@ -129,25 +263,23 @@ export default function GuestOrderLookupPage() {
             className="w-full border rounded px-3 py-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
             autoComplete="email"
           />
         </div>
 
-        {error && <div className="text-red-600 text-sm">{String(error)}</div>}
+        {error && <div className="text-sm text-red-600">{error}</div>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60"
+          className="w-full py-2 rounded bg-gray-900 text-white disabled:opacity-60"
         >
           {loading
-            ? t("guest.checking", { defaultValue: "Checking..." })
+            ? t("guest.loading", { defaultValue: "Looking up..." })
             : t("guest.lookupButton", { defaultValue: "Find my order" })}
         </button>
       </form>
 
-      {/* Result block */}
       {result && (
         <div className="bg-white rounded shadow p-6 mt-8 space-y-4">
           <h2 className="text-lg font-semibold">
@@ -162,28 +294,68 @@ export default function GuestOrderLookupPage() {
           />
 
           <Row
+            label={t("guest.resultCreated", { defaultValue: "Placed on" })}
+            value={formatDateTime(result.created_at)}
+          />
+
+          <Row
             label={t("guest.resultStatus", { defaultValue: "Status" })}
             value={prettyStatus(result.status)}
           />
 
           <Row
             label={t("guest.resultTotal", { defaultValue: "Total" })}
-            value={result.total_price ? `${result.total_price} €` : "—"}
+            value={formatCurrency(result.total_price, result.currency)}
           />
 
           <Row
-            label={t("guest.resultPayment", { defaultValue: "Payment method" })}
+            label={t("guest.resultPayment", {
+              defaultValue: "Payment method",
+            })}
             value={prettyPayment(result.payment_method)}
           />
 
-          {result?.shipping_address && (
+          {shippingSnapshot && (
             <div>
               <div className="text-sm text-gray-500">
                 {t("guest.shippingTo", { defaultValue: "Shipping to" })}
               </div>
               <div className="text-sm font-medium">
-                {renderAddress(result.shipping_address)}
+                {renderAddress(shippingSnapshot)}
               </div>
+            </div>
+          )}
+
+          <ItemsList
+            items={result.items}
+            currency={result.currency}
+            t={t}
+          />
+
+          {(trackingUrl || trackingNumber) && (
+            <div className="space-y-1">
+              <div className="text-sm text-gray-500">
+                {t("guest.tracking", { defaultValue: "Shipping tracking" })}
+              </div>
+              {trackingUrl && (
+                <a
+                  href={trackingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm text-blue-600 underline"
+                >
+                  {t("guest.trackLink", { defaultValue: "Open tracking link" })}
+                </a>
+              )}
+              {trackingNumber && (
+                <div className="text-xs text-gray-500">
+                  {t("guest.trackingNumber", {
+                    defaultValue: "Tracking number",
+                  })}
+                  {": "}
+                  {trackingNumber}
+                </div>
+              )}
             </div>
           )}
 
@@ -209,64 +381,11 @@ export default function GuestOrderLookupPage() {
         </div>
       )}
 
-      {/* back links */}
       <div className="text-center mt-8">
         <Link to="/" className="text-gray-700 underline text-sm">
           {t("guest.backHome", { defaultValue: "Back to Home" })}
         </Link>
       </div>
     </div>
-  );
-}
-
-function Row({ label, value }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <div className="text-gray-500">{label}</div>
-      <div className="font-medium text-right">{value}</div>
-    </div>
-  );
-}
-
-function prettyStatus(statusRaw) {
-  const s = (statusRaw || "").toLowerCase();
-  if (s === "paid") return "Paid ✅";
-  if (s === "pending" || s === "processing") return "Pending / Processing";
-  if (s === "unpaid" || s === "awaiting_payment") return "Awaiting payment";
-  if (s === "shipped") return "Shipped 📦";
-  if (s === "cancelled" || s === "canceled") return "Canceled";
-  if (s === "refunded") return "Refunded";
-  return statusRaw || "-";
-}
-
-function prettyPayment(pm) {
-  const p = (pm || "").toLowerCase();
-  if (p === "bank") return "Bank Transfer";
-  if (p === "sepa_debit") return "SEPA Direct Debit";
-  if (p === "card") return "Card / Stripe";
-  if (p === "paypal") return "PayPal";
-  return pm || "-";
-}
-
-function renderAddress(a) {
-  if (!a) return "";
-  const line1 =
-    a.address_line1 ||
-    [a.street_name, a.house_number].filter(Boolean).join(" ") ||
-    "";
-  const line2 = a.address_line2 || a.apartment || "";
-  const cityRow = [a.postal_code, a.city].filter(Boolean).join(" ");
-  const country = a.country || a.country_code || "";
-
-  return (
-    <>
-      {a.first_name || a.last_name ? (
-        <div>{[a.first_name, a.last_name].filter(Boolean).join(" ")}</div>
-      ) : null}
-      {line1 && <div>{line1}</div>}
-      {line2 && <div>{line2}</div>}
-      <div>{cityRow}</div>
-      <div>{country}</div>
-    </>
   );
 }
