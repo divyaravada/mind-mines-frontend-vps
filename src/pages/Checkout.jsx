@@ -33,6 +33,7 @@ import {
 import { fmtEUR } from "../lib/money";
 import { useCreateOrderMutation } from "../features/orders/ordersApi";
 import StripeProvider from "../components/StripeProvider";
+import http from "../services/http";
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
