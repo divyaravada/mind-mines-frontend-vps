@@ -384,10 +384,15 @@ export default function Checkout() {
           ? Number(pm.split("_").pop())
           : null;
 
+      let pmToSave = "card";
+      if (installments_months) pmToSave = "card_installments";
+      if (pm === "klarna") pmToSave = "klarna";
+      if (pm === "giropay") pmToSave = "giropay";
+
       try {
         const res = await createOrder({
           email: (form.email || "").trim(),
-          payment_method: installments_months ? "card_installments" : "card",
+          payment_method: pmToSave,
           installments_months,
           coupon_code: (couponCode || "").trim(),
           items: backendItems,
