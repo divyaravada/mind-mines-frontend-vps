@@ -56,6 +56,14 @@ export const ordersApi = api.injectEndpoints({
         { type: "Orders", id: "LIST" },
       ],
     }),
+    updatePaymentStatus: build.mutation({
+      query: ({ id, intent_id, payment_status }) => ({
+        url: `orders/${id}/payment-status/`,
+        method: "POST",
+        body: { intent_id, payment_status },
+      }),
+      invalidatesTags: (_res, _err, { id }) => [{ type: "Orders", id }],
+    }),
     getOrderPublic: build.query({
       query: (id) => `orders/public/${id}/`,
     }),
@@ -69,5 +77,6 @@ export const {
   useCreateOrderMutation,
   useRequestCancelMutation,
   useRequestReturnMutation,
+  useUpdatePaymentStatusMutation,
   useGetOrderPublicQuery,
 } = ordersApi;

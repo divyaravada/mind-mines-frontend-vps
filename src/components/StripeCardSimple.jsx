@@ -1,5 +1,5 @@
 // components/StripeCardSimple.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -7,14 +7,24 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { useTranslation } from "react-i18next";
+import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
+import { useUpdatePaymentStatusMutation } from "../features/orders/ordersApi";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function PayForm({ clientSecret, orderId, billing, onSuccess }) {
+function PayForm({
+  clientSecret,
+  orderId,
+  billing,
+  onSuccess,
+  onStatusUpdate,
+}) {
   const stripe = useStripe();
   const elements = useElements();
+  const { t } = useTranslation();
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -45,22 +55,18 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
     });
 
     if (error) {
-      setErrorMsg(error.message || "Payment failed.");
+      setErrorMsg(error.message || t("checkout.paymentFailed"));
       setProcessing(false);
       return;
     }
 
     // Optional echo to backend (webhook is the source of truth).
     if (paymentIntent && orderId) {
-      fetch(`/api/orders/${orderId}/payment-status/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          intent_id: paymentIntent.id,
-          payment_status: paymentIntent.status,
-        }),
-      }).catch(() => {});
+      onStatusUpdate?.({
+        orderId,
+        intentId: paymentIntent.id,
+        status: paymentIntent.status,
+      });
     }
 
     onSuccess?.();
@@ -75,7 +81,9 @@ function PayForm({ clientSecret, orderId, billing, onSuccess }) {
         onClick={confirm}
         disabled={!stripe || !elements || processing}
       >
-        {processing ? "Processing…" : "Pay securely"}
+        {processing
+          ? t("checkout.processingPayment")
+          : t("checkout.paySecurely")}
       </button>
     </div>
   );
@@ -85,6 +93,25 @@ export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
+  const [createIntent] = useStripeCreateIntentMutation();
+  const [updatePaymentStatus] = useUpdatePaymentStatusMutation();
+
+  const handleStatusUpdate = useCallback(
+    async ({ orderId: id, intentId, status }) => {
+      if (!id || !intentId) return;
+      try {
+        await updatePaymentStatus({
+          id,
+          intent_id: intentId,
+          payment_status: status,
+        }).unwrap();
+      } catch {
+        /* no-op: webhook remains source of truth */
+      }
+    },
+    [updatePaymentStatus]
+  );
 
   // Guard: don’t try init without the minimum
   const hasMinimum =
@@ -113,40 +140,21 @@ export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
     if (!hasMinimum) {
       setClientSecret("");
       setOrderId(null);
-      return;
+      return undefined;
     }
 
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/stripe/create-intent/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            email: orderPayload.email,
-            payment_method: orderPayload.payment_method || "card",
-            coupon_code: orderPayload.coupon_code || "",
-            idempotency_key: orderPayload.idempotency_key || "",
-            items: orderPayload.items,
-            shipping: orderPayload.shipping,
-          }),
-        });
+        const data = await createIntent({
+          email: orderPayload.email,
+          payment_method: orderPayload.payment_method || "card",
+          coupon_code: orderPayload.coupon_code || "",
+          idempotency_key: orderPayload.idempotency_key || "",
+          items: orderPayload.items,
+          shipping: orderPayload.shipping,
+        }).unwrap();
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          // Build a readable error message from DRF's "errors"
-          let message = data?.detail || "Init failed";
-          if (data?.errors && typeof data.errors === "object") {
-            const lines = Object.entries(data.errors).map(([k, v]) => {
-              const text = Array.isArray(v) ? v.join(", ") : String(v);
-              return `${k}: ${text}`;
-            });
-            message += `\n\n` + lines.join("\n");
-          }
-          console.error("Stripe init error — response:", data);
-          throw new Error(message);
-        }
         if (active) {
           setClientSecret(data?.clientSecret || data?.client_secret || "");
           setOrderId(data?.order_id || null);
@@ -154,13 +162,27 @@ export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
             onInit(data.order_id);
           }
         }
-      } catch (e) {
-        console.error("Stripe init error:", e);
+      } catch (err) {
+        console.error("Stripe init error:", err);
         if (active) {
           setClientSecret("");
           setOrderId(null);
         }
-        alert(e?.message || "Failed to initialize payment.");
+        const detail =
+          err?.data?.detail ||
+          (typeof err?.error === "string" ? err.error : null) ||
+          (typeof err?.message === "string" ? err.message : null) ||
+          t("checkout.initFailed");
+        let message = detail;
+        const errors = err?.data?.errors;
+        if (errors && typeof errors === "object") {
+          const lines = Object.entries(errors).map(([k, v]) => {
+            const text = Array.isArray(v) ? v.join(", ") : String(v);
+            return `${k}: ${text}`;
+          });
+          message = `${detail}\n\n${lines.join("\n")}`;
+        }
+        alert(message);
       } finally {
         if (active) setLoading(false);
       }
@@ -169,16 +191,16 @@ export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
     return () => {
       active = false;
     };
-  }, [hasMinimum, orderPayload]);
+  }, [createIntent, hasMinimum, onInit, orderPayload, t]);
 
   if (!process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY) {
-    return <div className="text-red-600">Missing Stripe publishable key.</div>;
+    return <div className="text-red-600">{t("checkout.missingKey")}</div>;
   }
   if (!hasMinimum) return null;
   if (loading) {
     return (
       <div className="border rounded p-3 mt-2 text-sm text-gray-600">
-        Initializing…
+        {t("checkout.initializingPayment")}
       </div>
     );
   }
@@ -194,6 +216,7 @@ export default function StripeCardSimple({ orderPayload, onSuccess, onInit }) {
         orderId={orderId}
         billing={billing}
         onSuccess={onSuccess}
+        onStatusUpdate={handleStatusUpdate}
       />
     </Elements>
   );

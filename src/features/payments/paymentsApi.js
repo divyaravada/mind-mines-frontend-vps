@@ -4,7 +4,7 @@ export const paymentsApi = api.injectEndpoints({
   endpoints: (build) => ({
     stripeCreateIntent: build.mutation({
       query: (body) => ({
-        url: "/stripe/create-intent/",
+        url: "stripe/create-intent/",
         method: "POST",
         body,
       }),
