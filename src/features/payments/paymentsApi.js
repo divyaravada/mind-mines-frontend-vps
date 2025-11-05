@@ -52,6 +52,13 @@ export const paymentsApi = api.injectEndpoints({
         body: { local_order_id: localOrderId },
       }),
     }),
+    stripeCreateRedirectIntent: build.mutation({
+      query: (payload) => ({
+        url: "stripe/create-intent/redirect/",
+        method: "POST",
+        body: payload, // { order_id, method: "klarna" | "giropay" }
+      }),
+    }),
   }),
 });
 
@@ -63,4 +70,5 @@ export const {
   useSepaPostConfirmMutation,
   usePaypalCreateOrderMutation,
   usePaypalCaptureOrderMutation,
+  useStripeCreateRedirectIntentMutation,
 } = paymentsApi;

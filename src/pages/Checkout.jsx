@@ -34,6 +34,7 @@ import { fmtEUR } from "../lib/money";
 import { useCreateOrderMutation } from "../features/orders/ordersApi";
 import StripeProvider from "../components/StripeProvider";
 import http from "../services/http";
+import StripeRedirectPay from "../components/StripeRedirectPay";
 
 export default function Checkout() {
   const { t, i18n } = useTranslation();
@@ -431,10 +432,12 @@ export default function Checkout() {
   // If user switches to card or card installments, pre-create the order
   useEffect(() => {
     if (!payment) return;
-    const isCard =
+    const needsOrder =
       payment === "card" ||
+      payment === "klarna" ||
+      payment === "giropay" ||
       (typeof payment === "string" && payment.startsWith("card_installments"));
-    if (isCard) {
+    if (needsOrder) {
       ensureStripeOrder(payment);
     }
   }, [payment, ensureStripeOrder]);
@@ -859,7 +862,59 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Stripe Card / Klarna / Giropay / Sofort */}
+          {/*  Klarna / Giropay  */}
+          {/* Klarna */}
+          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+            <input
+              type="radio"
+              name="payment"
+              value="klarna"
+              checked={payment === "klarna"}
+              onChange={() => setPaymentSafe("klarna")}
+            />
+            <span className="flex-1">Klarna (Pay Later)</span>
+            <span className="text-xs font-semibold">Stripe</span>
+          </label>
+
+          {payment === "klarna" && localOrderIdRef.current && (
+            <div className="border rounded p-3 mt-3">
+              <StripeRedirectPay
+                orderId={localOrderIdRef.current}
+                method="klarna"
+                onSuccess={async () =>
+                  await onSuccessfulOrder(localOrderIdRef.current)
+                }
+                onError={(m) => alert(m)}
+              />
+            </div>
+          )}
+
+          {/* giropay */}
+          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+            <input
+              type="radio"
+              name="payment"
+              value="giropay"
+              checked={payment === "giropay"}
+              onChange={() => setPaymentSafe("giropay")}
+            />
+            <span className="flex-1">giropay</span>
+            <span className="text-xs font-semibold">Stripe</span>
+          </label>
+
+          {payment === "giropay" && localOrderIdRef.current && (
+            <div className="border rounded p-3 mt-3">
+              <StripeRedirectPay
+                orderId={localOrderIdRef.current}
+                method="giropay"
+                onSuccess={async () =>
+                  await onSuccessfulOrder(localOrderIdRef.current)
+                }
+                onError={(m) => alert(m)}
+              />
+            </div>
+          )}
+
           {/* === NEW: Card selector (Stripe) === */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
             <input
