@@ -2,6 +2,7 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { toAbsoluteUrl } from "../utils/urls";
 import { useTranslation } from "react-i18next";
+import http from "../services/http";
 
 function KV({ k, v }) {
   return (
