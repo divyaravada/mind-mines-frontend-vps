@@ -38,12 +38,10 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
     setLoading(true);
     setErr("");
     try {
-      const { error, paymentIntent } = await stripe.confirmSepaDebitPayment(
-        clientSecret,
-        {
-          redirect: "if_required",
-        }
-      );
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+      });
 
       if (error) {
         setErr(error.message || "Payment failed.");
