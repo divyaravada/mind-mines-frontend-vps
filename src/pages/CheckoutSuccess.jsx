@@ -1,6 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import http from "../services/http";
 import { toAbsoluteUrl } from "../utils/urls";
 import { useTranslation } from "react-i18next";
 
@@ -19,12 +18,12 @@ function BankBlock({ bankInfo, t }) {
       <h2 className="font-semibold mb-2">{t("checkoutSuccess.bankTitle")}</h2>
       <p className="text-sm text-gray-600 mb-3">
         {t("checkoutSuccess.bankIntro")}
-        <span className="font-semibold">{bankInfo.amount} Ã¢â€šÂ¬</span>
+        <span className="font-semibold">{bankInfo.amount} €</span>
         {t("checkoutSuccess.bankIntro2")}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} Ã¢â€šÂ¬`} />
+        <KV k={t("checkoutSuccess.amount")} v={`${bankInfo.amount} €`} />
         <KV k={t("checkoutSuccess.reference")} v={bankInfo.reference} />
         <KV k={t("checkoutSuccess.iban")} v={bankInfo.iban} />
         <KV k={t("checkoutSuccess.bic")} v={bankInfo.bic} />
@@ -67,7 +66,10 @@ export default function CheckoutSuccess() {
   const [guestOrder, setGuestOrder] = useState(null);
   const [guestLookupError, setGuestLookupError] = useState("");
 
-  const guestSummary = useMemo(() => guestOrder || guestInfo, [guestOrder, guestInfo]);
+  const guestSummary = useMemo(
+    () => guestOrder || guestInfo,
+    [guestOrder, guestInfo]
+  );
   const guestOrderNumber = useMemo(() => {
     if (guestSummary?.order_number) return guestSummary.order_number;
     if (guestSummary?.orderNumber) return guestSummary.orderNumber;
@@ -78,7 +80,8 @@ export default function CheckoutSuccess() {
 
   const guestInvoiceUrl = guestSummary?.invoice_download_url || null;
   const guestStatus = guestOrder?.status || guestSummary?.status || null;
-  const guestTotal = guestOrder?.total_price || guestSummary?.total_price || null;
+  const guestTotal =
+    guestOrder?.total_price || guestSummary?.total_price || null;
   const guestCurrency = guestOrder?.currency || guestSummary?.currency || "EUR";
   const guestPaymentMethod =
     guestOrder?.payment_method_label ||
@@ -321,14 +324,14 @@ export default function CheckoutSuccess() {
           </h2>
           <p className="text-sm text-gray-600 mb-3">
             {t("checkoutSuccess.bankIntro")}
-            <span className="font-semibold">{guestInfo.bank.amount} â‚¬</span>
+            <span className="font-semibold">{guestInfo.bank.amount} €</span>
             {t("checkoutSuccess.bankIntro2")}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <KV
               k={t("checkoutSuccess.amount")}
-              v={`${guestInfo.bank.amount} â‚¬`}
+              v={`${guestInfo.bank.amount} €`}
             />
             <KV
               k={t("checkoutSuccess.reference")}

@@ -16,7 +16,11 @@ function formatCurrency(value, currency = "EUR") {
   if (value === null || value === undefined || value === "") return "-";
   let num = Number(value);
   if (!Number.isFinite(num)) {
-    const parsed = Number(String(value).replace(/[^0-9.,-]/g, "").replace(",", "."));
+    const parsed = Number(
+      String(value)
+        .replace(/[^0-9.,-]/g, "")
+        .replace(",", ".")
+    );
     if (Number.isFinite(parsed)) num = parsed;
   }
   if (Number.isFinite(num)) {
@@ -74,12 +78,12 @@ function ItemsList({ items, currency, t }) {
             >
               <div className="pr-3">
                 <div className="font-medium">
-                  {item?.name || item?.product_name ||
+                  {item?.name ||
+                    item?.product_name ||
                     t("guest.item", { defaultValue: "Item" })}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} ·
-                  {" "}
+                  {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} ·{" "}
                   {formatCurrency(item?.unit_price, currency)}
                 </div>
               </div>
@@ -211,7 +215,8 @@ export default function GuestOrderLookupPage() {
         pickErr(
           err,
           t("guest.notFound", {
-            defaultValue: "We could not find an order with that email and number.",
+            defaultValue:
+              "We could not find an order with that email and number.",
           })
         )
       );
@@ -244,6 +249,7 @@ export default function GuestOrderLookupPage() {
         <div>
           <label className="block text-sm text-gray-600 mb-1">
             {t("guest.orderNumber", { defaultValue: "Order number" })}
+            <span className="text-gray-400 text-xs">(e.g. MM00000406)</span>
           </label>
           <input
             className="w-full border rounded px-3 py-2"
@@ -326,11 +332,7 @@ export default function GuestOrderLookupPage() {
             </div>
           )}
 
-          <ItemsList
-            items={result.items}
-            currency={result.currency}
-            t={t}
-          />
+          <ItemsList items={result.items} currency={result.currency} t={t} />
 
           {(trackingUrl || trackingNumber) && (
             <div className="space-y-1">
