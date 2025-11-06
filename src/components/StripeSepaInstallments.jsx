@@ -47,6 +47,11 @@ function SepaInstallmentsInner({
   const [startPlan, { isLoading }] = useStripeSepaInstallmentsMutation();
   const [busy, setBusy] = useState(false);
 
+  const monthsSafe = useMemo(() => {
+    const m = Number(months);
+    return [3, 6, 9].includes(m) ? m : 3;
+  }, [months]);
+
   const startInstallments = useCallback(
     async (paymentMethodId) => {
       const payload = buildOrderPayload({
