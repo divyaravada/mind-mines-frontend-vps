@@ -1003,11 +1003,7 @@ export default function Checkout() {
 
           {/* SEPA (one-shot + installments) */}
           <StripeSepa
-            active={
-              payment === "sepa_debit" ||
-              (typeof payment === "string" &&
-                payment.startsWith("sepa_installments"))
-            }
+            active={payment === "sepa_debit"}
             setActive={(val) => setPaymentSafe(val)}
             form={form}
             items={items}
