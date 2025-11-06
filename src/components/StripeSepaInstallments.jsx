@@ -55,6 +55,7 @@ function SepaInstallmentsInner({
         email: form.email,
         couponCode,
         payment_method: "sepa_installments",
+        installments_months: months,
         extra: {
           months,
           payment_method_id: paymentMethodId,

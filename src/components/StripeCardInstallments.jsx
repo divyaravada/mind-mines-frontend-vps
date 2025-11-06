@@ -149,6 +149,7 @@ export default function StripeCardInstallments({
         email,
         couponCode,
         payment_method: "card_installments",
+        installments_months: monthsSafe,
         extra: {
           // Send BOTH to satisfy your serializer/view
           months: monthsSafe,
