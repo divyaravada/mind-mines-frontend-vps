@@ -86,6 +86,26 @@ export default function Checkout() {
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
+  function buildCheckoutPayload() {
+    return {
+      email: (form.email || "").trim(),
+      coupon_code: (couponCode || "").trim(),
+      items: backendItems,
+      shipping: {
+        first_name: form.fullName.split(" ")[0] || form.fullName,
+        last_name: form.fullName.split(" ").slice(1).join(" "),
+        line1: `${form.street} ${form.houseNumber}`.trim(),
+        line2: form.apartment || "",
+        postal_code: form.postalCode,
+        city: form.city,
+        country: normalizeCountry(form.country),
+        phone: form.telephone || "",
+        street_name: form.street || "",
+        house_number: form.houseNumber || "",
+      },
+    };
+  }
+
   // single guard flag for redirects related to cart clearing
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
@@ -386,8 +406,6 @@ export default function Checkout() {
 
       let pmToSave = "card";
       if (installments_months) pmToSave = "card_installments";
-      if (pm === "klarna") pmToSave = "klarna";
-      if (pm === "giropay") pmToSave = "giropay";
 
       try {
         const res = await createOrder({
@@ -439,8 +457,6 @@ export default function Checkout() {
     if (!payment) return;
     const needsOrder =
       payment === "card" ||
-      payment === "klarna" ||
-      payment === "giropay" ||
       (typeof payment === "string" && payment.startsWith("card_installments"));
     if (needsOrder) {
       ensureStripeOrder(payment);
@@ -881,19 +897,29 @@ export default function Checkout() {
             <span className="text-xs font-semibold">Stripe</span>
           </label>
 
-          {payment === "klarna" && localOrderIdRef.current && (
+          {payment === "klarna" && (
             <div className="border rounded p-3 mt-3">
-              <StripeRedirectPay
-                orderId={localOrderIdRef.current}
-                method="klarna"
-                onSuccess={async () =>
-                  await onSuccessfulOrder(localOrderIdRef.current)
-                }
-                onError={(m) => alert(m)}
-              />
+              {!hasMinimalAddress() ? (
+                <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                  {t(
+                    "checkout.fillFirst",
+                    "Please fill in contact + delivery first."
+                  )}
+                </div>
+              ) : (
+                <StripeRedirectPay
+                  method="klarna"
+                  checkoutPayload={buildCheckoutPayload()}
+                  // Do NOT navigate here; webhook will create the order and email invoice
+                  onError={(m) => alert(m)}
+                />
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                You’ll be redirected to Klarna. We’ll email your invoice once
+                payment is confirmed.
+              </p>
             </div>
           )}
-
           {/* giropay */}
           <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
             <input
@@ -907,16 +933,26 @@ export default function Checkout() {
             <span className="text-xs font-semibold">Stripe</span>
           </label>
 
-          {payment === "giropay" && localOrderIdRef.current && (
+          {payment === "giropay" && (
             <div className="border rounded p-3 mt-3">
-              <StripeRedirectPay
-                orderId={localOrderIdRef.current}
-                method="giropay"
-                onSuccess={async () =>
-                  await onSuccessfulOrder(localOrderIdRef.current)
-                }
-                onError={(m) => alert(m)}
-              />
+              {!hasMinimalAddress() ? (
+                <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                  {t(
+                    "checkout.fillFirst",
+                    "Please fill in contact + delivery first."
+                  )}
+                </div>
+              ) : (
+                <StripeRedirectPay
+                  method="giropay"
+                  checkoutPayload={buildCheckoutPayload()}
+                  onError={(m) => alert(m)}
+                />
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                You’ll be redirected to your bank. We’ll email your invoice once
+                payment is confirmed.
+              </p>
             </div>
           )}
 

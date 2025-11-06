@@ -67,6 +67,7 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
 export default function StripeRedirectPay({
   orderId,
   method,
+  checkoutPayload,
   onSuccess,
   onError,
 }) {
@@ -77,8 +78,13 @@ export default function StripeRedirectPay({
     let mounted = true;
     (async () => {
       try {
-        const res = await createPI({ order_id: orderId, method }).unwrap();
-        if (mounted) setClientSecret(res.client_secret || res.clientSecret);
+        const body = orderId
+          ? { order_id: orderId, method }
+          : { method, payload: checkoutPayload };
+        const res = await createPI(body).unwrap();
+        const cs = res.client_secret || res.clientSecret;
+        if (!cs) throw new Error("Missing client_secret");
+        if (mounted) setClientSecret(cs);
       } catch (e) {
         const msg = e?.data?.detail || e?.error || "Failed to init payment.";
         onError?.(msg);
@@ -87,7 +93,7 @@ export default function StripeRedirectPay({
     return () => {
       mounted = false;
     };
-  }, [orderId, method, createPI, onError]);
+  }, [orderId, method, checkoutPayload, createPI, onError]);
 
   if (isLoading || !clientSecret) {
     return (
