@@ -12,6 +12,7 @@ import {
   useStripeCardInstallmentsMutation,
 } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
+import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -27,16 +28,25 @@ function pickErr(e, fallback) {
   );
 }
 
+/** Step 1: Save a card with a SetupIntent (works for guests + users) */
 function SaveCardStep({ email, onSaved, onError }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [createSI, { isLoading }] = useStripeCreateSetupIntentMutation();
+  const [createSI, { isLoading: siLoading }] =
+    useStripeCreateSetupIntentMutation();
   const [cs, setCs] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function initSI() {
+    if (!email) {
+      onError?.("Please enter your email first.");
+      return;
+    }
     try {
-      const res = await createSI({ email }).unwrap();
-      setCs(res.client_secret || res.clientSecret);
+      const res = await createSI({ email: email.trim() }).unwrap();
+      const secret = res?.client_secret || res?.clientSecret || "";
+      if (!secret) throw new Error("No client_secret returned.");
+      setCs(secret);
     } catch (e) {
       onError?.(pickErr(e, "Failed to prepare card."));
     }
@@ -46,19 +56,24 @@ function SaveCardStep({ email, onSaved, onError }) {
     if (!stripe || !elements || !cs) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
-    const { error, setupIntent } = await stripe.confirmCardSetup(cs, {
-      payment_method: { card },
-    });
-    if (error) {
-      onError?.(error.message || "Failed to save card.");
-      return;
+
+    setSaving(true);
+    try {
+      const { error, setupIntent } = await stripe.confirmCardSetup(cs, {
+        payment_method: {
+          card,
+          billing_details: { email: email || undefined },
+        },
+      });
+      if (error) throw new Error(error.message || "Failed to save card.");
+      const pm = setupIntent?.payment_method;
+      if (!pm) throw new Error("No payment method returned.");
+      onSaved?.(pm);
+    } catch (e) {
+      onError?.(pickErr(e, "Failed to save card."));
+    } finally {
+      setSaving(false);
     }
-    const pm = setupIntent?.payment_method;
-    if (!pm) {
-      onError?.("No payment method returned.");
-      return;
-    }
-    onSaved?.(pm);
   }
 
   return (
@@ -67,9 +82,9 @@ function SaveCardStep({ email, onSaved, onError }) {
         <button
           className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
           onClick={initSI}
-          disabled={isLoading}
+          disabled={siLoading}
         >
-          {isLoading ? "Preparing…" : "Add card for installments"}
+          {siLoading ? "Preparing…" : "Add card for installments"}
         </button>
       ) : (
         <>
@@ -79,8 +94,9 @@ function SaveCardStep({ email, onSaved, onError }) {
           <button
             className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
             onClick={saveCard}
+            disabled={saving}
           >
-            Save card
+            {saving ? "Saving…" : "Save card"}
           </button>
         </>
       )}
@@ -93,7 +109,7 @@ function SaveCardStep({ email, onSaved, onError }) {
 
 export default function StripeCardInstallments({
   active,
-  setActive,
+  setActive, // kept for compatibility (not used)
   months,
   form,
   items,
@@ -105,6 +121,7 @@ export default function StripeCardInstallments({
   const [createPlan, { isLoading }] = useStripeCardInstallmentsMutation();
   const [errorMsg, setErrorMsg] = useState("");
   const [localPM, setLocalPM] = useState(paymentMethodId || null);
+  const [serverSchedule, setServerSchedule] = useState(null);
 
   const monthsSafe = useMemo(() => {
     const m = Number(months);
@@ -113,15 +130,27 @@ export default function StripeCardInstallments({
 
   async function startPlan(pmId) {
     setErrorMsg("");
+
+    // quick guards so we fail early with a helpful message
+    if (!Array.isArray(items) || items.length === 0) {
+      setErrorMsg("Your cart is empty.");
+      return;
+    }
+    const email = (form?.email || "").trim();
+    if (!email) {
+      setErrorMsg("Please enter your email first.");
+      return;
+    }
+
     try {
       const payload = buildOrderPayload({
         form,
         items,
-        email: (form.email || "").trim(),
+        email,
         couponCode,
         payment_method: "card_installments",
         extra: {
-          // send BOTH to satisfy serializer/view
+          // Send BOTH to satisfy your serializer/view
           months: monthsSafe,
           installments_months: monthsSafe,
           payment_method_id: pmId,
@@ -131,6 +160,13 @@ export default function StripeCardInstallments({
       const res = await createPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error("Order not created.");
+
+      // Capture server schedule to show the exact plan we also emailed
+      setServerSchedule({
+        months: res?.months,
+        amounts: res?.amounts,
+        dates: res?.dates,
+      });
 
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
@@ -154,26 +190,49 @@ export default function StripeCardInstallments({
       <div className="text-sm">
         Confirm card-based installments ({monthsSafe} months).
       </div>
+
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
 
+      {serverSchedule && (
+        <InstallmentsSchedulePreview
+          months={serverSchedule.months}
+          total={null}
+          serverSchedule={serverSchedule}
+        />
+      )}
+
+      {/* CardElement does NOT require a clientSecret on Elements (only PaymentElement does) */}
       <Elements
         stripe={stripePromise}
         options={{ appearance: { theme: "stripe" }, locale: "de" }}
       >
         {!localPM ? (
           <SaveCardStep
-            email={(form.email || "").trim()}
+            email={(form?.email || "").trim()}
             onSaved={(pm) => setLocalPM(pm)}
             onError={(m) => setErrorMsg(m)}
           />
         ) : (
-          <button
-            disabled={isLoading}
-            onClick={() => startPlan(localPM)}
-            className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
-          >
-            {isLoading ? "Starting…" : "Start installments"}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              disabled={isLoading}
+              onClick={() => startPlan(localPM)}
+              className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+            >
+              {isLoading ? "Starting…" : "Start installments"}
+            </button>
+            <button
+              type="button"
+              className="text-xs underline"
+              onClick={() => {
+                // allow switching card if needed
+                setLocalPM(null);
+                setServerSchedule(null);
+              }}
+            >
+              Use a different card
+            </button>
+          </div>
         )}
       </Elements>
     </div>

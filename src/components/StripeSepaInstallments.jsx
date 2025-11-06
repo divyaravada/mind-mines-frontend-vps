@@ -1,5 +1,6 @@
 // src/components/StripeSepaInstallments.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -38,7 +39,7 @@ function SepaInstallmentsInner({
   form,
   items,
   couponCode,
-  onCreated,
+  onCreated, // (orderId, schedule)
   setErrorMsg,
 }) {
   const stripe = useStripe();
@@ -48,7 +49,6 @@ function SepaInstallmentsInner({
 
   const startInstallments = useCallback(
     async (paymentMethodId) => {
-      // create Order + schedule on backend
       const payload = buildOrderPayload({
         form,
         items,
@@ -65,7 +65,13 @@ function SepaInstallmentsInner({
       const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error("Order not created.");
-      onCreated?.(orderId);
+
+      const schedule = {
+        months: res?.months,
+        amounts: res?.amounts,
+        dates: res?.dates,
+      };
+      onCreated?.(orderId, schedule);
     },
     [startPlan, months, countryCode, form, items, couponCode, onCreated]
   );
@@ -149,11 +155,13 @@ export default function StripeSepaInstallments({
 
   const [clientSecret, setClientSecret] = useState("");
   const [loadingInit, setLoadingInit] = useState(false);
+  const [serverSchedule, setServerSchedule] = useState(null);
 
-  // If we already have a saved payment method, we can start the plan without showing PaymentElement
-  const [startPlanDirect, { isLoading: creatingPlanDirect }] =
+  // Single mutation hook (reuse for both paths)
+  const [startPlan, { isLoading: creatingPlan }] =
     useStripeSepaInstallmentsMutation();
 
+  // Bootstrap SetupIntent if we DON'T have a saved PM
   useEffect(() => {
     let cancelled = false;
 
@@ -161,10 +169,13 @@ export default function StripeSepaInstallments({
       if (!active) return;
       setErrorMsg("");
 
-      // Case 1: Existing saved mandate -> create plan directly
-      if (paymentMethodId) return;
+      if (paymentMethodId) {
+        // Saved PM path: no need for SetupIntent
+        setClientSecret("");
+        return;
+      }
 
-      // Case 2: Need to collect mandate -> create SetupIntent, store client_secret
+      // Need to collect a mandate → create SetupIntent, store client_secret
       setLoadingInit(true);
       try {
         const r = await http.post("stripe/setup-intent/sepa/", {
@@ -176,7 +187,6 @@ export default function StripeSepaInstallments({
           r?.data?.data?.client_secret ||
           "";
         if (!cs) throw new Error("Missing SetupIntent client_secret.");
-
         if (!cancelled) setClientSecret(cs);
       } catch (e) {
         if (!cancelled)
@@ -192,7 +202,7 @@ export default function StripeSepaInstallments({
     };
   }, [active, paymentMethodId, form?.email]);
 
-  // If a saved payment method exists, let the shopper start the plan immediately
+  // Saved PM → start immediately (no Elements)
   const startWithSavedPM = async () => {
     setErrorMsg("");
     try {
@@ -208,9 +218,18 @@ export default function StripeSepaInstallments({
           country: (countryCode || "DE").toUpperCase(),
         },
       });
-      const res = await startPlanDirect(payload).unwrap();
+
+      const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error("Order not created.");
+
+      const schedule = {
+        months: res?.months,
+        amounts: res?.amounts,
+        dates: res?.dates,
+      };
+      setServerSchedule(schedule);
+
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
@@ -236,24 +255,32 @@ export default function StripeSepaInstallments({
 
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
 
-      {/* Saved PM path */}
+      {/* Show server-confirmed schedule once available */}
+      {serverSchedule && (
+        <InstallmentsSchedulePreview
+          months={serverSchedule.months}
+          total={null}
+          serverSchedule={serverSchedule}
+        />
+      )}
+
+      {/* Saved PM path → no Elements */}
       {paymentMethodId ? (
         <button
-          disabled={creatingPlanDirect}
+          disabled={creatingPlan}
           onClick={startWithSavedPM}
           className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
         >
-          {creatingPlanDirect
+          {creatingPlan
             ? "Starte…"
-            : "Ratenzahlung starten (gespeicherte SEPA-Mandat)"}
+            : "Ratenzahlung starten (gespeichertes SEPA-Mandat)"}
         </button>
       ) : (
         <>
-          {/* We only render Elements AFTER we have a clientSecret to avoid the IntegrationError */}
+          {/* Only render Elements AFTER we have a clientSecret */}
           {loadingInit && (
             <div className="text-sm text-gray-600">Vorbereiten…</div>
           )}
-
           {clientSecret && (
             <Elements
               stripe={stripePromise}
@@ -270,7 +297,8 @@ export default function StripeSepaInstallments({
                 items={items}
                 couponCode={couponCode}
                 setErrorMsg={setErrorMsg}
-                onCreated={(orderId) => {
+                onCreated={(orderId, schedule) => {
+                  setServerSchedule(schedule || null);
                   setLocalOrderId?.(orderId);
                   onSuccess?.(orderId);
                 }}
