@@ -1,17 +1,16 @@
 // src/components/StripeSepaInstallments.jsx
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  useStripeSepaInstallmentsMutation,
-  useStripeCreateSepaSetupIntentMutation,
-} from "../features/payments/paymentsApi";
+
+import { useStripeSepaInstallmentsMutation } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
+import http from "../services/http";
 
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
@@ -28,117 +27,196 @@ function pickErr(e, fallback) {
 }
 
 /**
- * Step 1 (if needed): Save a SEPA mandate (IBAN) to get a payment_method_id
+ * Inner piece that:
+ *  - shows PaymentElement (after we have SetupIntent client_secret)
+ *  - confirms mandate with stripe.confirmSetup
+ *  - then triggers backend to start installments and create the Order
  */
-function SaveSepaMandate({ email, onSaved, onError }) {
+function SepaInstallmentsInner({
+  months,
+  countryCode,
+  form,
+  items,
+  couponCode,
+  onCreated,
+  setErrorMsg,
+}) {
   const stripe = useStripe();
   const elements = useElements();
-  const [createSI, { isLoading }] = useStripeCreateSepaSetupIntentMutation();
-  const [cs, setCs] = useState("");
+  const [startPlan, { isLoading }] = useStripeSepaInstallmentsMutation();
+  const [busy, setBusy] = useState(false);
 
-  async function initSetupIntent() {
+  const startInstallments = useCallback(
+    async (paymentMethodId) => {
+      // create Order + schedule on backend
+      const payload = buildOrderPayload({
+        form,
+        items,
+        email: form.email,
+        couponCode,
+        payment_method: "sepa_installments",
+        extra: {
+          months,
+          payment_method_id: paymentMethodId,
+          country: (countryCode || "DE").toUpperCase(),
+        },
+      });
+
+      const res = await startPlan(payload).unwrap();
+      const orderId = res?.order_id ?? res?.data?.order_id ?? null;
+      if (!orderId) throw new Error("Order not created.");
+      onCreated?.(orderId);
+    },
+    [startPlan, months, countryCode, form, items, couponCode, onCreated]
+  );
+
+  const confirmMandateThenCreate = async () => {
+    if (!stripe || !elements) return;
+    setBusy(true);
+    setErrorMsg("");
+
     try {
-      const r = await createSI({ email }).unwrap();
-      setCs(r.client_secret || r.clientSecret);
-    } catch (e) {
-      onError?.(pickErr(e, "Failed to prepare SEPA mandate."));
-    }
-  }
+      const { error, setupIntent } = await stripe.confirmSetup({
+        elements,
+        confirmParams: { return_url: window.location.href },
+        redirect: "if_required",
+      });
 
-  async function saveMandate() {
-    if (!stripe || !elements || !cs) return;
-    const { error, setupIntent } = await stripe.confirmSetup({
-      elements,
-      clientSecret: cs,
-    });
-    if (error) return onError?.(error.message || "SEPA setup failed.");
-    const pm = setupIntent?.payment_method;
-    if (!pm) return onError?.("No payment method returned.");
-    onSaved?.(pm);
-  }
+      if (error) {
+        setErrorMsg(error.message || "Mandate confirmation failed.");
+        setBusy(false);
+        return;
+      }
+
+      const pmId = setupIntent?.payment_method;
+      if (!pmId) {
+        setErrorMsg("No payment method was created.");
+        setBusy(false);
+        return;
+      }
+
+      await startInstallments(pmId);
+    } catch (e) {
+      setErrorMsg(pickErr(e, "Failed to confirm mandate."));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
-      {!cs ? (
-        <button
-          className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
-          onClick={initSetupIntent}
-          disabled={isLoading}
-        >
-          {isLoading ? "Vorbereiten..." : "SEPA-Mandat hinzufügen"}
-        </button>
-      ) : (
-        <>
-          <div className="border rounded p-3 bg-white">
-            <PaymentElement />
-          </div>
-          <button
-            className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
-            onClick={saveMandate}
-          >
-            Mandat speichern
-          </button>
-        </>
-      )}
+      <div className="border rounded p-3">
+        <PaymentElement options={{ layout: "tabs" }} />
+      </div>
+      <button
+        disabled={busy || isLoading || !stripe || !elements}
+        onClick={confirmMandateThenCreate}
+        className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+      >
+        {busy || isLoading
+          ? "Processing…"
+          : `Confirm mandate & start ${months} mo.`}
+      </button>
       <p className="text-xs text-gray-500">
-        Dein IBAN wird sicher bei Stripe gespeichert. Nur für diese Bestellung
-        verwendet.
+        By confirming, you authorize monthly SEPA debits for {months} months.
       </p>
     </div>
   );
 }
 
 /**
- * Step 2: Start SEPA installment plan
+ * Public component used by checkout.jsx
+ * - If `paymentMethodId` is already provided: we skip mandate collection and directly create the plan.
+ * - Else: we request a SetupIntent, render <Elements> only after client_secret arrives, confirm mandate, then create plan.
  */
 export default function StripeSepaInstallments({
   active,
-  setActive,
+  setActive, // not used, but keep API
   months,
   form,
   items,
   couponCode,
-  paymentMethodId, // optional (if user already has a saved mandate)
+  paymentMethodId, // optional saved mandate PM id
   countryCode,
   setLocalOrderId,
   onSuccess,
 }) {
-  const [startSepaPlan, { isLoading }] = useStripeSepaInstallmentsMutation();
   const [errorMsg, setErrorMsg] = useState("");
-  const [localPM, setLocalPM] = useState(paymentMethodId || null);
-
   const monthsSafe = useMemo(() => {
     const m = Number(months);
     return [3, 6, 9].includes(m) ? m : 3;
   }, [months]);
 
-  async function handleStart() {
+  const [clientSecret, setClientSecret] = useState("");
+  const [loadingInit, setLoadingInit] = useState(false);
+
+  // If we already have a saved payment method, we can start the plan without showing PaymentElement
+  const [startPlanDirect, { isLoading: creatingPlanDirect }] =
+    useStripeSepaInstallmentsMutation();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function bootstrap() {
+      if (!active) return;
+      setErrorMsg("");
+
+      // Case 1: Existing saved mandate -> create plan directly
+      if (paymentMethodId) return;
+
+      // Case 2: Need to collect mandate -> create SetupIntent, store client_secret
+      setLoadingInit(true);
+      try {
+        const r = await http.post("stripe/setup-intent/sepa/", {
+          email: (form.email || "").trim(),
+        });
+        const cs =
+          r?.data?.client_secret ||
+          r?.client_secret ||
+          r?.data?.data?.client_secret ||
+          "";
+        if (!cs) throw new Error("Missing SetupIntent client_secret.");
+
+        if (!cancelled) setClientSecret(cs);
+      } catch (e) {
+        if (!cancelled)
+          setErrorMsg(pickErr(e, "Failed to prepare SEPA mandate."));
+      } finally {
+        if (!cancelled) setLoadingInit(false);
+      }
+    }
+
+    bootstrap();
+    return () => {
+      cancelled = true;
+    };
+  }, [active, paymentMethodId, form?.email]);
+
+  // If a saved payment method exists, let the shopper start the plan immediately
+  const startWithSavedPM = async () => {
     setErrorMsg("");
     try {
       const payload = buildOrderPayload({
         form,
         items,
-        email: (form.email || "").trim(),
+        email: form.email,
         couponCode,
         payment_method: "sepa_installments",
         extra: {
           months: monthsSafe,
-          installments_months: monthsSafe, // ensures serializer validation passes
-          payment_method_id: localPM,
-          country: countryCode || "DE",
+          payment_method_id: paymentMethodId,
+          country: (countryCode || "DE").toUpperCase(),
         },
       });
-
-      const res = await startSepaPlan(payload).unwrap();
+      const res = await startPlanDirect(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error("Order not created.");
-
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
       setErrorMsg(pickErr(e, "Failed to start SEPA plan."));
     }
-  }
+  };
 
   if (!active) {
     return (
@@ -151,32 +229,56 @@ export default function StripeSepaInstallments({
   }
 
   return (
-    <div className="border rounded p-3 mt-2 space-y-3 bg-gray-50">
-      <div className="text-sm font-medium">
-        SEPA Ratenzahlung ({monthsSafe} Monate) — monatliche Abbuchung.
+    <div className="border rounded p-3 mt-2 space-y-2">
+      <div className="text-sm">
+        SEPA Ratenzahlung ({monthsSafe} Monate). Abbuchung monatlich.
       </div>
+
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
 
-      <Elements
-        stripe={stripePromise}
-        options={{ appearance: { theme: "stripe" }, locale: "de" }}
-      >
-        {!localPM ? (
-          <SaveSepaMandate
-            email={(form.email || "").trim()}
-            onSaved={(pm) => setLocalPM(pm)}
-            onError={(m) => setErrorMsg(m)}
-          />
-        ) : (
-          <button
-            disabled={isLoading}
-            onClick={handleStart}
-            className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
-          >
-            {isLoading ? "Starte..." : "Ratenzahlung starten"}
-          </button>
-        )}
-      </Elements>
+      {/* Saved PM path */}
+      {paymentMethodId ? (
+        <button
+          disabled={creatingPlanDirect}
+          onClick={startWithSavedPM}
+          className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+        >
+          {creatingPlanDirect
+            ? "Starte…"
+            : "Ratenzahlung starten (gespeicherte SEPA-Mandat)"}
+        </button>
+      ) : (
+        <>
+          {/* We only render Elements AFTER we have a clientSecret to avoid the IntegrationError */}
+          {loadingInit && (
+            <div className="text-sm text-gray-600">Vorbereiten…</div>
+          )}
+
+          {clientSecret && (
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: { theme: "stripe" },
+                locale: "de",
+              }}
+            >
+              <SepaInstallmentsInner
+                months={monthsSafe}
+                countryCode={countryCode}
+                form={form}
+                items={items}
+                couponCode={couponCode}
+                setErrorMsg={setErrorMsg}
+                onCreated={(orderId) => {
+                  setLocalOrderId?.(orderId);
+                  onSuccess?.(orderId);
+                }}
+              />
+            </Elements>
+          )}
+        </>
+      )}
     </div>
   );
 }
