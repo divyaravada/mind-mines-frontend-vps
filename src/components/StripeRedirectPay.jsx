@@ -13,7 +13,14 @@ const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
-function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
+function Inner({
+  orderId,
+  method,
+  orderPayload,
+  onSuccess,
+  onError,
+  returnUrl,
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);
@@ -31,7 +38,7 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
       onError?.(error.message || "Payment failed.");
       return;
     }
-    // For redirect methods, user will likely be redirected; if not, try success.
+    // Usually a redirect follows; if not, fall back:
     onSuccess?.(orderId);
   };
 
@@ -50,16 +57,10 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
           ? "Redirecting…"
           : `Pay with ${method === "klarna" ? "Klarna" : "giropay"}`}
       </button>
-      {method === "klarna" && (
-        <p className="text-xs text-gray-500">
-          You’ll be redirected to Klarna to complete the payment.
-        </p>
-      )}
-      {method === "giropay" && (
-        <p className="text-xs text-gray-500">
-          You’ll be redirected to your bank to complete the payment.
-        </p>
-      )}
+      <p className="text-xs text-gray-500">
+        You’ll be redirected to {method === "klarna" ? "Klarna" : "your bank"}{" "}
+        to complete the payment.
+      </p>
     </div>
   );
 }
@@ -67,24 +68,29 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
 export default function StripeRedirectPay({
   orderId,
   method,
-  checkoutPayload,
+  orderPayload,
   onSuccess,
   onError,
 }) {
   const [createPI, { isLoading }] = useStripeCreateRedirectIntentMutation();
   const [clientSecret, setClientSecret] = useState("");
+  const [effectiveOrderId, setEffectiveOrderId] = useState(orderId || null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const body = orderId
-          ? { order_id: orderId, method }
-          : { method, payload: checkoutPayload };
+        // If we already have orderId, use it; else send full payload (JIT create)
+        const base = { method };
+        const body = effectiveOrderId
+          ? { ...base, order_id: effectiveOrderId }
+          : { ...base, ...orderPayload }; // must include email, items, shipping, coupon etc.
+
         const res = await createPI(body).unwrap();
-        const cs = res.client_secret || res.clientSecret;
-        if (!cs) throw new Error("Missing client_secret");
-        if (mounted) setClientSecret(cs);
+        if (!mounted) return;
+
+        setClientSecret(res.client_secret || res.clientSecret);
+        if (!effectiveOrderId) setEffectiveOrderId(res.order_id);
       } catch (e) {
         const msg = e?.data?.detail || e?.error || "Failed to init payment.";
         onError?.(msg);
@@ -93,7 +99,7 @@ export default function StripeRedirectPay({
     return () => {
       mounted = false;
     };
-  }, [orderId, method, checkoutPayload, createPI, onError]);
+  }, [method]);
 
   if (isLoading || !clientSecret) {
     return (
@@ -103,20 +109,17 @@ export default function StripeRedirectPay({
     );
   }
 
-  const returnUrl = `${window.location.origin}/checkout/return`; // ensure this route exists
+  const returnUrl = `${window.location.origin}/checkout/return`;
 
   return (
     <Elements
       stripe={stripePromise}
-      options={{
-        clientSecret,
-        appearance: { theme: "stripe" },
-        locale: "de", // or based on i18n
-      }}
+      options={{ clientSecret, appearance: { theme: "stripe" }, locale: "de" }}
     >
       <Inner
-        orderId={orderId}
+        orderId={effectiveOrderId}
         method={method}
+        orderPayload={orderPayload}
         onSuccess={onSuccess}
         onError={onError}
         returnUrl={returnUrl}
