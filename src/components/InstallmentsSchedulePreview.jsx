@@ -6,12 +6,10 @@ export default function InstallmentsSchedulePreview({
   total,
   serverSchedule,
 }) {
-  // If server returned schedule (amounts/dates), prefer it.
   const amounts = serverSchedule?.amounts?.map(Number);
   const dates = serverSchedule?.dates;
-
-  // fallback quick split (client-side) if nothing from server yet
   let rows = [];
+
   if (amounts && dates && amounts.length === dates.length) {
     rows = amounts.map((a, i) => ({ amount: a, date: dates[i] }));
   } else if (months && total != null) {
@@ -23,7 +21,7 @@ export default function InstallmentsSchedulePreview({
     );
     rows = parts.map((c, i) => {
       const dt = new Date();
-      dt.setMonth(dt.getMonth() + i); // shows today/this month first
+      dt.setMonth(dt.getMonth() + i);
       return {
         amount: (c / 100).toFixed(2),
         date: dt.toISOString().slice(0, 10),

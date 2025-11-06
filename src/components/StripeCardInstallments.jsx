@@ -17,34 +17,24 @@ import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
+const pickErr = (e, fb) =>
+  e?.data?.detail ||
+  e?.data?.error ||
+  e?.error ||
+  (typeof e === "string" ? e : "") ||
+  fb;
 
-function pickErr(e, fallback) {
-  return (
-    e?.data?.detail ||
-    e?.data?.error ||
-    e?.error ||
-    (typeof e === "string" ? e : "") ||
-    fallback
-  );
-}
-
-/** Step 1: Save a card with a SetupIntent (works for guests + users) */
 function SaveCardStep({ email, onSaved, onError }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [createSI, { isLoading: siLoading }] =
-    useStripeCreateSetupIntentMutation();
+  const [createSI, { isLoading }] = useStripeCreateSetupIntentMutation();
   const [cs, setCs] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function initSI() {
-    if (!email) {
-      onError?.("Please enter your email first.");
-      return;
-    }
     try {
-      const res = await createSI({ email: email.trim() }).unwrap();
-      const secret = res?.client_secret || res?.clientSecret || "";
+      const r = await createSI({ email: (email || "").trim() }).unwrap();
+      const secret = r?.client_secret || r?.clientSecret || "";
       if (!secret) throw new Error("No client_secret returned.");
       setCs(secret);
     } catch (e) {
@@ -56,7 +46,6 @@ function SaveCardStep({ email, onSaved, onError }) {
     if (!stripe || !elements || !cs) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
-
     setSaving(true);
     try {
       const { error, setupIntent } = await stripe.confirmCardSetup(cs, {
@@ -82,9 +71,9 @@ function SaveCardStep({ email, onSaved, onError }) {
         <button
           className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
           onClick={initSI}
-          disabled={siLoading}
+          disabled={isLoading}
         >
-          {siLoading ? "Preparing…" : "Add card for installments"}
+          {isLoading ? "Preparing…" : "Add card for installments"}
         </button>
       ) : (
         <>
@@ -109,12 +98,11 @@ function SaveCardStep({ email, onSaved, onError }) {
 
 export default function StripeCardInstallments({
   active,
-  setActive, // kept for compatibility (not used)
   months,
   form,
   items,
   couponCode,
-  paymentMethodId, // may be null
+  paymentMethodId,
   setLocalOrderId,
   onSuccess,
 }) {
@@ -122,52 +110,31 @@ export default function StripeCardInstallments({
   const [errorMsg, setErrorMsg] = useState("");
   const [localPM, setLocalPM] = useState(paymentMethodId || null);
   const [serverSchedule, setServerSchedule] = useState(null);
-
-  const monthsSafe = useMemo(() => {
-    const m = Number(months);
-    return [3, 6, 9].includes(m) ? m : 3;
-  }, [months]);
+  const monthsSafe = useMemo(
+    () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
+    [months]
+  );
 
   async function startPlan(pmId) {
     setErrorMsg("");
-
-    // quick guards so we fail early with a helpful message
-    if (!Array.isArray(items) || items.length === 0) {
-      setErrorMsg("Your cart is empty.");
-      return;
-    }
-    const email = (form?.email || "").trim();
-    if (!email) {
-      setErrorMsg("Please enter your email first.");
-      return;
-    }
-
     try {
       const payload = buildOrderPayload({
         form,
         items,
-        email,
+        email: (form?.email || "").trim(),
         couponCode,
         payment_method: "card_installments",
         installments_months: monthsSafe,
-        extra: {
-          // Send BOTH to satisfy your serializer/view
-          months: monthsSafe,
-          payment_method_id: pmId,
-        },
+        extra: { months: monthsSafe, payment_method_id: pmId },
       });
-
       const res = await createPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error("Order not created.");
-
-      // Capture server schedule to show the exact plan we also emailed
       setServerSchedule({
         months: res?.months,
         amounts: res?.amounts,
         dates: res?.dates,
       });
-
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
@@ -190,9 +157,7 @@ export default function StripeCardInstallments({
       <div className="text-sm">
         Confirm card-based installments ({monthsSafe} months).
       </div>
-
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
-
       {serverSchedule && (
         <InstallmentsSchedulePreview
           months={serverSchedule.months}
@@ -200,8 +165,6 @@ export default function StripeCardInstallments({
           serverSchedule={serverSchedule}
         />
       )}
-
-      {/* CardElement does NOT require a clientSecret on Elements (only PaymentElement does) */}
       <Elements
         stripe={stripePromise}
         options={{ appearance: { theme: "stripe" }, locale: "de" }}
@@ -225,7 +188,6 @@ export default function StripeCardInstallments({
               type="button"
               className="text-xs underline"
               onClick={() => {
-                // allow switching card if needed
                 setLocalPM(null);
                 setServerSchedule(null);
               }}
