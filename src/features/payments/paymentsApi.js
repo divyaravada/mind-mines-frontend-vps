@@ -30,6 +30,13 @@ export const paymentsApi = api.injectEndpoints({
         body: payload,
       }),
     }),
+    stripeCreateSepaSetupIntent: build.mutation({
+      query: (payload) => ({
+        url: "stripe/setup-intent/sepa/",
+        method: "POST",
+        body: payload, // { email }
+      }),
+    }),
     stripeSepaInstallments: build.mutation({
       query: (payload) => ({
         url: "stripe/installments/sepa/",
@@ -73,6 +80,7 @@ export const {
   useStripeCreateSetupIntentMutation,
   useStripeCardInstallmentsMutation,
   useStripeCreateSepaIntentMutation,
+  useStripeCreateSepaSetupIntentMutation,
   useStripeSepaInstallmentsMutation,
   useSepaPostConfirmMutation,
   usePaypalCreateOrderMutation,
