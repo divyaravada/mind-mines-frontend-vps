@@ -153,7 +153,6 @@ export default function StripeCardInstallments({
         extra: {
           // Send BOTH to satisfy your serializer/view
           months: monthsSafe,
-          installments_months: monthsSafe,
           payment_method_id: pmId,
         },
       });
