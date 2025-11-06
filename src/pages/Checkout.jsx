@@ -906,11 +906,17 @@ export default function Checkout() {
                     "Please fill in contact + delivery first."
                   )}
                 </div>
+              ) : payTotal <= 0 ? (
+                <div className="text-sm text-red-600 border rounded px-3 py-2">
+                  {t(
+                    "checkout.totalPositive",
+                    "Order total must be above 0 to use Klarna."
+                  )}
+                </div>
               ) : (
                 <StripeRedirectPay
                   method="klarna"
                   checkoutPayload={buildCheckoutPayload()}
-                  // Do NOT navigate here; webhook will create the order and email invoice
                   onError={(m) => alert(m)}
                 />
               )}
@@ -940,6 +946,13 @@ export default function Checkout() {
                   {t(
                     "checkout.fillFirst",
                     "Please fill in contact + delivery first."
+                  )}
+                </div>
+              ) : payTotal <= 0 ? (
+                <div className="text-sm text-red-600 border rounded px-3 py-2">
+                  {t(
+                    "checkout.totalPositive",
+                    "Order total must be above 0 to use Klarna."
                   )}
                 </div>
               ) : (
