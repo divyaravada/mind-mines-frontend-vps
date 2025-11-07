@@ -217,7 +217,7 @@ export default function ProductDetailPage() {
               "@type": "ListItem",
               position: 3,
               name: t("categories." + product.category + ".heading"),
-              item: `${currentOrigin}/products/category/${product.category}/`,
+              item: `${currentOrigin}/decorative-products/category/${product.category}/`,
             },
           ]
         : []),
