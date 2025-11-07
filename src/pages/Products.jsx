@@ -18,18 +18,18 @@ import {
 } from "../features/wishlist/wishlistApi";
 
 const MATERIALS = [
-  { value: "marble", labelKey: "products.filters.material.marble" },
-  { value: "granite", labelKey: "products.filters.material.granite" },
-  { value: "stone", labelKey: "products.filters.material.stone" },
-  { value: "onyx", labelKey: "products.filters.material.onyx" },
-  { value: "quartz", labelKey: "products.filters.material.quartz" },
+  { value: "marble", label: "products.filters.material.marble" },
+  { value: "granite", label: "products.filters.material.granite" },
+  { value: "stone", label: "products.filters.material.stone" },
+  { value: "onyx", label: "products.filters.material.onyx" },
+  { value: "quartz", label: "products.filters.material.quartz" },
 ];
 const COLORS = [
-  { value: "white", labelKey: "products.filters.color.white" },
-  { value: "black", labelKey: "products.filters.color.black" },
-  { value: "grey", labelKey: "products.filters.color.grey" },
-  { value: "brown", labelKey: "products.filters.color.brown" },
-  { value: "green", labelKey: "products.filters.color.green" },
+  { value: "white", label: "products.filters.color.white" },
+  { value: "black", label: "products.filters.color.black" },
+  { value: "grey", label: "products.filters.color.grey" },
+  { value: "brown", label: "products.filters.color.brown" },
+  { value: "green", label: "products.filters.color.green" },
 ];
 const PAGE_SIZE = 4;
 const BASE_PATH = "/decorative-products";
@@ -134,8 +134,7 @@ export default function ProductsPage() {
   );
 
   const toggleWishlist = async (id) => {
-    if (!isLoggedIn)
-      return toast.warning(t("wishlist.loginRequired"));
+    if (!isLoggedIn) return toast.warning(t("wishlist.loginRequired"));
     try {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
@@ -203,7 +202,9 @@ export default function ProductsPage() {
       {/* Filters */}
       <aside className="w-64 hidden md:block">
         <div className="mb-6 p-4 rounded shadow bg-white">
-          <h4 className="font-semibold mb-2">{t("products.filters.material.title")}</h4>
+          <h4 className="font-semibold mb-2">
+            {t("products.filters.material.title")}
+          </h4>
           {MATERIALS.map((m) => (
             <label key={m.value} className="block mb-1">
               <input
@@ -218,13 +219,15 @@ export default function ProductsPage() {
                   )
                 }
               />
-              {t(m.labelKey)}
+              {t(m.label)}
             </label>
           ))}
         </div>
 
         <div className="mb-6 p-4 rounded shadow bg-white">
-          <h4 className="font-semibold mb-2">{t("products.filters.color.title")}</h4>
+          <h4 className="font-semibold mb-2">
+            {t("products.filters.color.title")}
+          </h4>
           {COLORS.map((c) => (
             <label key={c.value} className="block mb-1">
               <input
@@ -239,7 +242,7 @@ export default function ProductsPage() {
                   )
                 }
               />
-              {t(c.labelKey)}
+              {t(c.label)}
             </label>
           ))}
         </div>
@@ -254,9 +257,10 @@ export default function ProductsPage() {
             onChange={(e) => setPrice(Number(e.target.value))}
             className="w-full"
           />
-          <div className="flex justify-between text-xs">
-            <span>{t("products.filters.priceMin")}</span>
-            <span>{fmtEUR(price, locale)}</span>
+          <div className="flex justify-between text-xs">
+            <span>{t("products.filters.priceMin")}</span>
+
+            <span>{fmtEUR(price, locale)}</span>
           </div>
         </div>
       </aside>
@@ -295,9 +299,7 @@ export default function ProductsPage() {
         {isFetching ? (
           <div className="text-center text-gray-500">{t("common.loading")}</div>
         ) : isError ? (
-          <div className="text-center text-red-500">
-            {t("products.error")}
-          </div>
+          <div className="text-center text-red-500">{t("products.error")}</div>
         ) : products.length === 0 ? (
           <div className="text-center text-gray-400">
             {t("products.noResults")}
