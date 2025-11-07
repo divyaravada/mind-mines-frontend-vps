@@ -25,7 +25,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
     return () => {
       mounted = false;
     };
-  }, [orderId]);
+  }, [orderId, createIntent, onError]);
 
   const pay = async () => {
     if (!stripe || !elements || !clientSecret) return;

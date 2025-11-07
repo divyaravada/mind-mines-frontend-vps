@@ -128,10 +128,12 @@ export default function ProductsPage() {
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 
-  useEffect(
-    () => setPage(1),
-    [categoryId, materials.join(","), colors.join(","), price]
-  );
+  const materialsKey = useMemo(() => materials.join(","), [materials]);
+  const colorsKey = useMemo(() => colors.join(","), [colors]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [categoryId, materialsKey, colorsKey, price]);
 
   const toggleWishlist = async (id) => {
     if (!isLoggedIn) return toast.warning(t("wishlist.loginRequired"));

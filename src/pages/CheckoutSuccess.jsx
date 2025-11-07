@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { toAbsoluteUrl } from "../utils/urls";
 import { useTranslation } from "react-i18next";

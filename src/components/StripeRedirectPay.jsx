@@ -1,5 +1,5 @@
 // src/components/StripeRedirectPay.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Elements,
   PaymentElement,
@@ -75,31 +75,46 @@ export default function StripeRedirectPay({
   const [createPI, { isLoading }] = useStripeCreateRedirectIntentMutation();
   const [clientSecret, setClientSecret] = useState("");
   const [effectiveOrderId, setEffectiveOrderId] = useState(orderId || null);
+  const orderIdRef = useRef(orderId || null);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        // If we already have orderId, use it; else send full payload (JIT create)
-        const base = { method };
-        const body = effectiveOrderId
-          ? { ...base, order_id: effectiveOrderId }
-          : { ...base, ...orderPayload }; // must include email, items, shipping, coupon etc.
+    orderIdRef.current = orderId || null;
+    setEffectiveOrderId(orderId || null);
+    setClientSecret("");
+  }, [orderId]);
 
-        const res = await createPI(body).unwrap();
+  useEffect(() => {
+    if (!method) return;
+    let mounted = true;
+
+    const loadIntent = async () => {
+      try {
+        setClientSecret("");
+        const base = { method };
+        const payload = orderIdRef.current
+          ? { ...base, order_id: orderIdRef.current }
+          : { ...base, ...(orderPayload || {}) };
+
+        const res = await createPI(payload).unwrap();
         if (!mounted) return;
 
-        setClientSecret(res.client_secret || res.clientSecret);
-        if (!effectiveOrderId) setEffectiveOrderId(res.order_id);
+        setClientSecret(res.client_secret || res.clientSecret || "");
+        if (!orderIdRef.current && res.order_id) {
+          orderIdRef.current = res.order_id;
+          setEffectiveOrderId(res.order_id);
+        }
       } catch (e) {
         const msg = e?.data?.detail || e?.error || "Failed to init payment.";
         onError?.(msg);
       }
-    })();
+    };
+
+    loadIntent();
+
     return () => {
       mounted = false;
     };
-  }, [method]);
+  }, [method, orderPayload, createPI, onError, orderId]);
 
   if (isLoading || !clientSecret) {
     return (

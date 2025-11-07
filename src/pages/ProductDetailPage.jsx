@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
   const [openDemand, setOpenDemand] = useState(false);
   const [
     createDemand,
-    { isLoading: isSending, isSuccess: sentOk, error: sendErr },
+    { isSuccess: sentOk, error: sendErr },
   ] = useCreateOnDemandRequestMutation();
 
   const suggestSeed = product
@@ -98,9 +98,12 @@ export default function ProductDetailPage() {
   const { data: suggestData } = useSuggestProductsQuery(suggestSeed, {
     skip: !suggestSeed,
   });
-  const suggested = Array.isArray(suggestData)
-    ? suggestData
-    : suggestData?.results ?? [];
+  const suggested = useMemo(() => {
+    if (!suggestData) return [];
+    return Array.isArray(suggestData)
+      ? suggestData
+      : suggestData?.results ?? [];
+  }, [suggestData]);
 
   const { data: relatedResp } = useListProductsQuery(
     product?.category
@@ -108,9 +111,12 @@ export default function ProductDetailPage() {
       : undefined,
     { skip: !product?.category }
   );
-  const relatedByCategory = Array.isArray(relatedResp)
-    ? relatedResp
-    : relatedResp?.results ?? [];
+  const relatedByCategory = useMemo(() => {
+    if (!relatedResp) return [];
+    return Array.isArray(relatedResp)
+      ? relatedResp
+      : relatedResp?.results ?? [];
+  }, [relatedResp]);
 
   const recommend = useMemo(() => {
     const base = (suggested.length ? suggested : relatedByCategory) || [];

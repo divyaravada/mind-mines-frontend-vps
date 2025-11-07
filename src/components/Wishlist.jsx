@@ -13,25 +13,6 @@ import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { fmtEUR, resolveProductPrice } from "../lib/money";
 
-const fmtMoney = (v, locale = "en") => {
-  let n =
-    typeof v === "number"
-      ? v
-      : parseFloat(
-          String(v ?? "")
-            .replace(/[^\d.,-]/g, "")
-            .replace(",", ".")
-        );
-  if (!Number.isFinite(n)) n = 0;
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-  } catch {
-    return `${n.toFixed(2)} €`;
-  }
-};
 
 export default function AccountWishlist() {
   const { i18n, t } = useTranslation();
@@ -45,18 +26,17 @@ export default function AccountWishlist() {
     data: itemsRaw,
     isFetching,
     isError,
-    error,
   } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
 
   const [removeWishlist] = useRemoveFromWishlistMutation();
   const [triggerGetProduct] = useLazyGetProductQuery();
 
   // normalize wishlist array shape
-  const items = Array.isArray(itemsRaw)
-    ? itemsRaw
-    : Array.isArray(itemsRaw?.results)
-    ? itemsRaw.results
-    : [];
+  const items = useMemo(() => {
+    if (Array.isArray(itemsRaw)) return itemsRaw;
+    if (Array.isArray(itemsRaw?.results)) return itemsRaw.results;
+    return [];
+  }, [itemsRaw]);
 
   const [products, setProducts] = useState({});
 

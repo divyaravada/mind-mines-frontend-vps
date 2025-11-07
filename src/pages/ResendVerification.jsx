@@ -1,4 +1,4 @@
-﻿// src/pages/ResendVerification.jsx
+// src/pages/ResendVerification.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useResendVerificationMutation } from "../features/auth/authApi";

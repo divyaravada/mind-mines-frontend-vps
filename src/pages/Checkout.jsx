@@ -323,7 +323,7 @@ export default function Checkout() {
   const [savedSepaPaymentMethodId] = useState(null);
 
   // minimal address check
-  const hasMinimalAddress = () => {
+  const hasMinimalAddress = useCallback(() => {
     const needed = [
       "email",
       "fullName",
@@ -333,7 +333,7 @@ export default function Checkout() {
       "country",
     ];
     return needed.every((k) => (form[k] || "").toString().trim().length > 0);
-  };
+  }, [form]);
 
   // handle country + DE-only restriction
   const handleCountryChange = (e) => {
@@ -371,9 +371,8 @@ export default function Checkout() {
     async (pm) => {
       if (localOrderIdRef.current) return localOrderIdRef.current;
       if (!hasMinimalAddress()) {
-        alert(
-          t("checkout.fillFirst")
-        );
+        alert(t("checkout.fillFirst"));
+
         return null;
       }
       if (items.length === 0) {
@@ -430,7 +429,8 @@ export default function Checkout() {
       backendItems,
       couponCode,
       t,
-      normalizeCountry,
+
+      hasMinimalAddress,
     ]
   );
 
@@ -963,9 +963,7 @@ export default function Checkout() {
               checked={payment === "card"}
               onChange={() => setPaymentSafe("card")}
             />
-            <span className="flex-1">
-              {t("checkout.card")}
-            </span>
+            <span className="flex-1">{t("checkout.card")}</span>
             <span className="text-xs font-semibold">Stripe</span>
           </label>
 
@@ -1105,10 +1103,7 @@ export default function Checkout() {
             />
           )}
 
-          <Row
-            label={subtotalLabel}
-            value={fmtEUR(subtotal, locale)}
-          />
+          <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
           <Row
             label={t("checkout.shipmentShort", "Shipment")}
             value={
