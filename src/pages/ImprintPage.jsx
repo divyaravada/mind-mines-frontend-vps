@@ -30,12 +30,12 @@ export default function ImprintPage() {
       <section>
         <h3>{t("legal.imprint.contact")}</h3>
         <p>
-          <strong>{t("legal.imprint.email")}:</strong> info@mindmines.eu
+          <strong>{t("legal.imprint.email")}:</strong> {t("legal.imprint.emailValue")}
           <br />
           <strong>{t("legal.imprint.supportEmail")}:</strong>{" "}
-          service@mindmines.eu
+          {t("legal.imprint.supportEmailValue")}
           <br />
-          <strong>{t("legal.imprint.whatsapp")}:</strong> +49 170 4658188
+          <strong>{t("legal.imprint.whatsapp")}:</strong> {t("legal.imprint.whatsappValue")}
         </p>
         <p>
           <strong>{t("legal.imprint.vat")}:</strong>{" "}

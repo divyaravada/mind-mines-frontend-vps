@@ -28,7 +28,8 @@
     "learnMore": "Learn more",
     "close": "Close",
     "ok": "Ok",
-    "loading": "Loading…"
+    "loading": "Loading...",
+    "notFound": "Not found."
   },
   "home": {
     "heroFallback": {
@@ -129,7 +130,6 @@
       "note": "Heavy/oversize items may incur a surcharge (shown at checkout)."
     }
   },
-
   "auth": {
     "signInRequired": "Sign in required",
     "signInToViewOrders": "Please sign in to view your orders and invoices.",
@@ -160,12 +160,30 @@
     "or": "or",
     "googleLogin": "Continue with Google",
     "continueAsGuest": "Continue as a Guest",
-    "enterEmailForGuest": "Enter you Email Address"
+    "enterEmailForGuest": "Enter you Email Address",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "resendTitle": "Resend verification email",
+    "resendDesc": "Enter the email you used at checkout or signup and we'll re-send a verification link if the account exists.",
+    "resendPlaceholder": "you@example.com",
+    "resendButton": "Send email",
+    "resendSuccess": "If the email exists, we just sent you a new verification message.",
+    "resendError": "We couldn't send the verification email. Please try again later.",
+    "registerMismatch": "Passwords do not match.",
+    "registerSuccess": "Registration successful!",
+    "registerEmailExists": "Email is already registered. Try logging in.",
+    "registerFailed": "Registration failed. Check your inputs and try again.",
+    "emailVerification": {
+      "verifying": "Verifying your email...",
+      "success": "Email verified! Redirecting to login...",
+      "error": "Link is invalid or expired. Please register again."
+    }
   },
   "logout": {
     "message": "You have been logged out.",
     "thanks": "Thank you for visiting! We hope to see you again soon.",
-    "cta": "Back to Home"
+    "cta": "Back to Home",
+    "iconLabel": "Waving hand icon"
   },
   "naturalStone": {
     "title": "Natural Stone",
@@ -185,6 +203,17 @@
         "Suitable for kitchen & bathroom"
       ],
       "usage": "Countertops, Flooring, Wall Cladding, Monuments"
+    },
+    "loading": "Loading stones...",
+    "noImage": "No image",
+    "noResults": "No stones found.",
+    "noExtraImages": "No additional images available.",
+    "sendEnquiry": "Send enquiry",
+    "sections": {
+      "description": "Description",
+      "interest": "Why it's interesting",
+      "keyFeatures": "Key features",
+      "usage": "Usage"
     }
   },
   "Shopping Cart": "Shopping Cart",
@@ -205,7 +234,6 @@
   "Not found": "Not found",
   "All": "All",
   "No products found in this category.": "No products found in this category.",
-
   "about": {
     "heading": "About Us",
     "intro": "Our journey began as passionate marble traders, meticulously sourcing exquisite stones from the heart of Italy. We connected with customers across Dubai, India, and Germany, inspired by a deep love for the timeless beauty of natural stone.",
@@ -305,7 +333,6 @@
       }
     }
   },
-
   "backtoAccount": "Back to Accounts",
   "order": {
     "yourOrders": "Your Orders",
@@ -374,7 +401,6 @@
       "failed": "Failed"
     }
   },
-
   "stones": {
     "types": {
       "marble": "Marble",
@@ -525,7 +551,10 @@
     "remove": "Remove",
     "removeAria": "Remove from wishlist",
     "removedToast": "Removed from wishlist",
-    "price": "Price"
+    "price": "Price",
+    "loginRequired": "Please log in to use the wishlist.",
+    "addedToast": "Added to wishlist",
+    "actionFailed": "Action failed"
   },
   "reviews": {
     "title": "Your Reviews",
@@ -643,7 +672,36 @@
     "shipmentShort": "Shipment",
     "inTotal": "In total",
     "inclTax": "(incl. tax)",
-    "backToCart": "Back to cart"
+    "backToCart": "Back to cart",
+    "addrFail": "Could not save the address. Please check your details.",
+    "applied": "Applied",
+    "apply": "Apply",
+    "card": "Credit/debit card",
+    "card0": "0% financing with card",
+    "choosePayment": "Please choose a payment method to continue.",
+    "continueCard": "Continue to card payment",
+    "couponInvalid": "Invalid coupon",
+    "couponPlaceholder": "Coupon code",
+    "couponLine": "Coupon ({{code}})",
+    "deOnly": "SEPA / bank transfer is only available in Germany (DE).",
+    "emptyCart": "Your cart is empty.",
+    "fillFirst": "Please fill in contact and delivery details first.",
+    "initializing": "Initializing...",
+    "months": "months",
+    "months_de": "Monate",
+    "sepa0": "0% financing (SEPA direct debit)",
+    "term": "Term:",
+    "returnGeneric": "Thank you. Your payment is being processed. You will receive an email shortly.",
+    "returnError": "We couldn't verify the payment. Please check your email or contact support.",
+    "returnSuccess": "Payment successful! Your order has been received.",
+    "returnProcessing": "Thank you! Your payment is processing. You will receive a confirmation email soon.",
+    "returnFailed": "Payment failed or was canceled. You can try again.",
+    "returnTitleSuccess": "Thank you for your order!",
+    "returnTitleFailed": "Payment issue",
+    "returnTitleProcessing": "Processing payment...",
+    "paymentReference": "Payment reference: {{id}}",
+    "viewOrders": "View my orders",
+    "backHome": "Back to Home"
   },
   "checkoutSuccess": {
     "noOrder": "No order specified.",
@@ -661,7 +719,15 @@
     "downloadInvoice": "Download invoice (PDF)",
     "waitingBank": "As soon as we receive your payment, your invoice will be generated here automatically. This page refreshes every few seconds.",
     "generatingInvoice": "Generating invoice… please wait a moment.",
-    "goToOrders": "Go to your orders"
+    "goToOrders": "Go to your orders",
+    "createdNoNumber": "Your order was created.",
+    "statusNow": "Current status: {{status}}",
+    "totalGuest": "Order total: {{amount}}",
+    "paymentMethodGuest": "Payment method: {{method}}",
+    "guestInvoicePending": "Your invoice will be available once payment is confirmed. You can download it later via the guest order lookup page.",
+    "trackGuest": "Track / view my order as a guest",
+    "backHome": "Back to home",
+    "guestLookupFailed": "We could not fetch the latest order status. You can try again from the guest order lookup page."
   },
   "cart": {
     "title_one": "Cart",
@@ -689,9 +755,11 @@
     "badgeSecure": "Secure payment",
     "badgeReturn": "15 days return policy",
     "badgeDelivery": "Convenient & easy delivery",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "title": "Cart",
+    "item": "item",
+    "items": "items"
   },
-
   "legal": {
     "lastUpdated": "Last updated: {{date}}",
     "nav": {
@@ -710,8 +778,11 @@
       "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
       "contact": "Contact",
       "email": "Email",
+      "emailValue": "info@mindmines.eu",
       "supportEmail": "Support Email",
+      "supportEmailValue": "service@mindmines.eu",
       "whatsapp": "WhatsApp",
+      "whatsappValue": "+49 170 4658188",
       "vat": "VAT ID (USt-IdNr.)",
       "vatValue": "DE362093828",
       "businessType": "Business type",
@@ -810,7 +881,10 @@
       "carriers": "Carrier & handling",
       "carriersText": "DHL/partners handle delivery. Processing typically 1–2 business days.",
       "times": "Estimated delivery times",
-      "timesItems": ["Germany: 2–4 business days", "EU: 3–7 business days"],
+      "timesItems": [
+        "Germany: 2–4 business days",
+        "EU: 3–7 business days"
+      ],
       "costs": "Shipping costs",
       "costsText": "Shown at checkout based on weight/size and destination. Heavy stone items may incur surcharges.",
       "risk": "Risk & damaged parcels",
@@ -825,5 +899,103 @@
   "german": "German",
   "eu": "European Union",
   "english": "English",
-  "language": "Language"
+  "language": "Language",
+  "reset": {
+    "title": "Reset your password",
+    "newPassword": "New password",
+    "repeatPassword": "Repeat new password",
+    "submit": "Reset password",
+    "mismatch": "Passwords do not match.",
+    "success": "Password reset successfully. Redirecting...",
+    "invalid": "Invalid or expired link."
+  },
+  "guest": {
+    "lookupTitle": "Track your order (guest)",
+    "lookupDesc": "Enter the order number from your confirmation email and the same email address you used at checkout.",
+    "formError": "Please enter order number and email.",
+    "notFound": "We could not find an order with that email and number.",
+    "orderNumber": "Order number",
+    "email": "Email address",
+    "loading": "Looking up...",
+    "lookupButton": "Find my order",
+    "orderSummary": "Order summary",
+    "resultOrderNumber": "Order number",
+    "resultCreated": "Placed on",
+    "resultStatus": "Status",
+    "resultTotal": "Total",
+    "resultPayment": "Payment method",
+    "shippingTo": "Shipping to",
+    "tracking": "Shipping tracking",
+    "trackLink": "Open tracking link",
+    "trackingNumber": "Tracking number",
+    "downloadInvoice": "Download invoice (PDF)",
+    "invoiceNotReady": "Your invoice will be available once payment is confirmed.",
+    "backHome": "Back to Home",
+    "items": "Items",
+    "item": "Item",
+    "quantityLabel": "Qty",
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "canceled": "Canceled",
+      "failed": "Failed",
+      "awaitingPayment": "Awaiting payment"
+    },
+    "payment": {
+      "bank": "Bank transfer",
+      "sepa": "SEPA direct debit",
+      "sepaInstallments": "SEPA installments",
+      "card": "Card / Stripe",
+      "cardInstallments": "Card installments",
+      "paypal": "PayPal",
+      "giropay": "Giropay",
+      "klarna": "Klarna"
+    }
+  },
+  "productDetail": {
+    "addToCart": "Add to cart",
+    "quantity": "Qty",
+    "tabs": {
+      "details": "Product details",
+      "care": "Care instructions",
+      "policy": "Delivery & return policy"
+    },
+    "policy": {
+      "delivery": "Delivery",
+      "returns": "Returns"
+    }
+  },
+  "products": {
+    "filters": {
+      "material": {
+        "title": "Material",
+        "marble": "Marble",
+        "granite": "Granite",
+        "stone": "Stone",
+        "onyx": "Onyx",
+        "quartz": "Quartz"
+      },
+      "color": {
+        "title": "Color",
+        "white": "White",
+        "black": "Black",
+        "grey": "Grey",
+        "brown": "Brown",
+        "green": "Green"
+      },
+      "price": "Price",
+      "priceMin": "€0"
+    },
+    "error": "Error loading products.",
+    "noResults": "No products found.",
+    "meta": {
+      "categoryTitle": "{{category}} | MindMines",
+      "allTitle": "All products | MindMines",
+      "categoryDescription": "Browse {{category}} at MindMines.",
+      "defaultDescription": "Browse products at MindMines."
+    }
+  }
 }

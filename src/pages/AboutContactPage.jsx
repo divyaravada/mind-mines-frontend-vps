@@ -14,7 +14,7 @@ export default function AboutContactPage() {
         <div className="md:w-1/2">
           <img
             src={aboutUs}
-            alt="Our Story"
+            alt={t("about.imageAlt")}
             className="w-full h-[340px] md:h-[410px] rounded-3xl object-cover shadow-lg"
           />
         </div>

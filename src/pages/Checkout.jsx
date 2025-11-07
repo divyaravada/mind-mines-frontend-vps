@@ -175,12 +175,9 @@ export default function Checkout() {
     try {
       const r = await previewCoupon({ code, items: backendItems }).unwrap();
       if (r?.ok) setCouponInfo(r);
-      else
-        setCouponErr(r?.error || t("checkout.couponInvalid", "Invalid coupon"));
+      else setCouponErr(r?.error || t("checkout.couponInvalid"));
     } catch (e) {
-      setCouponErr(
-        e?.data?.error || t("checkout.couponInvalid", "Invalid coupon")
-      );
+      setCouponErr(e?.data?.error || t("checkout.couponInvalid"));
     }
   };
 
@@ -213,6 +210,11 @@ export default function Checkout() {
     const ttotal = subtotal + shippingFee - discount;
     return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, discount]);
+
+  const subtotalLabel =
+    itemsCount === 1
+      ? t("checkout.subtotal_one", { count: itemsCount })
+      : t("checkout.subtotal_other", { count: itemsCount });
 
   // address save
   const [savingAddr, setSavingAddr] = useState(false);
@@ -370,12 +372,12 @@ export default function Checkout() {
       if (localOrderIdRef.current) return localOrderIdRef.current;
       if (!hasMinimalAddress()) {
         alert(
-          t("checkout.fillFirst", "Please fill in contact + delivery first.")
+          t("checkout.fillFirst")
         );
         return null;
       }
       if (items.length === 0) {
-        alert(t("checkout.emptyCart", "Your cart is empty."));
+        alert(t("checkout.emptyCart"));
         return null;
       }
 
@@ -528,10 +530,10 @@ export default function Checkout() {
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
-          {t("checkout.card0", "0% financing with card")}
+          {t("checkout.card0")}
         </div>
         <div className="text-sm text-gray-600">
-          {t("checkout.chooseTerm", "Choose term:")}
+          {t("checkout.chooseTerm")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
               <button
@@ -551,7 +553,7 @@ export default function Checkout() {
                     : "hover:bg-gray-50"
                 }`}
               >
-                {m} {t("checkout.months", "months")}
+                {m} {t("checkout.months")}
               </button>
             ))}
           </span>
@@ -581,10 +583,10 @@ export default function Checkout() {
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
-          {t("checkout.sepa0", "0% Finanzierung (SEPA Lastschrift)")}
+          {t("checkout.sepa0")}
         </div>
         <div className="text-sm text-gray-600">
-          {t("checkout.term", "Laufzeit:")}
+          {t("checkout.term")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
               <button
@@ -606,7 +608,7 @@ export default function Checkout() {
                     : "hover:bg-gray-50"
                 }`}
               >
-                {m} {t("checkout.months_de", "Monate")}
+                {m} {t("checkout.months_de")}
               </button>
             ))}
           </span>
@@ -873,7 +875,7 @@ export default function Checkout() {
               checked={payment === "klarna"}
               onChange={() => setPaymentSafe("klarna")}
             />
-            <span className="flex-1">Klarna (Pay Later)</span>
+            <span className="flex-1">{t("checkout.klarnaLabel")}</span>
             <span className="text-xs font-semibold">Stripe</span>
           </label>
 
@@ -962,7 +964,7 @@ export default function Checkout() {
               onChange={() => setPaymentSafe("card")}
             />
             <span className="flex-1">
-              {t("checkout.card", "Credit/Debit Card")}
+              {t("checkout.card")}
             </span>
             <span className="text-xs font-semibold">Stripe</span>
           </label>
@@ -978,8 +980,8 @@ export default function Checkout() {
                   onClick={() => ensureStripeOrder("card")}
                 >
                   {creatingOrder
-                    ? t("checkout.initializing", "Initializing…")
-                    : t("checkout.continueCard", "Continue to card payment")}
+                    ? t("checkout.initializing")
+                    : t("checkout.continueCard")}
                 </button>
               ) : (
                 <StripeProvider>
@@ -1072,7 +1074,7 @@ export default function Checkout() {
             <div className="flex gap-2">
               <input
                 className="flex-1 border rounded px-3 py-2 bg-transparent"
-                placeholder={t("checkout.couponPlaceholder", "Coupon code")}
+                placeholder={t("checkout.couponPlaceholder")}
                 value={couponCode}
                 onChange={(e) =>
                   setCouponCode((e.target.value || "").toUpperCase())
@@ -1082,7 +1084,7 @@ export default function Checkout() {
                 onClick={applyCoupon}
                 className="px-4 py-2 rounded bg-gray-900 text-white"
               >
-                {t("checkout.apply", "Apply")}
+                {t("checkout.apply")}
               </button>
             </div>
             {couponErr && (
@@ -1090,21 +1092,21 @@ export default function Checkout() {
             )}
             {couponInfo?.ok && (
               <div className="text-green-700 text-sm">
-                {t("checkout.applied", "Applied")} <b>{couponInfo.code}</b>: −
-                {couponInfo.discount} €
+                {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
+                <span>-{fmtEUR(discount, locale)}</span>
               </div>
             )}
           </div>
 
           {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
             <Row
-              label={`Coupon (${couponInfo.code})`}
-              value={`− ${fmtEUR(discount, locale)}`}
+              label={t("checkout.couponLine", { code: couponInfo.code })}
+              value={`-${fmtEUR(discount, locale)}`}
             />
           )}
 
           <Row
-            label={t("checkout.subtotal", { count: itemsCount })}
+            label={subtotalLabel}
             value={fmtEUR(subtotal, locale)}
           />
           <Row

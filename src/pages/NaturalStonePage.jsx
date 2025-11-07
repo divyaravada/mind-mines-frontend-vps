@@ -22,6 +22,16 @@ export default function NaturalStonesPage() {
 
   const { data: stones = [], isFetching } = useGetNaturalStonesQuery();
   const [selectedStoneId, setSelectedStoneId] = useState(null);
+  const sectionLabels = useMemo(
+    () => ({
+      description: t("naturalStone.sections.description"),
+      interest: t("naturalStone.sections.interest"),
+      key_features: t("naturalStone.sections.keyFeatures"),
+      usage: t("naturalStone.sections.usage"),
+    }),
+    [t]
+  );
+
 
   const selectedStone = useMemo(() => {
     if (!stones.length) return null;
@@ -68,7 +78,7 @@ export default function NaturalStonesPage() {
       <div className="w-full overflow-x-auto">
         <div className="mx-auto flex w-max space-x-4 px-4 py-2">
           {isFetching && !stones.length ? (
-            <div className="text-gray-500 py-6">Loading stones…</div>
+            <div className="text-gray-500 py-6">{t("naturalStone.loading")}</div>
           ) : stones.length ? (
             stones.map((stone) => {
               const key = `stones.types.${typeKeyFrom(stone.type)}`;
@@ -93,7 +103,7 @@ export default function NaturalStonesPage() {
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">
-                        No Image
+                        {t("naturalStone.noImage")}
                       </div>
                     )}
                   </div>
@@ -104,7 +114,9 @@ export default function NaturalStonesPage() {
               );
             })
           ) : (
-            <div className="text-gray-500 py-6">No stones found.</div>
+            <div className="text-gray-500 py-6">
+              {t("naturalStone.noResults")}
+            </div>
           )}
         </div>
       </div>
@@ -133,7 +145,7 @@ export default function NaturalStonesPage() {
                   />
                 ) : (
                   <p className="text-gray-500">
-                    No additional images available.
+                    {t("naturalStone.noExtraImages")}
                   </p>
                 )}
 
@@ -142,21 +154,7 @@ export default function NaturalStonesPage() {
                   (field) => (
                     <div key={field}>
                       <h3 className="font-bold text-lg mb-4">
-                        {
-                          (lang === "de"
-                            ? {
-                                description: "Beschreibung",
-                                interest: "Interessant",
-                                key_features: "Hauptmerkmale",
-                                usage: "Verwendung",
-                              }
-                            : {
-                                description: "Description",
-                                interest: "Why It’s Interesting",
-                                key_features: "Key Features",
-                                usage: "Usage",
-                              })[field]
-                        }
+                        {sectionLabels[field] || ""}
                       </h3>
                       <div className="text-gray-700">
                         {renderText(selectedStone, field, lang)}
@@ -169,7 +167,7 @@ export default function NaturalStonesPage() {
               {/* Enquiry */}
               <div className="bg-gray-50 border rounded p-6 mt-10">
                 <h3 className="text-xl font-semibold mb-4">
-                  {lang === "de" ? "Anfrage senden" : "Send Enquiry"}
+                  {t("naturalStone.sendEnquiry")}
                 </h3>
                 <StoneEnquiryForm
                   isAuthenticated={isAuthenticated}

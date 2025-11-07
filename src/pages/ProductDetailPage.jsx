@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
   const toggleWishlist = async () => {
     if (!product) return;
     if (!isLoggedIn) {
-      alert(t("Please log in to use the wishlist"));
+      alert(t("wishlist.loginRequired"));
       return;
     }
     try {
@@ -136,9 +136,9 @@ export default function ProductDetailPage() {
   useEffect(() => setQty(1), [id]);
 
   if (isLoading)
-    return <div className="py-24 text-center">{t("Loading...")}</div>;
+    return <div className="py-24 text-center">{t("common.loading")}</div>;
   if (!product)
-    return <div className="py-24 text-center">{t("Not found")}</div>;
+    return <div className="py-24 text-center">{t("common.notFound")}</div>;
 
   // SEO
   const currentOrigin =
@@ -379,7 +379,7 @@ export default function ProductDetailPage() {
           </div>
 
           <div>
-            <label htmlFor="qty">{t("Qty")}:</label>
+            <label htmlFor="qty">{t("productDetail.quantity")}:</label>
             <input
               id="qty"
               type="number"
@@ -426,7 +426,7 @@ export default function ProductDetailPage() {
             onClick={handleAddToCart}
             className="px-4 py-2 mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
           >
-            {t("Add to Cart")}
+            {t("productDetail.addToCart")}
           </button>
         </div>
       </div>
@@ -444,10 +444,10 @@ export default function ProductDetailPage() {
               onClick={() => setActiveTab(key)}
             >
               {key === "details"
-                ? t("Product Details")
+                ? t("productDetail.tabs.details")
                 : key === "care"
-                ? t("Care Instructions")
-                : t("Delivery & Return Policy")}
+                ? t("productDetail.tabs.care")
+                : t("productDetail.tabs.policy")}
             </button>
           ))}
         </div>
@@ -488,7 +488,7 @@ export default function ProductDetailPage() {
           {activeTab === "policy" && (
             <>
               <div className="space-y-2">
-                <strong>{t("Delivery")}:</strong>
+                <strong>{t("productDetail.policy.delivery")}:</strong>
                 {product[`delivery_${lang}`]
                   ?.split(/\r?\n\r?\n/)
                   .map((p, i) => (
@@ -496,7 +496,7 @@ export default function ProductDetailPage() {
                   ))}
               </div>
               <div className="space-y-2">
-                <strong>{t("Returns")}:</strong>
+                <strong>{t("productDetail.policy.returns")}:</strong>
                 {[1, 2, 3].map((n) =>
                   product[`returnspara${n}_${lang}`]
                     ? product[`returnspara${n}_${lang}`]

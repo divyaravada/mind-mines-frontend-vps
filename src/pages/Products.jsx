@@ -18,18 +18,18 @@ import {
 } from "../features/wishlist/wishlistApi";
 
 const MATERIALS = [
-  { value: "marble", label: "Marble" },
-  { value: "granite", label: "Granite" },
-  { value: "stone", label: "Stone" },
-  { value: "onyx", label: "Onyx" },
-  { value: "quartz", label: "Quartz" },
+  { value: "marble", labelKey: "products.filters.material.marble" },
+  { value: "granite", labelKey: "products.filters.material.granite" },
+  { value: "stone", labelKey: "products.filters.material.stone" },
+  { value: "onyx", labelKey: "products.filters.material.onyx" },
+  { value: "quartz", labelKey: "products.filters.material.quartz" },
 ];
 const COLORS = [
-  { value: "white", label: "White" },
-  { value: "black", label: "Black" },
-  { value: "grey", label: "Grey" },
-  { value: "brown", label: "Brown" },
-  { value: "green", label: "Green" },
+  { value: "white", labelKey: "products.filters.color.white" },
+  { value: "black", labelKey: "products.filters.color.black" },
+  { value: "grey", labelKey: "products.filters.color.grey" },
+  { value: "brown", labelKey: "products.filters.color.brown" },
+  { value: "green", labelKey: "products.filters.color.green" },
 ];
 const PAGE_SIZE = 4;
 const BASE_PATH = "/decorative-products";
@@ -86,11 +86,11 @@ export default function ProductsPage() {
     (c) => String(c.id) === String(categoryId)
   );
   const pageTitle = categoryObj
-    ? `${t(categoryObj.label)} | MindMines`
-    : `${t("All")} | MindMines`;
+    ? t("products.meta.categoryTitle", { category: t(categoryObj.label) })
+    : t("products.meta.allTitle");
   const pageDesc = categoryObj
-    ? t("Browse {{cat}} at MindMines", { cat: t(categoryObj.label) })
-    : t("Browse products at MindMines");
+    ? t("products.meta.categoryDescription", { category: t(categoryObj.label) })
+    : t("products.meta.defaultDescription");
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -135,17 +135,17 @@ export default function ProductsPage() {
 
   const toggleWishlist = async (id) => {
     if (!isLoggedIn)
-      return toast.warning(t("Please log in to use the wishlist"));
+      return toast.warning(t("wishlist.loginRequired"));
     try {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
-        toast.info(t("Removed from wishlist"));
+        toast.info(t("wishlist.removedToast"));
       } else {
         await addWish(id).unwrap();
-        toast.success(t("Added to wishlist"));
+        toast.success(t("wishlist.addedToast"));
       }
     } catch {
-      toast.error(t("Action failed"));
+      toast.error(t("wishlist.actionFailed"));
     }
   };
 
@@ -203,7 +203,7 @@ export default function ProductsPage() {
       {/* Filters */}
       <aside className="w-64 hidden md:block">
         <div className="mb-6 p-4 rounded shadow bg-white">
-          <h4 className="font-semibold mb-2">{t("Material")}</h4>
+          <h4 className="font-semibold mb-2">{t("products.filters.material.title")}</h4>
           {MATERIALS.map((m) => (
             <label key={m.value} className="block mb-1">
               <input
@@ -218,13 +218,13 @@ export default function ProductsPage() {
                   )
                 }
               />
-              {m.label}
+              {t(m.labelKey)}
             </label>
           ))}
         </div>
 
         <div className="mb-6 p-4 rounded shadow bg-white">
-          <h4 className="font-semibold mb-2">{t("Color")}</h4>
+          <h4 className="font-semibold mb-2">{t("products.filters.color.title")}</h4>
           {COLORS.map((c) => (
             <label key={c.value} className="block mb-1">
               <input
@@ -239,13 +239,13 @@ export default function ProductsPage() {
                   )
                 }
               />
-              {c.label}
+              {t(c.labelKey)}
             </label>
           ))}
         </div>
 
         <div className="p-4 rounded shadow bg-white">
-          <h4 className="font-semibold mb-2">{t("Price")}</h4>
+          <h4 className="font-semibold mb-2">{t("products.filters.price")}</h4>
           <input
             type="range"
             min={0}
@@ -254,9 +254,9 @@ export default function ProductsPage() {
             onChange={(e) => setPrice(Number(e.target.value))}
             className="w-full"
           />
-          <div className="flex justify-between text-xs">
-            <span>0 €</span>
-            <span>{fmtEUR(price, locale)}</span>
+          <div className="flex justify-between text-xs">
+            <span>{t("products.filters.priceMin")}</span>
+            <span>{fmtEUR(price, locale)}</span>
           </div>
         </div>
       </aside>
@@ -293,14 +293,14 @@ export default function ProductsPage() {
         </div>
 
         {isFetching ? (
-          <div className="text-center text-gray-500">{t("Loading...")}</div>
+          <div className="text-center text-gray-500">{t("common.loading")}</div>
         ) : isError ? (
           <div className="text-center text-red-500">
-            {t("Error loading products")}
+            {t("products.error")}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center text-gray-400">
-            {t("No products found.")}
+            {t("products.noResults")}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

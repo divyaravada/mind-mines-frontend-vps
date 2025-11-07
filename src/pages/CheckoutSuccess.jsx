@@ -154,10 +154,7 @@ export default function CheckoutSuccess() {
         if (!cancelled) {
           setGuestOrder(null);
           setGuestLookupError(
-            t("checkoutSuccess.guestLookupFailed", {
-              defaultValue:
-                "We could not fetch the latest order status. You can try again from the guest order lookup page.",
-            })
+            t("checkoutSuccess.guestLookupFailed")
           );
         }
       } finally {
@@ -231,10 +228,7 @@ export default function CheckoutSuccess() {
           {t("checkoutSuccess.thankYou")}
         </h1>
         <p className="text-gray-600 mb-6">
-          {t("checkoutSuccess.created", {
-            number: order?.number || orderId,
-            defaultValue: "Your order {{number}} was created.",
-          })}
+          {t("checkoutSuccess.created", { number: order?.number || orderId })}
         </p>
 
         {isBank && !isPaid && bankInfo && (
@@ -280,39 +274,25 @@ export default function CheckoutSuccess() {
 
       <p className="text-gray-600 mb-4">
         {guestOrderNumber
-          ? t("checkoutSuccess.created", {
-              number: guestOrderNumber,
-              defaultValue: "Your order {{number}} was created.",
-            })
-          : t("checkoutSuccess.createdNoNumber", {
-              defaultValue: "Your order was created.",
-            })}
+          ? t("checkoutSuccess.created", { number: guestOrderNumber })
+          : t("checkoutSuccess.createdNoNumber")}
       </p>
 
       {(guestStatus || guestTotal || guestPaymentMethod) && (
         <div className="text-sm text-gray-600 mb-4 space-y-1">
           {guestStatus && (
             <div>
-              {t("checkoutSuccess.statusNow", {
-                defaultValue: "Current status: {{status}}",
-                status: guestStatus,
-              })}
+              {t("checkoutSuccess.statusNow", { status: guestStatus })}
             </div>
           )}
           {guestTotal && (
             <div>
-              {t("checkoutSuccess.totalGuest", {
-                defaultValue: "Order total: {{amount}}",
-                amount: `${guestTotal} ${guestCurrency}`,
-              })}
+              {t("checkoutSuccess.totalGuest", { amount: `${guestTotal} ${guestCurrency}` })}
             </div>
           )}
           {guestPaymentMethod && (
             <div>
-              {t("checkoutSuccess.paymentMethodGuest", {
-                defaultValue: "Payment method: {{method}}",
-                method: guestPaymentMethod,
-              })}
+              {t("checkoutSuccess.paymentMethodGuest", { method: guestPaymentMethod })}
             </div>
           )}
         </div>
@@ -362,17 +342,12 @@ export default function CheckoutSuccess() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {t("checkoutSuccess.downloadInvoice", {
-              defaultValue: "Download invoice",
-            })}
+            {t("checkoutSuccess.downloadInvoice")}
           </a>
         </div>
       ) : guestSummary ? (
         <div className="text-xs text-gray-500 text-center mb-6">
-          {t("checkoutSuccess.guestInvoicePending", {
-            defaultValue:
-              "Your invoice will be available once payment is confirmed. You can download it later via the guest order lookup page.",
-          })}
+          {t("checkoutSuccess.guestInvoicePending")}
         </div>
       ) : null}
 
@@ -384,13 +359,11 @@ export default function CheckoutSuccess() {
 
       <div className="mt-6 space-y-2">
         <Link to="/guest-order" className="text-blue-600 underline block">
-          {t("checkoutSuccess.trackGuest", {
-            defaultValue: "Track / view my order as guest",
-          })}
+          {t("checkoutSuccess.trackGuest")}
         </Link>
 
         <Link to="/" className="text-gray-700 underline block">
-          {t("checkoutSuccess.backHome", { defaultValue: "Back to home" })}
+          {t("checkoutSuccess.backHome")}
         </Link>
       </div>
     </div>

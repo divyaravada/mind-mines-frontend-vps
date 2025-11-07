@@ -56,7 +56,8 @@
     "learnMore": "Mehr erfahren",
     "loading": "Wird geladen…",
     "ok": "OK",
-    "close": "Schließen"
+    "close": "Schließen",
+    "notFound": "Nicht gefunden."
   },
   "home": {
     "heroFallback": {
@@ -187,7 +188,12 @@
     "or": "oder",
     "googleLogin": "Mit Google fortfahren",
     "continueAsGuest": "Als Gast fortfahren",
-    "enterEmailForGuest": "Geben Sie Ihre E-Mail-Adresse ein"
+    "enterEmailForGuest": "Geben Sie Ihre E-Mail-Adresse ein",
+    "emailVerification": {
+      "verifying": "E-Mail wird verifiziert...",
+      "success": "E-Mail bestätigt! Weiterleitung zum Login...",
+      "error": "Link ist ungültig oder abgelaufen. Bitte erneut registrieren."
+    }
   },
   "logout": {
     "message": "Sie wurden abgemeldet.",
@@ -251,6 +257,17 @@
         "Geeignet für Küche & Bad"
       ],
       "usage": "Arbeitsplatten, Böden, Wandverkleidungen, Denkmäler"
+    },
+    "loading": "Steine werden geladen...",
+    "noImage": "Kein Bild",
+    "noResults": "Keine Steine gefunden.",
+    "noExtraImages": "Keine weiteren Bilder verfügbar.",
+    "sendEnquiry": "Anfrage senden",
+    "sections": {
+      "description": "Beschreibung",
+      "interest": "Warum es interessant ist",
+      "keyFeatures": "Hauptmerkmale",
+      "usage": "Verwendung"
     }
   },
   "footer": {
@@ -321,7 +338,6 @@
       }
     }
   },
-
   "backtoAccount": "Zurück zum Konto",
   "orderNumber": "Bestellungen",
   "order": {
@@ -391,7 +407,6 @@
       "failed": "Fehlgeschlagen"
     }
   },
-
   "stones": {
     "types": {
       "marble": "Marmor",
@@ -542,7 +557,10 @@
     "remove": "Entfernen",
     "removeAria": "Von der Wunschliste entfernen",
     "removedToast": "Von der Wunschliste entfernt",
-    "price": "Preis"
+    "price": "Preis",
+    "loginRequired": "Bitte melden Sie sich an, um die Wunschliste zu nutzen.",
+    "addedToast": "Zur Wunschliste hinzugefügt",
+    "actionFailed": "Aktion fehlgeschlagen"
   },
   "reviews": {
     "title": "Ihre Bewertungen",
@@ -660,7 +678,36 @@
     "shipmentShort": "Versand",
     "inTotal": "Gesamt",
     "inclTax": "(inkl. MwSt.)",
-    "backToCart": "Zurück zum Warenkorb"
+    "backToCart": "Zurück zum Warenkorb",
+    "addrFail": "Adresse konnte nicht gespeichert werden. Bitte prüfen Sie Ihre Angaben.",
+    "applied": "Angewendet",
+    "apply": "Anwenden",
+    "card": "Kredit-/Debitkarte",
+    "card0": "0 % Finanzierung mit Karte",
+    "choosePayment": "Bitte wählen Sie eine Zahlungsmethode.",
+    "continueCard": "Zur Kartenzahlung weiter",
+    "couponInvalid": "Ungültiger Gutschein",
+    "couponPlaceholder": "Gutscheincode",
+    "couponLine": "Gutschein ({{code}})",
+    "deOnly": "SEPA/Überweisung ist nur in Deutschland (DE) verfügbar.",
+    "emptyCart": "Ihr Warenkorb ist leer.",
+    "fillFirst": "Bitte zuerst Kontakt- und Lieferdaten ausfüllen.",
+    "initializing": "Initialisierung...",
+    "months": "Monate",
+    "months_de": "Monate",
+    "sepa0": "0 % Finanzierung (SEPA-Lastschrift)",
+    "term": "Laufzeit:",
+    "returnGeneric": "Vielen Dank. Ihre Zahlung wird verarbeitet. Sie erhalten in Kürze eine E-Mail.",
+    "returnError": "Wir konnten die Zahlung nicht bestätigen. Bitte prüfen Sie Ihre E-Mails oder kontaktieren Sie den Support.",
+    "returnSuccess": "Zahlung erfolgreich! Ihre Bestellung ist eingegangen.",
+    "returnProcessing": "Vielen Dank! Ihre Zahlung wird verarbeitet. Sie erhalten bald eine Bestätigung per E-Mail.",
+    "returnFailed": "Zahlung fehlgeschlagen oder abgebrochen. Bitte versuchen Sie es erneut.",
+    "returnTitleSuccess": "Danke für Ihre Bestellung!",
+    "returnTitleFailed": "Zahlungsproblem",
+    "returnTitleProcessing": "Zahlung wird verarbeitet...",
+    "paymentReference": "Zahlungsreferenz: {{id}}",
+    "viewOrders": "Meine Bestellungen ansehen",
+    "backHome": "Zur Startseite"
   },
   "checkoutSuccess": {
     "noOrder": "Keine Bestellung angegeben.",
@@ -678,7 +725,15 @@
     "downloadInvoice": "Rechnung herunterladen (PDF)",
     "waitingBank": "Sobald Ihre Zahlung eingegangen ist, wird die Rechnung hier automatisch erstellt. Diese Seite aktualisiert sich alle paar Sekunden.",
     "generatingInvoice": "Rechnung wird erstellt… bitte einen Moment Geduld.",
-    "goToOrders": "Zu Ihren Bestellungen"
+    "goToOrders": "Zu Ihren Bestellungen",
+    "createdNoNumber": "Ihre Bestellung wurde erstellt.",
+    "statusNow": "Aktueller Status: {{status}}",
+    "totalGuest": "Bestellsumme: {{amount}}",
+    "paymentMethodGuest": "Zahlungsart: {{method}}",
+    "guestInvoicePending": "Ihre Rechnung steht nach Zahlungsbestätigung zur Verfügung. Sie können sie später über die Gastbestellung abrufen.",
+    "trackGuest": "Meine Gastbestellung verfolgen",
+    "backHome": "Zur Startseite",
+    "guestLookupFailed": "Wir konnten den aktuellen Bestellstatus nicht abrufen. Bitte versuchen Sie es erneut oder nutzen Sie die Gastbestellungssuche."
   },
   "cart": {
     "title_one": "Warenkorb",
@@ -706,9 +761,11 @@
     "badgeSecure": "Sichere Zahlung",
     "badgeReturn": "15 Tage Rückgaberecht",
     "badgeDelivery": "Bequeme & einfache Lieferung",
-    "wishlist": "Wunschliste"
+    "wishlist": "Wunschliste",
+    "title": "Warenkorb",
+    "item": "Artikel",
+    "items": "Artikel"
   },
-
   "legal": {
     "lastUpdated": "Zuletzt aktualisiert: {{date}}",
     "nav": {
@@ -727,8 +784,11 @@
       "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
       "contact": "Kontakt",
       "email": "E-Mail",
+      "emailValue": "info@mindmines.eu",
       "supportEmail": "Support-E-Mail",
+      "supportEmailValue": "service@mindmines.eu",
       "whatsapp": "WhatsApp",
+      "whatsappValue": "+49 170 4658188",
       "vat": "USt-IdNr.",
       "vatValue": "DE362093828",
       "businessType": "Unternehmensart",
@@ -827,7 +887,10 @@
       "carriers": "Versanddienst & Bearbeitung",
       "carriersText": "DHL/Partner übernehmen die Zustellung. Bearbeitung i. d. R. 1–2 Werktage.",
       "times": "Voraussichtliche Lieferzeiten",
-      "timesItems": ["Deutschland: 2–4 Werktage", "EU: 3–7 Werktage"],
+      "timesItems": [
+        "Deutschland: 2–4 Werktage",
+        "EU: 3–7 Werktage"
+      ],
       "costs": "Versandkosten",
       "costsText": "An der Kasse je nach Gewicht/Größe & Zielort. Für schwere Steinartikel können Zuschläge anfallen.",
       "risk": "Gefahr & beschädigte Pakete",
@@ -842,5 +905,94 @@
   "german": "Deutsch",
   "eu": "European Union",
   "english": "Englisch",
-  "language": "Language"
+  "language": "Language",
+  "guest": {
+    "lookupTitle": "Bestellung verfolgen (Gast)",
+    "lookupDesc": "Geben Sie die Bestellnummer aus Ihrer Bestätigungs-E-Mail und dieselbe E-Mail-Adresse wie beim Checkout ein.",
+    "formError": "Bitte Bestellnummer und E-Mail eingeben.",
+    "notFound": "Wir konnten keine Bestellung mit dieser Kombination finden.",
+    "orderNumber": "Bestellnummer",
+    "email": "E-Mail-Adresse",
+    "loading": "Suche läuft...",
+    "lookupButton": "Bestellung finden",
+    "orderSummary": "Bestellübersicht",
+    "resultOrderNumber": "Bestellnummer",
+    "resultCreated": "Bestellt am",
+    "resultStatus": "Status",
+    "resultTotal": "Gesamt",
+    "resultPayment": "Zahlungsart",
+    "shippingTo": "Versand an",
+    "tracking": "Sendungsverfolgung",
+    "trackLink": "Tracking-Link öffnen",
+    "trackingNumber": "Sendungsnummer",
+    "downloadInvoice": "Rechnung herunterladen (PDF)",
+    "invoiceNotReady": "Ihre Rechnung steht nach Zahlungsbestätigung zur Verfügung.",
+    "backHome": "Zur Startseite",
+    "items": "Artikel",
+    "item": "Artikel",
+    "quantityLabel": "Anz.",
+    "status": {
+      "pending": "Offen",
+      "processing": "In Bearbeitung",
+      "paid": "Bezahlt",
+      "shipped": "Versandt",
+      "delivered": "Zugestellt",
+      "canceled": "Storniert",
+      "failed": "Fehlgeschlagen",
+      "awaitingPayment": "Wartet auf Zahlung"
+    },
+    "payment": {
+      "bank": "Banküberweisung",
+      "sepa": "SEPA-Lastschrift",
+      "sepaInstallments": "SEPA-Ratenzahlung",
+      "card": "Kredit-/Debitkarte (Stripe)",
+      "cardInstallments": "Kartenraten",
+      "paypal": "PayPal",
+      "giropay": "Giropay",
+      "klarna": "Klarna"
+    }
+  },
+  "productDetail": {
+    "addToCart": "In den Warenkorb",
+    "quantity": "Menge",
+    "tabs": {
+      "details": "Produktdetails",
+      "care": "Pflegehinweise",
+      "policy": "Versand & Rückgabe"
+    },
+    "policy": {
+      "delivery": "Versand",
+      "returns": "Rückgabe"
+    }
+  },
+  "products": {
+    "filters": {
+      "material": {
+        "title": "Material",
+        "marble": "Marmor",
+        "granite": "Granit",
+        "stone": "Stein",
+        "onyx": "Onyx",
+        "quartz": "Quarz"
+      },
+      "color": {
+        "title": "Farbe",
+        "white": "Weiß",
+        "black": "Schwarz",
+        "grey": "Grau",
+        "brown": "Braun",
+        "green": "Grün"
+      },
+      "price": "Preis",
+      "priceMin": "0 €"
+    },
+    "error": "Produkte konnten nicht geladen werden.",
+    "noResults": "Keine Produkte gefunden.",
+    "meta": {
+      "categoryTitle": "{{category}} | MindMines",
+      "allTitle": "Alle Produkte | MindMines",
+      "categoryDescription": "{{category}} bei MindMines entdecken.",
+      "defaultDescription": "Produkte bei MindMines entdecken."
+    }
+  }
 }

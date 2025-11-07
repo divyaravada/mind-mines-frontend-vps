@@ -1,4 +1,4 @@
-// src/pages/RegisterPage.jsx
+﻿// src/pages/RegisterPage.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRegisterMutation } from "../features/auth/authApi";
@@ -24,17 +24,17 @@ export default function RegisterForm() {
     setError(null);
     setSuccess(null);
     if (fields.password !== fields.password2) {
-      setError(t("Passwords do not match."));
+      setError(t("auth.registerMismatch"));
       return;
     }
     try {
       await register(fields).unwrap();
-      setSuccess(t("Registration successful!"));
+      setSuccess(t("auth.registerSuccess"));
       setFields({ username: "", email: "", password: "", password2: "" });
     } catch (err) {
       const msg = err?.data?.email?.[0]?.includes("already")
-        ? "Email is already registered. Try logging in."
-        : "Registration failed. Check your inputs.";
+        ? t("auth.registerEmailExists")
+        : t("auth.registerFailed");
       setError(msg);
     }
   }
@@ -93,3 +93,4 @@ export default function RegisterForm() {
     </form>
   );
 }
+

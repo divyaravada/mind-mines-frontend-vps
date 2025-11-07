@@ -24,24 +24,14 @@ export default function CheckoutReturn() {
 
       if (!clientSecret) {
         setStatus("processing");
-        setMessage(
-          t("checkout.returnGeneric", {
-            defaultValue:
-              "Thank you. Your payment is being processed. You will receive an email shortly.",
-          })
-        );
+        setMessage(t("checkout.returnGeneric"));
         return;
       }
 
       const stripe = await stripePromise;
       if (!stripe) {
         setStatus("processing");
-        setMessage(
-          t("checkout.returnGeneric", {
-            defaultValue:
-              "Thank you. Your payment is being processed. You will receive an email shortly.",
-          })
-        );
+        setMessage(t("checkout.returnGeneric"));
         return;
       }
 
@@ -51,44 +41,24 @@ export default function CheckoutReturn() {
 
       if (error) {
         setStatus("failed");
-        setMessage(
-          t("checkout.returnError", {
-            defaultValue:
-              "We couldn't verify the payment. Please check your email or contact support.",
-          })
-        );
+        setMessage(t("checkout.returnError"));
         return;
       }
 
       switch (paymentIntent.status) {
         case "succeeded":
           setStatus("succeeded");
-          setMessage(
-            t("checkout.returnSuccess", {
-              defaultValue:
-                "Payment successful 🎉 Your order has been received.",
-            })
-          );
+          setMessage(t("checkout.returnSuccess"));
           break;
         case "processing":
         case "requires_capture":
           setStatus("processing");
-          setMessage(
-            t("checkout.returnProcessing", {
-              defaultValue:
-                "Thank you 🙌 Your payment is processing. You will receive a confirmation email soon.",
-            })
-          );
+          setMessage(t("checkout.returnProcessing"));
           break;
         case "requires_payment_method":
         default:
           setStatus("failed");
-          setMessage(
-            t("checkout.returnFailed", {
-              defaultValue:
-                "Payment failed or was canceled. You can try again.",
-            })
-          );
+          setMessage(t("checkout.returnFailed"));
           break;
       }
 
@@ -107,21 +77,17 @@ export default function CheckoutReturn() {
     <div className="max-w-lg mx-auto py-12 px-4 text-center">
       <h1 className="text-2xl font-semibold mb-4">
         {status === "succeeded"
-          ? t("checkout.returnTitleSuccess", {
-              defaultValue: "Thank you for your order!",
-            })
+          ? t("checkout.returnTitleSuccess")
           : status === "failed"
-          ? t("checkout.returnTitleFailed", { defaultValue: "Payment issue" })
-          : t("checkout.returnTitleProcessing", {
-              defaultValue: "Processing payment…",
-            })}
+          ? t("checkout.returnTitleFailed")
+          : t("checkout.returnTitleProcessing")}
       </h1>
 
       <p className="text-gray-700 mb-6">{message}</p>
 
       {piId && (
         <p className="text-xs text-gray-500 mb-6 break-all">
-          Payment reference: {piId}
+          {t("checkout.paymentReference", { id: piId })}
         </p>
       )}
 
@@ -130,14 +96,14 @@ export default function CheckoutReturn() {
           to="/account/orders"
           className="block w-full border rounded py-2 text-center hover:bg-gray-50"
         >
-          {t("checkout.viewOrders", { defaultValue: "View my orders" })}
+          {t("checkout.viewOrders")}
         </Link>
 
         <Link
           to="/"
           className="block w-full border rounded py-2 text-center hover:bg-gray-50"
         >
-          {t("checkout.backHome", { defaultValue: "Back to Home" })}
+          {t("checkout.backHome")}
         </Link>
       </div>
     </div>

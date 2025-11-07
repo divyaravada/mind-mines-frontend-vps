@@ -126,36 +126,36 @@ function renderAddress(addr) {
   );
 }
 
-function prettyStatus(statusRaw) {
+function prettyStatus(statusRaw, t) {
   const key = (statusRaw || "").toLowerCase();
   const map = {
-    pending: "Pending",
-    processing: "Processing",
-    paid: "Paid",
-    shipped: "Shipped",
-    delivered: "Delivered",
-    cancelled: "Canceled",
-    canceled: "Canceled",
-    failed: "Failed",
-    awaiting_payment: "Awaiting payment",
+    pending: t("guest.status.pending"),
+    processing: t("guest.status.processing"),
+    paid: t("guest.status.paid"),
+    shipped: t("guest.status.shipped"),
+    delivered: t("guest.status.delivered"),
+    cancelled: t("guest.status.canceled"),
+    canceled: t("guest.status.canceled"),
+    failed: t("guest.status.failed"),
+    awaiting_payment: t("guest.status.awaitingPayment"),
   };
   return map[key] || statusRaw || "-";
 }
 
-function prettyPayment(pm) {
+function prettyPayment(pm, t) {
   if (!pm) return "-";
   const key = String(pm).toLowerCase();
   const map = {
-    bank: "Bank Transfer",
-    bank_transfer: "Bank Transfer",
-    sepa: "SEPA Direct Debit",
-    sepa_debit: "SEPA Direct Debit",
-    sepa_installments: "SEPA Installments",
-    card: "Card / Stripe",
-    card_installments: "Card Installments",
-    paypal: "PayPal",
-    giropay: "Giropay",
-    klarna: "Klarna",
+    bank: t("guest.payment.bank"),
+    bank_transfer: t("guest.payment.bank"),
+    sepa: t("guest.payment.sepa"),
+    sepa_debit: t("guest.payment.sepa"),
+    sepa_installments: t("guest.payment.sepaInstallments"),
+    card: t("guest.payment.card"),
+    card_installments: t("guest.payment.cardInstallments"),
+    paypal: t("guest.payment.paypal"),
+    giropay: t("guest.payment.giropay"),
+    klarna: t("guest.payment.klarna"),
   };
   return map[key] || pm;
 }
@@ -306,7 +306,7 @@ export default function GuestOrderLookupPage() {
 
           <Row
             label={t("guest.resultStatus", { defaultValue: "Status" })}
-            value={prettyStatus(result.status)}
+            value={prettyStatus(result.status, t)}
           />
 
           <Row
@@ -318,7 +318,7 @@ export default function GuestOrderLookupPage() {
             label={t("guest.resultPayment", {
               defaultValue: "Payment method",
             })}
-            value={prettyPayment(result.payment_method)}
+            value={prettyPayment(result.payment_method, t)}
           />
 
           {shippingSnapshot && (

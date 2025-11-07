@@ -34,17 +34,17 @@ export default function TopSellers() {
 
   const toggleWishlist = async (id) => {
     if (!isLoggedIn)
-      return toast.warning(t("Please log in to use the wishlist"));
+      return toast.warning(t("home.topsellers.loginRequired"));
     try {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
-        toast.info(t("Removed from wishlist"));
+        toast.info(t("home.topsellers.removedWishlist"));
       } else {
         await addWish(id).unwrap();
-        toast.success(t("Added to wishlist"));
+        toast.success(t("home.topsellers.addedWishlist"));
       }
     } catch {
-      toast.error(t("Action failed"));
+      toast.error(t("home.topsellers.actionFailed"));
     }
   };
 
@@ -77,10 +77,10 @@ export default function TopSellers() {
         </div>
 
         {isLoading ? (
-          <div className="text-gray-500">{t("Loading...", "Loading...")}</div>
+          <div className="text-gray-500">{t("common.loading")}</div>
         ) : top.length === 0 ? (
           <div className="text-gray-400">
-            {t("No products found.", "No products found.")}
+            {t("home.topsellers.empty")}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">

@@ -1,4 +1,4 @@
-// src/pages/Logout.jsx
+﻿// src/pages/Logout.jsx
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,7 +18,13 @@ export default function Logout() {
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
       <div className="max-w-lg w-full bg-white/70 dark:bg-marbleblack/60 p-8 rounded shadow text-center">
-        <div className="text-4xl mb-4">👋</div>
+        <div
+          className="text-4xl mb-4"
+          role="img"
+          aria-label={t("logout.iconLabel")}
+        >
+          👋
+        </div>
         <h1 className="text-2xl font-bold mb-2">{t("logout.message")}</h1>
         <p className="mb-6 text-gray-700 dark:text-gray-300">
           {t("logout.thanks")}

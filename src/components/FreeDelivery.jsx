@@ -14,8 +14,8 @@ export default function FreeDelivery({ deAmount = 49, euAmount = 99 }) {
         <div className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-[#f8fcfe] dark:bg-gray-900 p-6 flex items-start gap-4">
           <Truck className="w-6 h-6 mt-0.5" />
           <div className="space-y-1">
-            <p>{t("home.shipping.de")}</p>
-            <p>{t("home.shipping.eu")}</p>
+            <p>{t("home.shipping.de", { amount: deAmount })}</p>
+            <p>{t("home.shipping.eu", { amount: euAmount })}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {t("home.shipping.note")}
             </p>

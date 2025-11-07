@@ -13,7 +13,7 @@ export default function Dashboard() {
       <h1 className="text-5xl font-light mb-4">{t("myaccount.welcome")}</h1>
       <p className="mb-8 text-gray-600">
         {isLoading ? (
-          "Loading…"
+          t("common.loading")
         ) : (
           <>
             {t("myaccount.logemail")} <strong>{email}</strong>.
