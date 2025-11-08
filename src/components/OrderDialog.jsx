@@ -111,7 +111,7 @@ function buildShippingLines(addr) {
   return lines;
 }
 
-function resolveLineItem(item = {}, lang, t) {
+function resolveLineItem(item = {}, lang, t, fallbackImage = null) {
   const product =
     (item?.product && typeof item.product === "object" && item.product) ||
     item?.product_obj ||
@@ -132,15 +132,33 @@ function resolveLineItem(item = {}, lang, t) {
     product?.name ||
     fallbackTitle;
 
+  const productImages = Array.isArray(product?.images)
+    ? product.images
+    : Array.isArray(product?.photos)
+    ? product.photos
+    : [];
+
+  const itemImages = Array.isArray(item?.images)
+    ? item.images
+    : Array.isArray(item?.photos)
+    ? item.photos
+    : [];
+
   const imageSource =
     product?.image ||
     product?.image_url ||
     product?.cover ||
     product?.thumbnail ||
+    product?.featured_image ||
+    productImages[0] ||
     item?.image ||
     item?.product_image ||
     item?.product_image_url ||
     item?.image_url ||
+    itemImages[0] ||
+    item?.thumbnail ||
+    item?.thumbnail_url ||
+    fallbackImage ||
     null;
 
   const quantity = Number(item?.quantity ?? item?.qty ?? 1) || 1;
@@ -156,9 +174,15 @@ function resolveLineItem(item = {}, lang, t) {
     lineTotalValue = parsedUnit * quantity;
   }
 
+  const normalizedTitle = typeof title === "string" ? title.trim() : "";
+  const initial = normalizedTitle
+    ? normalizedTitle.charAt(0).toUpperCase()
+    : null;
+
   return {
     title,
     image: toAbsoluteUrl(imageSource),
+    initial,
     quantity,
     unitPrice,
     lineTotal: lineTotalValue,
@@ -286,6 +310,14 @@ export default function OrderDialog({ orderId, open, onClose }) {
     ? toAbsoluteUrl(order.invoice_pdf)
     : null;
   const showDownload = !!invoiceHref;
+
+  const orderImageFallback =
+    order?.first_item_image ||
+    order?.primary_image ||
+    order?.preview_image ||
+    order?.cover_image ||
+    order?.thumbnail ||
+    null;
 
   const returnDeadline = order ? parseDateLoose(order.return_deadline) : null;
   const apiReturnFlag = typeof order?.is_returnable === "boolean";
@@ -549,7 +581,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </div>
               ) : (
                 items.map((it, idx) => {
-                  const line = resolveLineItem(it, lang, t);
+                  const line = resolveLineItem(it, lang, t, orderImageFallback);
                   const key = it?.id ?? it?.line_id ?? `${line.title}-${idx}`;
                   const unitNumeric = toNumeric(line.unitPrice);
                   const lineTotal =
@@ -567,8 +599,11 @@ export default function OrderDialog({ orderId, open, onClose }) {
                           }}
                         />
                       ) : (
-                        <div className="w-20 h-20 bg-gray-100 rounded" />
+                        <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-500">
+                          {line.initial || "?"}
+                        </div>
                       )}
+
                       <div className="flex-1">
                         <div className="font-semibold">{line.title}</div>
                         {line.sku && (
@@ -900,4 +935,5 @@ export default function OrderDialog({ orderId, open, onClose }) {
     </div>
   );
 }
+
 

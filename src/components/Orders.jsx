@@ -57,7 +57,6 @@ export default function Orders() {
       : s === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-gray-100 text-gray-700";
-
   const statusLabel = (s) =>
     s
       ? t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1))
@@ -70,7 +69,7 @@ export default function Orders() {
     p?.name ||
     t("order.item");
 
-  const resolveItemMeta = (item = {}) => {
+  const resolveItemMeta = (order = {}, item = {}) => {
     const product =
       (item?.product && typeof item.product === "object" && item.product) ||
       item?.product_obj ||
@@ -78,21 +77,65 @@ export default function Orders() {
       null;
     const fallbackTitle =
       item?.product_name || item?.product_title || item?.title || item?.name;
+
+    const productImages = Array.isArray(product?.images)
+      ? product.images
+      : Array.isArray(product?.photos)
+      ? product.photos
+      : [];
+
+    const itemImages = Array.isArray(item?.images)
+      ? item.images
+      : Array.isArray(item?.photos)
+      ? item.photos
+      : [];
+
     const imageSource =
       product?.image ||
       product?.image_url ||
       product?.cover ||
       product?.thumbnail ||
+      product?.featured_image ||
+      productImages[0] ||
       item?.image ||
       item?.product_image ||
       item?.product_image_url ||
       item?.image_url ||
+      itemImages[0] ||
+      item?.thumbnail ||
+      item?.thumbnail_url ||
+      order?.first_item_image ||
+      order?.primary_image ||
+      order?.preview_image ||
+      order?.cover_image ||
+      order?.thumbnail ||
       null;
 
+    const title = product
+      ? productTitle(product)
+      : fallbackTitle || t("order.item");
+
+    const normalizedTitle = typeof title === "string" ? title.trim() : "";
+    const initial = normalizedTitle
+      ? normalizedTitle.charAt(0).toUpperCase()
+      : null;
+
     return {
-      title: productTitle(product) || fallbackTitle || t("order.item"),
+      title,
       image: toAbsoluteUrl(imageSource),
+      initial,
     };
+  };
+
+  const getItemsCountLabel = (count) => {
+    const translated = t("order.itemsCount", { count });
+    if (translated === "order.itemsCount") {
+      const single = t("order.item", "Item");
+      const plural = t("order.itemsLabel", "Items");
+      const word = count === 1 ? single : plural;
+      return `${count} ${word}`.trim();
+    }
+    return translated;
   };
 
   if (error?.status === 401) {
@@ -130,7 +173,7 @@ export default function Orders() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
           {orders.map((o) => {
-            const primaryMeta = resolveItemMeta(o.items?.[0] || {});
+            const primaryMeta = resolveItemMeta(o, o.items?.[0] || {});
             const itemCount = o.items?.length || 0;
             return (
               <button
@@ -153,9 +196,11 @@ export default function Orders() {
                     />
                   ) : (
                     <div
-                      className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800"
+                      className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
                       aria-hidden="true"
-                    />
+                    >
+                      {primaryMeta.initial || "?"}
+                    </div>
                   )}
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
@@ -179,7 +224,7 @@ export default function Orders() {
                       {t("order.total")}: {fmtMoney(o.total_price)}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {t("order.itemsCount", { count: itemCount })}
+                      {getItemsCountLabel(itemCount)}
                     </div>
                   </div>
                 </div>
@@ -195,5 +240,4 @@ export default function Orders() {
     </div>
   );
 }
-
 
