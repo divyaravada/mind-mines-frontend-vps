@@ -34,7 +34,7 @@ export default function Orders() {
         currency: "EUR",
       }).format(n);
     } catch {
-      return `${n.toFixed(2)} â‚¬`;
+      return `${n.toFixed(2)} €`;
     }
   };
 
@@ -67,7 +67,27 @@ export default function Orders() {
     p?.title_de ||
     t("order.item");
 
-  const coverFor = (o) => toAbsoluteUrl(o.items?.[0]?.product?.image);
+  const resolveItemMeta = (item) => {
+    const product =
+      (item?.product && typeof item.product === "object" && item.product) ||
+      item?.product_obj ||
+      item?.product_data ||
+      null;
+    const fallbackTitle = item?.product_title || item?.title;
+    const imageSource =
+      product?.image ||
+      product?.image_url ||
+      product?.cover ||
+      product?.thumbnail ||
+      item?.image ||
+      item?.product_image ||
+      null;
+
+    return {
+      title: productTitle(product) || fallbackTitle || t("order.item"),
+      image: toAbsoluteUrl(imageSource),
+    };
+  };
 
   if (error?.status === 401) {
     const next = encodeURIComponent(loc.pathname + loc.search);
@@ -103,56 +123,63 @@ export default function Orders() {
         <div className="text-gray-400">{t("order.none")}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
-          {orders.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => {
-                setSelectedId(o.id);
-                setOpen(true);
-              }}
-              className="bg-white text-left p-4 rounded shadow hover:shadow-md transition  dark:bg-marbleblack"
-            >
-              <div className="flex gap-3">
-                {coverFor(o) ? (
-                  <img
-                    src={coverFor(o)}
-                    alt={productTitle(o.items?.[0]?.product)}
-                    className="w-20 h-20 object-cover rounded"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <div
-                    className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800"
-                    aria-hidden="true"
-                  />
-                )}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div className="font-semibold leading-tight line-clamp-2">
-                      {productTitle(o.items?.[0]?.product)}
+          {orders.map((o) => {
+            const primaryMeta = resolveItemMeta(o.items?.[0] || {});
+            const itemCount = o.items?.length || 0;
+            return (
+              <button
+                key={o.id}
+                onClick={() => {
+                  setSelectedId(o.id);
+                  setOpen(true);
+                }}
+                className="bg-white text-left p-4 rounded shadow hover:shadow-md transition  dark:bg-marbleblack"
+              >
+                <div className="flex gap-3">
+                  {primaryMeta.image ? (
+                    <img
+                      src={primaryMeta.image}
+                      alt={primaryMeta.title}
+                      className="w-20 h-20 object-cover rounded"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="font-semibold leading-tight line-clamp-2">
+                        {primaryMeta.title}
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${statusClass(
+                          o.status
+                        )}`}
+                      >
+                        {statusLabel(o.status)}
+                      </span>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${statusClass(
-                        o.status
-                      )}`}
-                    >
-                      {statusLabel(o.status)}
-                    </span>
-                  </div>
 
-                  <div className="text-sm text-gray-500">
-                    {fmtDateTime(o.created_at)}
-                  </div>
+                    <div className="text-sm text-gray-500">
+                      {fmtDateTime(o.created_at)}
+                    </div>
 
-                  <div className="text-sm">
-                    {t("order.total")}: {fmtMoney(o.total_price)}
+                    <div className="text-sm">
+                      {t("order.total")}: {fmtMoney(o.total_price)}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {t("order.itemsCount", { count: itemCount })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
