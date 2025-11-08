@@ -21,7 +21,14 @@
     "imprint": "Imprint",
     "legal": "Data & Legal",
     "shippingInfo": "Shipping Information",
-    "returnPolicy": "Return Policy"
+    "returnPolicy": "Return Policy",
+    "toggleDarkMode": "Toggle dark mode",
+    "languageHeading": "Language",
+    "themeHeading": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "openMenu": "Open menu",
+    "changeLanguage": "Change language"
   },
   "common": {
     "shopNow": "Shop now",
@@ -29,7 +36,13 @@
     "close": "Close",
     "ok": "Ok",
     "loading": "Loading...",
-    "notFound": "Not found."
+    "notFound": "Not found.",
+    "clear": "Clear",
+    "searching": "Searching…",
+    "viewAllResults": "View all results",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "noResults": "No results found."
   },
   "home": {
     "heroFallback": {
@@ -101,7 +114,10 @@
       "countertopTitle": "Plan your dream kitchen countertop",
       "countertopLead": "Send sizes or a quick message—we’ll quote and guide you on stone choice and finish.",
       "whatsapp": "WhatsApp Us",
-      "requestQuote": "Request a Quote"
+      "requestQuote": "Request a Quote",
+      "materialLine1": "Material options: Marble, Granite, Quartzite, Travertine",
+      "materialLine2": "Edge profiles, cutouts, splashbacks",
+      "materialLine3": "Sealing & care guidance"
     },
     "topsellers": {
       "title": "Top-Selling Products",
@@ -128,6 +144,9 @@
       "de": "Germany: Free delivery on orders",
       "eu": "EU: Free delivery on orders",
       "note": "Heavy/oversize items may incur a surcharge (shown at checkout)."
+    },
+    "carousel": {
+      "goToSlide": "Go to slide {{index}}"
     }
   },
   "auth": {
@@ -554,7 +573,8 @@
     "price": "Price",
     "loginRequired": "Please log in to use the wishlist.",
     "addedToast": "Added to wishlist",
-    "actionFailed": "Action failed"
+    "actionFailed": "Action failed",
+    "buttonLabel": "Wishlist"
   },
   "reviews": {
     "title": "Your Reviews",
@@ -601,7 +621,11 @@
   },
   "product": {
     "orderOnDemand": "Order on demand",
-    "onDemandMsg": "Order can be taken on demand."
+    "onDemandMsg": "Order can be taken on demand.",
+    "lowStockBanner": {
+      "out": "Out of stock — arriving soon. Order can be taken on demand.",
+      "low": "Hurry! Only {{count}} left in stock."
+    }
   },
   "productReviews": {
     "title": "Reviews",
@@ -701,7 +725,30 @@
     "returnTitleProcessing": "Processing payment...",
     "paymentReference": "Payment reference: {{id}}",
     "viewOrders": "View my orders",
-    "backHome": "Back to Home"
+    "backHome": "Back to Home",
+    "stripe": {
+      "initFailed": "Failed to initialize Stripe payment.",
+      "paymentFailed": "Payment failed.",
+      "incomplete": "Payment not completed.",
+      "processing": "Processing…",
+      "payCard": "Pay with Card"
+    },
+    "installments": {
+      "prepareFailed": "Failed to prepare card.",
+      "saveFailed": "Failed to save card.",
+      "noPaymentMethod": "No payment method returned.",
+      "storeHint": "We'll store your card with Stripe to charge monthly.",
+      "startFailed": "Failed to start installments.",
+      "inactive": "0% financing with card ({{months}} months)",
+      "confirm": "Confirm card-based installments ({{months}} months).",
+      "starting": "Starting…",
+      "start": "Start installments",
+      "addCard": "Add card for installments",
+      "preparing": "Preparing…",
+      "saving": "Saving…",
+      "saveCard": "Save card",
+      "useDifferent": "Use a different card"
+    }
   },
   "checkoutSuccess": {
     "noOrder": "No order specified.",
@@ -997,5 +1044,51 @@
       "categoryDescription": "Browse {{category}} at MindMines.",
       "defaultDescription": "Browse products at MindMines."
     }
+  },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "emailPlaceholder": "Enter your email",
+    "send": "Send Reset Link",
+    "success": "If that email exists, a reset link has been sent.",
+    "error": "Failed to send reset email."
+  },
+  "installments": {
+    "summaryTitle": "Installment plan summary",
+    "amountEuro": "€ {{amount}}"
+  },
+  "languages": {
+    "short": {
+      "en": "EN",
+      "de": "DE"
+    }
+  },
+  "promo": {
+    "endsIn": "Ends in {{time}}",
+    "applyTitle": "Apply coupon",
+    "applyCoupon": "Apply {{code}}",
+    "shopNow": "Shop now",
+    "hide": "Hide promotion"
+  },
+  "onDemand": {
+    "title": "Order on demand",
+    "description": "Tell us how many you need and any notes. We'll email you shortly.",
+    "nameLabel": "Your name (optional)",
+    "emailLabel": "Email",
+    "quantityLabel": "Quantity",
+    "messageLabel": "Purpose / message",
+    "messagePlaceholder": "e.g., office decor for lobby; need by mid-November"
+  },
+  "stockNotify": {
+    "success": "We'll email you as soon as this is back in stock.",
+    "placeholder": "you@example.com",
+    "sending": "Submitting…",
+    "submit": "Notify me",
+    "error": "Couldn't subscribe."
+  },
+  "rating": {
+    "defaultLabel": "Rating",
+    "value": "{{value}}/5",
+    "starSingular": "star",
+    "starPlural": "stars"
   }
 }

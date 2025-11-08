@@ -1,9 +1,10 @@
-// src/components/Orders.jsx
+﻿// src/components/Orders.jsx
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useGetOrdersQuery } from "../features/orders/ordersApi";
 import OrderDialog from "./OrderDialog";
+import { toAbsoluteUrl } from "../utils/urls";
 
 export default function Orders() {
   const { t, i18n } = useTranslation();
@@ -33,7 +34,7 @@ export default function Orders() {
         currency: "EUR",
       }).format(n);
     } catch {
-      return `${n.toFixed(2)} €`;
+      return `${n.toFixed(2)} â‚¬`;
     }
   };
 
@@ -66,7 +67,7 @@ export default function Orders() {
     p?.title_de ||
     t("order.item");
 
-  const coverFor = (o) => o.items?.[0]?.product?.image || "";
+  const coverFor = (o) => toAbsoluteUrl(o.items?.[0]?.product?.image);
 
   if (error?.status === 401) {
     const next = encodeURIComponent(loc.pathname + loc.search);
@@ -112,14 +113,21 @@ export default function Orders() {
               className="bg-white text-left p-4 rounded shadow hover:shadow-md transition  dark:bg-marbleblack"
             >
               <div className="flex gap-3">
-                <img
-                  src={coverFor(o)}
-                  alt={productTitle(o.items?.[0]?.product)}
-                  className="w-20 h-20 object-cover rounded"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+                {coverFor(o) ? (
+                  <img
+                    src={coverFor(o)}
+                    alt={productTitle(o.items?.[0]?.product)}
+                    className="w-20 h-20 object-cover rounded"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800"
+                    aria-hidden="true"
+                  />
+                )}
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div className="font-semibold leading-tight line-clamp-2">

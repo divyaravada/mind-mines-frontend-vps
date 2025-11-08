@@ -117,7 +117,7 @@ export default function Navbar() {
           <button
             onClick={() => dispatch(toggleDarkMode())}
             className="ml-2 rounded p-1 transition hover:bg-gray-200 dark:hover:bg-gray-800"
-            aria-label="Toggle Dark Mode"
+            aria-label={t("navbar.toggleDarkMode")}
           >
             {darkMode ? (
               <Sun className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
@@ -258,14 +258,14 @@ export default function Navbar() {
               <div className="mt-6">
                 <div className="text-sm font-semibold mb-2 flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  <span>Language</span>
+                  <span>{t("navbar.languageHeading")}</span>
                 </div>
                 <LangButtons compact />
               </div>
 
               {/* theme */}
               <div className="mt-6">
-                <div className="text-sm font-semibold mb-2">Theme</div>
+                <div className="text-sm font-semibold mb-2">{t("navbar.themeHeading")}</div>
                 <button
                   onClick={() => dispatch(toggleDarkMode())}
                   className="flex items-center gap-2 px-3 py-2 rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -275,7 +275,7 @@ export default function Navbar() {
                   ) : (
                     <Moon className="w-5 h-5" />
                   )}
-                  <span>{darkMode ? "Light" : "Dark"}</span>
+                  <span>{darkMode ? t("navbar.themeLight") : t("navbar.themeDark")}</span>
                 </button>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           className="md:hidden px-4 py-2  dark:text-backnewsdark"
-          aria-label="Open Menu"
+          aria-label={t("navbar.openMenu")}
           onClick={() => dispatch(setMobileMenuOpen(true))}
         >
           ☰
@@ -306,7 +306,7 @@ function LangSwitcher() {
     <div className="relative">
       <button
         onClick={() => dispatch(setLangMenuOpen(!langMenuOpen))}
-        aria-label="Change Language"
+        aria-label={t("navbar.changeLanguage")}
         className="relative ml-2"
       >
         <Globe className="w-5 h-5 hover:text-backnewsdark text-backnewswhite dark:text-backnewsdark" />
@@ -357,7 +357,7 @@ function LangButtons({ compact = false }) {
             : "hover:bg-gray-50"
         }`}
       >
-        {compact ? "EN" : t("english")}
+        {compact ? t("languages.short.en") : t("english")}
       </button>
       <button
         onClick={() => dispatch(setLanguage("de"))}
@@ -367,7 +367,7 @@ function LangButtons({ compact = false }) {
             : "hover:bg-gray-50"
         }`}
       >
-        {compact ? "DE" : t("german")}
+        {compact ? t("languages.short.de") : t("german")}
       </button>
     </div>
   );

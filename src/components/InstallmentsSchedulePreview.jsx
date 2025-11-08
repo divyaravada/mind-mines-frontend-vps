@@ -1,11 +1,13 @@
 // src/components/InstallmentsSchedulePreview.jsx
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function InstallmentsSchedulePreview({
   months,
   total,
   serverSchedule,
 }) {
+  const { t } = useTranslation();
   const amounts = serverSchedule?.amounts?.map(Number);
   const dates = serverSchedule?.dates;
   let rows = [];
@@ -31,12 +33,12 @@ export default function InstallmentsSchedulePreview({
 
   return (
     <div className="border rounded p-3 mt-2 text-sm">
-      <div className="font-medium mb-2">Installment plan summary</div>
+      <div className="font-medium mb-2">{t("installments.summaryTitle")}</div>
       <div className="grid grid-cols-2 gap-1">
         {rows.map((r, idx) => (
           <div key={idx} className="flex items-center justify-between">
             <span>{r.date}</span>
-            <span>€ {Number(r.amount).toFixed(2)}</span>
+            <span>{t("installments.amountEuro", { amount: Number(r.amount).toFixed(2) })}</span>
           </div>
         ))}
       </div>

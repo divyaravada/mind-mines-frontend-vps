@@ -1,5 +1,6 @@
 // src/components/StarRating.jsx
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
 
 export default function StarRating({
@@ -10,8 +11,10 @@ export default function StarRating({
   className = "",
   ariaLabel = "Rating",
 }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(null);
   const display = hovered ?? value;
+  const groupLabel = ariaLabel || t("rating.defaultLabel");
 
   const handleKey = (e) => {
     if (disabled) return;
@@ -38,7 +41,7 @@ export default function StarRating({
   return (
     <div
       role="radiogroup"
-      aria-label={ariaLabel}
+      aria-label={groupLabel}
       tabIndex={disabled ? -1 : 0}
       onKeyDown={handleKey}
       className={`inline-flex items-center gap-1 ${
@@ -53,7 +56,7 @@ export default function StarRating({
             type="button"
             role="radio"
             aria-checked={value === n}
-            aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
+            aria-label={`${n} ${n === 1 ? t("rating.starSingular") : t("rating.starPlural")}`}
             disabled={disabled}
             onMouseEnter={() => setHovered(n)}
             onMouseLeave={() => setHovered(null)}
@@ -81,7 +84,7 @@ export default function StarRating({
           </button>
         );
       })}
-      <span className="ml-2 text-sm text-gray-600">{value}/5</span>
+      <span className="ml-2 text-sm text-gray-600">{t("rating.value", { value })}</span>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 
 export default function OnDemandModal({
@@ -7,6 +8,7 @@ export default function OnDemandModal({
   initialEmail,
   productId,
 }) {
+  const { t } = useTranslation();
   // close on ESC
   useEffect(() => {
     // if modal isn't open, don't attach listener
@@ -52,15 +54,15 @@ export default function OnDemandModal({
         aria-hidden="true"
       />
       <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-lg">
-        <h2 className="text-lg font-semibold mb-1">Order on demand</h2>
+        <h2 className="text-lg font-semibold mb-1">{t("onDemand.title")}</h2>
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          Tell us how many you need and any notes. We’ll email you shortly.
+          {t("onDemand.description")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium">
-              Your name (optional)
+              {t("onDemand.nameLabel")}
             </label>
             <input
               name="name"
@@ -69,7 +71,7 @@ export default function OnDemandModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="block text-sm font-medium">{t("onDemand.emailLabel")}</label>
             <input
               name="email"
               type="email"
@@ -80,7 +82,7 @@ export default function OnDemandModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Quantity</label>
+            <label className="block text-sm font-medium">{t("onDemand.quantityLabel")}</label>
             <input
               name="quantity"
               type="number"
@@ -93,12 +95,12 @@ export default function OnDemandModal({
 
           <div>
             <label className="block text-sm font-medium">
-              Purpose / message
+              {t("onDemand.messageLabel")}
             </label>
             <textarea
               name="message"
               rows={4}
-              placeholder="e.g., office decor for lobby; need by mid-November"
+              placeholder={t("onDemand.messagePlaceholder")}
               className="mt-1 w-full border rounded px-3 py-2 dark:bg-gray-800"
             />
           </div>
@@ -109,13 +111,13 @@ export default function OnDemandModal({
               onClick={onClose}
               className="px-4 py-2 rounded border dark:border-gray-700"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded bg-marbleblack text-white hover:bg-black"
             >
-              Submit
+              {t("common.submit")}
             </button>
           </div>
         </form>

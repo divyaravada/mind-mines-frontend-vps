@@ -4,6 +4,11 @@ import { Link } from "react-router-dom";
 
 export default function CountertopCTA() {
   const { t } = useTranslation();
+  const bulletKeys = [
+    "home.cta.materialLine1",
+    "home.cta.materialLine2",
+    "home.cta.materialLine3",
+  ];
   return (
     <section className="bg-white dark:bg-gray-900 py-10">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
@@ -32,9 +37,9 @@ export default function CountertopCTA() {
           </div>
         </div>
         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-          <li>• Material options: Marble, Granite, Quartzite, Travertine</li>
-          <li>• Edge profiles, cutouts, splashbacks</li>
-          <li>• Sealing & care guidance</li>
+          {bulletKeys.map((key) => (
+            <li key={key}>{t(key)}</li>
+          ))}
         </ul>
       </div>
     </section>

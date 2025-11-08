@@ -1,5 +1,6 @@
 // src/components/StripeCardInstallments.jsx
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Elements,
   CardElement,
@@ -25,6 +26,7 @@ const pickErr = (e, fb) =>
   fb;
 
 function SaveCardStep({ email, onSaved, onError }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [createSI, { isLoading }] = useStripeCreateSetupIntentMutation();
@@ -38,7 +40,7 @@ function SaveCardStep({ email, onSaved, onError }) {
       if (!secret) throw new Error("No client_secret returned.");
       setCs(secret);
     } catch (e) {
-      onError?.(pickErr(e, "Failed to prepare card."));
+      onError?.(pickErr(e, t("checkout.installments.prepareFailed")));
     }
   }
 
@@ -54,12 +56,12 @@ function SaveCardStep({ email, onSaved, onError }) {
           billing_details: { email: email || undefined },
         },
       });
-      if (error) throw new Error(error.message || "Failed to save card.");
+      if (error) throw new Error(error.message || t("checkout.installments.saveFailed"));
       const pm = setupIntent?.payment_method;
-      if (!pm) throw new Error("No payment method returned.");
+      if (!pm) throw new Error(t("checkout.installments.noPaymentMethod"));
       onSaved?.(pm);
     } catch (e) {
-      onError?.(pickErr(e, "Failed to save card."));
+      onError?.(pickErr(e, t("checkout.installments.saveFailed")));
     } finally {
       setSaving(false);
     }
@@ -73,7 +75,7 @@ function SaveCardStep({ email, onSaved, onError }) {
           onClick={initSI}
           disabled={isLoading}
         >
-          {isLoading ? "Preparing…" : "Add card for installments"}
+          {isLoading ? t("checkout.installments.preparing") : t("checkout.installments.addCard")}
         </button>
       ) : (
         <>
@@ -85,12 +87,12 @@ function SaveCardStep({ email, onSaved, onError }) {
             onClick={saveCard}
             disabled={saving}
           >
-            {saving ? "Saving…" : "Save card"}
+            {saving ? t("checkout.installments.saving") : t("checkout.installments.saveCard")}
           </button>
         </>
       )}
       <p className="text-xs text-gray-500">
-        We’ll store your card with Stripe to charge monthly.
+        {t("checkout.installments.storeHint")}
       </p>
     </div>
   );
@@ -106,6 +108,7 @@ export default function StripeCardInstallments({
   setLocalOrderId,
   onSuccess,
 }) {
+  const { t } = useTranslation();
   const [createPlan, { isLoading }] = useStripeCardInstallmentsMutation();
   const [errorMsg, setErrorMsg] = useState("");
   const [localPM, setLocalPM] = useState(paymentMethodId || null);
@@ -138,7 +141,7 @@ export default function StripeCardInstallments({
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
-      setErrorMsg(pickErr(e, "Failed to start installments."));
+      setErrorMsg(pickErr(e, t("checkout.installments.startFailed")));
     }
   }
 
@@ -146,7 +149,7 @@ export default function StripeCardInstallments({
     return (
       <div className="border rounded p-3 mt-4">
         <div className="text-sm text-gray-600">
-          0% financing with card ({monthsSafe} months)
+          {t("checkout.installments.inactive", { months: monthsSafe })}
         </div>
       </div>
     );
@@ -155,7 +158,7 @@ export default function StripeCardInstallments({
   return (
     <div className="border rounded p-3 mt-2 space-y-3">
       <div className="text-sm">
-        Confirm card-based installments ({monthsSafe} months).
+        {t("checkout.installments.confirm", { months: monthsSafe })}
       </div>
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
       {serverSchedule && (
@@ -182,7 +185,7 @@ export default function StripeCardInstallments({
               onClick={() => startPlan(localPM)}
               className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
             >
-              {isLoading ? "Starting…" : "Start installments"}
+              {isLoading ? t("checkout.installments.starting") : t("checkout.installments.start")}
             </button>
             <button
               type="button"
@@ -192,7 +195,7 @@ export default function StripeCardInstallments({
                 setServerSchedule(null);
               }}
             >
-              Use a different card
+              {t("checkout.installments.useDifferent")}
             </button>
           </div>
         )}

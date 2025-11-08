@@ -117,7 +117,7 @@ export default function ProductSearch({ t }) {
       <Search className="absolute left-2 top-2 w-4 h-4 text-gray-400 pointer-events-none" />
       {!!q && (
         <button
-          aria-label="Clear"
+          aria-label={t("common.clear")}
           className="absolute right-2 top-1.5"
           onClick={() => {
             setQ("");
@@ -132,7 +132,7 @@ export default function ProductSearch({ t }) {
       {open && (q || loading) && (
         <div className="absolute mt-1 w-[18rem] md:w-[22rem] z-50 rounded border border-gray-200 shadow-lg bg-white dark:bg-backnewsdark">
           {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-500">Searching…</div>
+            <div className="px-3 py-2 text-sm text-gray-500">{t("common.searching")}</div>
           ) : results.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-500">
               {t("common.noResults")}

@@ -24,7 +24,14 @@
     "newsletter": "Newsletter",
     "subscribe": "Anmelden",
     "subscribeSuccess": "Vielen Dank für Ihre Anmeldung! Überprüfen Sie Ihre E-Mail auf Updates.",
-    "subscribeError": "Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut."
+    "subscribeError": "Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+    "toggleDarkMode": "Dark-Mode umschalten",
+    "languageHeading": "Sprache",
+    "themeHeading": "Darstellung",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "openMenu": "Menü öffnen",
+    "changeLanguage": "Sprache wechseln"
   },
   "filter": {
     "material": "Material",
@@ -57,7 +64,13 @@
     "loading": "Wird geladen…",
     "ok": "OK",
     "close": "Schließen",
-    "notFound": "Nicht gefunden."
+    "notFound": "Nicht gefunden.",
+    "clear": "Leeren",
+    "searching": "Suche…",
+    "viewAllResults": "Alle Ergebnisse anzeigen",
+    "cancel": "Abbrechen",
+    "submit": "Senden",
+    "noResults": "Keine Treffer gefunden."
   },
   "home": {
     "heroFallback": {
@@ -129,7 +142,10 @@
       "countertopTitle": "Planen Sie Ihre Traum-Arbeitsplatte",
       "countertopLead": "Senden Sie Maße oder eine kurze Nachricht – wir erstellen ein Angebot und beraten zu Stein & Finish.",
       "whatsapp": "WhatsApp",
-      "requestQuote": "Angebot anfordern"
+      "requestQuote": "Angebot anfordern",
+      "materialLine1": "Materialoptionen: Marmor, Granit, Quarzit, Travertin",
+      "materialLine2": "Kantprofile, Ausschnitte, Rückwände",
+      "materialLine3": "Imprägnierung & Pflegeberatung"
     },
     "topsellers": {
       "title": "Bestseller",
@@ -156,6 +172,9 @@
       "de": "Deutschland: Kostenloser Versand ab {{amount}} €",
       "eu": "EU: Kostenloser Versand ab {{amount}} €",
       "note": "Schwere/Übergrößen können Zuschläge verursachen (an der Kasse ersichtlich)."
+    },
+    "carousel": {
+      "goToSlide": "Zur Folie {{index}}"
     }
   },
   "auth": {
@@ -560,7 +579,8 @@
     "price": "Preis",
     "loginRequired": "Bitte melden Sie sich an, um die Wunschliste zu nutzen.",
     "addedToast": "Zur Wunschliste hinzugefügt",
-    "actionFailed": "Aktion fehlgeschlagen"
+    "actionFailed": "Aktion fehlgeschlagen",
+    "buttonLabel": "Wunschliste"
   },
   "reviews": {
     "title": "Ihre Bewertungen",
@@ -607,7 +627,11 @@
   },
   "product": {
     "orderOnDemand": "Auf Anfrage bestellbar",
-    "onDemandMsg": "Bestellung kann auf Anfrage entgegengenommen werden."
+    "onDemandMsg": "Bestellung kann auf Anfrage entgegengenommen werden.",
+    "lowStockBanner": {
+      "out": "Nicht auf Lager – Nachschub ist unterwegs. Bestellung auf Anfrage möglich.",
+      "low": "Beeil dich! Nur noch {{count}} Stück verfügbar."
+    }
   },
   "productReviews": {
     "title": "Bewertungen",
@@ -707,7 +731,30 @@
     "returnTitleProcessing": "Zahlung wird verarbeitet...",
     "paymentReference": "Zahlungsreferenz: {{id}}",
     "viewOrders": "Meine Bestellungen ansehen",
-    "backHome": "Zur Startseite"
+    "backHome": "Zur Startseite",
+    "stripe": {
+      "initFailed": "Stripe-Zahlung konnte nicht initialisiert werden.",
+      "paymentFailed": "Zahlung fehlgeschlagen.",
+      "incomplete": "Zahlung nicht abgeschlossen.",
+      "processing": "Wird verarbeitet…",
+      "payCard": "Mit Karte zahlen"
+    },
+    "installments": {
+      "prepareFailed": "Karte konnte nicht vorbereitet werden.",
+      "saveFailed": "Karte konnte nicht gespeichert werden.",
+      "noPaymentMethod": "Kein Zahlungsmittel erhalten.",
+      "storeHint": "Wir speichern Ihre Karte bei Stripe, um monatlich abzurechnen.",
+      "startFailed": "Ratenplan konnte nicht gestartet werden.",
+      "inactive": "0 % Finanzierung mit Karte ({{months}} Monate)",
+      "confirm": "Kartenbasierte Raten bestätigen ({{months}} Monate).",
+      "starting": "Startet…",
+      "start": "Raten starten",
+      "addCard": "Karte für Raten hinzufügen",
+      "preparing": "Wird vorbereitet…",
+      "saving": "Wird gespeichert…",
+      "saveCard": "Karte speichern",
+      "useDifferent": "Andere Karte verwenden"
+    }
   },
   "checkoutSuccess": {
     "noOrder": "Keine Bestellung angegeben.",
@@ -994,5 +1041,51 @@
       "categoryDescription": "{{category}} bei MindMines entdecken.",
       "defaultDescription": "Produkte bei MindMines entdecken."
     }
+  },
+  "forgotPassword": {
+    "title": "Passwort vergessen",
+    "emailPlaceholder": "E-Mail-Adresse eingeben",
+    "send": "Link zum Zurücksetzen senden",
+    "success": "Wenn diese E-Mail existiert, wurde ein Reset-Link versendet.",
+    "error": "Reset-E-Mail konnte nicht gesendet werden."
+  },
+  "installments": {
+    "summaryTitle": "Ratenplan",
+    "amountEuro": "€ {{amount}}"
+  },
+  "languages": {
+    "short": {
+      "en": "EN",
+      "de": "DE"
+    }
+  },
+  "promo": {
+    "endsIn": "Endet in {{time}}",
+    "applyTitle": "Gutschein anwenden",
+    "applyCoupon": "Code {{code}} nutzen",
+    "shopNow": "Jetzt shoppen",
+    "hide": "Aktion ausblenden"
+  },
+  "onDemand": {
+    "title": "Auf Anfrage bestellen",
+    "description": "Sagen Sie uns, wie viele Sie benötigen und welche Hinweise es gibt. Wir melden uns per E-Mail.",
+    "nameLabel": "Ihr Name (optional)",
+    "emailLabel": "E-Mail",
+    "quantityLabel": "Menge",
+    "messageLabel": "Verwendungszweck / Nachricht",
+    "messagePlaceholder": "z. B. Bürodeko für den Empfang; benötigt bis Mitte November"
+  },
+  "stockNotify": {
+    "success": "Wir informieren Sie, sobald dieser Artikel wieder verfügbar ist.",
+    "placeholder": "sie@beispiel.de",
+    "sending": "Wird gesendet…",
+    "submit": "Benachrichtigen",
+    "error": "Benachrichtigung konnte nicht gespeichert werden."
+  },
+  "rating": {
+    "defaultLabel": "Bewertung",
+    "value": "{{value}}/5",
+    "starSingular": "Stern",
+    "starPlural": "Sterne"
   }
 }

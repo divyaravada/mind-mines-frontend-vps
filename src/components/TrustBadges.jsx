@@ -16,7 +16,7 @@ export default function TrustBadges() {
   const { t } = useTranslation();
   return (
     <section
-      aria-label="Trust badges"
+      aria-label={t("badges.ariaLabel")}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
     >
       <Tag>

@@ -105,7 +105,7 @@ export default function HomeCarousel() {
                     rel="noreferrer"
                     className="inline-block bg-green-100 hover:bg-green-200 text-green-900 font-bold px-6 py-2 rounded-xl transition"
                   >
-                    WhatsApp
+                    {t("home.cta.whatsapp")}
                   </a>
                 </div>
               ) : (
@@ -130,7 +130,7 @@ export default function HomeCarousel() {
               currentSlide === idx ? "bg-white shadow-lg" : ""
             }`}
             onClick={() => slider.current?.moveToIdx(idx)}
-            aria-label={`Go to slide ${idx + 1}`}
+            aria-label={t("home.carousel.goToSlide", { index: idx + 1 })}
           />
         ))}
       </div>

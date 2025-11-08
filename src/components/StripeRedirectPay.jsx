@@ -1,5 +1,6 @@
 // src/components/StripeRedirectPay.jsx
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Elements,
   PaymentElement,
@@ -21,9 +22,14 @@ function Inner({
   onError,
   returnUrl,
 }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);
+  const methodLabel =
+    method === "klarna"
+      ? t("checkout.redirect.klarna")
+      : t("checkout.redirect.giropay");
 
   const onPay = async () => {
     if (!stripe || !elements) return;
@@ -35,7 +41,7 @@ function Inner({
     setConfirming(false);
 
     if (error) {
-      onError?.(error.message || "Payment failed.");
+      onError?.(error.message || t("checkout.redirect.paymentFailed"));
       return;
     }
     // Usually a redirect follows; if not, fall back:
@@ -72,8 +78,13 @@ export default function StripeRedirectPay({
   onSuccess,
   onError,
 }) {
+  const { t } = useTranslation();
   const [createPI, { isLoading }] = useStripeCreateRedirectIntentMutation();
   const [clientSecret, setClientSecret] = useState("");
+  const methodLabel =
+    method === "klarna"
+      ? t("checkout.redirect.klarna")
+      : t("checkout.redirect.giropay");
   const [effectiveOrderId, setEffectiveOrderId] = useState(orderId || null);
   const orderIdRef = useRef(orderId || null);
 
@@ -104,7 +115,8 @@ export default function StripeRedirectPay({
           setEffectiveOrderId(res.order_id);
         }
       } catch (e) {
-        const msg = e?.data?.detail || e?.error || "Failed to init payment.";
+        const msg =
+          e?.data?.detail || e?.error || t("checkout.redirect.initFailed");
         onError?.(msg);
       }
     };
@@ -119,7 +131,7 @@ export default function StripeRedirectPay({
   if (isLoading || !clientSecret) {
     return (
       <div className="border rounded p-3 mt-2 text-sm text-gray-600">
-        Preparing {method}…
+        {t("checkout.redirect.preparing", { method: methodLabel })}
       </div>
     );
   }

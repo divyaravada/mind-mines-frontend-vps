@@ -1,4 +1,7 @@
-export default function Spinner({ size = 24, className = "" }) {
+import { useTranslation } from "react-i18next";
+export default function Spinner({ size = 24, className = "", ariaLabel }) {
+  const { t } = useTranslation();
+  const label = ariaLabel || t("common.loading");
   return (
     <div
       className={
@@ -10,7 +13,7 @@ export default function Spinner({ size = 24, className = "" }) {
         height: size,
         borderTopColor: "rgb(17 24 39)", // gray-900 fallback
       }}
-      aria-label="Loading"
+      aria-label={label}
     />
   );
 }

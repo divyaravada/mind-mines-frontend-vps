@@ -1,4 +1,4 @@
-// src/components/OrderDialog.jsx
+﻿// src/components/OrderDialog.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import MessageDialog from "./MessageDialog";
@@ -64,6 +64,13 @@ export default function OrderDialog({ orderId, open, onClose }) {
   } = useGetOrderQuery(orderId, {
     skip: !open || !orderId,
   });
+
+  const shippingData =
+    order?.shipping_address ||
+    order?.shipping ||
+    order?.shippingAddress ||
+    order?.delivery_address ||
+    null;
 
   // mutations
   const [requestCancel, { isLoading: canceling }] = useRequestCancelMutation();
@@ -289,14 +296,14 @@ export default function OrderDialog({ orderId, open, onClose }) {
             <h3 className="text-xl font-semibold">{t("order.details")}</h3>
             {order && (
               <p className="text-sm text-gray-500">
-                {t("order.orderHash")} #{order.number || order.id} •{" "}
+                {t("order.orderHash")} #{order.number || order.id} â€¢{" "}
                 {new Date(order.created_at).toLocaleString(locale)}
                 {isDelivered && deliveredAt ? (
                   <span className="ml-2 text-xs text-gray-500">
                     ({t("order.delivered")}:{" "}
                     {deliveredAt.toLocaleDateString(locale)}
                     {typeof ageDays === "number"
-                      ? ` • ${t("order.daysAgo", { count: ageDays })}`
+                      ? ` â€¢ ${t("order.daysAgo", { count: ageDays })}`
                       : ""}
                     )
                   </span>
@@ -309,7 +316,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
             className="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label={t("common.close")}
           >
-            ✕
+            âœ•
           </button>
         </div>
 
@@ -350,7 +357,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 <div key={it.id} className="flex gap-4 items-center">
                   {it.product?.image ? (
                     <img
-                      src={it.product.image}
+                      src={toAbsoluteUrl(it.product?.image)}
                       alt={productTitle(it.product)}
                       className="w-20 h-20 object-cover rounded"
                     />
@@ -362,7 +369,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                       {productTitle(it.product)}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {t("order.qty")}: {it.quantity} • {t("order.unit")}:{" "}
+                      {t("order.qty")}: {it.quantity} â€¢ {t("order.unit")}:{" "}
                       {formatMoney(it.unit_price, locale)}
                     </div>
                   </div>
@@ -391,27 +398,23 @@ export default function OrderDialog({ orderId, open, onClose }) {
               <div className="text-sm font-semibold mb-1">
                 {t("order.shippingAddress")}
               </div>
-              {order.shipping_address ? (
+              {shippingData ? (
                 <div className="text-sm">
-                  {order.shipping_address.first_name}{" "}
-                  {order.shipping_address.last_name}
+                  {shippingData.first_name} {shippingData.last_name}
                   <br />
-                  {order.shipping_address.address_line1}
-                  {order.shipping_address.address_line2
-                    ? `, ${order.shipping_address.address_line2}`
+                  {shippingData.address_line1}
+                  {shippingData.address_line2
+                    ? `, ${shippingData.address_line2}`
                     : ""}
                   <br />
-                  {order.shipping_address.postal_code}{" "}
-                  {order.shipping_address.city}
+                  {shippingData.postal_code} {shippingData.city}
                   <br />
-                  {order.shipping_address.country ||
-                    order.shipping_address.state}{" "}
-                  {order.shipping_address.pincode}
-                  {order.shipping_address.phone ? (
+                  {shippingData.country || shippingData.state}{" "}
+                  {shippingData.pincode}
+                  {shippingData.phone ? (
                     <>
                       <br />
-                      {t("order.phone", "Phone")}:{" "}
-                      {order.shipping_address.phone}
+                      {t("order.phone", "Phone")}: {shippingData.phone}
                     </>
                   ) : null}
                 </div>

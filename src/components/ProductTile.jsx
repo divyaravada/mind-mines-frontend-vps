@@ -69,7 +69,7 @@ export default function ProductTile({
         />
         <button
           type="button"
-          aria-label="Wishlist"
+          aria-label={t("wishlist.buttonLabel")}
           onClick={(e) => {
             e.stopPropagation();
             onToggleWishlist?.(product.id);

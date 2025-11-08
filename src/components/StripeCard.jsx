@@ -1,9 +1,11 @@
 // src/components/StripeCard.jsx
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
 
 export default function StripeCard({ orderId, onSuccess, onError }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [createIntent, { isLoading }] = useStripeCreateIntentMutation();
@@ -18,7 +20,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
         if (mounted) setClientSecret(res.client_secret);
       } catch (e) {
         const msg =
-          e?.data?.detail || e?.error || "Failed to initialize Stripe payment.";
+          e?.data?.detail || e?.error || t("checkout.stripe.initFailed");
         onError?.(msg);
       }
     })();
@@ -39,13 +41,13 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
     setBusy(false);
 
     if (result.error) {
-      onError?.(result.error.message || "Payment failed");
+      onError?.(result.error.message || t("checkout.stripe.paymentFailed"));
       return;
     }
     if (result.paymentIntent?.status === "succeeded") {
       onSuccess?.(orderId);
     } else {
-      onError?.("Payment not completed.");
+      onError?.(t("checkout.stripe.incomplete"));
     }
   };
 
@@ -61,7 +63,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
         disabled={isLoading || busy || !stripe || !elements || !clientSecret}
         onClick={pay}
       >
-        {busy ? "Processing..." : "Pay with Card"}
+        {busy ? t("checkout.stripe.processing") : t("checkout.stripe.payCard")}
       </button>
     </div>
   );

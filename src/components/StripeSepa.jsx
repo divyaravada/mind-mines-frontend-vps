@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -27,6 +28,7 @@ function pickErr(e, fallback) {
 }
 
 function SepaInner({ orderId, clientSecret, onSuccess }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [postConfirm] = useSepaPostConfirmMutation();
@@ -44,7 +46,7 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
       });
 
       if (error) {
-        setErr(error.message || "Payment failed.");
+        setErr(error.message || t("checkout.sepa.paymentFailed"));
         setLoading(false);
         return;
       }
@@ -56,7 +58,7 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
       }).unwrap();
       onSuccess?.(orderId);
     } catch (e) {
-      setErr("Payment error.");
+      setErr(t("checkout.sepa.paymentError"));
       setLoading(false);
     }
   }
@@ -70,10 +72,10 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
         onClick={handleConfirm}
         className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60 text-sm"
       >
-        {loading ? "Processing…" : "Authorize SEPA debit"}
+        {loading ? t("checkout.sepa.processing") : t("checkout.sepa.authorize")}
       </button>
       <p className="text-xs text-gray-500">
-        By confirming, you give a SEPA Direct Debit mandate.
+        {t("checkout.sepa.notice")}
       </p>
     </div>
   );
@@ -90,8 +92,10 @@ export default function StripeSepa({
   onSuccess,
   setLocalOrderId,
 }) {
+  const { t } = useTranslation();
   const [createSepaIntent] = useStripeCreateSepaIntentMutation();
 
+  const radioLabel = t("checkout.sepa.radioLabel");
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loadingInit, setLoadingInit] = useState(false);
@@ -102,7 +106,7 @@ export default function StripeSepa({
     if (!active) return;
 
     if (Number(total) <= 0) {
-      setInitErr("Cart total is 0.00 €");
+      setInitErr(t("checkout.sepa.cartZero"));
       return;
     }
 
@@ -135,7 +139,7 @@ export default function StripeSepa({
           setLocalOrderId?.(oid);
         }
       } catch (e) {
-        if (!cancelled) setInitErr(pickErr(e, "Failed to init SEPA."));
+        if (!cancelled) setInitErr(pickErr(e, t("checkout.sepa.initFailed")));
       } finally {
         if (!cancelled) setLoadingInit(false);
       }
@@ -165,7 +169,7 @@ export default function StripeSepa({
           checked={false}
           onChange={() => setActive?.("sepa_debit")}
         />
-        <span className="flex-1">SEPA Direct Debit (DE only)</span>
+        <span className="flex-1">{radioLabel}</span>
       </label>
     );
   }
@@ -180,12 +184,12 @@ export default function StripeSepa({
           checked
           onChange={() => setActive?.("sepa_debit")}
         />
-        <span className="flex-1">SEPA Direct Debit (DE only)</span>
+        <span className="flex-1">{radioLabel}</span>
       </label>
 
       {loadingInit && (
         <div className="border rounded p-3 mt-2 text-sm text-gray-600">
-          Preparing SEPA mandate…
+          {t("checkout.sepa.preparing")}
         </div>
       )}
 
@@ -214,3 +218,4 @@ export default function StripeSepa({
     </>
   );
 }
+

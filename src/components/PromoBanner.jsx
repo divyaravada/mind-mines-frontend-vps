@@ -1,5 +1,6 @@
-// src/components/PromoBanner.jsx
+﻿// src/components/PromoBanner.jsx
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import http from "../services/http";
 
@@ -12,7 +13,8 @@ function formatSeconds(s) {
 }
 
 export default function PromoBanner() {
-  // ✅ All hooks are top-level and unconditional
+  const { t } = useTranslation();
+  // âœ… All hooks are top-level and unconditional
   const [promo, setPromo] = useState(null);
   const [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState(null);
@@ -49,7 +51,7 @@ export default function PromoBanner() {
   const hhmmss = formatSeconds(remaining);
   const show = !!promo && !hidden;
 
-  // ✅ It’s fine to early-return here because there are NO hooks below this line
+  // âœ… Itâ€™s fine to early-return here because there are NO hooks below this line
   if (!show) return null;
 
   const bg = promo.bg_color || "#111827";
@@ -80,7 +82,7 @@ export default function PromoBanner() {
           <div className="opacity-90">{promo.subheadline}</div>
         )}
         {hhmmss && (
-          <div className="ml-3 text-xs opacity-90">Ends in {hhmmss}</div>
+          <div className="ml-3 text-xs opacity-90">{t("promo.endsIn", { time: hhmmss })}</div>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -89,25 +91,26 @@ export default function PromoBanner() {
             onClick={apply}
             className="px-3 py-1 rounded bg-white/10 hover:bg_white/20 border border-white/20"
             style={{ color: fg }}
-            title="Apply coupon"
+            title={t("promo.applyTitle")}
           >
-            Apply {String(promo.code).toUpperCase()}
+            {t("promo.applyCoupon", { code: String(promo.code).toUpperCase() })}
           </button>
         )}
         {promo.link_url && (
           <a href={promo.link_url} className="underline" style={{ color: fg }}>
-            Shop now
+            {t("promo.shopNow")}
           </a>
         )}
         <button
           onClick={() => setHidden(true)}
           className="px-2 py-1 rounded hover:bg-white/10"
           style={{ color: fg }}
-          aria-label="Hide promotion"
+          aria-label={t("promo.hide")}
         >
-          ✕
+          {"\u00d7"}
         </button>
       </div>
     </div>
   );
 }
+

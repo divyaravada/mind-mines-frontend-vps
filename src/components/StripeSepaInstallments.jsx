@@ -1,5 +1,6 @@
 // src/components/StripeSepaInstallments.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -32,6 +33,7 @@ function SepaInstallmentsInner({
   onCreated,
   setErrorMsg,
 }) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [startPlan, { isLoading }] = useStripeSepaInstallmentsMutation();
@@ -59,7 +61,7 @@ function SepaInstallmentsInner({
       });
       const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
-      if (!orderId) throw new Error("Order not created.");
+      if (!orderId) throw new Error(t("checkout.sepaInstallments.orderMissing"));
       onCreated?.(orderId, {
         months: res?.months,
         amounts: res?.amounts,
@@ -80,12 +82,12 @@ function SepaInstallmentsInner({
         redirect: "if_required",
       });
       if (error)
-        throw new Error(error.message || "Mandate confirmation failed.");
+        throw new Error(error.message || t("checkout.sepaInstallments.mandateFailed"));
       const pmId = setupIntent?.payment_method;
-      if (!pmId) throw new Error("No payment method was created.");
+      if (!pmId) throw new Error(t("checkout.sepaInstallments.noPaymentMethod"));
       await startInstallments(pmId);
     } catch (e) {
-      setErrorMsg(pickErr(e, "Failed to confirm mandate."));
+      setErrorMsg(pickErr(e, t("checkout.sepaInstallments.mandateFailed")));
     } finally {
       setBusy(false);
     }
@@ -106,8 +108,7 @@ function SepaInstallmentsInner({
           : `Confirm mandate & start ${monthsSafe} mo.`}
       </button>
       <p className="text-xs text-gray-500">
-        By confirming, you authorize monthly SEPA debits for {monthsSafe}{" "}
-        months.
+        {t("checkout.sepaInstallments.notice", { months: monthsSafe })}
       </p>
     </div>
   );
@@ -124,6 +125,7 @@ export default function StripeSepaInstallments({
   setLocalOrderId,
   onSuccess,
 }) {
+  const { t } = useTranslation();
   const [errorMsg, setErrorMsg] = useState("");
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
@@ -158,7 +160,7 @@ export default function StripeSepaInstallments({
         if (!cancelled) setClientSecret(cs);
       } catch (e) {
         if (!cancelled)
-          setErrorMsg(pickErr(e, "Failed to prepare SEPA mandate."));
+          setErrorMsg(pickErr(e, t("checkout.sepaInstallments.prepareFailed")));
       } finally {
         if (!cancelled) setLoadingInit(false);
       }
@@ -186,7 +188,7 @@ export default function StripeSepaInstallments({
       });
       const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
-      if (!orderId) throw new Error("Order not created.");
+      if (!orderId) throw new Error(t("checkout.sepaInstallments.orderMissing"));
       setServerSchedule({
         months: res?.months,
         amounts: res?.amounts,
@@ -195,7 +197,7 @@ export default function StripeSepaInstallments({
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
-      setErrorMsg(pickErr(e, "Failed to start SEPA plan."));
+      setErrorMsg(pickErr(e, t("checkout.sepaInstallments.startFailed")));
     }
   };
 
@@ -203,7 +205,7 @@ export default function StripeSepaInstallments({
     return (
       <div className="border rounded p-3 mt-3">
         <div className="text-sm text-gray-600">
-          0% Finanzierung (SEPA Lastschrift) — {monthsSafe} Monate
+          {t("checkout.sepaInstallments.inactive", { months: monthsSafe })}
         </div>
       </div>
     );
@@ -212,7 +214,7 @@ export default function StripeSepaInstallments({
   return (
     <div className="border rounded p-3 mt-2 space-y-2">
       <div className="text-sm">
-        SEPA Ratenzahlung ({monthsSafe} Monate). Abbuchung monatlich.
+        {t("checkout.sepaInstallments.intro", { months: monthsSafe })}
       </div>
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
       {serverSchedule && (
@@ -230,13 +232,13 @@ export default function StripeSepaInstallments({
           className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
         >
           {creatingPlan
-            ? "Starte…"
-            : "Ratenzahlung starten (gespeichertes SEPA-Mandat)"}
+            ? t("checkout.sepaInstallments.savedStarting")
+            : t("checkout.sepaInstallments.savedStart")}
         </button>
       ) : (
         <>
           {loadingInit && (
-            <div className="text-sm text-gray-600">Vorbereiten…</div>
+            <div className="text-sm text-gray-600">{t("checkout.sepaInstallments.preparing")}</div>
           )}
           {clientSecret && (
             <Elements
