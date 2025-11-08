@@ -83,7 +83,7 @@ function ItemsList({ items, currency, t }) {
                     t("guest.item", { defaultValue: "Item" })}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} ·{" "}
+                  {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} |{" "}
                   {formatCurrency(item?.unit_price, currency)}
                 </div>
               </div>
@@ -225,10 +225,16 @@ export default function GuestOrderLookupPage() {
     }
   };
 
-  const invoiceHref = result?.invoice_download_url || null;
-  const shippingSnapshot = result?.shipping || result?.shipping_address || null;
-  const trackingUrl = result?.tracking_url;
-  const trackingNumber = result?.tracking_number;
+  const invoiceHref =
+    result?.invoice_download_url || result?.invoice_pdf || null;
+  const shippingSnapshot =
+    result?.shipping_snapshot ||
+    result?.shipping ||
+    result?.shipping_address ||
+    result?.shippingAddress ||
+    null;
+  const trackingUrl = result?.tracking_url || result?.tracking?.url;
+  const trackingNumber = result?.tracking_number || result?.tracking?.number;
 
   return (
     <div className="max-w-xl mx-auto py-12 px-4">

@@ -59,21 +59,25 @@ export default function Orders() {
       : "bg-gray-100 text-gray-700";
 
   const statusLabel = (s) =>
-    t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1));
+    s
+      ? t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1))
+      : t("order.status.unknown", "Unknown");
 
   const productTitle = (p) =>
     (lang === "de" ? p?.title_de : p?.title_en) ||
     p?.title_en ||
     p?.title_de ||
+    p?.name ||
     t("order.item");
 
-  const resolveItemMeta = (item) => {
+  const resolveItemMeta = (item = {}) => {
     const product =
       (item?.product && typeof item.product === "object" && item.product) ||
       item?.product_obj ||
       item?.product_data ||
       null;
-    const fallbackTitle = item?.product_title || item?.title;
+    const fallbackTitle =
+      item?.product_name || item?.product_title || item?.title || item?.name;
     const imageSource =
       product?.image ||
       product?.image_url ||
@@ -81,6 +85,8 @@ export default function Orders() {
       product?.thumbnail ||
       item?.image ||
       item?.product_image ||
+      item?.product_image_url ||
+      item?.image_url ||
       null;
 
     return {
@@ -189,3 +195,5 @@ export default function Orders() {
     </div>
   );
 }
+
+

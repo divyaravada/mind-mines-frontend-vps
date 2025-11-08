@@ -9,23 +9,37 @@ import {
   useRequestReturnMutation,
 } from "../features/orders/ordersApi";
 
-function formatMoney(v, locale = "en") {
-  let n =
-    typeof v === "number"
-      ? v
-      : parseFloat(
-          String(v)
-            .replace(/[^\d.,-]/g, "")
-            .replace(",", ".")
-        );
-  if (!Number.isFinite(n)) n = 0;
+const MS_IN_DAY = 1000 * 60 * 60 * 24;
+const FALLBACK_RETURN_WINDOW = 15;
+
+function toNumeric(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(
+      value
+        .replace(/[^\d.,-]/g, "")
+        .replace(",", ".")
+    );
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function formatMoney(v, locale = "en", currency = "EUR") {
+  const parsed = toNumeric(v);
+  const amount = parsed ?? 0;
+  const fallbackCurrency = currency || "EUR";
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "EUR",
-    }).format(n);
+      currency: fallbackCurrency,
+    }).format(amount);
   } catch {
-    return `${n.toFixed(2)} €`;
+    return `${amount.toFixed(2)} ${fallbackCurrency}`;
   }
 }
 
@@ -51,12 +65,112 @@ function parseDateLoose(v) {
   return null;
 }
 
+function formatDateTime(value, locale) {
+  const date = parseDateLoose(value);
+  if (!date) return value || "";
+  try {
+    return date.toLocaleString(locale);
+  } catch {
+    return date.toString();
+  }
+}
+
+function buildShippingLines(addr) {
+  if (!addr) return [];
+  const lines = [];
+  const first = addr.first_name || addr.firstName;
+  const last = addr.last_name || addr.lastName;
+  const fullName = [first, last].filter(Boolean).join(" ").trim();
+  if (fullName) lines.push(fullName);
+
+  const streetFromParts = [addr.street_name, addr.house_number]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const line1 =
+    addr.line1 ||
+    addr.address_line1 ||
+    addr.address1 ||
+    streetFromParts ||
+    addr.street;
+  if (line1) lines.push(line1);
+
+  const line2 = addr.line2 || addr.address_line2 || addr.address2;
+  if (line2) lines.push(line2);
+
+  const postal =
+    addr.postal_code || addr.postalCode || addr.zip || addr.postcode || "";
+  const city = addr.city || addr.town || "";
+  const cityLine = [postal, city].filter(Boolean).join(" ").trim();
+  if (cityLine) lines.push(cityLine);
+
+  const country =
+    addr.country || addr.country_code || addr.countryCode || addr.state;
+  if (country) lines.push(country);
+
+  return lines;
+}
+
+function resolveLineItem(item = {}, lang, t) {
+  const product =
+    (item?.product && typeof item.product === "object" && item.product) ||
+    item?.product_obj ||
+    item?.product_data ||
+    null;
+
+  const fallbackTitle =
+    item?.product_name ||
+    item?.name ||
+    item?.product_title ||
+    item?.title ||
+    t("order.item");
+
+  const title =
+    (lang === "de" ? product?.title_de : product?.title_en) ||
+    product?.title_en ||
+    product?.title_de ||
+    product?.name ||
+    fallbackTitle;
+
+  const imageSource =
+    product?.image ||
+    product?.image_url ||
+    product?.cover ||
+    product?.thumbnail ||
+    item?.image ||
+    item?.product_image ||
+    item?.product_image_url ||
+    item?.image_url ||
+    null;
+
+  const quantity = Number(item?.quantity ?? item?.qty ?? 1) || 1;
+  const unitPriceRaw = item?.unit_price ?? item?.price ?? null;
+  const parsedUnit = toNumeric(unitPriceRaw);
+  const unitPrice = unitPriceRaw ?? parsedUnit ?? null;
+
+  let lineTotalValue = item?.line_total ?? item?.total ?? null;
+  const parsedLine = lineTotalValue !== null ? toNumeric(lineTotalValue) : null;
+  if (parsedLine !== null) {
+    lineTotalValue = parsedLine;
+  } else if (parsedUnit !== null) {
+    lineTotalValue = parsedUnit * quantity;
+  }
+
+  return {
+    title,
+    image: toAbsoluteUrl(imageSource),
+    quantity,
+    unitPrice,
+    lineTotal: lineTotalValue,
+    sku: item?.sku || item?.product_sku || product?.sku || null,
+  };
+}
+
 export default function OrderDialog({ orderId, open, onClose }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
 
-  // --- Load order via RTKQ ---
   const {
     data: order,
     isFetching,
@@ -66,22 +180,20 @@ export default function OrderDialog({ orderId, open, onClose }) {
   });
 
   const shippingData =
+    order?.shipping_snapshot ||
     order?.shipping_address ||
     order?.shipping ||
     order?.shippingAddress ||
     order?.delivery_address ||
     null;
 
-  // mutations
   const [requestCancel, { isLoading: canceling }] = useRequestCancelMutation();
   const [requestReturn, { isLoading: returning }] = useRequestReturnMutation();
 
-  // Cancel modal state
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelMsg, setCancelMsg] = useState("");
   const cancelMsgTrimmed = cancelMsg.trim();
 
-  /// Return modal state
   const [retOpen, setRetOpen] = useState(false);
   const [retMsg, setRetMsg] = useState("");
   const retMsgTrimmed = retMsg.trim();
@@ -91,9 +203,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
   const MAX_UPLOAD_MB = 10;
   const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
-  // Toast/message dialog
   const [msgOpen, setMsgOpen] = useState(false);
-  const [msgKind, setMsgKind] = useState("success"); // "success" | "error"
+  const [msgKind, setMsgKind] = useState("success");
   const [msgTitle, setMsgTitle] = useState("");
   const [msgText, setMsgText] = useState("");
 
@@ -104,7 +215,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
     setMsgOpen(true);
   }
 
-  // Load order details when opened
   useEffect(() => {
     if (!open) {
       setCancelOpen(false);
@@ -116,49 +226,108 @@ export default function OrderDialog({ orderId, open, onClose }) {
     }
   }, [open]);
 
-  const productTitle = (p) =>
-    (lang === "de" ? p?.title_de : p?.title_en) ||
-    p?.title_en ||
-    p?.title_de ||
-    t("order.item");
-
-  const totalQty = useMemo(
-    () => order?.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) ?? 0,
+  const items = useMemo(
+    () => (Array.isArray(order?.items) ? order.items : []),
     [order]
   );
+
+  const totalQty = useMemo(
+    () =>
+      items.reduce(
+        (sum, it) => sum + (Number(it?.quantity ?? it?.qty) || 0),
+        0
+      ),
+    [items]
+  );
+
+  const orderNumber = order?.number || order?.order_number || order?.id;
+  const orderCurrency = order?.currency || order?.currency_code || "EUR";
+
+  const createdAtLabel = order ? formatDateTime(order.created_at, locale) : "";
+  const deliveredAt =
+    order && order.status === "delivered"
+      ? parseDateLoose(order.delivered_at) ||
+        parseDateLoose(order.shipped_at) ||
+        parseDateLoose(order.created_at)
+      : parseDateLoose(order?.delivered_at);
+  const ageDays = deliveredAt
+    ? Math.floor((Date.now() - deliveredAt.getTime()) / MS_IN_DAY)
+    : null;
 
   const isDelivered = order?.status === "delivered";
   const isPaidOrLater =
     order?.status === "paid" ||
     order?.status === "shipped" ||
-    order?.status === "delivered";
+    order?.status === "delivered" ||
+    order?.payment_status === "paid";
   const isBeforePaid =
     order?.status === "pending" || order?.status === "processing";
-  const showInvoice = !!order?.invoice_pdf;
+  const showCancelBtn = !!order && isBeforePaid;
 
-  const deliveredAt =
-    order && order.status === "delivered"
-      ? parseDateLoose(order.delivered_at || null) ||
-        parseDateLoose(order.created_at || null)
+  const subtotalValue = order?.subtotal ?? 0;
+  const shippingFeeValue = order?.shipping_price ?? order?.shipping_fee ?? 0;
+  const discountValue = order?.discount_total ?? 0;
+  const discountNumeric = toNumeric(discountValue);
+  const hasDiscount =
+    discountNumeric !== null ? discountNumeric !== 0 : Boolean(discountValue);
+  const vatValue = order?.vat_total ?? order?.tax_total;
+  const totalValue = order?.total_price ?? 0;
+
+  const couponCode = order?.coupon_code || order?.coupon || null;
+
+  const trackingNumber =
+    order?.tracking_number || order?.tracking?.number || "";
+  const trackingCarrier =
+    order?.tracking_carrier || order?.tracking?.carrier || "";
+  const trackingUrlRaw = order?.tracking_url || order?.tracking?.url || "";
+  const trackingHref = trackingUrlRaw ? toAbsoluteUrl(trackingUrlRaw) : null;
+
+  const invoiceHref = order?.invoice_pdf
+    ? toAbsoluteUrl(order.invoice_pdf)
+    : null;
+  const showDownload = !!invoiceHref;
+
+  const returnDeadline = order ? parseDateLoose(order.return_deadline) : null;
+  const apiReturnFlag = typeof order?.is_returnable === "boolean";
+  const derivedReturnEligible = apiReturnFlag
+    ? !!order?.is_returnable
+    : isDelivered;
+  const showReturnBtn = !!order && (apiReturnFlag || isDelivered);
+  const returnDisabled = !derivedReturnEligible;
+  const daysLeft =
+    !returnDisabled && returnDeadline
+      ? Math.max(
+          0,
+          Math.ceil((returnDeadline.getTime() - Date.now()) / MS_IN_DAY)
+        )
+      : !apiReturnFlag && typeof ageDays === "number"
+      ? Math.max(0, FALLBACK_RETURN_WINDOW - ageDays)
       : null;
 
-  const ageDays = deliveredAt
-    ? Math.floor((Date.now() - deliveredAt.getTime()) / (1000 * 60 * 60 * 24))
+  const paymentMethodLabel =
+    order?.payment_method_label || order?.payment_method || null;
+  const paymentStatusLabel = order?.payment_status
+    ? t(
+        `order.paymentStatus.${order.payment_status}`,
+        order.payment_status.charAt(0).toUpperCase() +
+          order.payment_status.slice(1)
+      )
+    : null;
+  const installmentsLabel = order?.installments_months
+    ? t("order.installmentsMonths", {
+        count: order.installments_months,
+        defaultValue: "{{count}} monthly installments",
+      })
     : null;
 
-  const RETURN_WINDOW_DAYS = 15;
-  const showReturnBtn = !!order && isDelivered;
-  const returnDisabled =
-    typeof ageDays === "number" ? ageDays > RETURN_WINDOW_DAYS : true;
-  const daysLeft =
-    typeof ageDays === "number"
-      ? Math.max(0, RETURN_WINDOW_DAYS - ageDays)
-      : null;
+  const shippingLines = useMemo(
+    () => buildShippingLines(shippingData),
+    [shippingData]
+  );
+  const shippingPhone =
+    shippingData?.phone || shippingData?.phone_number || shippingData?.phoneNumber || null;
+  const shippingEmail = order?.email || shippingData?.email || null;
 
-  const showCancelBtn = !!order && isBeforePaid;
-  const showDownload = !!order && isPaidOrLater && showInvoice;
-
-  // ---------- Return validation ----------
   const totalBytes = (files) =>
     files.reduce((sum, f) => sum + (f?.size || 0), 0);
   const hasFiles = retFiles.length > 0;
@@ -171,7 +340,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
     const size = totalBytes(files);
     if (size > MAX_UPLOAD_BYTES) {
       setRetFilesError(t("order.returnFilesTooLarge", { max: MAX_UPLOAD_MB }));
-      setRetFiles(files); // keep selection but disallow submit
+      setRetFiles(files);
     } else {
       setRetFilesError("");
       setRetFiles(files);
@@ -208,7 +377,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   async function submitReturn() {
     if (!order) return;
-
     if (!hasReason) {
       showMessage(
         t("order.returnReasonRequiredTitle"),
@@ -233,11 +401,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
       );
       return;
     }
-
-    const fd = new FormData();
-    fd.append("message", retMsgTrimmed);
-    retFiles.forEach((f) => fd.append("files", f));
-
     try {
       await requestReturn({
         id: order.id,
@@ -262,25 +425,35 @@ export default function OrderDialog({ orderId, open, onClose }) {
     }
   }
 
-  const statusClass = (s) =>
-    s === "delivered"
-      ? "bg-green-100 text-green-700"
-      : s === "shipped"
-      ? "bg-blue-100 text-blue-700"
-      : s === "processing"
-      ? "bg-yellow-100 text-yellow-700"
-      : s === "cancelled" || s === "failed"
-      ? "bg-red-100 text-red-700"
-      : "bg-gray-100 text-gray-700";
+  const statusClass = (s) => {
+    switch (s) {
+      case "delivered":
+        return "bg-green-100 text-green-700";
+      case "shipped":
+      case "paid":
+        return "bg-blue-100 text-blue-700";
+      case "processing":
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+      case "cancelled":
+      case "failed":
+      case "refunded":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
 
   const statusLabel = (s) =>
-    t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1));
+    s
+      ? t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1))
+      : t("order.status.unknown", "Unknown");
 
   if (!open || !orderId) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center "
+      className="fixed inset-0 z-50 flex items-center justify-center"
       aria-modal="true"
       role="dialog"
     >
@@ -290,20 +463,19 @@ export default function OrderDialog({ orderId, open, onClose }) {
         aria-hidden="true"
       />
       <div className="relative bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
-        {/* Header */}
         <div className="flex items-start justify-between mb-4 text-backnewswhite dark:text-backnewsdark">
           <div>
             <h3 className="text-xl font-semibold">{t("order.details")}</h3>
             {order && (
               <p className="text-sm text-gray-500">
-                {t("order.orderHash")} #{order.number || order.id} â€¢{" "}
-                {new Date(order.created_at).toLocaleString(locale)}
+                {t("order.orderHash")} #{orderNumber}
+                {createdAtLabel ? <> | {createdAtLabel}</> : null}
                 {isDelivered && deliveredAt ? (
                   <span className="ml-2 text-xs text-gray-500">
                     ({t("order.delivered")}:{" "}
                     {deliveredAt.toLocaleDateString(locale)}
                     {typeof ageDays === "number"
-                      ? ` â€¢ ${t("order.daysAgo", { count: ageDays })}`
+                      ? ` - ${t("order.daysAgo", { count: ageDays })}`
                       : ""}
                     )
                   </span>
@@ -316,107 +488,210 @@ export default function OrderDialog({ orderId, open, onClose }) {
             className="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label={t("common.close")}
           >
-            âœ•
+            &times;
           </button>
         </div>
 
-        {/* Body */}
         {isFetching && <div>{t("common.loading")}</div>}
         {isError && <div className="text-red-600">{t("order.loadError")}</div>}
 
         {order && (
           <div className="space-y-6 text-backnewswhite dark:text-backnewsdark">
-            {/* Status & total */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span
-                  className={`text-sm font-medium px-2 py-1 rounded ${statusClass(
-                    order.status
-                  )}`}
-                >
-                  {statusLabel(order.status)}
-                </span>
-                {order.tracking_number ? (
-                  <span className="text-xs text-gray-500">
-                    {t("order.tracking")}:{" "}
-                    <span className="font-mono">{order.tracking_number}</span>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span
+                    className={`text-sm font-medium px-2 py-1 rounded ${statusClass(
+                      order.status
+                    )}`}
+                  >
+                    {statusLabel(order.status)}
                   </span>
-                ) : null}
+                  {trackingCarrier && (
+                    <span className="text-xs text-gray-500">
+                      {trackingCarrier}
+                    </span>
+                  )}
+                </div>
+                {(trackingNumber || trackingHref) && (
+                  <div className="text-xs text-gray-500 space-x-2">
+                    {trackingNumber && (
+                      <span>
+                        {t("order.tracking")}:{" "}
+                        <span className="font-mono">{trackingNumber}</span>
+                      </span>
+                    )}
+                    {trackingHref && (
+                      <a
+                        href={trackingHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {t("order.trackPackage", "Track shipment")}
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="text-right">
                 <div className="text-xs text-gray-500">{t("order.total")}</div>
                 <div className="text-lg font-semibold">
-                  {formatMoney(order.total_price, locale)}
+                  {formatMoney(totalValue, locale, orderCurrency)}
                 </div>
               </div>
             </div>
 
-            {/* Items */}
             <div className="space-y-3 max-h-[50vh] overflow-auto pr-1">
-              {order.items.map((it) => (
-                <div key={it.id} className="flex gap-4 items-center">
-                  {it.product?.image ? (
-                    <img
-                      src={toAbsoluteUrl(it.product?.image)}
-                      alt={productTitle(it.product)}
-                      className="w-20 h-20 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-100 rounded" />
-                  )}
-                  <div className="flex-1">
-                    <div className="font-semibold">
-                      {productTitle(it.product)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {t("order.qty")}: {it.quantity} â€¢ {t("order.unit")}:{" "}
-                      {formatMoney(it.unit_price, locale)}
-                    </div>
-                  </div>
+              {items.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  {t("order.noItems", "No items available")}
                 </div>
-              ))}
+              ) : (
+                items.map((it, idx) => {
+                  const line = resolveLineItem(it, lang, t);
+                  const key = it?.id ?? it?.line_id ?? `${line.title}-${idx}`;
+                  const unitNumeric = toNumeric(line.unitPrice);
+                  const lineTotal =
+                    line.lineTotal ??
+                    (unitNumeric !== null ? unitNumeric * line.quantity : null);
+                  return (
+                    <div key={key} className="flex gap-4 items-center">
+                      {line.image ? (
+                        <img
+                          src={line.image}
+                          alt={line.title}
+                          className="w-20 h-20 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded" />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-semibold">{line.title}</div>
+                        {line.sku && (
+                          <div className="text-xs text-gray-500">
+                            {t("order.sku", "SKU")}: {line.sku}
+                          </div>
+                        )}
+                        <div className="text-sm text-gray-500">
+                          {t("order.qty")}: {line.quantity}
+                          {line.unitPrice != null && (
+                            <>
+                              {" | "}
+                              {t("order.unit")}: {" "}
+                              {formatMoney(line.unitPrice, locale, orderCurrency)}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="font-medium text-sm">
+                        {lineTotal != null
+                          ? formatMoney(lineTotal, locale, orderCurrency)
+                          : line.unitPrice != null
+                          ? formatMoney(line.unitPrice, locale, orderCurrency)
+                          : "-"}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
-            {/* Summary */}
             <div className="mt-2 border-t pt-3 grid grid-cols-2 gap-y-1 text-sm">
               <div className="text-gray-500">{t("order.items")}</div>
               <div className="text-right">{totalQty}</div>
+
               <div className="text-gray-500">{t("order.subtotal")}</div>
-              <div className="text-right">{formatMoney(order.subtotal)}</div>
+              <div className="text-right">
+                {formatMoney(subtotalValue, locale, orderCurrency)}
+              </div>
+
+              {hasDiscount && (
+                <>
+                  <div className="text-gray-500">
+                    {t("order.discount", "Discounts")}
+                  </div>
+                  <div className="text-right text-green-700">
+                    -{formatMoney(discountValue, locale, orderCurrency)}
+                  </div>
+                </>
+              )}
+
               <div className="text-gray-500">{t("order.shipping")}</div>
               <div className="text-right">
-                {formatMoney(order.shipping_fee, locale)}
+                {formatMoney(shippingFeeValue, locale, orderCurrency)}
               </div>
+
+              {vatValue !== null && (
+                <>
+                  <div className="text-gray-500">{t("order.vat", "VAT")}</div>
+                  <div className="text-right">
+                    {formatMoney(vatValue, locale, orderCurrency)}
+                  </div>
+                </>
+              )}
+
               <div className="font-medium">{t("order.total", "Total")}</div>
               <div className="text-right font-semibold">
-                {formatMoney(order.total_price, locale)}
+                {formatMoney(totalValue, locale, orderCurrency)}
               </div>
             </div>
 
-            {/* Shipping address */}
+            {couponCode && (
+              <div className="text-xs text-gray-500">
+                {t("order.couponCode", "Coupon code")}: {couponCode}
+              </div>
+            )}
+
+            {(paymentMethodLabel || paymentStatusLabel || installmentsLabel) && (
+              <div>
+                <div className="text-sm font-semibold mb-1">
+                  {t("order.paymentDetails", "Payment details")}
+                </div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  {paymentMethodLabel && (
+                    <div>
+                      <span className="text-gray-500">
+                        {t("order.paymentMethodLabel", "Method")}:
+                      </span>{" "}
+                      {paymentMethodLabel}
+                    </div>
+                  )}
+                  {paymentStatusLabel && (
+                    <div>
+                      <span className="text-gray-500">
+                        {t("order.paymentStatusLabel", "Status")}:
+                      </span>{" "}
+                      {paymentStatusLabel}
+                    </div>
+                  )}
+                  {installmentsLabel && <div>{installmentsLabel}</div>}
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="text-sm font-semibold mb-1">
                 {t("order.shippingAddress")}
               </div>
-              {shippingData ? (
-                <div className="text-sm">
-                  {shippingData.first_name} {shippingData.last_name}
-                  <br />
-                  {shippingData.address_line1}
-                  {shippingData.address_line2
-                    ? `, ${shippingData.address_line2}`
-                    : ""}
-                  <br />
-                  {shippingData.postal_code} {shippingData.city}
-                  <br />
-                  {shippingData.country || shippingData.state}{" "}
-                  {shippingData.pincode}
-                  {shippingData.phone ? (
-                    <>
-                      <br />
-                      {t("order.phone", "Phone")}: {shippingData.phone}
-                    </>
-                  ) : null}
+              {shippingLines.length > 0 ? (
+                <div className="text-sm space-y-1">
+                  {shippingLines.map((line, idx) => (
+                    <div key={`${line}-${idx}`}>{line}</div>
+                  ))}
+                  {shippingPhone && (
+                    <div>
+                      {t("order.phone", "Phone")}: {shippingPhone}
+                    </div>
+                  )}
+                  {shippingEmail && (
+                    <div>
+                      {t("order.email", "Email")}: {shippingEmail}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">
@@ -425,9 +700,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
               )}
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-end gap-2 flex-wrap text-backnewswhite dark:text-backnewsdark">
-              {/* Return */}
               {showReturnBtn && (
                 <button
                   onClick={() => !returnDisabled && setRetOpen(true)}
@@ -437,16 +710,24 @@ export default function OrderDialog({ orderId, open, onClose }) {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-gray-50"
                   }`}
-                  title={returnDisabled ? t("order.returnExpired") : ""}
+                  title={
+                    returnDisabled
+                      ? t(
+                          "order.returnUnavailable",
+                          "Return request is not available for this order"
+                        )
+                      : ""
+                  }
                 >
                   {t("order.return", "Return")}
                   {!returnDisabled && typeof daysLeft === "number"
-                    ? `  (${t("order.daysLeft", { count: daysLeft })})`
+                    ? ` (${t("order.daysLeft", { count: daysLeft })})`
+                    : !returnDisabled && returnDeadline
+                    ? ` (${returnDeadline.toLocaleDateString(locale)})`
                     : ""}
                 </button>
               )}
 
-              {/* Cancel */}
               {showCancelBtn && (
                 <button
                   onClick={() => setCancelOpen(true)}
@@ -456,10 +737,9 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </button>
               )}
 
-              {/* Invoice */}
               {showDownload && (
                 <a
-                  href={toAbsoluteUrl(order.invoice_pdf)}
+                  href={invoiceHref}
                   target="_blank"
                   rel="noreferrer"
                   className="px-4 py-2 rounded bg-black text-white text-backnewswhite dark:text-backnewsdark"
@@ -476,8 +756,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
               </button>
             </div>
 
-            {/* Hint if invoice not ready */}
-            {isPaidOrLater && !showInvoice && (
+            {isPaidOrLater && !showDownload && (
               <div className="text-xs text-backnewswhite dark:text-backnewsdark">
                 {t("order.invoicePending")}
               </div>
@@ -485,7 +764,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
           </div>
         )}
 
-        {/* Cancel modal */}
         {cancelOpen && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
             <div className="bg-white rounded shadow p-5 w-full max-w-md">
@@ -531,7 +809,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
           </div>
         )}
 
-        {/* Return modal */}
         {retOpen && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
             <div className="bg-white rounded shadow p-5 w-full max-w-md">
@@ -623,3 +900,4 @@ export default function OrderDialog({ orderId, open, onClose }) {
     </div>
   );
 }
+

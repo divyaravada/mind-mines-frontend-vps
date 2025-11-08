@@ -1,4 +1,3 @@
-// src/pages/ResendVerification.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useResendVerificationMutation } from "../features/auth/authApi";
@@ -27,9 +26,7 @@ export default function ResendVerification() {
       <h2 className="text-2xl font-bold mb-4 text-center">
         {t("auth.resendTitle")}
       </h2>
-      <p className="text-center text-gray-600 mb-6">
-        {t("auth.resendDesc")}
-      </p>
+      <p className="text-center text-gray-600 mb-6">{t("auth.resendDesc")}</p>
       <form onSubmit={handleResend} className="space-y-4">
         <input
           type="email"

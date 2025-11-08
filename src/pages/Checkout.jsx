@@ -210,7 +210,11 @@ export default function Checkout() {
     const ttotal = subtotal + shippingFee - discount;
     return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, discount]);
-
+  const klarnaInstallments = 3;
+  const klarnaPerPayment = useMemo(
+    () => fmtEUR((payTotal || 0) / klarnaInstallments, locale),
+    [payTotal, locale]
+  );
   const subtotalLabel =
     itemsCount === 1
       ? t("checkout.subtotal_one", { count: itemsCount })
@@ -875,7 +879,12 @@ export default function Checkout() {
               checked={payment === "klarna"}
               onChange={() => setPaymentSafe("klarna")}
             />
-            <span className="flex-1">{t("checkout.klarnaLabel")}</span>
+            <span className="flex-1">
+              {t("checkout.klarnaLabel", {
+                count: klarnaInstallments,
+                per: klarnaPerPayment,
+              })}
+            </span>
             <span className="text-xs font-semibold">Stripe</span>
           </label>
 
