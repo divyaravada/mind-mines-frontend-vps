@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -14,6 +14,9 @@ import {
   useAddToWishlistMutation,
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
+import { useSaveCartMutation } from "../features/cart/cartApi";
+import { getCartToken } from "../lib/cartToken";
+
 import {
   Heart,
   HeartOff,
@@ -26,6 +29,14 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { fmtEUR } from "../lib/money";
+
+function useDebounce(fn, ms = 500) {
+  const t = useRef();
+  return (...args) => {
+    if (t.current) window.clearTimeout(t.current);
+    t.current = window.setTimeout(() => fn(...args), ms);
+  };
+}
 
 export default function CartPage() {
   const { t, i18n } = useTranslation();
@@ -50,6 +61,33 @@ export default function CartPage() {
 
   const [addW] = useAddToWishlistMutation();
   const [remW] = useRemoveFromWishlistMutation();
+
+  // Backend sync
+  const [saveCart] = useSaveCartMutation();
+  const syncNow = useDebounce(async (payload) => {
+    try {
+      await saveCart(payload).unwrap();
+    } catch {
+      /* silent */
+    }
+  }, 500);
+
+  useEffect(() => {
+    const cart_token = loggedIn ? undefined : getCartToken();
+    const itemsPayload = items.map((it) => ({
+      product_id: it.id,
+      name: it.name,
+      image: it.image,
+      price: it.price,
+      qty: it.qty,
+      color: it.color || "",
+      weight: it.weight || "",
+      dimensions: it.dimensions || "",
+      category: it.category || "",
+    }));
+    const body = { cart_token, currency: "EUR", items: itemsPayload };
+    syncNow(body);
+  }, [items, loggedIn, syncNow]);
 
   // Shipping: currently free — keep as constant for now
   const shippingFee = 0;
