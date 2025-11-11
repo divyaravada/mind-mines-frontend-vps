@@ -16,13 +16,13 @@ export const homeCategories = [
     label: "home.categories.natural_stone.heading",
     link: "/natural-stone", // landing with slabs/tiles/services
   },
-  {
-    key: "MIND01",
-    id: "countertops",
-    image: countertops,
-    label: "home.categories.countertops.heading",
-    link: "/natural-stone/countertops",
-  },
+  // {
+  //   key: "MIND01",
+  //   id: "countertops",
+  //   image: countertops,
+  //   label: "home.categories.countertops.heading",
+  //   link: "/natural-stone/countertops",
+  // },
   {
     key: "MIND02",
     id: "home_decor",

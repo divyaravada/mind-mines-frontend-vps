@@ -6,14 +6,19 @@ export default {
   ],
   theme: {
     extend: {
-      // If you use custom color tokens like marblewhite/marbleblack/backnews*,
-      // define them here (match your old palette).
       colors: {
         marblewhite: "#f8fcfe",
         marbleblack: "#17160f",
-        backnewswhite: "#ec8b0b",
-        backnewsdark: "#578d49",
+        backnewswhite: "#ec8b0b", // brand orange
+        backnewsdark: "#578d49", // brand green
+        lightgreen: "#9ccb8b", // helper for dark-mode text accents
+        darkgray: "#2a2a2a", // helper for dark surfaces
       },
+      container: {
+        center: true,
+        padding: "1rem",
+      },
+      ringOffsetWidth: { 2: "2px" }, // nicer focus rings
     },
   },
   plugins: [],

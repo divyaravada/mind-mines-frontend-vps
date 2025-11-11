@@ -7,29 +7,15 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+import { stripePromise } from "../lib/stripe";
 import { useStripeCreateRedirectIntentMutation } from "../features/payments/paymentsApi";
 
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
-);
-
-function Inner({
-  orderId,
-  method,
-  orderPayload,
-  onSuccess,
-  onError,
-  returnUrl,
-}) {
-  const { t } = useTranslation();
+function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
+  const { t, i18n } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);
-  const methodLabel =
-    method === "klarna"
-      ? t("checkout.redirect.klarna")
-      : t("checkout.redirect.giropay");
+  const label = method === "klarna" ? "Klarna" : "giropay";
 
   const onPay = async () => {
     if (!stripe || !elements) return;
@@ -39,33 +25,32 @@ function Inner({
       confirmParams: { return_url: returnUrl },
     });
     setConfirming(false);
-
-    if (error) {
-      onError?.(error.message || t("checkout.redirect.paymentFailed"));
-      return;
-    }
-    // Usually a redirect follows; if not, fall back:
+    if (error)
+      return onError?.(error.message || t("checkout.redirect.paymentFailed"));
     onSuccess?.(orderId);
   };
 
   return (
     <div className="space-y-3">
-      <div className="border rounded p-3">
+      <div className="border rounded-lg p-3 bg-white dark:bg-marbleblack">
         <PaymentElement />
       </div>
+
       <button
         type="button"
-        className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
         onClick={onPay}
         disabled={!stripe || !elements || confirming}
+        className="w-full px-4 py-3 rounded-lg font-semibold
+                   bg-backnewswhite text-marblewhite
+                   hover:opacity-90 disabled:opacity-50"
       >
         {confirming
-          ? "Redirecting…"
-          : `Pay with ${method === "klarna" ? "Klarna" : "giropay"}`}
+          ? t("checkout.redirect.redirecting")
+          : t("checkout.redirect.payWith", { method: label })}
       </button>
-      <p className="text-xs text-gray-500">
-        You’ll be redirected to {method === "klarna" ? "Klarna" : "your bank"}{" "}
-        to complete the payment.
+
+      <p className="text-xs text-gray-600 dark:text-gray-300">
+        {t("checkout.redirect.note", { brand: label })}
       </p>
     </div>
   );
@@ -78,13 +63,9 @@ export default function StripeRedirectPay({
   onSuccess,
   onError,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [createPI, { isLoading }] = useStripeCreateRedirectIntentMutation();
   const [clientSecret, setClientSecret] = useState("");
-  const methodLabel =
-    method === "klarna"
-      ? t("checkout.redirect.klarna")
-      : t("checkout.redirect.giropay");
   const [effectiveOrderId, setEffectiveOrderId] = useState(orderId || null);
   const orderIdRef = useRef(orderId || null);
 
@@ -97,15 +78,13 @@ export default function StripeRedirectPay({
   useEffect(() => {
     if (!method) return;
     let mounted = true;
-
-    const loadIntent = async () => {
+    (async () => {
       try {
         setClientSecret("");
         const base = { method };
         const payload = orderIdRef.current
           ? { ...base, order_id: orderIdRef.current }
           : { ...base, ...(orderPayload || {}) };
-
         const res = await createPI(payload).unwrap();
         if (!mounted) return;
 
@@ -115,38 +94,47 @@ export default function StripeRedirectPay({
           setEffectiveOrderId(res.order_id);
         }
       } catch (e) {
-        const msg =
-          e?.data?.detail || e?.error || t("checkout.redirect.initFailed");
-        onError?.(msg);
+        onError?.(
+          e?.data?.detail || e?.error || t("checkout.redirect.initFailed")
+        );
       }
-    };
-
-    loadIntent();
-
+    })();
     return () => {
       mounted = false;
     };
-  }, [method, orderPayload, createPI, onError, orderId]);
+  }, [method, orderPayload, createPI, onError]);
 
   if (isLoading || !clientSecret) {
     return (
-      <div className="border rounded p-3 mt-2 text-sm text-gray-600">
-        {t("checkout.redirect.preparing", { method: methodLabel })}
+      <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-marbleblack">
+        {t("checkout.redirect.preparing")}
       </div>
     );
   }
 
   const returnUrl = `${window.location.origin}/checkout/return`;
+  const isDark = document.documentElement.classList.contains("dark");
+  const appearance = {
+    theme: "stripe",
+    variables: {
+      colorPrimary: "#ec8b0b",
+      colorText: isDark ? "#e5e7eb" : "#1f2937",
+      colorBackground: isDark ? "#17160f" : "#f8fcfe",
+    },
+  };
 
   return (
     <Elements
       stripe={stripePromise}
-      options={{ clientSecret, appearance: { theme: "stripe" }, locale: "de" }}
+      options={{
+        clientSecret,
+        appearance,
+        locale: i18n.language?.startsWith("de") ? "de" : "en",
+      }}
     >
       <Inner
         orderId={effectiveOrderId}
         method={method}
-        orderPayload={orderPayload}
         onSuccess={onSuccess}
         onError={onError}
         returnUrl={returnUrl}

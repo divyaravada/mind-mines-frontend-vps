@@ -112,16 +112,16 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="max-w-5xl mx-auto py-12 px-4 text-gray-900 dark:text-gray-100">
-        <h1 className="text-2xl font-bold mb-4">
+        <h1 className="text-2xl font-bold mb-4 text-backnewswhite dark:text-backnewsdark">
           {t("cart.title", { count: 0 })}
         </h1>
-        <div className="bg-white dark:bg-neutral-900 rounded shadow p-8 text-center">
+        <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-8 text-center border border-gray-200 dark:border-gray-800">
           <p className="mb-6 text-gray-600 dark:text-gray-300">
             {t("cart.empty")}
           </p>
           <Link
             to="/decorative-products"
-            className="inline-block px-5 py-3 rounded bg-gray-900 text-white hover:bg-black"
+            className="inline-block px-5 py-3 rounded-xl bg-backnewswhite text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-backnewswhite/50"
           >
             {t("cart.continue")}
           </Link>
@@ -135,13 +135,13 @@ export default function CartPage() {
       {/* LEFT */}
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-backnewswhite dark:text-backnewsdark">
             {t("cart.title_one")} ({count}{" "}
             {count === 1 ? t("cart.item") : t("cart.items")})
           </h1>
           <button
             onClick={() => dispatch(clearCart())}
-            className="text-red-600 hover:underline flex items-center gap-2"
+            className="text-red-600 hover:underline flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
           >
             <Trash2 className="w-4 h-4" />
             {t("cart.clear")}
@@ -155,7 +155,7 @@ export default function CartPage() {
             return (
               <div
                 key={item.id}
-                className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex gap-4"
+                className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800"
               >
                 <img
                   src={item.image}
@@ -174,7 +174,7 @@ export default function CartPage() {
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}
-                      className="text-red-500 hover:text-red-600"
+                      className="text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
                       title={t("cart.remove")}
                     >
                       <Trash2 className="w-5 h-5" />
@@ -210,9 +210,9 @@ export default function CartPage() {
 
                   <div className="mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center border rounded">
+                      <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded">
                         <button
-                          className="px-2 py-1"
+                          className="px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-l"
                           onClick={() =>
                             dispatch(
                               updateQty({
@@ -242,7 +242,7 @@ export default function CartPage() {
                           aria-label={t("cart.quantity")}
                         />
                         <button
-                          className="px-2 py-1"
+                          className="px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-r"
                           onClick={() =>
                             dispatch(
                               updateQty({ id: item.id, qty: item.qty + 1 })
@@ -258,7 +258,11 @@ export default function CartPage() {
                       <button
                         className={`rounded p-2 ${
                           inWishlist ? "text-red-500" : "text-gray-400"
-                        } ${!loggedIn ? "opacity-50 cursor-not-allowed" : ""}`}
+                        } ${
+                          !loggedIn
+                            ? "opacity-50 cursor-not-allowed"
+                            : "focus:outline-none focus:ring-2 focus:ring-backnewswhite/40"
+                        }`}
                         onClick={() => toggleWishlist(item.id)}
                         title={t("cart.wishlist")}
                         aria-label={t("cart.wishlist")}
@@ -287,7 +291,7 @@ export default function CartPage() {
           })}
         </div>
 
-        <div className="mt-6 bg-white dark:bg-neutral-900 rounded-lg shadow p-4">
+        <div className="mt-6 bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-800">
           <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
             {t("cart.weAccept")}
           </div>
@@ -303,7 +307,7 @@ export default function CartPage() {
 
       {/* RIGHT */}
       <aside className="lg:col-span-1">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6 sticky top-24">
+        <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800">
           <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
           <div className="space-y-3 text-sm">
             <Row label={t("cart.subtotal")} value={fmtEUR(subtotal, locale)} />
@@ -313,7 +317,7 @@ export default function CartPage() {
                 shippingFee === 0 ? t("cart.free") : fmtEUR(shippingFee, locale)
               }
             />
-            <hr />
+            <hr className="border-gray-200 dark:border-gray-800" />
             <Row
               label={<span className="font-semibold">{t("cart.total")}</span>}
               value={
@@ -327,7 +331,7 @@ export default function CartPage() {
 
           <button
             onClick={() => navigate("/checkout")}
-            className="mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black transition"
+            className="mt-5 w-full inline-flex items-center justify-center py-3 rounded-xl bg-backnewswhite text-white font-semibold hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-backnewswhite/50"
           >
             {t("cart.checkout")}
           </button>
@@ -372,7 +376,7 @@ function Badge({ icon, text }) {
 
 function BrandBadge({ label }) {
   return (
-    <div className="px-3 py-1.5 rounded border bg-white dark:bg-neutral-800 shadow-sm text-xs font-semibold">
+    <div className="px-3 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-marblewhite dark:bg-neutral-800 shadow-sm text-xs font-semibold">
       {label}
     </div>
   );

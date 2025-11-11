@@ -36,6 +36,9 @@ import StripeProvider from "../components/StripeProvider";
 import http from "../services/http";
 import StripeRedirectPay from "../components/StripeRedirectPay";
 
+const inputCls =
+  "w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition";
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
@@ -433,7 +436,6 @@ export default function Checkout() {
       backendItems,
       couponCode,
       t,
-
       hasMinimalAddress,
     ]
   );
@@ -460,7 +462,7 @@ export default function Checkout() {
         locale: i18n.language === "de" ? "de_DE" : "en_US",
       }}
     >
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+      <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
         <input
           type="radio"
           name="payment"
@@ -473,7 +475,7 @@ export default function Checkout() {
       </label>
 
       {payment === "paypal" && (
-        <div className="border rounded p-3">
+        <div className="border dark:border-neutral-700 rounded-lg p-3">
           <PayPalButtons
             fundingSource={undefined}
             style={{ layout: "horizontal", label: "paypal" }}
@@ -554,7 +556,7 @@ export default function Checkout() {
                 className={`px-2 py-1 rounded border text-sm ${
                   cardMonths === m
                     ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-gray-50 dark:hover:bg-white/5 dark:border-neutral-700"
                 }`}
               >
                 {m} {t("checkout.months")}
@@ -609,7 +611,7 @@ export default function Checkout() {
                 className={`px-2 py-1 rounded border text-sm ${
                   sepaMonths === m
                     ? "bg-pink-600 text-white border-pink-600"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-gray-50 dark:hover:bg-white/5 dark:border-neutral-700"
                 }`}
               >
                 {m} {t("checkout.months_de")}
@@ -643,504 +645,506 @@ export default function Checkout() {
 
   // ---- RENDER ----
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-6">
-        {/* Contact + Address */}
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-2">
-            {t("checkout.contact")}
-          </h2>
-          <input
-            name="email"
-            type="email"
-            placeholder={t("checkout.emailPlaceholder")}
-            value={form.email}
-            onChange={onChange}
-            className="w-full border rounded px-3 py-2 mb-4 bg-transparent"
-          />
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Contact + Address */}
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+            <h2 className="text-lg font-semibold mb-2">
+              {t("checkout.contact")}
+            </h2>
+            <input
+              name="email"
+              type="email"
+              placeholder={t("checkout.emailPlaceholder")}
+              value={form.email}
+              onChange={onChange}
+              className={`${inputCls} mb-4`}
+            />
 
-          <h2 className="text-lg font-semibold mb-2">
-            {t("checkout.delivery")}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            {t("checkout.deliveryNote")}
-          </p>
+            <h2 className="text-lg font-semibold mb-2">
+              {t("checkout.delivery")}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {t("checkout.deliveryNote")}
+            </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Country */}
-            <div className="md:col-span-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.country")}
-              </label>
-              {(() => {
-                const groups = t("countryGroups", { returnObjects: true });
-                const grouped = t("countries", { returnObjects: true });
-                const isGrouped =
-                  grouped &&
-                  typeof grouped === "object" &&
-                  !Array.isArray(grouped) &&
-                  Object.values(grouped).every(
-                    (v) => v && typeof v === "object"
-                  );
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Country */}
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.country")}
+                </label>
+                {(() => {
+                  const groups = t("countryGroups", { returnObjects: true });
+                  const grouped = t("countries", { returnObjects: true });
+                  const isGrouped =
+                    grouped &&
+                    typeof grouped === "object" &&
+                    !Array.isArray(grouped) &&
+                    Object.values(grouped).every(
+                      (v) => v && typeof v === "object"
+                    );
 
-                if (!isGrouped) {
-                  const fallback =
-                    grouped && typeof grouped === "object"
-                      ? grouped
-                      : {
-                          DE: "Germany",
-                          AT: "Austria",
-                          CH: "Switzerland",
-                          IT: "Italy",
-                          FR: "France",
-                          NL: "Netherlands",
-                        };
+                  if (!isGrouped) {
+                    const fallback =
+                      grouped && typeof grouped === "object"
+                        ? grouped
+                        : {
+                            DE: "Germany",
+                            AT: "Austria",
+                            CH: "Switzerland",
+                            IT: "Italy",
+                            FR: "France",
+                            NL: "Netherlands",
+                          };
+                    return (
+                      <select
+                        name="country"
+                        value={form.country}
+                        onChange={handleCountryChange}
+                        className={inputCls}
+                      >
+                        {Object.entries(fallback).map(([code, label]) => (
+                          <option key={code} value={code}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  }
+
                   return (
                     <select
                       name="country"
                       value={form.country}
                       onChange={handleCountryChange}
-                      className="w-full border rounded px-3 py-2 bg-transparent"
+                      className={inputCls}
                     >
-                      {Object.entries(fallback).map(([code, label]) => (
-                        <option key={code} value={code}>
-                          {label}
-                        </option>
+                      {Object.entries(grouped).map(([groupKey, countryMap]) => (
+                        <optgroup
+                          key={groupKey}
+                          label={(groups && groups[groupKey]) || groupKey}
+                        >
+                          {Object.entries(countryMap).map(([code, label]) => (
+                            <option key={code} value={code}>
+                              {label}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   );
-                }
-
-                return (
-                  <select
-                    name="country"
-                    value={form.country}
-                    onChange={handleCountryChange}
-                    className="w-full border rounded px-3 py-2 bg-transparent"
-                  >
-                    {Object.entries(grouped).map(([groupKey, countryMap]) => (
-                      <optgroup
-                        key={groupKey}
-                        label={(groups && groups[groupKey]) || groupKey}
-                      >
-                        {Object.entries(countryMap).map(([code, label]) => (
-                          <option key={code} value={code}>
-                            {label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                );
-              })()}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.fullName")}
-              </label>
-              <input
-                name="fullName"
-                value={form.fullName}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.streetAddress")}
-              </label>
-              <input
-                name="street"
-                value={form.street}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.houseNumber")}
-              </label>
-              <input
-                name="houseNumber"
-                value={form.houseNumber}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.apartment")}
-              </label>
-              <input
-                name="apartment"
-                value={form.apartment}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.postalCode")}
-              </label>
-              <input
-                name="postalCode"
-                value={form.postalCode}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.city")}
-              </label>
-              <input
-                name="city"
-                value={form.city}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm text-gray-600 dark:text-gray-300">
-                {t("checkout.telephone")}
-              </label>
-              <input
-                name="telephone"
-                value={form.telephone}
-                onChange={onChange}
-                className="w-full border rounded px-3 py-2 bg-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex gap-3">
-            <button
-              onClick={saveAddress}
-              disabled={savingAddr}
-              className="px-4 py-2 rounded bg-gray-900 text-white hover:bg-black disabled:opacity-60"
-            >
-              {savingAddr ? t("checkout.saving") : t("checkout.saveAddress")}
-            </button>
-            {addrSaved && (
-              <span className="text-green-600 self-center">
-                {t("checkout.saved")} ✓
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Shipping */}
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-3">
-            {t("checkout.shipment")}
-          </h2>
-          <div className="flex items-center justify-between border rounded p-3">
-            <div className="text-sm">{t("checkout.standardShipping")}</div>
-            <div className="text-sm font-semibold">
-              {shippingFee === 0
-                ? t("checkout.free")
-                : fmtEUR(shippingFee, locale)}
-            </div>
-          </div>
-        </div>
-
-        {/* Payment */}
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-2">
-            {t("checkout.payment")}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            {t("checkout.deliveryNote")}
-          </p>
-
-          {!payment && (
-            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
-              {t(
-                "checkout.choosePayment",
-                "Please choose a payment method to continue."
-              )}
-            </div>
-          )}
-
-          {/*  Klarna / Giropay  */}
-          {/* Klarna */}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-            <input
-              type="radio"
-              name="payment"
-              value="klarna"
-              checked={payment === "klarna"}
-              onChange={() => setPaymentSafe("klarna")}
-            />
-            <span className="flex-1">
-              {t("checkout.klarnaLabel", {
-                count: klarnaInstallments,
-                per: klarnaPerPayment,
-              })}
-            </span>
-            <span className="text-xs font-semibold">Stripe</span>
-          </label>
-
-          {payment === "klarna" && (
-            <div className="border rounded p-3 mt-3">
-              <StripeRedirectPay
-                orderId={localOrderIdRef.current || null} // if you already created one
-                method="klarna"
-                orderPayload={{
-                  email: form.email.trim(),
-                  payment_method: "klarna",
-                  coupon_code: (couponCode || "").trim(),
-                  items: backendItems,
-                  shipping: {
-                    first_name: form.fullName.split(" ")[0] || form.fullName,
-                    last_name: form.fullName.split(" ").slice(1).join(" "),
-                    line1: `${form.street} ${form.houseNumber}`.trim(),
-                    line2: form.apartment || "",
-                    postal_code: form.postalCode,
-                    city: form.city,
-                    country: normalizeCountry(form.country),
-                    phone: form.telephone || "",
-                    street_name: form.street || "",
-                    house_number: form.houseNumber || "",
-                  },
-                }} // used if no orderId → JIT create
-                onSuccess={async () =>
-                  await onSuccessfulOrder(localOrderIdRef.current)
-                }
-                onError={(m) => alert(m)}
-              />
-            </div>
-          )}
-
-          {/* giropay */}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
-            <input
-              type="radio"
-              name="payment"
-              value="giropay"
-              checked={payment === "giropay"}
-              onChange={() => setPaymentSafe("giropay")}
-            />
-            <span className="flex-1">giropay</span>
-            <span className="text-xs font-semibold">Stripe</span>
-          </label>
-
-          {payment === "giropay" && (
-            <div className="border rounded p-3 mt-3">
-              <StripeRedirectPay
-                orderId={localOrderIdRef.current || null}
-                method="giropay"
-                orderPayload={{
-                  email: form.email.trim(),
-                  payment_method: "giropay",
-                  coupon_code: (couponCode || "").trim(),
-                  items: backendItems,
-                  shipping: {
-                    first_name: form.fullName.split(" ")[0] || form.fullName,
-                    last_name: form.fullName.split(" ").slice(1).join(" "),
-                    line1: `${form.street} ${form.houseNumber}`.trim(),
-                    line2: form.apartment || "",
-                    postal_code: form.postalCode,
-                    city: form.city,
-                    country: normalizeCountry(form.country),
-                    phone: form.telephone || "",
-                    street_name: form.street || "",
-                    house_number: form.houseNumber || "",
-                  },
-                }}
-                onSuccess={async () =>
-                  await onSuccessfulOrder(localOrderIdRef.current)
-                }
-                onError={(m) => alert(m)}
-              />
-            </div>
-          )}
-
-          {/* === NEW: Card selector (Stripe) === */}
-          <label className="flex items-center gap-3 border rounded p-3 cursor-pointer">
-            <input
-              type="radio"
-              name="payment"
-              value="card"
-              checked={payment === "card"}
-              onChange={() => setPaymentSafe("card")}
-            />
-            <span className="flex-1">{t("checkout.card")}</span>
-            <span className="text-xs font-semibold">Stripe</span>
-          </label>
-
-          {/* When Card is chosen: ensure local order, then show StripeCard */}
-          {payment === "card" && (
-            <div className="border rounded p-3 mt-3">
-              {!localOrderIdRef.current ? (
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
-                  disabled={creatingOrder}
-                  onClick={() => ensureStripeOrder("card")}
-                >
-                  {creatingOrder
-                    ? t("checkout.initializing")
-                    : t("checkout.continueCard")}
-                </button>
-              ) : (
-                <StripeProvider>
-                  <StripeCard
-                    orderId={localOrderIdRef.current}
-                    onSuccess={async () => {
-                      await onSuccessfulOrder(localOrderIdRef.current);
-                    }}
-                    onError={(m) => alert(m)}
-                  />
-                </StripeProvider>
-              )}
-            </div>
-          )}
-
-          {/* Card installments */}
-          {renderCardInstallmentsBlock()}
-
-          {/* PayPal / PayPal Pay Later */}
-          {renderPayPalSection()}
-
-          {/* SEPA (one-shot + installments) */}
-          <StripeSepa
-            active={payment === "sepa_debit"}
-            setActive={(val) => setPaymentSafe(val)}
-            form={form}
-            items={items}
-            couponCode={couponCode}
-            total={payTotal}
-            customerEmail={form.email}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-            onSuccess={async (id) => {
-              await onSuccessfulOrder(id || localOrderIdRef.current);
-            }}
-          />
-
-          {/* SEPA installments (DE only) */}
-          {renderSepaInstallmentsBlock()}
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
-            <Badge
-              icon={<ShieldCheck className="w-4 h-4" />}
-              text={t("checkout.badgeSecure")}
-            />
-            <Badge
-              icon={<RotateCcw className="w-4 h-4" />}
-              text={t("checkout.badgeReturn")}
-            />
-            <Badge
-              icon={<Truck className="w-4 h-4" />}
-              text={t("checkout.badgeDelivery")}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT Summary */}
-      <aside className="lg:col-span-1">
-        <div className="bg-white dark:bg-neutral-900 rounded-lg shadow p-6 sticky top-24">
-          <h2 className="text-xl font-semibold mb-4">
-            {t("checkout.overview")}
-          </h2>
-
-          <div className="space-y-4">
-            {items.map((it) => (
-              <div key={it.id} className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={it.image}
-                    alt={it.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                    {it.qty}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{it.name}</div>
-                </div>
-                <div className="font-medium text-sm">
-                  {fmtEUR(it.price * it.qty, locale)}
-                </div>
+                })()}
               </div>
-            ))}
-          </div>
 
-          <hr className="my-4" />
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.fullName")}
+                </label>
+                <input
+                  name="fullName"
+                  value={form.fullName}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
 
-          <div className="mt-3 border rounded p-3 space-y-2">
-            <div className="flex gap-2">
-              <input
-                className="flex-1 border rounded px-3 py-2 bg-transparent"
-                placeholder={t("checkout.couponPlaceholder")}
-                value={couponCode}
-                onChange={(e) =>
-                  setCouponCode((e.target.value || "").toUpperCase())
-                }
-              />
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.streetAddress")}
+                </label>
+                <input
+                  name="street"
+                  value={form.street}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.houseNumber")}
+                </label>
+                <input
+                  name="houseNumber"
+                  value={form.houseNumber}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.apartment")}
+                </label>
+                <input
+                  name="apartment"
+                  value={form.apartment}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.postalCode")}
+                </label>
+                <input
+                  name="postalCode"
+                  value={form.postalCode}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.city")}
+                </label>
+                <input
+                  name="city"
+                  value={form.city}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300">
+                  {t("checkout.telephone")}
+                </label>
+                <input
+                  name="telephone"
+                  value={form.telephone}
+                  onChange={onChange}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-3">
               <button
-                onClick={applyCoupon}
-                className="px-4 py-2 rounded bg-gray-900 text-white"
+                onClick={saveAddress}
+                disabled={savingAddr}
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
               >
-                {t("checkout.apply")}
+                {savingAddr ? t("checkout.saving") : t("checkout.saveAddress")}
               </button>
+              {addrSaved && (
+                <span className="text-green-600 self-center">
+                  {t("checkout.saved")} ✓
+                </span>
+              )}
             </div>
-            {couponErr && (
-              <div className="text-red-600 text-sm">{couponErr}</div>
-            )}
-            {couponInfo?.ok && (
-              <div className="text-green-700 text-sm">
-                {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                <span>-{fmtEUR(discount, locale)}</span>
+          </div>
+
+          {/* Shipping */}
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+            <h2 className="text-lg font-semibold mb-3">
+              {t("checkout.shipment")}
+            </h2>
+            <div className="flex items-center justify-between border rounded-lg p-3 dark:border-neutral-700">
+              <div className="text-sm">{t("checkout.standardShipping")}</div>
+              <div className="text-sm font-semibold">
+                {shippingFee === 0
+                  ? t("checkout.free")
+                  : fmtEUR(shippingFee, locale)}
+              </div>
+            </div>
+          </div>
+
+          {/* Payment */}
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+            <h2 className="text-lg font-semibold mb-2">
+              {t("checkout.payment")}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {t("checkout.deliveryNote")}
+            </p>
+
+            {!payment && (
+              <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
+                {t(
+                  "checkout.choosePayment",
+                  "Please choose a payment method to continue."
+                )}
               </div>
             )}
-          </div>
 
-          {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
-            <Row
-              label={t("checkout.couponLine", { code: couponInfo.code })}
-              value={`-${fmtEUR(discount, locale)}`}
+            {/*  Klarna / Giropay  */}
+            {/* Klarna */}
+            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+              <input
+                type="radio"
+                name="payment"
+                value="klarna"
+                checked={payment === "klarna"}
+                onChange={() => setPaymentSafe("klarna")}
+              />
+              <span className="flex-1">
+                {t("checkout.klarnaLabel", {
+                  count: klarnaInstallments,
+                  per: klarnaPerPayment,
+                })}
+              </span>
+              <span className="text-xs font-semibold">Stripe</span>
+            </label>
+
+            {payment === "klarna" && (
+              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                <StripeRedirectPay
+                  orderId={localOrderIdRef.current || null} // if you already created one
+                  method="klarna"
+                  orderPayload={{
+                    email: form.email.trim(),
+                    payment_method: "klarna",
+                    coupon_code: (couponCode || "").trim(),
+                    items: backendItems,
+                    shipping: {
+                      first_name: form.fullName.split(" ")[0] || form.fullName,
+                      last_name: form.fullName.split(" ").slice(1).join(" "),
+                      line1: `${form.street} ${form.houseNumber}`.trim(),
+                      line2: form.apartment || "",
+                      postal_code: form.postalCode,
+                      city: form.city,
+                      country: normalizeCountry(form.country),
+                      phone: form.telephone || "",
+                      street_name: form.street || "",
+                      house_number: form.houseNumber || "",
+                    },
+                  }} // used if no orderId → JIT create
+                  onSuccess={async () =>
+                    await onSuccessfulOrder(localOrderIdRef.current)
+                  }
+                  onError={(m) => alert(m)}
+                />
+              </div>
+            )}
+
+            {/* giropay */}
+            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+              <input
+                type="radio"
+                name="payment"
+                value="giropay"
+                checked={payment === "giropay"}
+                onChange={() => setPaymentSafe("giropay")}
+              />
+              <span className="flex-1">giropay</span>
+              <span className="text-xs font-semibold">Stripe</span>
+            </label>
+
+            {payment === "giropay" && (
+              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                <StripeRedirectPay
+                  orderId={localOrderIdRef.current || null}
+                  method="giropay"
+                  orderPayload={{
+                    email: form.email.trim(),
+                    payment_method: "giropay",
+                    coupon_code: (couponCode || "").trim(),
+                    items: backendItems,
+                    shipping: {
+                      first_name: form.fullName.split(" ")[0] || form.fullName,
+                      last_name: form.fullName.split(" ").slice(1).join(" "),
+                      line1: `${form.street} ${form.houseNumber}`.trim(),
+                      line2: form.apartment || "",
+                      postal_code: form.postalCode,
+                      city: form.city,
+                      country: normalizeCountry(form.country),
+                      phone: form.telephone || "",
+                      street_name: form.street || "",
+                      house_number: form.houseNumber || "",
+                    },
+                  }}
+                  onSuccess={async () =>
+                    await onSuccessfulOrder(localOrderIdRef.current)
+                  }
+                  onError={(m) => alert(m)}
+                />
+              </div>
+            )}
+
+            {/* === NEW: Card selector (Stripe) === */}
+            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+              <input
+                type="radio"
+                name="payment"
+                value="card"
+                checked={payment === "card"}
+                onChange={() => setPaymentSafe("card")}
+              />
+              <span className="flex-1">{t("checkout.card")}</span>
+              <span className="text-xs font-semibold">Stripe</span>
+            </label>
+
+            {/* When Card is chosen: ensure local order, then show StripeCard */}
+            {payment === "card" && (
+              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                {!localOrderIdRef.current ? (
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                    disabled={creatingOrder}
+                    onClick={() => ensureStripeOrder("card")}
+                  >
+                    {creatingOrder
+                      ? t("checkout.initializing")
+                      : t("checkout.continueCard")}
+                  </button>
+                ) : (
+                  <StripeProvider>
+                    <StripeCard
+                      orderId={localOrderIdRef.current}
+                      onSuccess={async () => {
+                        await onSuccessfulOrder(localOrderIdRef.current);
+                      }}
+                      onError={(m) => alert(m)}
+                    />
+                  </StripeProvider>
+                )}
+              </div>
+            )}
+
+            {/* Card installments */}
+            {renderCardInstallmentsBlock()}
+
+            {/* PayPal / PayPal Pay Later */}
+            {renderPayPalSection()}
+
+            {/* SEPA (one-shot + installments) */}
+            <StripeSepa
+              active={payment === "sepa_debit"}
+              setActive={(val) => setPaymentSafe(val)}
+              form={form}
+              items={items}
+              couponCode={couponCode}
+              total={payTotal}
+              customerEmail={form.email}
+              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+              onSuccess={async (id) => {
+                await onSuccessfulOrder(id || localOrderIdRef.current);
+              }}
             />
-          )}
 
-          <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
-          <Row
-            label={t("checkout.shipmentShort", "Shipment")}
-            value={
-              shippingFee === 0
-                ? t("checkout.free")
-                : fmtEUR(shippingFee, locale)
-            }
-          />
-          <div className="flex items-center justify-between mt-2">
-            <div className="text-base font-semibold">
-              {t("checkout.inTotal")}
-            </div>
-            <div className="text-base font-semibold">
-              {fmtEUR(payTotal, locale)}
+            {/* SEPA installments (DE only) */}
+            {renderSepaInstallmentsBlock()}
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
+              <Badge
+                icon={<ShieldCheck className="w-4 h-4" />}
+                text={t("checkout.badgeSecure")}
+              />
+              <Badge
+                icon={<RotateCcw className="w-4 h-4" />}
+                text={t("checkout.badgeReturn")}
+              />
+              <Badge
+                icon={<Truck className="w-4 h-4" />}
+                text={t("checkout.badgeDelivery")}
+              />
             </div>
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {t("checkout.inclTax")}
-          </div>
-
-          <Link
-            to="/cart"
-            className="mt-5 inline-block w-full text-center py-2 rounded border hover:bg-gray-50"
-          >
-            {t("checkout.backToCart")}
-          </Link>
         </div>
-      </aside>
+
+        {/* RIGHT Summary */}
+        <aside className="lg:col-span-1">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
+            <h2 className="text-xl font-semibold mb-4">
+              {t("checkout.overview")}
+            </h2>
+
+            <div className="space-y-4">
+              {items.map((it) => (
+                <div key={it.id} className="flex items-center gap-3">
+                  <div className="relative">
+                    <img
+                      src={it.image}
+                      alt={it.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                      {it.qty}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{it.name}</div>
+                  </div>
+                  <div className="font-medium text-sm">
+                    {fmtEUR(it.price * it.qty, locale)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <hr className="my-4" />
+
+            <div className="mt-3 border dark:border-neutral-700 rounded-lg p-3 space-y-2">
+              <div className="flex gap-2">
+                <input
+                  className={`${inputCls} flex-1`}
+                  placeholder={t("checkout.couponPlaceholder")}
+                  value={couponCode}
+                  onChange={(e) =>
+                    setCouponCode((e.target.value || "").toUpperCase())
+                  }
+                />
+                <button
+                  onClick={applyCoupon}
+                  className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+                >
+                  {t("checkout.apply")}
+                </button>
+              </div>
+              {couponErr && (
+                <div className="text-red-600 text-sm">{couponErr}</div>
+              )}
+              {couponInfo?.ok && (
+                <div className="text-green-700 dark:text-green-500 text-sm">
+                  {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
+                  <span>-{fmtEUR(discount, locale)}</span>
+                </div>
+              )}
+            </div>
+
+            {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
+              <Row
+                label={t("checkout.couponLine", { code: couponInfo.code })}
+                value={`-${fmtEUR(discount, locale)}`}
+              />
+            )}
+
+            <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
+            <Row
+              label={t("checkout.shipmentShort", "Shipment")}
+              value={
+                shippingFee === 0
+                  ? t("checkout.free")
+                  : fmtEUR(shippingFee, locale)
+              }
+            />
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-base font-semibold">
+                {t("checkout.inTotal")}
+              </div>
+              <div className="text-base font-semibold">
+                {fmtEUR(payTotal, locale)}
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {t("checkout.inclTax")}
+            </div>
+
+            <Link
+              to="/cart"
+              className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
+            >
+              {t("checkout.backToCart")}
+            </Link>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
@@ -1149,7 +1153,7 @@ function Row({ label, value }) {
   return (
     <div className="flex items-center justify-between text-sm mt-1">
       <div className="text-gray-600 dark:text-gray-300">{label}</div>
-      <div className="font-medium">{value}</div>
+      <div className="font-semibold">{value}</div>
     </div>
   );
 }
@@ -1157,8 +1161,10 @@ function Row({ label, value }) {
 function Badge({ icon, text }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="p-1 bg-gray-100 dark:bg-neutral-800 rounded">{icon}</div>
-      <span>{text}</span>
+      <div className="p-1.5 rounded-md bg-backnewswhite/10 dark:bg-backnewswhite/15">
+        {icon}
+      </div>
+      <span className="text-gray-800 dark:text-gray-200">{text}</span>
     </div>
   );
 }

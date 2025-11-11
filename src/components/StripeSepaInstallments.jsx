@@ -2,20 +2,16 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
-import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { stripePromise } from "../lib/stripe";
 import { useStripeSepaInstallmentsMutation } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
 import http from "../services/http";
-
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
-);
 
 const pickErr = (e, fb) =>
   e?.data?.detail ||
@@ -61,14 +57,15 @@ function SepaInstallmentsInner({
       });
       const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
-      if (!orderId) throw new Error(t("checkout.sepaInstallments.orderMissing"));
+      if (!orderId)
+        throw new Error(t("checkout.sepaInstallments.orderMissing"));
       onCreated?.(orderId, {
         months: res?.months,
         amounts: res?.amounts,
         dates: res?.dates,
       });
     },
-    [startPlan, monthsSafe, countryCode, form, items, couponCode, onCreated]
+    [startPlan, monthsSafe, countryCode, form, items, couponCode, onCreated, t]
   );
 
   const confirmMandateThenCreate = async () => {
@@ -82,9 +79,12 @@ function SepaInstallmentsInner({
         redirect: "if_required",
       });
       if (error)
-        throw new Error(error.message || t("checkout.sepaInstallments.mandateFailed"));
+        throw new Error(
+          error.message || t("checkout.sepaInstallments.mandateFailed")
+        );
       const pmId = setupIntent?.payment_method;
-      if (!pmId) throw new Error(t("checkout.sepaInstallments.noPaymentMethod"));
+      if (!pmId)
+        throw new Error(t("checkout.sepaInstallments.noPaymentMethod"));
       await startInstallments(pmId);
     } catch (e) {
       setErrorMsg(pickErr(e, t("checkout.sepaInstallments.mandateFailed")));
@@ -95,20 +95,21 @@ function SepaInstallmentsInner({
 
   return (
     <div className="space-y-3">
-      <div className="border rounded p-3">
+      <div className="border rounded-lg p-3 bg-white dark:bg-marbleblack">
         <PaymentElement options={{ layout: "tabs" }} />
       </div>
       <button
         disabled={busy || isLoading || !stripe || !elements}
         onClick={confirmMandateThenCreate}
-        className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+        className="px-4 py-3 rounded-lg text-sm font-semibold
+                   bg-backnewswhite text-marblewhite hover:opacity-90 disabled:opacity-60"
       >
         {busy || isLoading
-          ? "Processing…"
-          : `Confirm mandate & start ${monthsSafe} mo.`}
+          ? t("common.processing")
+          : t("checkout.sepaInstallments.startCta", { months })}
       </button>
-      <p className="text-xs text-gray-500">
-        {t("checkout.sepaInstallments.notice", { months: monthsSafe })}
+      <p className="text-xs text-gray-600 dark:text-gray-300">
+        {t("checkout.sepaInstallments.notice", { months })}
       </p>
     </div>
   );
@@ -125,7 +126,7 @@ export default function StripeSepaInstallments({
   setLocalOrderId,
   onSuccess,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [errorMsg, setErrorMsg] = useState("");
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
@@ -145,7 +146,7 @@ export default function StripeSepaInstallments({
       if (paymentMethodId) {
         setClientSecret("");
         return;
-      } // saved PM → no SI needed
+      }
       setLoadingInit(true);
       try {
         const r = await http.post("stripe/setup-intent/sepa/", {
@@ -168,7 +169,7 @@ export default function StripeSepaInstallments({
     return () => {
       cancelled = true;
     };
-  }, [active, paymentMethodId, form?.email]);
+  }, [active, paymentMethodId, form?.email, t]);
 
   const startWithSavedPM = async () => {
     setErrorMsg("");
@@ -188,7 +189,8 @@ export default function StripeSepaInstallments({
       });
       const res = await startPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
-      if (!orderId) throw new Error(t("checkout.sepaInstallments.orderMissing"));
+      if (!orderId)
+        throw new Error(t("checkout.sepaInstallments.orderMissing"));
       setServerSchedule({
         months: res?.months,
         amounts: res?.amounts,
@@ -201,10 +203,20 @@ export default function StripeSepaInstallments({
     }
   };
 
+  const isDark = document.documentElement.classList.contains("dark");
+  const appearance = {
+    theme: "stripe",
+    variables: {
+      colorPrimary: "#ec8b0b",
+      colorText: isDark ? "#e5e7eb" : "#1f2937",
+      colorBackground: isDark ? "#17160f" : "#f8fcfe",
+    },
+  };
+
   if (!active) {
     return (
-      <div className="border rounded p-3 mt-3">
-        <div className="text-sm text-gray-600">
+      <div className="border rounded-lg p-3 mt-3 bg-white dark:bg-marbleblack">
+        <div className="text-sm text-gray-700 dark:text-gray-300">
           {t("checkout.sepaInstallments.inactive", { months: monthsSafe })}
         </div>
       </div>
@@ -212,8 +224,8 @@ export default function StripeSepaInstallments({
   }
 
   return (
-    <div className="border rounded p-3 mt-2 space-y-2">
-      <div className="text-sm">
+    <div className="border rounded-lg p-3 mt-2 space-y-2 bg-white dark:bg-marbleblack">
+      <div className="text-sm text-gray-700 dark:text-gray-300">
         {t("checkout.sepaInstallments.intro", { months: monthsSafe })}
       </div>
       {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
@@ -229,7 +241,8 @@ export default function StripeSepaInstallments({
         <button
           disabled={creatingPlan}
           onClick={startWithSavedPM}
-          className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+          className="px-4 py-3 rounded-lg text-sm font-semibold
+                     bg-backnewswhite text-marblewhite hover:opacity-90 disabled:opacity-60"
         >
           {creatingPlan
             ? t("checkout.sepaInstallments.savedStarting")
@@ -238,15 +251,17 @@ export default function StripeSepaInstallments({
       ) : (
         <>
           {loadingInit && (
-            <div className="text-sm text-gray-600">{t("checkout.sepaInstallments.preparing")}</div>
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              {t("checkout.sepaInstallments.preparing")}
+            </div>
           )}
           {clientSecret && (
             <Elements
               stripe={stripePromise}
               options={{
                 clientSecret,
-                appearance: { theme: "stripe" },
-                locale: "de",
+                appearance,
+                locale: i18n.language?.startsWith("de") ? "de" : "en",
               }}
             >
               <SepaInstallmentsInner

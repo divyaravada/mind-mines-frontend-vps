@@ -155,9 +155,11 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
+    <div className="max-w-6xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
       <div className="flex items-center justify-between mb-8 ">
-        <h2 className="text-2xl font-light mb-8">{t("order.yourOrders")}</h2>
+        <h2 className="text-2xl font-light mb-8 text-backnewswhite dark:text-backnewsdark">
+          {t("order.yourOrders")}
+        </h2>
         <Link to="/account" className="p-6 hover:underline">
           <h6 className="text-xl font-light mb-8">{t("backtoAccount")}</h6>
         </Link>
@@ -182,7 +184,7 @@ export default function Orders() {
                   setSelectedId(o.id);
                   setOpen(true);
                 }}
-                className="bg-white text-left p-4 rounded shadow hover:shadow-md transition  dark:bg-marbleblack"
+                className="bg-marblewhite dark:bg-marbleblack text-left p-4 rounded shadow hover:shadow-md transition"
               >
                 <div className="flex gap-3">
                   {primaryMeta.image ? (
@@ -240,4 +242,3 @@ export default function Orders() {
     </div>
   );
 }
-

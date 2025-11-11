@@ -11,18 +11,20 @@ import {
 import { useTranslation } from "react-i18next";
 
 const Item = ({ icon: Icon, text }) => (
-  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
-    <Icon className="w-5 h-5" />
-    <span className="text-sm md:text-base">{text}</span>
+  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 shadow-sm">
+    <Icon className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
+    <span className="text-sm md:text-base text-gray-800 dark:text-gray-100">
+      {text}
+    </span>
   </div>
 );
 
 export default function HomeTrustSection() {
   const { t } = useTranslation();
   return (
-    <section className="py-12 bg-[#f8fcfe] dark:bg-gray-900">
+    <section className="py-12 bg-marblewhite dark:bg-marbleblack">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-backnewswhite dark:text-backnewsdark">
           {t("home.trust.title")}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

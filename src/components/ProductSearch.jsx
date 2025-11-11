@@ -110,7 +110,8 @@ export default function ProductSearch({ t }) {
         }}
         onFocus={() => q && setOpen(true)}
         onKeyDown={onKeyDown}
-        className="rounded px-3 py-1 pl-8 w-36 md:w-64 bg-gray-100 dark:bg-backnewsdark text-backnewswhite dark:text-backnewsdark focus:outline-none"
+        className="rounded px-3 py-1 pl-8 w-40 md:w-64 bg-gray-100 dark:bg-gray-800
+            text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:outline-none"
         placeholder={t("navbar.searchPlaceholder")}
         aria-label={t("navbar.searchPlaceholder")}
       />
@@ -130,9 +131,11 @@ export default function ProductSearch({ t }) {
       )}
 
       {open && (q || loading) && (
-        <div className="absolute mt-1 w-[18rem] md:w-[22rem] z-50 rounded border border-gray-200 shadow-lg bg-white dark:bg-backnewsdark">
+        <div className="absolute mt-1 w-[18rem] md:w-[22rem] z-50 rounded border border-gray-200 dark:border-gray-700 shadow-lg bg-marblewhite dark:bg-marbleblack text-gray-900 dark:text-gray-100">
           {loading ? (
-            <div className="px-3 py-2 text-sm text-gray-500">{t("common.searching")}</div>
+            <div className="px-3 py-2 text-sm text-gray-500">
+              {t("common.searching")}
+            </div>
           ) : results.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-500">
               {t("common.noResults")}
@@ -148,7 +151,7 @@ export default function ProductSearch({ t }) {
                   onMouseLeave={() => setActiveIdx(-1)}
                   onClick={() => goToResult(p)}
                   className={`flex items-center gap-3 px-3 py-2 cursor-pointer ${
-                    idx === activeIdx ? "bg-gray-100" : ""
+                    idx === activeIdx ? "bg-gray-100 dark:bg-gray-800" : ""
                   }`}
                 >
                   {/* optional thumbnail if your serializer returns it */}

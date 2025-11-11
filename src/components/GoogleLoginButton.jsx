@@ -12,18 +12,19 @@ export default function GoogleLoginButton({ successRedirect = "/" }) {
       if (response?.credential) {
         await googleAuth({ token: response.credential }).unwrap();
         navigate(successRedirect, { replace: true });
-
-        // success -> tokens saved via onQueryStarted
       }
     } catch (e) {
       console.error("Google login failed", e);
     }
   };
 
+  // Google renders its own button; we just ensure spacing matches the brand system.
   return (
-    <GoogleLogin
-      onSuccess={handleGoogleLogin}
-      onError={() => console.error("Google login failed")}
-    />
+    <div className="inline-flex rounded-lg p-1 bg-marblewhite dark:bg-marbleblack">
+      <GoogleLogin
+        onSuccess={handleGoogleLogin}
+        onError={() => console.error("Google login failed")}
+      />
+    </div>
   );
 }

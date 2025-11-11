@@ -56,7 +56,7 @@ export default function ProductTile({
 
   return (
     <article
-      className="group rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
+      className="group rounded-2xl bg-marblewhite dark:bg-marbleblack border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
       onClick={() => navigate(`/products/${product.id}`)}
     >
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
@@ -137,7 +137,8 @@ export default function ProductTile({
               if (!isOut) onAddToCart?.(product, priceNum);
             }}
             disabled={isOut}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-marbleblack text-white hover:bg-black transition disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-backnewswhite text-white hover:opacity-90 transition disabled:opacity-50
+            dark:bg-backnewsdark dark:text-marbleblack"
             title={isOut ? t("product.cannotAdd", "Out of stock") : undefined}
           >
             <ShoppingCart className="w-4 h-4" />

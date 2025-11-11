@@ -57,25 +57,37 @@ export default function AccountAddresses() {
     await deleteAddress(id).unwrap();
   };
 
+  const inputBase =
+    "border rounded px-3 py-2 text-gray-900 dark:text-gray-100 " +
+    "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 " +
+    "focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark " +
+    "focus:border-backnewswhite dark:focus:border-backnewsdark";
+
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-light mb-8">{t("addresses.title")} </h1>
-        <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-xl font-light mb-8">{t("backtoAccount")} </h6>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          {t("addresses.title")}
+        </h1>
+        <Link
+          to="/account"
+          className="text-sm md:text-base text-backnewswhite hover:text-backnewsdark dark:text-backnewsdark dark:hover:text-backnewswhite underline-offset-2 hover:underline"
+        >
+          {t("backtoAccount")}
         </Link>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Form */}
-        <div className="p-6 border rounded">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-light">
+        <div className="p-6 rounded-xl border border-black/5 dark:border-white/10 bg-marblewhite dark:bg-marbleblack shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {editingId
                 ? t("addresses.editAddress")
                 : t("addresses.newAddress")}
             </h2>
-            <span className="text-xs bg-gray-200 px-2 py-1 rounded">
+            <span className="text-xs bg-backnewswhite/10 text-backnewswhite dark:bg-backnewsdark/10 dark:text-backnewsdark px-2 py-1 rounded">
               {t("addresses.mainBadge")}
             </span>
           </div>
@@ -85,13 +97,13 @@ export default function AccountAddresses() {
               placeholder={t("addresses.firstName")}
               value={form.first_name}
               onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             />
             <input
               placeholder={t("addresses.lastName")}
               value={form.last_name}
               onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             />
             <input
               placeholder={t("addresses.street")}
@@ -99,7 +111,7 @@ export default function AccountAddresses() {
               onChange={(e) =>
                 setForm({ ...form, address_line1: e.target.value })
               }
-              className="border px-3 py-2 rounded md:col-span-2 dark:bg-marbleblack"
+              className={`${inputBase} md:col-span-2`}
             />
             <input
               placeholder={t("addresses.address2")}
@@ -107,7 +119,7 @@ export default function AccountAddresses() {
               onChange={(e) =>
                 setForm({ ...form, address_line2: e.target.value })
               }
-              className="border px-3 py-2 rounded md:col-span-2 dark:bg-marbleblack"
+              className={`${inputBase} md:col-span-2`}
             />
             <input
               placeholder={t("addresses.postalCode")}
@@ -115,18 +127,18 @@ export default function AccountAddresses() {
               onChange={(e) =>
                 setForm({ ...form, postal_code: e.target.value })
               }
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             />
             <input
               placeholder={t("addresses.city")}
               value={form.city}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             />
             <select
               value={form.country}
               onChange={(e) => setForm({ ...form, country: e.target.value })}
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             >
               <option value="Germany">{t("countries.germany")}</option>
               <option value="Austria">{t("countries.austria")}</option>
@@ -139,11 +151,11 @@ export default function AccountAddresses() {
               placeholder={t("addresses.phone")}
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="border px-3 py-2 rounded dark:bg-marbleblack"
+              className={inputBase}
             />
           </div>
 
-          <div className="flex items-center gap-2 mt-4 dark:bg-marbleblack">
+          <label className="flex items-center gap-2 mt-4 text-gray-800 dark:text-gray-200">
             <input
               id="is_default"
               type="checkbox"
@@ -151,16 +163,17 @@ export default function AccountAddresses() {
               onChange={(e) =>
                 setForm({ ...form, is_default: e.target.checked })
               }
+              className="h-4 w-4 accent-backnewswhite dark:accent-backnewsdark"
             />
-            <label htmlFor="is_default" className="text-sm">
-              {t("addresses.setAsMain")}
-            </label>
-          </div>
+            <span className="text-sm">{t("addresses.setAsMain")}</span>
+          </label>
 
           <button
             onClick={save}
             disabled={creating || updating}
-            className="mt-6 bg-black text-white px-5 py-2 rounded disabled:opacity-60 dark:bg-gray-800  text-backnewswhite dark:text-backnewsdark "
+            className="mt-6 inline-flex items-center justify-center rounded-lg px-5 py-2.5
+                       bg-backnewswhite text-white hover:opacity-90 disabled:opacity-60
+                       dark:bg-backnewsdark dark:text-gray-900 transition"
           >
             {creating || updating
               ? t("addresses.saving")
@@ -175,43 +188,55 @@ export default function AccountAddresses() {
           {list.map((a) => (
             <div
               key={a.id}
-              className="p-5 border rounded flex justify-between items-start"
+              className="p-5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm flex justify-between items-start gap-4"
             >
               <div>
-                <div className="font-semibold">
+                <div className="font-semibold text-gray-900 dark:text-gray-100">
                   {a.first_name} {a.last_name}{" "}
                   {a.is_default ? (
-                    <span className="ml-2 text-xs bg-gray-200 px-2 py-1 rounded">
+                    <span className="ml-2 text-xs bg-backnewswhite/10 text-backnewswhite dark:bg-backnewsdark/10 dark:text-backnewsdark px-2 py-1 rounded">
                       {t("addresses.mainTag")}
                     </span>
                   ) : null}
                 </div>
-                <div className="text-gray-700">{a.address_line1}</div>
+                <div className="text-gray-700 dark:text-gray-300">
+                  {a.address_line1}
+                </div>
                 {a.address_line2 ? (
-                  <div className="text-gray-700">{a.address_line2}</div>
+                  <div className="text-gray-700 dark:text-gray-300">
+                    {a.address_line2}
+                  </div>
                 ) : null}
-                <div className="text-gray-700">
+                <div className="text-gray-700 dark:text-gray-300">
                   {a.postal_code} {a.city}
                 </div>
-                <div className="text-gray-700">{a.country}</div>
+                <div className="text-gray-700 dark:text-gray-300">
+                  {a.country}
+                </div>
                 {a.phone ? (
-                  <div className="text-gray-700">{a.phone}</div>
+                  <div className="text-gray-700 dark:text-gray-300">
+                    {a.phone}
+                  </div>
                 ) : null}
               </div>
-              <div className="flex gap-3">
+
+              <div className="flex flex-wrap gap-3">
                 {!a.is_default && (
                   <button
-                    className="underline"
+                    className="underline underline-offset-2 text-backnewswhite hover:text-backnewsdark dark:text-backnewsdark dark:hover:text-backnewswhite"
                     onClick={() => makeDefault(a.id).unwrap()}
                   >
                     {t("addresses.makeMain")}
                   </button>
                 )}
-                <button className="underline" onClick={() => edit(a)}>
+                <button
+                  className="underline underline-offset-2 text-gray-900 dark:text-gray-100 hover:opacity-80"
+                  onClick={() => edit(a)}
+                >
                   {t("addresses.edit")}
                 </button>
                 <button
-                  className="underline text-red-600"
+                  className="underline underline-offset-2 text-red-600 hover:text-red-700"
                   onClick={() => del(a.id)}
                 >
                   {t("addresses.delete")}
@@ -219,8 +244,11 @@ export default function AccountAddresses() {
               </div>
             </div>
           ))}
+
           {!list.length && (
-            <div className="text-gray-500"> {t("addresses.none")}.</div>
+            <div className="text-gray-600 dark:text-gray-400">
+              {t("addresses.none")}.
+            </div>
           )}
         </div>
       </div>

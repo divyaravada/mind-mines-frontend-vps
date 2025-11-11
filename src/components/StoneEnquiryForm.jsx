@@ -35,7 +35,7 @@ export default function StoneEnquiryForm({
       if (!presetStoneType) setStoneType("");
       onSuccess?.();
     } catch {
-      // handled by isError + error display
+      /* handled by isError + error display */
     }
   };
 
@@ -55,24 +55,30 @@ export default function StoneEnquiryForm({
     ) : null;
 
   return (
-    <form onSubmit={submit} className="grid gap-3 max-w-md">
+    <form
+      onSubmit={submit}
+      className="grid gap-4 max-w-xl w-full p-4 sm:p-6 rounded-xl bg-marblewhite dark:bg-marbleblack shadow"
+    >
       {presetStoneType ? (
-        <div className="text-sm">
-          <span className="font-medium">{t("enquiry.stoneType")}:</span>{" "}
-          <span className="inline-block rounded bg-gray-200 px-2 py-0.5">
+        <div className="text-sm text-gray-800 dark:text-gray-200">
+          <span className="font-semibold">{t("enquiry.stoneType")}:</span>{" "}
+          <span className="inline-block rounded px-2 py-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100">
             {presetStoneType}
           </span>
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium" htmlFor="stoneType">
+          <label
+            className="block text-sm font-medium text-gray-800 dark:text-gray-200"
+            htmlFor="stoneType"
+          >
             {t("enquiry.stoneType")}
           </label>
           <input
             id="stoneType"
             value={stoneType}
             onChange={(e) => setStoneType(e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 outline-none focus:ring-2 focus:ring-backnewswhite"
             placeholder={t("enquiry.placeholders.stoneType")}
             required
           />
@@ -81,14 +87,17 @@ export default function StoneEnquiryForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="name">
+        <label
+          className="block text-sm font-medium text-gray-800 dark:text-gray-200"
+          htmlFor="name"
+        >
           {t("enquiry.name")}
         </label>
         <input
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2"
+          className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 outline-none focus:ring-2 focus:ring-backnewswhite"
           placeholder={t("enquiry.placeholders.name")}
           required
         />
@@ -97,7 +106,10 @@ export default function StoneEnquiryForm({
 
       {!isAuthenticated && (
         <div>
-          <label className="block text-sm font-medium" htmlFor="email">
+          <label
+            className="block text-sm font-medium text-gray-800 dark:text-gray-200"
+            htmlFor="email"
+          >
             {t("enquiry.email")}
           </label>
           <input
@@ -105,7 +117,7 @@ export default function StoneEnquiryForm({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 outline-none focus:ring-2 focus:ring-backnewswhite"
             placeholder={t("enquiry.placeholders.email")}
             required
           />
@@ -114,14 +126,17 @@ export default function StoneEnquiryForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium" htmlFor="message">
+        <label
+          className="block text-sm font-medium text-gray-800 dark:text-gray-200"
+          htmlFor="message"
+        >
           {t("enquiry.message")}
         </label>
         <textarea
           id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full border rounded px-3 py-2"
+          className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 outline-none focus:ring-2 focus:ring-backnewswhite"
           rows={4}
           placeholder={t("enquiry.placeholders.message")}
           required
@@ -130,23 +145,29 @@ export default function StoneEnquiryForm({
       </div>
 
       {fieldErrors?.detail && (
-        <div className="text-red-600">{String(fieldErrors.detail)}</div>
+        <div className="text-red-600 dark:text-red-400">
+          {String(fieldErrors.detail)}
+        </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+        className="inline-flex justify-center items-center rounded-md px-4 py-2 font-semibold text-white bg-backnewswhite hover:brightness-95 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-backnewswhite"
         aria-busy={isLoading}
       >
         {isLoading ? t("enquiry.sending") : t("enquiry.send")}
       </button>
 
       {isSuccess && (
-        <div className="text-green-700">{t("enquiry.success")}</div>
+        <div className="text-green-700 dark:text-green-400">
+          {t("enquiry.success")}
+        </div>
       )}
       {isError && !Object.keys(fieldErrors).length && (
-        <div className="text-red-600">{t("enquiry.genericError")}</div>
+        <div className="text-red-600 dark:text-red-400">
+          {t("enquiry.genericError")}
+        </div>
       )}
     </form>
   );

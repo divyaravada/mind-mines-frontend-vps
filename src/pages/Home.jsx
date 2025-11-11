@@ -7,7 +7,6 @@ import TopSellers from "../components/TopSellers";
 import HandmadeGuarantee from "../components/HandmadeGuarantee";
 import HomeTrustSection from "../components/HomeTrustSection";
 import FreeDelivery from "../components/FreeDelivery";
-import PaymentBadges from "../components/PaymentBadges";
 
 export default function Home() {
   return (
@@ -21,7 +20,6 @@ export default function Home() {
       <FreeDelivery />
       <AboutUsRow />
       <FeatureStrip />
-      <PaymentBadges />
     </main>
   );
 }

@@ -18,26 +18,26 @@ export default function Footer() {
   const { setLanguage } = require("../features/i18n/i18nSlice");
 
   return (
-    <footer className="bg-marblewhite dark:bg-marbleblack border-t border-gray-200 dark:border-gray-800 pt-8 pb-0 px-4 ">
+    <footer className="bg-marblewhite dark:bg-marbleblack border-t border-black/10 dark:border-white/10 pt-8 pb-0 px-4">
       <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
         {/* About */}
         <div>
           <h2 className="text-lg mb-4 text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.welcomeTitle")}
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">
             {t("footer.welcomeText")}
           </p>
 
           <img
             src={LightLogo}
             alt="MindMines"
-            className="h-24 w-auto block dark:hidden"
+            className="h-12 w-auto block dark:hidden"
           />
           <img
             src={DarkLogo}
             alt="MindMines"
-            className="h-20 w-auto hidden dark:block"
+            className="h-12 w-auto hidden dark:block"
           />
         </div>
 
@@ -46,7 +46,7 @@ export default function Footer() {
           <h2 className="text-lg mb-4 text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.help.title")}
           </h2>
-          <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
+          <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
             <li>
               <Link to="/help" className="hover:underline">
                 {t("footer.help.allTopics")}
@@ -60,7 +60,7 @@ export default function Footer() {
             </li>
             <li>{t("footer.help.timings")}</li>
             <li>
-              {t("footer.help.emailtitle")}
+              {t("footer.help.emailtitle")}{" "}
               <a
                 href="mailto:service@marbleart.com"
                 className="hover:underline"
@@ -77,7 +77,7 @@ export default function Footer() {
           <h2 className="text-lg mb-4 text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.legal.title")}
           </h2>
-          <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-200">
+          <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
             <li>
               <Link to="/imprint" className="hover:underline">
                 {t("legal.nav.imprint")}
@@ -103,7 +103,6 @@ export default function Footer() {
                 {t("legal.nav.shipping")}
               </Link>
             </li>
-
             <li>
               <Link to="/about" className="hover:underline">
                 {t("footer.legal.about")}
@@ -117,13 +116,16 @@ export default function Footer() {
       </div>
 
       {/* Payment & Shipping row */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between border-t border-gray-200 dark:border-gray-700 mt-8 pt-4 px-2 gap-4">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between border-t border-black/10 dark:border-white/10 mt-8 pt-4 px-2 gap-4">
         <div className="flex items-center gap-3">
           <span className="text-sm md:text-base text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.secure")}
           </span>
-          <img src={paypal} alt="PayPal" className="h-10 md:h-14" />
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs md:text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600">
+          <img src={paypal} alt="PayPal" className="h-8 md:h-10" />
+          <span
+            className="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs md:text-sm
+                           text-gray-800 dark:text-gray-100 border-black/15 dark:border-white/15"
+          >
             <Landmark className="w-4 h-4" />
             {t("footer.payment.bank") || "SEPA Bank Transfer"}
           </span>
@@ -140,9 +142,9 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="mt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto py-3 px-2 flex flex-col md:flex-row gap-2 md:gap-4 items-center justify-between text-xs text-backnewswhite dark:text-backnewsdark">
-          <div className="text-center md:text-left">
+      <div className="mt-4 border-t border-black/10 dark:border-white/10">
+        <div className="max-w-7xl mx-auto py-3 px-2 flex flex-col md:flex-row gap-2 md:gap-4 items-center justify-between text-xs">
+          <div className="text-center md:text-left text-gray-700 dark:text-gray-300">
             {t("footer.start")} {new Date().getFullYear()}{" "}
             {t("footer.rightreserv")}{" "}
             <Link to="/imprint" className="underline hover:opacity-80">
@@ -166,8 +168,11 @@ export default function Footer() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button onClick={() => window.openCookieManager?.()}>
+          <div className="flex items-center gap-2 text-backnewswhite dark:text-backnewsdark">
+            <button
+              onClick={() => window.openCookieManager?.()}
+              className="hover:underline"
+            >
               {t("cookies.manage")}
             </button>
             <span className="mx-1">•</span>

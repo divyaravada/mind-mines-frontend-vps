@@ -13,6 +13,12 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState("");
   const [resetConfirm, { isLoading }] = useResetPasswordConfirmMutation();
 
+  const inputCls =
+    "w-full rounded-lg border border-gray-300 dark:border-neutral-700 " +
+    "bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 " +
+    "placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 " +
+    "focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== password2) {
@@ -27,41 +33,60 @@ export default function ResetPasswordPage() {
         new_password2: password2,
       }).unwrap();
       setMessage(t("reset.success"));
-      setTimeout(() => navigate("/users/login"), 3000);
-    } catch (error) {
+      setTimeout(() => navigate("/users/login"), 2500);
+    } catch {
       setMessage(t("reset.invalid"));
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 bg-white shadow rounded">
-      <h2 className="text-xl font-bold mb-4">{t("reset.title")}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="password"
-          placeholder={t("reset.newPassword")}
-          className="w-full border px-3 py-2 rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder={t("reset.repeatPassword")}
-          className="w-full border px-3 py-2 rounded"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full py-2 bg-marbleblack text-white rounded disabled:opacity-60"
-          disabled={isLoading}
-        >
-          {t("reset.submit")}
-        </button>
-      </form>
-      {message && <p className="mt-4 text-center">{message}</p>}
+    <div className="min-h-[70vh] flex items-center justify-center bg-marblewhite dark:bg-marbleblack px-4">
+      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+        <h2 className="text-xl md:text-2xl font-bold mb-4 text-center">
+          {t("reset.title")}
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            placeholder={t("reset.newPassword")}
+            className={inputCls}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+          <input
+            type="password"
+            placeholder={t("reset.repeatPassword")}
+            className={inputCls}
+            value={password2}
+            onChange={(e) => setPassword2(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+
+          <button
+            type="submit"
+            className="w-full py-2.5 rounded-lg bg-backnewswhite text-white font-medium
+                       hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite
+                       focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
+            disabled={isLoading || !password || !password2}
+          >
+            {t("reset.submit")}
+          </button>
+        </form>
+
+        {message && (
+          <p
+            className="mt-4 text-center text-gray-800 dark:text-gray-200"
+            role="status"
+            aria-live="polite"
+          >
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

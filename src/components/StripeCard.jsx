@@ -27,7 +27,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
     return () => {
       mounted = false;
     };
-  }, [orderId, createIntent, onError]);
+  }, [orderId, createIntent, onError, t]);
 
   const pay = async () => {
     if (!stripe || !elements || !clientSecret) return;
@@ -53,13 +53,13 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
 
   return (
     <div className="space-y-3">
-      <div className="border rounded p-3">
+      <div className="rounded-md p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
         <CardElement options={{ hidePostalCode: true }} />
       </div>
 
       <button
         type="button"
-        className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
+        className="px-4 py-2 rounded-md bg-backnewswhite text-white font-semibold hover:brightness-95 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-backnewswhite"
         disabled={isLoading || busy || !stripe || !elements || !clientSecret}
         onClick={pay}
       >

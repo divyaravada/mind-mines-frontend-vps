@@ -11,13 +11,10 @@ export default function HomeCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const timer = useRef(null);
 
-  // Safety: ensure it's an array
-  const categories = useMemo(() => {
-    const arr = Array.isArray(rawCategories) ? rawCategories : [];
-    return arr.filter(
-      (c) => c.id !== "countertops" && c.id !== "dream_kitchen"
-    );
-  }, []);
+  const categories = useMemo(
+    () => (Array.isArray(rawCategories) ? rawCategories : []),
+    []
+  );
 
   const [sliderRef, slider] = useKeenSlider({
     loop: true,
@@ -43,15 +40,14 @@ export default function HomeCarousel() {
     }
   };
 
-  // If categories missing, render a simple fallback instead of crashing
   if (!categories.length) {
     return (
-      <div className="relative w-full h-[60vh] flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+      <div className="relative w-full h-[60vh] flex items-center justify-center bg-marblewhite dark:bg-marbleblack">
         <div className="text-center px-6">
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 text-backnewswhite dark:text-backnewsdark">
             {t("home.heroFallback.title")}
           </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-gray-700 dark:text-gray-300">
             {t("home.heroFallback.subtitle")}
           </p>
         </div>
@@ -60,10 +56,10 @@ export default function HomeCarousel() {
   }
 
   return (
-    <div className="relative w-full h-[32rem] overflow-hidden">
+    <div className="relative w-full h-[32rem] overflow-hidden bg-marblewhite dark:bg-marbleblack">
       <div
         ref={sliderRef}
-        className="keen-slider h-full md:h-full"
+        className="keen-slider h-full"
         onMouseEnter={pauseAutoplay}
         onMouseLeave={resumeAutoplay}
       >
@@ -81,7 +77,7 @@ export default function HomeCarousel() {
               className="absolute inset-0 w-full h-full object-cover opacity-80"
               loading="eager"
             />
-            <div className="relative z-10 p-8 md:p-12 max-w-3xl">
+            <div className="relative z-10 p-6 md:p-12 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow mb-2">
                 {t(`home.categories.${cat.id}.heading`, cat.id)}
               </h2>
@@ -90,7 +86,6 @@ export default function HomeCarousel() {
                 {t(`home.categories.${cat.id}.description`, "")}
               </p>
 
-              {/* If slide is countertops, show secondary CTA to quote page */}
               {cat.id === "countertops" ? (
                 <div className="flex gap-3 flex-wrap">
                   <Link
@@ -103,7 +98,7 @@ export default function HomeCarousel() {
                     href="https://wa.me/491704658188?text=Hello%20MindMines%2C%20I%20would%20like%20a%20kitchen%20countertop%20quote."
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-block bg-green-100 hover:bg-green-200 text-green-900 font-bold px-6 py-2 rounded-xl transition"
+                    className="inline-block bg-backnewsdark/15 hover:bg-backnewsdark/25 text-marbleblack md:text-backnewsdark font-bold px-6 py-2 rounded-xl transition"
                   >
                     {t("home.cta.whatsapp")}
                   </a>
@@ -122,11 +117,11 @@ export default function HomeCarousel() {
       </div>
 
       {/* Pagination Dots */}
-      <div className="absolute left-1/2 bottom-8 -translate-x-1/2 flex gap-2 z-20">
+      <div className="absolute left-1/2 bottom-6 -translate-x-1/2 flex gap-2 z-20">
         {categories.map((_, idx) => (
           <button
             key={idx}
-            className={`w-4 h-4 rounded-full border-2 border-white bg-white/40 hover:bg-white transition ${
+            className={`w-3.5 h-3.5 rounded-full border-2 border-white/90 bg-white/40 hover:bg-white transition ${
               currentSlide === idx ? "bg-white shadow-lg" : ""
             }`}
             onClick={() => slider.current?.moveToIdx(idx)}

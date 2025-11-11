@@ -78,15 +78,17 @@ export default function Profile() {
   if (isLoading) return <div>{t("common.loading")}</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 text-backnewswhite dark:text-backnewsdark">
+    <div className="max-w-6xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-light mb-8">{t("profile.title")}</h1>
+        <h1 className="text-2xl font-light mb-8 text-backnewswhite dark:text-backnewsdark">
+          {t("profile.title")}
+        </h1>
         <Link to="/account" className="p-6 hover:underline">
           <h6 className="text-xl font-light mb-8">{t("backtoAccount")}</h6>
         </Link>
       </div>
 
-      <div className="max-w-xl mx-auto bg-white shadow p-6 rounded dark:bg-marbleblack text-backnewswhite dark:text-backnewsdark">
+      <div className="max-w-xl mx-auto bg-marblewhite dark:bg-marbleblack shadow p-6 rounded text-gray-900 dark:text-gray-100">
         {!edit ? (
           <>
             <div className="flex items-center gap-4">
@@ -176,7 +178,8 @@ export default function Profile() {
               <button
                 onClick={save}
                 disabled={saving}
-                className="px-3 py-2 rounded bg-gray-900 text-white text-sm disabled:opacity-60"
+                className="px-3 py-2 rounded bg-backnewswhite text-white text-sm disabled:opacity-60
+            dark:bg-backnewsdark dark:text-marbleblack"
               >
                 {saving ? t("profile.saving") : t("profile.save")}
               </button>

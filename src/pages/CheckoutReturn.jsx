@@ -74,37 +74,41 @@ export default function CheckoutReturn() {
   }, [searchParams, t, navigate]);
 
   return (
-    <div className="max-w-lg mx-auto py-12 px-4 text-center">
-      <h1 className="text-2xl font-semibold mb-4">
-        {status === "succeeded"
-          ? t("checkout.returnTitleSuccess")
-          : status === "failed"
-          ? t("checkout.returnTitleFailed")
-          : t("checkout.returnTitleProcessing")}
-      </h1>
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="max-w-lg mx-auto py-12 px-4">
+        <div className="text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-8">
+          <h1 className="text-2xl font-semibold mb-4">
+            {status === "succeeded"
+              ? t("checkout.returnTitleSuccess")
+              : status === "failed"
+              ? t("checkout.returnTitleFailed")
+              : t("checkout.returnTitleProcessing")}
+          </h1>
 
-      <p className="text-gray-700 mb-6">{message}</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
 
-      {piId && (
-        <p className="text-xs text-gray-500 mb-6 break-all">
-          {t("checkout.paymentReference", { id: piId })}
-        </p>
-      )}
+          {piId && (
+            <p className="text-xs text-gray-500 mb-6 break-all">
+              {t("checkout.paymentReference", { id: piId })}
+            </p>
+          )}
 
-      <div className="space-y-3">
-        <Link
-          to="/account/orders"
-          className="block w-full border rounded py-2 text-center hover:bg-gray-50"
-        >
-          {t("checkout.viewOrders")}
-        </Link>
+          <div className="space-y-3">
+            <Link
+              to="/account/orders"
+              className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
+            >
+              {t("checkout.viewOrders")}
+            </Link>
 
-        <Link
-          to="/"
-          className="block w-full border rounded py-2 text-center hover:bg-gray-50"
-        >
-          {t("checkout.backHome")}
-        </Link>
+            <Link
+              to="/"
+              className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
+            >
+              {t("checkout.backHome")}
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

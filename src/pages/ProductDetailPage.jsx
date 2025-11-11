@@ -1,4 +1,3 @@
-// src/pages/ProductDetailPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -29,7 +28,6 @@ import OnDemandModal from "../components/OnDemandModal";
 import OutOfStockNotify from "../components/OutOfStockNotify";
 import { Heart } from "lucide-react";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
-// ✅ normal imports for wishlist hooks (no top-level await)
 import {
   useAddToWishlistMutation,
   useGetWishlistQuery,
@@ -50,7 +48,6 @@ export default function ProductDetailPage() {
   const isLoggedIn = useSelector(selectIsAuthenticated);
   const userEmail = useSelector((s) => s?.auth?.user?.email);
 
-  // wishlist hooks
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
@@ -75,21 +72,14 @@ export default function ProductDetailPage() {
       return;
     }
     try {
-      if (wished) {
-        await removeWish(product.id).unwrap();
-      } else {
-        await addWish(product.id).unwrap();
-      }
-    } catch {
-      /* silent */
-    }
+      if (wished) await removeWish(product.id).unwrap();
+      else await addWish(product.id).unwrap();
+    } catch {}
   };
 
   const [openDemand, setOpenDemand] = useState(false);
-  const [
-    createDemand,
-    { isSuccess: sentOk, error: sendErr },
-  ] = useCreateOnDemandRequestMutation();
+  const [createDemand, { isSuccess: sentOk, error: sendErr }] =
+    useCreateOnDemandRequestMutation();
 
   const suggestSeed = product
     ? product.title_en || product.title_de || String(product.id)
@@ -142,9 +132,17 @@ export default function ProductDetailPage() {
   useEffect(() => setQty(1), [id]);
 
   if (isLoading)
-    return <div className="py-24 text-center">{t("common.loading")}</div>;
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.loading")}
+      </div>
+    );
   if (!product)
-    return <div className="py-24 text-center">{t("common.notFound")}</div>;
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.notFound")}
+      </div>
+    );
 
   // SEO
   const currentOrigin =
@@ -241,7 +239,7 @@ export default function ProductDetailPage() {
     dispatch(
       addItem({
         id: product.id,
-        name: productTitle(product, lang), // cart expects 'name'
+        name: productTitle(product, lang),
         image: product.image,
         price: toNumber(unit),
         qty,
@@ -267,327 +265,344 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-12   dark:text-backnewsdark">
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={url} />
-        {/* Open Graph */}
-        <meta property="og:type" content="product" />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={url} />
-        <meta property="og:image" content={image} />
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={image} />
-        {/* Structured data */}
-        <script type="application/ld+json">
-          {JSON.stringify(productJsonLd)}
-        </script>
-        <script type="application/ld+json">
-          {JSON.stringify(breadcrumbJsonLd)}
-        </script>
-      </Helmet>
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
+        <Helmet>
+          <title>{title}</title>
+          <meta name="description" content={description} />
+          <link rel="canonical" href={url} />
+          <meta property="og:type" content="product" />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:url" content={url} />
+          <meta property="og:image" content={image} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={description} />
+          <meta name="twitter:image" content={image} />
+          <script type="application/ld+json">
+            {JSON.stringify(productJsonLd)}
+          </script>
+          <script type="application/ld+json">
+            {JSON.stringify(breadcrumbJsonLd)}
+          </script>
+        </Helmet>
 
-      <div className="flex flex-col lg:flex-row gap-10">
-        <div className="w-full lg:w-1/2">
-          <Carousel
-            showThumbs
-            showStatus={false}
-            infiniteLoop
-            useKeyboardArrows
-            dynamicHeight
-            className="rounded-xl"
-          >
-            {product.media?.length
-              ? product.media.map((m, i) =>
-                  m.media_type === "video" && m.video ? (
-                    <div key={i}>
-                      <ReactPlayer src={m.video} controls width="100%" />
-                    </div>
-                  ) : (
-                    <div key={i}>
-                      <img
-                        src={m.image}
-                        alt={`${productTitle(product, lang)} – ${i + 1}`}
-                      />
-                    </div>
-                  )
-                )
-              : [
-                  <div key="default">
-                    <img
-                      src={product.image}
-                      alt={productTitle(product, lang)}
-                    />
-                  </div>,
-                ]}
-          </Carousel>
-        </div>
-
-        {/* RIGHT: info */}
-        <div className="flex-1 flex flex-col gap-4">
-          <div className="text-xs text-gray-400 mb-2">
-            {t("Key")}: {product.key}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+          {/* MEDIA */}
+          <div className="w-full lg:w-1/2">
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-2">
+              <Carousel
+                showThumbs
+                showStatus={false}
+                infiniteLoop
+                useKeyboardArrows
+                dynamicHeight
+                className="rounded-lg"
+              >
+                {product.media?.length
+                  ? product.media.map((m, i) =>
+                      m.media_type === "video" && m.video ? (
+                        <div key={i} className="aspect-square">
+                          <ReactPlayer src={m.video} controls width="100%" />
+                        </div>
+                      ) : (
+                        <div key={i}>
+                          <img
+                            src={m.image}
+                            alt={`${productTitle(product, lang)} – ${i + 1}`}
+                          />
+                        </div>
+                      )
+                    )
+                  : [
+                      <div key="default">
+                        <img
+                          src={product.image}
+                          alt={productTitle(product, lang)}
+                        />
+                      </div>,
+                    ]}
+              </Carousel>
+            </div>
           </div>
 
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold mb-1">
-                {productTitle(product, lang)}
-              </h1>
-              <div className="text-sm text-gray-500 mb-2">
-                {t("home.categories." + product.category + ".heading")}
-              </div>
+          {/* INFO */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {t("Key")}: {product.key}
             </div>
 
-            {/* Wishlist heart */}
-            <button
-              onClick={toggleWishlist}
-              className={`p-2 rounded ${
-                wished ? "text-red-500" : "text-gray-400"
-              }`}
-              title={t("wishlist.addRemove", "Add / remove from wishlist")}
-              aria-label={t("wishlist.addRemove", "Add / remove from wishlist")}
-            >
-              <Heart
-                className="w-6 h-6"
-                fill={wished ? "currentColor" : "none"}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl md:text-3xl font-bold mb-1">
+                  {productTitle(product, lang)}
+                </h1>
+                <div className="text-sm text-gray-500">
+                  {t("home.categories." + product.category + ".heading")}
+                </div>
+              </div>
+
+              <button
+                onClick={toggleWishlist}
+                className={`p-2 rounded-lg ring-1 ring-black/5 dark:ring-white/10 ${
+                  wished ? "text-red-500" : "text-gray-400"
+                }`}
+                title={t("wishlist.addRemove", "Add / remove from wishlist")}
+                aria-label={t(
+                  "wishlist.addRemove",
+                  "Add / remove from wishlist"
+                )}
+              >
+                <Heart
+                  className="w-6 h-6"
+                  fill={wished ? "currentColor" : "none"}
+                />
+              </button>
+            </div>
+
+            <div className="text-xl font-bold flex items-center gap-2">
+              <span>{fmtEUR(priceNumber, locale)}</span>
+              {discounted && baseGross > 0 && (
+                <span className="text-sm line-through text-gray-500">
+                  {fmtEUR(baseGross, locale)}
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-gray-500">
+              {t("product.inclVat", "incl. 19% VAT")}
+            </div>
+
+            <div className="space-y-2 text-gray-800 dark:text-gray-200">
+              <p>{product[`short_description1_${lang}`]}</p>
+              <p>{product[`short_description2_${lang}`]}</p>
+              <p>{product[`short_description3_${lang}`]}</p>
+            </div>
+
+            <div>
+              <strong>{t("dimension")}:</strong> {product.dimensions}
+            </div>
+            <div>
+              <strong>{t("weight")}:</strong> {product.weight} kg
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="qty" className="font-medium">
+                {t("productDetail.quantity")}:
+              </label>
+              <input
+                id="qty"
+                type="number"
+                min={1}
+                max={product.quantity || 99}
+                value={qty}
+                onChange={(e) => setQty(Number(e.target.value))}
+                className="border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent"
               />
-            </button>
-          </div>
-          <div className="text-xl font-bold flex items-center gap-2">
-            <span>{fmtEUR(priceNumber, locale)}</span>
-            {discounted && baseGross > 0 && (
-              <span className="text-sm line-through text-gray-500">
-                {fmtEUR(baseGross, locale)}
-              </span>
-            )}
-          </div>
-          <div className="text-xs text-gray-500">
-            {t("product.inclVat", "incl. 19% VAT")}
-          </div>
-
-          <div className="space-y-2">
-            <p>{product[`short_description1_${lang}`]}</p>
-            <p>{product[`short_description2_${lang}`]}</p>
-            <p>{product[`short_description3_${lang}`]}</p>
-          </div>
-
-          <div>
-            <strong>{t("dimension")}:</strong> {product.dimensions}
-          </div>
-          <div>
-            <strong>{t("weight")}:</strong> {product.weight} kg
-          </div>
-
-          <div>
-            <label htmlFor="qty">{t("productDetail.quantity")}:</label>
-            <input
-              id="qty"
-              type="number"
-              min={1}
-              max={product.quantity || 99}
-              value={qty}
-              onChange={(e) => setQty(Number(e.target.value))}
-              className="ml-2 border rounded px-2 py-1 w-20"
-            />
-          </div>
-          <p>
-            <strong>{t("stock")}:</strong> {product.quantity}
-          </p>
-          <LowStockBanner stock={stockNum} />
-          {isOut && (
-            <div className="mt-2 flex flex-col gap-2">
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                {t("product.orderOnDemand", "Order can be taken on demand.")}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setOpenDemand(true)}
-                  className="px-4 py-2 rounded bg-marbleblack text-white hover:bg-black"
-                >
-                  {t("product.orderOnDemandCta", "Order on demand")}
-                </button>
-                <OutOfStockNotify productId={product.id} />
-              </div>
-              {sendErr && (
-                <div className="text-xs text-red-600">
-                  {sendErr?.data?.detail ||
-                    "Couldn’t send your request. Please try again."}
-                </div>
-              )}
-              {sentOk && (
-                <div className="text-xs text-green-700">
-                  {t("product.requestOk", "Thanks! We’ll contact you soon.")}
-                </div>
-              )}
             </div>
-          )}
-          <button
-            onClick={handleAddToCart}
-            className="px-4 py-2 mt-5 w-full inline-flex items-center justify-center py-3 rounded bg-marbleblack text-white font-semibold hover:bg-black/90 transition"
-          >
-            {t("productDetail.addToCart")}
-          </button>
-        </div>
-      </div>
 
-      <div className="mt-10">
-        <div className="flex space-x-4 border-b">
-          {["details", "care", "policy"].map((key) => (
-            <button
-              key={key}
-              className={`py-2 px-4 font-semibold ${
-                activeTab === key
-                  ? "border-b-2 border-black dark:border-white"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab(key)}
-            >
-              {key === "details"
-                ? t("productDetail.tabs.details")
-                : key === "care"
-                ? t("productDetail.tabs.care")
-                : t("productDetail.tabs.policy")}
-            </button>
-          ))}
-        </div>
+            <p>
+              <strong>{t("stock")}:</strong> {product.quantity}
+            </p>
 
-        <div className="mt-6 space-y-4">
-          {activeTab === "details" && (
-            <>
-              {[1, 2, 3].map((n) => {
-                const v = product[`descriptionpara${n}_${lang}`];
-                return typeof v === "string" || typeof v === "number" ? (
-                  <p key={n}>{v}</p>
-                ) : null;
-              })}
-            </>
-          )}
+            <LowStockBanner stock={stockNum} />
 
-          {activeTab === "care" && (
-            <div className="whitespace-pre-line">
-              {product[`carepara_${lang}`]
-                ?.split(/\r?\n\r?\n/)
-                .map((para, i) => {
-                  const ci = para.indexOf(":");
-                  if (ci !== -1) {
-                    const title = para.slice(0, ci).trim();
-                    const content = para.slice(ci + 1).trim();
-                    return (
-                      <p key={i}>
-                        <span className="font-semibold">{title}:</span>{" "}
-                        {content}
-                      </p>
-                    );
-                  }
-                  return <p key={i}>{para.trim()}</p>;
-                })}
-            </div>
-          )}
-
-          {activeTab === "policy" && (
-            <>
-              <div className="space-y-2">
-                <strong>{t("productDetail.policy.delivery")}:</strong>
-                {product[`delivery_${lang}`]
-                  ?.split(/\r?\n\r?\n/)
-                  .map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-              </div>
-              <div className="space-y-2">
-                <strong>{t("productDetail.policy.returns")}:</strong>
-                {[1, 2, 3].map((n) =>
-                  product[`returnspara${n}_${lang}`]
-                    ? product[`returnspara${n}_${lang}`]
-                        .split(/\r?\n\r?\n/)
-                        .map((p, i) => <p key={`${n}-${i}`}>{p}</p>)
-                    : null
+            {isOut && (
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  {t("product.orderOnDemand", "Order can be taken on demand.")}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOpenDemand(true)}
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack"
+                  >
+                    {t("product.orderOnDemandCta", "Order on demand")}
+                  </button>
+                  <OutOfStockNotify productId={product.id} />
+                </div>
+                {sendErr && (
+                  <div className="text-xs text-red-600">
+                    {sendErr?.data?.detail ||
+                      "Couldn’t send your request. Please try again."}
+                  </div>
+                )}
+                {sentOk && (
+                  <div className="text-xs text-backnewsdark">
+                    {t("product.requestOk", "Thanks! We’ll contact you soon.")}
+                  </div>
                 )}
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            )}
 
-      {/* REVIEWS */}
-      <ProductReviews productId={product.id} />
-
-      {/* WRITE REVIEW */}
-      <div className="p-4 rounded border bg-white shadow space-y-3">
-        <div className="flex items-center gap-3">
-          <label className="font-medium">{t("productReviews.title")}:</label>
-          <StarRating value={revRating} onChange={setRevRating} />
+            <button
+              onClick={handleAddToCart}
+              className="mt-4 w-full inline-flex items-center justify-center py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack transition"
+            >
+              {t("productDetail.addToCart")}
+            </button>
+          </div>
         </div>
-        <div>
-          <label className="block font-medium mb-1">
-            {t("productReviews.messageLabel")}
-          </label>
-          <textarea
-            value={revMessage}
-            onChange={(e) => setRevMessage(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-            rows={4}
-            placeholder={t("productReviews.messagePlaceholder")}
-          />
-        </div>
-        <input ref={fileRef} type="file" accept="image/*" />
-        <button
-          onClick={submitReview}
-          className="px-4 py-2 bg-black text-white rounded"
-        >
-          {t("productReviews.submit")}
-        </button>
-      </div>
 
-      {/* Suggestions */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold mb-4">
-          {t("productReviews.youMay")}
-        </h2>
-        {recommend.length === 0 ? (
-          <div className="text-gray-500">{t("productReviews.noSugg")}</div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {recommend.map((p) => (
+        {/* TABS */}
+        <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
+          <div className="flex overflow-x-auto no-scrollbar gap-2 border-b dark:border-neutral-800">
+            {["details", "care", "policy"].map((key) => (
               <button
-                key={p.id}
-                onClick={() => navigate(`/products/${p.id}`)}
-                className="bg-white rounded-xl p-4 shadow hover:shadow-md text-left"
+                key={key}
+                className={`py-2 px-4 font-semibold whitespace-nowrap -mb-px transition ${
+                  activeTab === key
+                    ? "border-b-2 border-backnewswhite text-backnewswhite"
+                    : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
+                }`}
+                onClick={() => setActiveTab(key)}
               >
-                <img
-                  src={p.image}
-                  alt={productTitle(p, lang)}
-                  className="w-full h-40 object-cover rounded mb-2"
-                />
-                <div className="font-semibold truncate">
-                  {productTitle(p, lang)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {fmtEUR(resolveProductPrice(p), locale)}
-                </div>
+                {key === "details"
+                  ? t("productDetail.tabs.details")
+                  : key === "care"
+                  ? t("productDetail.tabs.care")
+                  : t("productDetail.tabs.policy")}
               </button>
             ))}
           </div>
-        )}
-      </section>
 
-      <OnDemandModal
-        open={openDemand}
-        onClose={() => setOpenDemand(false)}
-        initialEmail={userEmail}
-        productId={product.id}
-        onSubmit={async (payload) => {
-          await createDemand(payload).unwrap();
-          setOpenDemand(false);
-        }}
-      />
+          <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
+            {activeTab === "details" && (
+              <>
+                {[1, 2, 3].map((n) => {
+                  const v = product[`descriptionpara${n}_${lang}`];
+                  return typeof v === "string" || typeof v === "number" ? (
+                    <p key={n}>{v}</p>
+                  ) : null;
+                })}
+              </>
+            )}
+
+            {activeTab === "care" && (
+              <div className="whitespace-pre-line">
+                {product[`carepara_${lang}`]
+                  ?.split(/\r?\n\r?\n/)
+                  .map((para, i) => {
+                    const ci = para.indexOf(":");
+                    if (ci !== -1) {
+                      const title = para.slice(0, ci).trim();
+                      const content = para.slice(ci + 1).trim();
+                      return (
+                        <p key={i}>
+                          <span className="font-semibold">{title}:</span>{" "}
+                          {content}
+                        </p>
+                      );
+                    }
+                    return <p key={i}>{para.trim()}</p>;
+                  })}
+              </div>
+            )}
+
+            {activeTab === "policy" && (
+              <>
+                <div className="space-y-2">
+                  <strong>{t("productDetail.policy.delivery")}:</strong>
+                  {product[`delivery_${lang}`]
+                    ?.split(/\r?\n\r?\n/)
+                    .map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                </div>
+                <div className="space-y-2">
+                  <strong>{t("productDetail.policy.returns")}:</strong>
+                  {[1, 2, 3].map((n) =>
+                    product[`returnspara${n}_${lang}`]
+                      ? product[`returnspara${n}_${lang}`]
+                          .split(/\r?\n\r?\n/)
+                          .map((p, i) => <p key={`${n}-${i}`}>{p}</p>)
+                      : null
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* REVIEWS */}
+        <ProductReviews productId={product.id} />
+
+        {/* WRITE REVIEW */}
+        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5 space-y-3">
+          <div className="flex items-center gap-3">
+            <label className="font-medium">{t("productReviews.title")}:</label>
+            <StarRating value={revRating} onChange={setRevRating} />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">
+              {t("productReviews.messageLabel")}
+            </label>
+            <textarea
+              value={revMessage}
+              onChange={(e) => setRevMessage(e.target.value)}
+              className="w-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent"
+              rows={4}
+              placeholder={t("productReviews.messagePlaceholder")}
+            />
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="block text-sm text-gray-700 dark:text-gray-300"
+          />
+          <button
+            onClick={submitReview}
+            className="px-4 py-2 bg-backnewswhite text-white rounded-lg hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack"
+          >
+            {t("productReviews.submit")}
+          </button>
+        </div>
+
+        {/* Suggestions */}
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">
+            {t("productReviews.youMay")}
+          </h2>
+          {recommend.length === 0 ? (
+            <div className="text-gray-500">{t("productReviews.noSugg")}</div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+              {recommend.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => navigate(`/products/${p.id}`)}
+                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
+                >
+                  <img
+                    src={p.image}
+                    alt={productTitle(p, lang)}
+                    className="w-full h-40 object-cover rounded-lg mb-2"
+                  />
+                  <div className="font-semibold truncate">
+                    {productTitle(p, lang)}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {fmtEUR(resolveProductPrice(p), locale)}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <OnDemandModal
+          open={openDemand}
+          onClose={() => setOpenDemand(false)}
+          initialEmail={userEmail}
+          productId={product.id}
+          onSubmit={async (payload) => {
+            await createDemand(payload).unwrap();
+            setOpenDemand(false);
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -6,12 +6,9 @@ export default function ScrollToTop() {
   const { pathname, search, hash } = useLocation();
 
   useEffect(() => {
-    // If you actually use in-page anchors (e.g., /page#features), keep default anchor scroll
-    if (hash) return;
-
-    // wait for the new route to render, then scroll
+    if (hash) return; // keep native anchor behavior
     requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" }); // or "smooth"
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     });
   }, [pathname, search, hash]);
 

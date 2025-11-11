@@ -32,13 +32,23 @@ export default function InstallmentsSchedulePreview({
   }
 
   return (
-    <div className="border rounded p-3 mt-2 text-sm">
-      <div className="font-medium mb-2">{t("installments.summaryTitle")}</div>
-      <div className="grid grid-cols-2 gap-1">
+    <div className="border border-black/10 dark:border-white/10 rounded-xl p-4 mt-2 text-sm bg-white dark:bg-gray-800">
+      <div className="font-semibold mb-3 text-backnewswhite dark:text-backnewsdark">
+        {t("installments.summaryTitle")}
+      </div>
+
+      <div className="grid grid-cols-2 gap-y-1">
         {rows.map((r, idx) => (
-          <div key={idx} className="flex items-center justify-between">
-            <span>{r.date}</span>
-            <span>{t("installments.amountEuro", { amount: Number(r.amount).toFixed(2) })}</span>
+          <div
+            key={idx}
+            className="flex items-center justify-between px-2 py-1 rounded even:bg-black/[0.03] dark:even:bg-white/[0.06]"
+          >
+            <span className="text-gray-800 dark:text-gray-100">{r.date}</span>
+            <span className="text-gray-900 dark:text-gray-100">
+              {t("installments.amountEuro", {
+                amount: Number(r.amount).toFixed(2),
+              })}
+            </span>
           </div>
         ))}
       </div>

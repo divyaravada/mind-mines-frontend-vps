@@ -56,7 +56,8 @@ function SaveCardStep({ email, onSaved, onError }) {
           billing_details: { email: email || undefined },
         },
       });
-      if (error) throw new Error(error.message || t("checkout.installments.saveFailed"));
+      if (error)
+        throw new Error(error.message || t("checkout.installments.saveFailed"));
       const pm = setupIntent?.payment_method;
       if (!pm) throw new Error(t("checkout.installments.noPaymentMethod"));
       onSaved?.(pm);
@@ -71,27 +72,31 @@ function SaveCardStep({ email, onSaved, onError }) {
     <div className="space-y-2">
       {!cs ? (
         <button
-          className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
+          className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
           onClick={initSI}
           disabled={isLoading}
         >
-          {isLoading ? t("checkout.installments.preparing") : t("checkout.installments.addCard")}
+          {isLoading
+            ? t("checkout.installments.preparing")
+            : t("checkout.installments.addCard")}
         </button>
       ) : (
         <>
-          <div className="border rounded p-3">
+          <div className="rounded-md p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
             <CardElement options={{ hidePostalCode: true }} />
           </div>
           <button
-            className="px-3 py-2 rounded bg-gray-900 text-white text-sm"
+            className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
             onClick={saveCard}
             disabled={saving}
           >
-            {saving ? t("checkout.installments.saving") : t("checkout.installments.saveCard")}
+            {saving
+              ? t("checkout.installments.saving")
+              : t("checkout.installments.saveCard")}
           </button>
         </>
       )}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         {t("checkout.installments.storeHint")}
       </p>
     </div>
@@ -147,8 +152,8 @@ export default function StripeCardInstallments({
 
   if (!active) {
     return (
-      <div className="border rounded p-3 mt-4">
-        <div className="text-sm text-gray-600">
+      <div className="border rounded-md p-3 mt-4 bg-marblewhite dark:bg-marbleblack border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-700 dark:text-gray-300">
           {t("checkout.installments.inactive", { months: monthsSafe })}
         </div>
       </div>
@@ -156,11 +161,13 @@ export default function StripeCardInstallments({
   }
 
   return (
-    <div className="border rounded p-3 mt-2 space-y-3">
-      <div className="text-sm">
+    <div className="border rounded-md p-3 mt-2 space-y-3 bg-marblewhite dark:bg-marbleblack border-gray-200 dark:border-gray-700">
+      <div className="text-sm text-gray-800 dark:text-gray-200">
         {t("checkout.installments.confirm", { months: monthsSafe })}
       </div>
-      {errorMsg && <div className="text-sm text-red-600">{errorMsg}</div>}
+      {errorMsg && (
+        <div className="text-sm text-red-600 dark:text-red-400">{errorMsg}</div>
+      )}
       {serverSchedule && (
         <InstallmentsSchedulePreview
           months={serverSchedule.months}
@@ -179,17 +186,19 @@ export default function StripeCardInstallments({
             onError={(m) => setErrorMsg(m)}
           />
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <button
               disabled={isLoading}
               onClick={() => startPlan(localPM)}
-              className="px-4 py-2 rounded bg-gray-900 text-white text-sm font-semibold hover:bg-black disabled:opacity-60"
+              className="px-4 py-2 rounded-md bg-backnewswhite text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
             >
-              {isLoading ? t("checkout.installments.starting") : t("checkout.installments.start")}
+              {isLoading
+                ? t("checkout.installments.starting")
+                : t("checkout.installments.start")}
             </button>
             <button
               type="button"
-              className="text-xs underline"
+              className="text-xs underline text-gray-700 dark:text-gray-300"
               onClick={() => {
                 setLocalPM(null);
                 setServerSchedule(null);

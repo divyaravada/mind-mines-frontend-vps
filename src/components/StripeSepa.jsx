@@ -1,33 +1,27 @@
-﻿import { useEffect, useState } from "react";
+﻿//src/components/StripeSepa.jsx
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { stripePromise } from "../lib/stripe";
 import {
   useStripeCreateSepaIntentMutation,
   useSepaPostConfirmMutation,
 } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
 
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
-);
+const pickErr = (e, fb) =>
+  e?.data?.detail ||
+  e?.data?.error ||
+  e?.error ||
+  (typeof e === "string" ? e : "") ||
+  fb;
 
-function pickErr(e, fallback) {
-  return (
-    e?.data?.detail ||
-    e?.data?.error ||
-    e?.error ||
-    (typeof e === "string" ? e : "") ||
-    fallback
-  );
-}
-
-function SepaInner({ orderId, clientSecret, onSuccess }) {
+function SepaInner({ orderId, onSuccess }) {
   const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
@@ -35,7 +29,7 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleConfirm() {
+  const handleConfirm = async () => {
     if (!stripe || !elements) return;
     setLoading(true);
     setErr("");
@@ -44,37 +38,37 @@ function SepaInner({ orderId, clientSecret, onSuccess }) {
         elements,
         redirect: "if_required",
       });
-
       if (error) {
         setErr(error.message || t("checkout.sepa.paymentFailed"));
         setLoading(false);
         return;
       }
-
       const status = paymentIntent?.status || "processing";
       await postConfirm({
         order_id: orderId,
         payment_intent_status: status,
       }).unwrap();
       onSuccess?.(orderId);
-    } catch (e) {
+    } catch {
       setErr(t("checkout.sepa.paymentError"));
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="border rounded p-3 mt-2 space-y-3">
+    <div className="border rounded-lg p-3 mt-2 space-y-3 bg-white dark:bg-marbleblack">
       <PaymentElement />
       {err && <div className="text-sm text-red-600">{err}</div>}
       <button
         disabled={!stripe || !elements || loading}
         onClick={handleConfirm}
-        className="w-full py-3 rounded bg-gray-900 text-white font-semibold hover:bg-black disabled:opacity-60 text-sm"
+        className="w-full py-3 rounded-lg font-semibold text-sm
+                   bg-backnewswhite text-marblewhite hover:opacity-90
+                   disabled:opacity-60"
       >
         {loading ? t("checkout.sepa.processing") : t("checkout.sepa.authorize")}
       </button>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-600 dark:text-gray-300">
         {t("checkout.sepa.notice")}
       </p>
     </div>
@@ -92,10 +86,8 @@ export default function StripeSepa({
   onSuccess,
   setLocalOrderId,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [createSepaIntent] = useStripeCreateSepaIntentMutation();
-
-  const radioLabel = t("checkout.sepa.radioLabel");
   const [clientSecret, setClientSecret] = useState("");
   const [orderId, setOrderId] = useState(null);
   const [loadingInit, setLoadingInit] = useState(false);
@@ -104,12 +96,10 @@ export default function StripeSepa({
   useEffect(() => {
     let cancelled = false;
     if (!active) return;
-
     if (Number(total) <= 0) {
       setInitErr(t("checkout.sepa.cartZero"));
       return;
     }
-
     (async () => {
       setLoadingInit(true);
       setInitErr("");
@@ -121,18 +111,10 @@ export default function StripeSepa({
           couponCode,
           payment_method: "sepa_debit",
         });
-
         const res = await createSepaIntent(payload).unwrap();
-        const cs =
-          res?.clientSecret ||
-          res?.client_secret ||
-          res?.data?.clientSecret ||
-          res?.data?.client_secret ||
-          "";
-        const oid = res?.order_id || res?.data?.order_id || null;
-
+        const cs = res?.clientSecret || res?.client_secret || "";
+        const oid = res?.order_id || null;
         if (!cs || !oid) throw new Error("Incomplete Stripe init.");
-
         if (!cancelled) {
           setClientSecret(cs);
           setOrderId(oid);
@@ -144,7 +126,6 @@ export default function StripeSepa({
         if (!cancelled) setLoadingInit(false);
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -157,11 +138,22 @@ export default function StripeSepa({
     customerEmail,
     createSepaIntent,
     setLocalOrderId,
+    t,
   ]);
+
+  const isDark = document.documentElement.classList.contains("dark");
+  const appearance = {
+    theme: "stripe",
+    variables: {
+      colorPrimary: "#ec8b0b",
+      colorText: isDark ? "#e5e7eb" : "#1f2937",
+      colorBackground: isDark ? "#17160f" : "#f8fcfe",
+    },
+  };
 
   if (!active) {
     return (
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+      <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 bg-white dark:bg-marbleblack">
         <input
           type="radio"
           name="payment"
@@ -169,14 +161,14 @@ export default function StripeSepa({
           checked={false}
           onChange={() => setActive?.("sepa_debit")}
         />
-        <span className="flex-1">{radioLabel}</span>
+        <span className="flex-1">{t("checkout.sepa.radioLabel")}</span>
       </label>
     );
   }
 
   return (
     <>
-      <label className="flex items-center gap-3 border rounded p-3 cursor-pointer mt-3">
+      <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 bg-white dark:bg-marbleblack">
         <input
           type="radio"
           name="payment"
@@ -184,17 +176,17 @@ export default function StripeSepa({
           checked
           onChange={() => setActive?.("sepa_debit")}
         />
-        <span className="flex-1">{radioLabel}</span>
+        <span className="flex-1">{t("checkout.sepa.radioLabel")}</span>
       </label>
 
       {loadingInit && (
-        <div className="border rounded p-3 mt-2 text-sm text-gray-600">
+        <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-marbleblack">
           {t("checkout.sepa.preparing")}
         </div>
       )}
 
       {initErr && (
-        <div className="border rounded p-3 mt-2 text-sm text-red-600">
+        <div className="border rounded-lg p-3 mt-2 text-sm text-red-600 bg-white dark:bg-marbleblack">
           {initErr}
         </div>
       )}
@@ -204,18 +196,13 @@ export default function StripeSepa({
           stripe={stripePromise}
           options={{
             clientSecret,
-            appearance: { theme: "stripe" },
-            locale: "de",
+            appearance,
+            locale: i18n.language?.startsWith("de") ? "de" : "en",
           }}
         >
-          <SepaInner
-            clientSecret={clientSecret}
-            orderId={orderId}
-            onSuccess={onSuccess}
-          />
+          <SepaInner orderId={orderId} onSuccess={onSuccess} />
         </Elements>
       )}
     </>
   );
 }
-

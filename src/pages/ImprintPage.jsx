@@ -7,59 +7,65 @@ export default function ImprintPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10 prose prose-neutral">
-      <h1>{t("legal.imprint.title")}</h1>
-      <p>
-        <em>{t("legal.lastUpdated", { date: today })}</em>
-      </p>
+    <main className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="container max-w-4xl mx-auto px-4 py-10">
+        <article className="prose prose-neutral dark:prose-invert max-w-none">
+          <h1>{t("legal.imprint.title")}</h1>
+          <p>
+            <em>{t("legal.lastUpdated", { date: today })}</em>
+          </p>
 
-      <section>
-        <h2>{t("legal.imprint.company")}</h2>
-        <p>
-          <strong>{t("legal.imprint.addressLabel")}:</strong>
-          <br />
-          {t("legal.imprint.address")}
-        </p>
-        <p>
-          <strong>{t("legal.imprint.managingPartners")}:</strong>
-          <br />
-          {t("legal.imprint.partnersList")}
-        </p>
-      </section>
+          <section>
+            <h2>{t("legal.imprint.company")}</h2>
+            <p>
+              <strong>{t("legal.imprint.addressLabel")}:</strong>
+              <br />
+              {t("legal.imprint.address")}
+            </p>
+            <p>
+              <strong>{t("legal.imprint.managingPartners")}:</strong>
+              <br />
+              {t("legal.imprint.partnersList")}
+            </p>
+          </section>
 
-      <section>
-        <h3>{t("legal.imprint.contact")}</h3>
-        <p>
-          <strong>{t("legal.imprint.email")}:</strong> {t("legal.imprint.emailValue")}
-          <br />
-          <strong>{t("legal.imprint.supportEmail")}:</strong>{" "}
-          {t("legal.imprint.supportEmailValue")}
-          <br />
-          <strong>{t("legal.imprint.whatsapp")}:</strong> {t("legal.imprint.whatsappValue")}
-        </p>
-        <p>
-          <strong>{t("legal.imprint.vat")}:</strong>{" "}
-          {t("legal.imprint.vatValue")}
-        </p>
-        <p>
-          <strong>{t("legal.imprint.hours")}:</strong>{" "}
-          {t("legal.imprint.hoursValue")}
-        </p>
-        <p>
-          <strong>{t("legal.imprint.businessType")}:</strong>{" "}
-          {t("legal.imprint.businessTypeValue")}
-        </p>
-      </section>
+          <section>
+            <h3>{t("legal.imprint.contact")}</h3>
+            <p>
+              <strong>{t("legal.imprint.email")}:</strong>{" "}
+              {t("legal.imprint.emailValue")}
+              <br />
+              <strong>{t("legal.imprint.supportEmail")}:</strong>{" "}
+              {t("legal.imprint.supportEmailValue")}
+              <br />
+              <strong>{t("legal.imprint.whatsapp")}:</strong>{" "}
+              {t("legal.imprint.whatsappValue")}
+            </p>
+            <p>
+              <strong>{t("legal.imprint.vat")}:</strong>{" "}
+              {t("legal.imprint.vatValue")}
+            </p>
+            <p>
+              <strong>{t("legal.imprint.hours")}:</strong>{" "}
+              {t("legal.imprint.hoursValue")}
+            </p>
+            <p>
+              <strong>{t("legal.imprint.businessType")}:</strong>{" "}
+              {t("legal.imprint.businessTypeValue")}
+            </p>
+          </section>
 
-      <section>
-        <h3>{t("legal.imprint.dispute")}</h3>
-        <p>{t("legal.imprint.disputeText")}</p>
-      </section>
+          <section>
+            <h3>{t("legal.imprint.dispute")}</h3>
+            <p>{t("legal.imprint.disputeText")}</p>
+          </section>
 
-      <section>
-        <h3>{t("legal.imprint.liability")}</h3>
-        <p>{t("legal.imprint.liabilityText")}</p>
-      </section>
+          <section>
+            <h3>{t("legal.imprint.liability")}</h3>
+            <p>{t("legal.imprint.liabilityText")}</p>
+          </section>
+        </article>
+      </div>
     </main>
   );
 }

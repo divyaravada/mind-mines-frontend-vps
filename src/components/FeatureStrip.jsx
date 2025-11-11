@@ -15,12 +15,15 @@ export function FeatureStrip() {
   ];
 
   return (
-    <section className="bg-[#ec8b0b] dark:bg-[#578d49] py-3">
-      <div className="max-w-10xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-marbleblack dark:text-gray-100 text-center items-center">
+    <section className="bg-backnewswhite dark:bg-backnewsdark py-3">
+      <div
+        className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4
+                      text-sm text-marbleblack dark:text-marblewhite text-center items-center"
+      >
         {features.map((feat, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <span>{feat.icon}</span>
-            <span>{feat.label}</span>
+            <span className="font-medium">{feat.label}</span>
           </div>
         ))}
       </div>

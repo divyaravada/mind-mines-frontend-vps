@@ -14,7 +14,6 @@ function formatSeconds(s) {
 
 export default function PromoBanner() {
   const { t } = useTranslation();
-  // âœ… All hooks are top-level and unconditional
   const [promo, setPromo] = useState(null);
   const [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState(null);
@@ -23,9 +22,11 @@ export default function PromoBanner() {
   const tickRef = useRef(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         const r = await http.get("promotions/active/");
+        if (!mounted) return;
         if (r.data?.active) {
           setPromo(r.data);
           setRemaining(r.data.remaining_seconds ?? null);
@@ -33,9 +34,13 @@ export default function PromoBanner() {
           setPromo(null);
         }
       } catch {
-        setPromo(null);
+        if (mounted) setPromo(null);
       }
     })();
+    return () => {
+      mounted = false;
+      clearInterval(tickRef.current);
+    };
   }, []);
 
   // countdown timer
@@ -50,11 +55,10 @@ export default function PromoBanner() {
 
   const hhmmss = formatSeconds(remaining);
   const show = !!promo && !hidden;
-
-  // âœ… Itâ€™s fine to early-return here because there are NO hooks below this line
   if (!show) return null;
 
-  const bg = promo.bg_color || "#111827";
+  // server can override; otherwise default integrates with your palette
+  const bg = promo.bg_color || "#17160f"; // marbleblack
   const fg = promo.text_color || "#ffffff";
 
   const apply = () => {
@@ -67,29 +71,41 @@ export default function PromoBanner() {
   return (
     <div
       style={{ backgroundColor: bg, color: fg }}
-      className="w-full border-b px-3 md:px-6 py-2 text-sm flex items-center gap-3 justify-between"
+      className="
+        w-full border-b border-white/10
+        px-3 md:px-6 py-2 text-sm
+        flex flex-col gap-2 md:flex-row md:items-center md:justify-between
+      "
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 md:gap-3">
         {promo.image && (
           <img
             src={promo.image}
             alt=""
-            className="h-6 w-6 object-contain rounded"
+            className="h-6 w-6 shrink-0 object-contain rounded"
           />
         )}
-        <div className="font-semibold">{promo.headline}</div>
+        <div className="truncate font-semibold">{promo.headline}</div>
         {promo.subheadline && (
-          <div className="opacity-90">{promo.subheadline}</div>
+          <div className="hidden md:block opacity-90">{promo.subheadline}</div>
         )}
         {hhmmss && (
-          <div className="ml-3 text-xs opacity-90">{t("promo.endsIn", { time: hhmmss })}</div>
+          <div className="ml-0 md:ml-3 text-xs opacity-90 shrink-0">
+            {t("promo.endsIn", { time: hhmmss })}
+          </div>
         )}
       </div>
+
       <div className="flex items-center gap-2">
         {promo.code && (
           <button
             onClick={apply}
-            className="px-3 py-1 rounded bg-white/10 hover:bg_white/20 border border-white/20"
+            className="
+              px-3 py-1 rounded
+              bg-white/10 hover:bg-white/20
+              border border-white/20
+              transition-colors
+            "
             style={{ color: fg }}
             title={t("promo.applyTitle")}
           >
@@ -97,7 +113,11 @@ export default function PromoBanner() {
           </button>
         )}
         {promo.link_url && (
-          <a href={promo.link_url} className="underline" style={{ color: fg }}>
+          <a
+            href={promo.link_url}
+            className="underline underline-offset-2 hover:opacity-90"
+            style={{ color: fg }}
+          >
             {t("promo.shopNow")}
           </a>
         )}
@@ -113,4 +133,3 @@ export default function PromoBanner() {
     </div>
   );
 }
-

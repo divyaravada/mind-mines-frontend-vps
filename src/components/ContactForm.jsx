@@ -17,7 +17,6 @@ export default function ContactSection() {
     message: "",
     hp: "",
   });
-
   const [sendContact, { isLoading, isSuccess, isError }] =
     useSendContactMutation();
 
@@ -35,14 +34,14 @@ export default function ContactSection() {
       }).unwrap();
       setForm({ name: "", email: "", message: "", hp: "" });
     } catch {
-      /* handled by isError */
+      /* handled by flags */
     }
   };
 
   return (
-    <div className="w-full py-14 bg-gradient-to-b from-[#eaeaea] via-[#f8fcfe] to-[#f8fcfe] dark:from-gray-900 dark:via-marbleblack dark:to-marbleblack text-backnewswhite dark:text-backnewsdark">
-      <div className="max-w-3xl mx-auto px-6">
-        <h2 className="text-3xl font-serif font-bold mb-2 text-marbleblack dark:text-white">
+    <div className="w-full py-14 bg-gradient-to-b from-gray-100 via-marblewhite to-marblewhite dark:from-gray-900 dark:via-marbleblack dark:to-marbleblack">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <h2 className="text-3xl font-bold mb-2 text-backnewswhite dark:text-backnewsdark">
           {t("about.contactHeading")}
         </h2>
         <p className="mb-7 text-gray-700 dark:text-gray-300">
@@ -50,57 +49,73 @@ export default function ContactSection() {
         </p>
 
         {/* Direct contact cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {/* WhatsApp */}
           <a
             href={WHATSAPP_LINK}
             target="_blank"
             rel="noreferrer"
-            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-black/5 dark:border-white/10 hover:shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-backnewswhite dark:focus-visible:ring-backnewsdark"
           >
             <div className="flex items-center gap-3">
-              <span className="font-bold">{t("about.whatsapp")}</span>
-              <span className="text-xs opacity-70 ml-auto">
+              <span className="font-bold text-gray-900 dark:text-gray-100">
+                {t("about.whatsapp")}
+              </span>
+              <span className="text-xs opacity-70 ml-auto text-gray-700 dark:text-gray-300">
                 {t("about.hoursValue")}
               </span>
             </div>
-            <div className="text-sm opacity-80 mt-1">{WHATSAPP}</div>
+            <div className="text-sm opacity-80 mt-1 text-gray-800 dark:text-gray-200">
+              {WHATSAPP}
+            </div>
           </a>
 
-          {/* Phone (optional – remove if you don’t use one) */}
+          {/* Phone */}
           <a
             href={PHONE_LINK}
-            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-black/5 dark:border-white/10 hover:shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-backnewswhite dark:focus-visible:ring-backnewsdark"
           >
             <div className="flex items-center gap-3">
-              <span className="font-bold">{t("about.phone")}</span>
-              <span className="text-xs opacity-70 ml-auto">
+              <span className="font-bold text-gray-900 dark:text-gray-100">
+                {t("about.phone")}
+              </span>
+              <span className="text-xs opacity-70 ml-auto text-gray-700 dark:text-gray-300">
                 {t("about.hoursValue")}
               </span>
             </div>
-            <div className="text-sm opacity-80 mt-1">{PHONE}</div>
+            <div className="text-sm opacity-80 mt-1 text-gray-800 dark:text-gray-200">
+              {PHONE}
+            </div>
           </a>
 
           {/* Email */}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 hover:shadow-md transition"
+            className="block rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-black/5 dark:border-white/10 hover:shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-backnewswhite dark:focus-visible:ring-backnewsdark"
           >
             <div className="flex items-center gap-3">
-              <span className="font-bold">{t("about.emailLabel")}</span>
-              <span className="text-xs opacity-70 ml-auto">
+              <span className="font-bold text-gray-900 dark:text-gray-100">
+                {t("about.emailLabel")}
+              </span>
+              <span className="text-xs opacity-70 ml-auto text-gray-700 dark:text-gray-300">
                 {t("about.hoursValue")}
               </span>
             </div>
-            <div className="text-sm opacity-80 mt-1">{SUPPORT_EMAIL}</div>
+            <div className="text-sm opacity-80 mt-1 text-gray-800 dark:text-gray-200">
+              {SUPPORT_EMAIL}
+            </div>
           </a>
         </div>
 
         {/* Address */}
-        <div className="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-gray-100 dark:border-gray-700 mb-8">
+        <div className="rounded-2xl bg-white dark:bg-gray-800 p-4 shadow border border-black/5 dark:border-white/10 mb-8">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="font-bold">{t("about.address")}:</span>
-            <span className="opacity-80">{t("about.addressValue")}</span>
+            <span className="font-bold text-gray-900 dark:text-gray-100">
+              {t("about.address")}:
+            </span>
+            <span className="opacity-80 text-gray-800 dark:text-gray-200">
+              {t("about.addressValue")}
+            </span>
           </div>
         </div>
 
@@ -109,10 +124,10 @@ export default function ContactSection() {
             {t("about.success")}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-7">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
-                <label className="block font-bold mb-2">
+                <label className="block font-semibold mb-2 text-gray-900 dark:text-gray-100">
                   {t("about.name")}
                 </label>
                 <input
@@ -121,11 +136,11 @@ export default function ContactSection() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  className="w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-marbleblack dark:focus:ring-white"
+                  className="w-full border border-black/10 dark:border-white/10 rounded px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark"
                 />
               </div>
               <div className="flex-1">
-                <label className="block font-bold mb-2">
+                <label className="block font-semibold mb-2 text-gray-900 dark:text-gray-100">
                   {t("about.email")}
                 </label>
                 <input
@@ -134,13 +149,13 @@ export default function ContactSection() {
                   value={form.email}
                   onChange={handleChange}
                   required
-                  className="w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-marbleblack dark:focus:ring-white"
+                  className="w-full border border-black/10 dark:border-white/10 rounded px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block font-bold mb-2">
+              <label className="block font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 {t("about.message")}
               </label>
               <textarea
@@ -148,14 +163,17 @@ export default function ContactSection() {
                 value={form.message}
                 onChange={handleChange}
                 required
-                className="w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-marbleblack dark:focus:ring-white min-h-[100px]"
+                className="w-full border border-black/10 dark:border-white/10 rounded px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark min-h-[120px]"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="px-8 py-2 rounded bg-marbleblack dark:bg-marblewhite dark:text-backnewsdark text-white hover:bg-black/90 font-semibold transition dark:backnewsdark dark:focus:ring-white"
+              className="inline-flex items-center justify-center px-8 py-2 rounded font-semibold transition
+                         bg-backnewswhite text-white hover:opacity-90
+                         dark:bg-backnewsdark dark:text-marblewhite
+                         disabled:opacity-60"
             >
               {isLoading ? t("about.sending") : t("about.send")}
             </button>

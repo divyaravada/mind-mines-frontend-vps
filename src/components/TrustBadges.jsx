@@ -1,45 +1,46 @@
-//src/components/TrustBadges.jsx
+// src/components/TrustBadges.jsx
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 const Tag = ({ children }) => (
-  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 shadow border border-gray-100 dark:border-gray-700">
+  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-marblewhite dark:bg-marbleblack/60 shadow-sm border border-gray-200/70 dark:border-gray-700/60">
     {children}
   </div>
 );
 
 const Logo = ({ label }) => (
-  <span className="text-sm font-semibold tracking-wide">{label}</span>
+  <span className="text-sm font-semibold tracking-wide text-backnewswhite dark:text-backnewsdark">
+    {label}
+  </span>
 );
 
 export default function TrustBadges() {
   const { t } = useTranslation();
+
   return (
     <section
       aria-label={t("badges.ariaLabel")}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
     >
       <Tag>
-        {/* Payments: PayPal, Klarna, Visa, SEPA */}
         <div className="flex gap-3 items-center">
           <Logo label="PayPal" />
-          <span>•</span>
+          <span className="opacity-50">•</span>
           <Logo label="Visa" />
-          <span>•</span>
+          <span className="opacity-50">•</span>
           <Logo label="SEPA" />
         </div>
-        <span className="ml-auto text-xs opacity-75">
+        <span className="ml-auto text-xs text-gray-600 dark:text-gray-300">
           {t("badges.payments")}
         </span>
       </Tag>
 
       <Tag>
-        {/* SSL */}
         <svg
           width="22"
           height="22"
           viewBox="0 0 24 24"
-          className="opacity-80"
+          className="opacity-80 text-backnewswhite dark:text-backnewsdark"
           aria-hidden="true"
         >
           <path
@@ -47,17 +48,20 @@ export default function TrustBadges() {
             fill="currentColor"
           />
         </svg>
-        <span className="font-semibold">{t("badges.security")}</span>
-        <span className="ml-auto text-xs opacity-75">{t("badges.ssl")}</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
+          {t("badges.security")}
+        </span>
+        <span className="ml-auto text-xs text-gray-600 dark:text-gray-300">
+          {t("badges.ssl")}
+        </span>
       </Tag>
 
       <Tag>
-        {/* 14-day guarantee */}
         <svg
           width="22"
           height="22"
           viewBox="0 0 24 24"
-          className="opacity-80"
+          className="opacity-80 text-backnewswhite dark:text-backnewsdark"
           aria-hidden="true"
         >
           <path
@@ -65,8 +69,10 @@ export default function TrustBadges() {
             fill="currentColor"
           />
         </svg>
-        <span className="font-semibold">{t("badges.guarantee")}</span>
-        <span className="ml-auto text-xs opacity-75">
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
+          {t("badges.guarantee")}
+        </span>
+        <span className="ml-auto text-xs text-gray-600 dark:text-gray-300">
           {t("badges.shipsTo")}
         </span>
       </Tag>

@@ -6,8 +6,8 @@ import http from "../services/http";
 
 function KV({ k, v }) {
   return (
-    <div className="flex items-center justify-between bg-white rounded px-3 py-2">
-      <div className="text-gray-500">{k}</div>
+    <div className="flex items-center justify-between bg-white dark:bg-neutral-900 rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-800">
+      <div className="text-gray-500 dark:text-gray-400">{k}</div>
       <div className="font-medium">{v}</div>
     </div>
   );
@@ -15,11 +15,11 @@ function KV({ k, v }) {
 
 function BankBlock({ bankInfo, t }) {
   return (
-    <div className="mb-6 border rounded p-4 bg-gray-50">
+    <div className="mb-6 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 bg-gray-50 dark:bg-neutral-900/60">
       <h2 className="font-semibold mb-2">{t("checkoutSuccess.bankTitle")}</h2>
-      <p className="text-sm text-gray-600 mb-3">
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
         {t("checkoutSuccess.bankIntro")}
-        <span className="font-semibold">{bankInfo.amount} €</span>
+        <span className="font-semibold"> {bankInfo.amount} € </span>
         {t("checkoutSuccess.bankIntro2")}
       </p>
 
@@ -32,7 +32,9 @@ function BankBlock({ bankInfo, t }) {
       </div>
 
       {bankInfo.instructions && (
-        <p className="text-xs text-gray-500 mt-3">{bankInfo.instructions}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+          {bankInfo.instructions}
+        </p>
       )}
     </div>
   );
@@ -56,9 +58,8 @@ export default function CheckoutSuccess() {
       const raw = sessionStorage.getItem("bank_checkout_info");
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (parsed && String(parsed.order_id) === String(orderId)) {
+      if (parsed && String(parsed.order_id) === String(orderId))
         setBankInfo(parsed);
-      }
     } catch {}
   }, [orderId]);
 
@@ -90,6 +91,7 @@ export default function CheckoutSuccess() {
     guestSummary?.payment_method_label ||
     guestSummary?.payment_method ||
     null;
+
   useEffect(() => {
     if (hasAuth) return;
     try {
@@ -112,6 +114,7 @@ export default function CheckoutSuccess() {
     } catch {}
     setLoading(false);
   }, [orderId, hasAuth]);
+
   useEffect(() => {
     if (hasAuth) return;
 
@@ -137,10 +140,7 @@ export default function CheckoutSuccess() {
     }
 
     let cancelled = false;
-    const payload = {
-      order_number: String(lookupNumber),
-      email: guestEmail,
-    };
+    const payload = { order_number: String(lookupNumber), email: guestEmail };
 
     (async () => {
       if (!cancelled) setLoading(true);
@@ -150,17 +150,13 @@ export default function CheckoutSuccess() {
           setGuestOrder(res.data || null);
           setGuestLookupError("");
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
           setGuestOrder(null);
-          setGuestLookupError(
-            t("checkoutSuccess.guestLookupFailed")
-          );
+          setGuestLookupError(t("checkoutSuccess.guestLookupFailed"));
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     })();
 
@@ -175,7 +171,6 @@ export default function CheckoutSuccess() {
       setLoading(false);
       return;
     }
-
     let timer;
     let stopped = false;
 
@@ -184,7 +179,6 @@ export default function CheckoutSuccess() {
         const res = await http.get(`orders/${orderId}/`);
         setOrder(res.data);
         setError(null);
-
         if (res.data?.invoice_pdf) {
           stopped = true;
           if (timer) clearInterval(timer);
@@ -203,17 +197,24 @@ export default function CheckoutSuccess() {
 
   if (!orderId) {
     return (
-      <div className="p-10 text-center">{t("checkoutSuccess.noOrder")}</div>
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack p-10 text-center">
+        {t("checkoutSuccess.noOrder")}
+      </div>
     );
   }
-  if (hasAuth && loading) {
-    return <div className="p-10 text-center">{t("common.loading")}</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack p-10 text-center">
+        {t("common.loading")}
+      </div>
+    );
   }
   if (hasAuth && error) {
-    return <div className="p-10 text-center text-red-600">{error}</div>;
-  }
-  if (!hasAuth && loading) {
-    return <div className="p-10 text-center">{t("common.loading")}</div>;
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack p-10 text-center text-red-600">
+        {error}
+      </div>
+    );
   }
 
   // ---- Logged-in mode ----
@@ -223,43 +224,48 @@ export default function CheckoutSuccess() {
     const isPaid = order?.status === "paid";
 
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10 text-center">
-        <h1 className="text-2xl font-bold mb-2">
-          {t("checkoutSuccess.thankYou")}
-        </h1>
-        <p className="text-gray-600 mb-6">
-          {t("checkoutSuccess.created", { number: order?.number || orderId })}
-        </p>
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+        <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 text-center">
+          <h1 className="text-2xl font-bold mb-2">
+            {t("checkoutSuccess.thankYou")}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {t("checkoutSuccess.created", { number: order?.number || orderId })}
+          </p>
 
-        {isBank && !isPaid && bankInfo && (
-          <BankBlock bankInfo={bankInfo} t={t} />
-        )}
-
-        <div className="text-center">
-          {hasInvoice ? (
-            <a
-              href={toAbsoluteUrl(order.invoice_pdf)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-block px-4 py-2 rounded bg-gray-900 text-white"
-            >
-              {t("checkoutSuccess.downloadInvoice")}
-            </a>
-          ) : isBank && !isPaid ? (
-            <p className="text-sm text-gray-600">
-              {t("checkoutSuccess.waitingBank")}
-            </p>
-          ) : (
-            <p className="text-sm text-gray-500">
-              {t("checkoutSuccess.generatingInvoice")}
-            </p>
+          {isBank && !isPaid && bankInfo && (
+            <BankBlock bankInfo={bankInfo} t={t} />
           )}
-        </div>
 
-        <div className="mt-6">
-          <Link to="/account/orders" className="text-blue-600 underline">
-            {t("checkoutSuccess.goToOrders")}
-          </Link>
+          <div className="text-center">
+            {hasInvoice ? (
+              <a
+                href={toAbsoluteUrl(order.invoice_pdf)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+              >
+                {t("checkoutSuccess.downloadInvoice")}
+              </a>
+            ) : isBank && !isPaid ? (
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {t("checkoutSuccess.waitingBank")}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("checkoutSuccess.generatingInvoice")}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <Link
+              to="/account/orders"
+              className="text-backnewswhite dark:text-backnewsdark underline"
+            >
+              {t("checkoutSuccess.goToOrders")}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -267,104 +273,116 @@ export default function CheckoutSuccess() {
 
   // ---- Guest mode ----
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10 text-center">
-      <h1 className="text-2xl font-bold mb-2">
-        {t("checkoutSuccess.thankYou")}
-      </h1>
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 text-center">
+        <h1 className="text-2xl font-bold mb-2">
+          {t("checkoutSuccess.thankYou")}
+        </h1>
 
-      <p className="text-gray-600 mb-4">
-        {guestOrderNumber
-          ? t("checkoutSuccess.created", { number: guestOrderNumber })
-          : t("checkoutSuccess.createdNoNumber")}
-      </p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          {guestOrderNumber
+            ? t("checkoutSuccess.created", { number: guestOrderNumber })
+            : t("checkoutSuccess.createdNoNumber")}
+        </p>
 
-      {(guestStatus || guestTotal || guestPaymentMethod) && (
-        <div className="text-sm text-gray-600 mb-4 space-y-1">
-          {guestStatus && (
-            <div>
-              {t("checkoutSuccess.statusNow", { status: guestStatus })}
-            </div>
-          )}
-          {guestTotal && (
-            <div>
-              {t("checkoutSuccess.totalGuest", { amount: `${guestTotal} ${guestCurrency}` })}
-            </div>
-          )}
-          {guestPaymentMethod && (
-            <div>
-              {t("checkoutSuccess.paymentMethodGuest", { method: guestPaymentMethod })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {guestInfo?.bank && (
-        <div className="mb-6 border rounded p-4 bg-gray-50 text-left">
-          <h2 className="font-semibold mb-2">
-            {t("checkoutSuccess.bankTitle")}
-          </h2>
-          <p className="text-sm text-gray-600 mb-3">
-            {t("checkoutSuccess.bankIntro")}
-            <span className="font-semibold">{guestInfo.bank.amount} €</span>
-            {t("checkoutSuccess.bankIntro2")}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <KV
-              k={t("checkoutSuccess.amount")}
-              v={`${guestInfo.bank.amount} €`}
-            />
-            <KV
-              k={t("checkoutSuccess.reference")}
-              v={guestInfo.bank.reference}
-            />
-            <KV k={t("checkoutSuccess.iban")} v={guestInfo.bank.iban} />
-            <KV k={t("checkoutSuccess.bic")} v={guestInfo.bank.bic} />
-            <KV
-              k={t("checkoutSuccess.beneficiary")}
-              v={guestInfo.bank.beneficiary}
-            />
+        {(guestStatus || guestTotal || guestPaymentMethod) && (
+          <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 space-y-1">
+            {guestStatus && (
+              <div>
+                {t("checkoutSuccess.statusNow", { status: guestStatus })}
+              </div>
+            )}
+            {guestTotal && (
+              <div>
+                {t("checkoutSuccess.totalGuest", {
+                  amount: `${guestTotal} ${guestCurrency}`,
+                })}
+              </div>
+            )}
+            {guestPaymentMethod && (
+              <div>
+                {t("checkoutSuccess.paymentMethodGuest", {
+                  method: guestPaymentMethod,
+                })}
+              </div>
+            )}
           </div>
+        )}
 
-          {guestInfo.bank.instructions && (
-            <p className="text-xs text-gray-500 mt-3">
-              {guestInfo.bank.instructions}
+        {guestInfo?.bank && (
+          <div className="mb-6 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 bg-gray-50 dark:bg-neutral-900/60 text-left">
+            <h2 className="font-semibold mb-2">
+              {t("checkoutSuccess.bankTitle")}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+              {t("checkoutSuccess.bankIntro")}
+              <span className="font-semibold"> {guestInfo.bank.amount} € </span>
+              {t("checkoutSuccess.bankIntro2")}
             </p>
-          )}
-        </div>
-      )}
 
-      {guestInvoiceUrl ? (
-        <div className="text-center mb-6">
-          <a
-            className="inline-block px-4 py-2 rounded bg-gray-900 text-white"
-            href={guestInvoiceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <KV
+                k={t("checkoutSuccess.amount")}
+                v={`${guestInfo.bank.amount} €`}
+              />
+              <KV
+                k={t("checkoutSuccess.reference")}
+                v={guestInfo.bank.reference}
+              />
+              <KV k={t("checkoutSuccess.iban")} v={guestInfo.bank.iban} />
+              <KV k={t("checkoutSuccess.bic")} v={guestInfo.bank.bic} />
+              <KV
+                k={t("checkoutSuccess.beneficiary")}
+                v={guestInfo.bank.beneficiary}
+              />
+            </div>
+
+            {guestInfo.bank.instructions && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                {guestInfo.bank.instructions}
+              </p>
+            )}
+          </div>
+        )}
+
+        {guestInvoiceUrl ? (
+          <div className="text-center mb-6">
+            <a
+              className="inline-block px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+              href={guestInvoiceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("checkoutSuccess.downloadInvoice")}
+            </a>
+          </div>
+        ) : guestSummary ? (
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-6">
+            {t("checkoutSuccess.guestInvoicePending")}
+          </div>
+        ) : null}
+
+        {guestLookupError && (
+          <div className="text-xs text-red-600 text-center mb-4">
+            {guestLookupError}
+          </div>
+        )}
+
+        <div className="mt-6 space-y-2">
+          <Link
+            to="/guest-order"
+            className="text-backnewswhite dark:text-backnewsdark underline block"
           >
-            {t("checkoutSuccess.downloadInvoice")}
-          </a>
-        </div>
-      ) : guestSummary ? (
-        <div className="text-xs text-gray-500 text-center mb-6">
-          {t("checkoutSuccess.guestInvoicePending")}
-        </div>
-      ) : null}
+            {t("checkoutSuccess.trackGuest")}
+          </Link>
 
-      {guestLookupError && (
-        <div className="text-xs text-red-600 text-center mb-4">
-          {guestLookupError}
+          <Link
+            to="/"
+            className="text-gray-700 dark:text-gray-300 underline block"
+          >
+            {t("checkoutSuccess.backHome")}
+          </Link>
         </div>
-      )}
-
-      <div className="mt-6 space-y-2">
-        <Link to="/guest-order" className="text-blue-600 underline block">
-          {t("checkoutSuccess.trackGuest")}
-        </Link>
-
-        <Link to="/" className="text-gray-700 underline block">
-          {t("checkoutSuccess.backHome")}
-        </Link>
       </div>
     </div>
   );

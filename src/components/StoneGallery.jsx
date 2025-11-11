@@ -18,28 +18,30 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 w-full">
+    <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
       {/* Thumbnails */}
-      <div className="flex md:flex-col gap-2 overflow-y-auto max-h-[600px] pr-2">
+      <div className="flex md:flex-col gap-2 md:gap-3 overflow-x-auto md:overflow-y-auto max-h-[560px] md:pr-2">
         {images.map((img, i) => (
           <img
             key={i}
             src={img}
             onClick={() => setActiveIndex(i)}
-            className={`w-20 h-20 object-cover rounded cursor-pointer border transition ${
+            className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer border transition
+            ${
               i === activeIndex
-                ? "border-blue-500 ring-2 ring-blue-300"
-                : "border-gray-300"
+                ? "border-backnewswhite ring-2 ring-backnewswhite/40"
+                : "border-gray-300 dark:border-gray-600"
             }`}
             alt=""
           />
         ))}
       </div>
 
-      {/* Main image with simple zoom on hover */}
-      <div className="flex-1 grid md:grid-cols-[600px_1fr] gap-6">
+      {/* Main + details */}
+      <div className="flex-1 grid md:grid-cols-[minmax(0,600px)_1fr] gap-4 md:gap-6">
+        {/* Main image with zoom */}
         <div
-          className="w-full h-[597px] border rounded bg-no-repeat bg-contain md:bg-cover"
+          className="w-full aspect-[4/3] md:h-[560px] border rounded-xl bg-no-repeat bg-contain md:bg-cover bg-center dark:border-gray-700"
           style={{
             backgroundImage: `url(${active})`,
             backgroundPosition: bgPos,
@@ -47,7 +49,6 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
           onMouseMove={onMove}
           onMouseLeave={() => setBgPos("center")}
         >
-          {/* also render the image for accessibility / fallback */}
           <img
             src={active}
             alt="Stone"
@@ -55,8 +56,8 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
           />
         </div>
 
-        {/* Right-side details (keep your existing content or translations here) */}
-        <div className="flex flex-col gap-4 text-sm text-gray-800">
+        {/* Right details */}
+        <div className="flex flex-col gap-4 text-sm text-gray-800 dark:text-gray-200">
           <h2 className="text-2xl font-semibold capitalize">{stoneType}</h2>
 
           {/* Colors */}
@@ -64,15 +65,15 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
             <p className="font-semibold mb-2">
               {t("naturalStone.stone1.availableColors")}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {["white", "black", "gray", "beige", "green", "maroon"].map(
                 (color) => (
                   <div
                     key={color}
-                    className="w-6 h-6 rounded-full border shadow cursor-pointer"
+                    className="w-6 h-6 rounded-full border shadow-sm cursor-default"
                     style={{ backgroundColor: color }}
                     title={color}
-                  ></div>
+                  />
                 )
               )}
             </div>
@@ -83,7 +84,7 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
             <p className="font-semibold mb-2">
               {t("naturalStone.stone1.features")}
             </p>
-            <ul className="list-disc ml-5 text-gray-600 text-sm">
+            <ul className="list-disc ml-5 text-gray-700 dark:text-gray-300 space-y-1">
               {t("naturalStone.stone1.featureList", {
                 returnObjects: true,
               }).map((feature, i) => (
@@ -97,7 +98,9 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
             <p className="font-semibold mb-2">
               {t("naturalStone.stone1.usedFor")}
             </p>
-            <p className="text-gray-600">{t("naturalStone.stone1.usage")}</p>
+            <p className="text-gray-700 dark:text-gray-300">
+              {t("naturalStone.stone1.usage")}
+            </p>
           </div>
         </div>
       </div>

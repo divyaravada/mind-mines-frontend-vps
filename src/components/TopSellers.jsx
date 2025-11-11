@@ -37,8 +37,7 @@ export default function TopSellers() {
   const [removeWish] = useRemoveFromWishlistMutation();
 
   const toggleWishlist = async (id) => {
-    if (!isLoggedIn)
-      return toast.warning(t("home.topsellers.loginRequired"));
+    if (!isLoggedIn) return toast.warning(t("home.topsellers.loginRequired"));
     try {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
@@ -66,28 +65,30 @@ export default function TopSellers() {
   };
 
   return (
-    <section className="py-12 bg-white dark:bg-marbleblack">
+    <section className="py-12 bg-marblewhite dark:bg-marbleblack">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-end justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
             {t("home.topsellers.title")}
           </h2>
           <a
             href="/decorative-products"
-            className="text-sm underline underline-offset-4"
+            className="text-sm font-medium text-backnewswhite hover:opacity-90"
           >
             {t("home.topsellers.seeAll")}
           </a>
         </div>
 
         {isLoading ? (
-          <div className="text-gray-500">{t("common.loading")}</div>
+          <div className="text-gray-600 dark:text-gray-300">
+            {t("common.loading")}
+          </div>
         ) : top.length === 0 ? (
-          <div className="text-gray-400">
+          <div className="text-gray-500 dark:text-gray-400">
             {t("home.topsellers.empty")}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
             {top.map((p) => (
               <ProductTile
                 key={p.id}

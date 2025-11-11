@@ -151,7 +151,8 @@ export default function ProductReviews({ productId }) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => save(rv.id)}
-                          className="px-3 py-1 bg-black text-white rounded disabled:opacity-60"
+                          className="px-3 py-1 bg-backnewswhite text-white rounded disabled:opacity-60
+            dark:bg-backnewsdark dark:text-marbleblack"
                           disabled={saving}
                         >
                           {saving

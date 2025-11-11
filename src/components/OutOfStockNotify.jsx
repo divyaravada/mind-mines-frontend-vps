@@ -33,10 +33,11 @@ export default function OutOfStockNotify({ productId }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder={t("stockNotify.placeholder")}
-        className="border rounded px-3 py-2 text-sm flex-1 dark:bg-gray-800"
+        className="border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm flex-1 bg-white dark:bg-gray-800"
       />
       <button
-        className="px-4 py-2 rounded bg-gray-900 text-white disabled:opacity-50"
+        className="px-4 py-2 rounded bg-backnewswhite text-white disabled:opacity-50
+            dark:bg-backnewsdark dark:text-marbleblack"
         disabled={!email || isLoading}
       >
         {isLoading ? t("stockNotify.sending") : t("stockNotify.submit")}

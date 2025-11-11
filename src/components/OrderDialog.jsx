@@ -17,11 +17,7 @@ function toNumeric(value) {
     return value;
   }
   if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(
-      value
-        .replace(/[^\d.,-]/g, "")
-        .replace(",", ".")
-    );
+    const parsed = Number(value.replace(/[^\d.,-]/g, "").replace(",", "."));
     if (Number.isFinite(parsed)) {
       return parsed;
     }
@@ -357,7 +353,10 @@ export default function OrderDialog({ orderId, open, onClose }) {
     [shippingData]
   );
   const shippingPhone =
-    shippingData?.phone || shippingData?.phone_number || shippingData?.phoneNumber || null;
+    shippingData?.phone ||
+    shippingData?.phone_number ||
+    shippingData?.phoneNumber ||
+    null;
   const shippingEmail = order?.email || shippingData?.email || null;
 
   const totalBytes = (files) =>
@@ -494,10 +493,12 @@ export default function OrderDialog({ orderId, open, onClose }) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
-        <div className="flex items-start justify-between mb-4 text-backnewswhite dark:text-backnewsdark">
+      <div className="relative bg-marblewhite dark:bg-marbleblack text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-xl font-semibold">{t("order.details")}</h3>
+            <h3 className="text-xl font-semibold text-backnewswhite dark:text-backnewsdark">
+              {t("order.details")}
+            </h3>
             {order && (
               <p className="text-sm text-gray-500">
                 {t("order.orderHash")} #{orderNumber}
@@ -616,8 +617,12 @@ export default function OrderDialog({ orderId, open, onClose }) {
                           {line.unitPrice != null && (
                             <>
                               {" | "}
-                              {t("order.unit")}: {" "}
-                              {formatMoney(line.unitPrice, locale, orderCurrency)}
+                              {t("order.unit")}:{" "}
+                              {formatMoney(
+                                line.unitPrice,
+                                locale,
+                                orderCurrency
+                              )}
                             </>
                           )}
                         </div>
@@ -681,7 +686,9 @@ export default function OrderDialog({ orderId, open, onClose }) {
               </div>
             )}
 
-            {(paymentMethodLabel || paymentStatusLabel || installmentsLabel) && (
+            {(paymentMethodLabel ||
+              paymentStatusLabel ||
+              installmentsLabel) && (
               <div>
                 <div className="text-sm font-semibold mb-1">
                   {t("order.paymentDetails", "Payment details")}
@@ -735,7 +742,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 flex-wrap text-backnewswhite dark:text-backnewsdark">
+            <div className="flex items-center justify-end gap-2 flex-wrap">
               {showReturnBtn && (
                 <button
                   onClick={() => !returnDisabled && setRetOpen(true)}
@@ -766,7 +773,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
               {showCancelBtn && (
                 <button
                   onClick={() => setCancelOpen(true)}
-                  className="px-4 py-2 rounded border hover:bg-gray-50"
+                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
                 >
                   {t("order.cancel")}
                 </button>
@@ -777,7 +784,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   href={invoiceHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 rounded bg-black text-white text-backnewswhite dark:text-backnewsdark"
+                  className="px-4 py-2 rounded bg-backnewswhite text-white hover:opacity-90
+          dark:bg-backnewsdark dark:text-marbleblack"
                 >
                   {t("order.downloadInvoice")}
                 </a>
@@ -785,7 +793,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded border hover:bg-gray-50"
+                className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
               >
                 {t("common.close")}
               </button>
@@ -800,8 +808,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
         )}
 
         {cancelOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
-            <div className="bg-white rounded shadow p-5 w-full max-w-md">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-5 w-[92%] sm:w-full max-w-md text-gray-800 dark:text-gray-100">
               <h3 className="text-lg font-semibold mb-2">
                 {t("order.cancelOrder")}
               </h3>
@@ -845,8 +853,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
         )}
 
         {retOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-backnewswhite dark:text-backnewsdark">
-            <div className="bg-white rounded shadow p-5 w-full max-w-md">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-5 w-[92%] sm:w-full max-w-md text-gray-800 dark:text-gray-100">
               <h3 className="text-lg font-semibold mb-2">
                 {t("order.returnOrder")}
               </h3>
@@ -935,5 +943,3 @@ export default function OrderDialog({ orderId, open, onClose }) {
     </div>
   );
 }
-
-

@@ -29,7 +29,7 @@ function formatCurrency(value, currency = "EUR") {
         style: "currency",
         currency,
       }).format(num);
-    } catch (err) {
+    } catch {
       return `${num.toFixed(2)} ${currency}`;
     }
   }
@@ -39,35 +39,29 @@ function formatCurrency(value, currency = "EUR") {
 function formatDateTime(value) {
   if (!value) return "-";
   try {
-    const date = new Date(value);
-    if (!Number.isNaN(date.getTime())) {
-      return date.toLocaleString();
-    }
-  } catch (err) {
-    // ignore
-  }
+    const d = new Date(value);
+    if (!Number.isNaN(d.getTime())) return d.toLocaleString();
+  } catch {}
   return String(value);
 }
 
 function Row({ label, value }) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <div className="text-gray-500">{label}</div>
-      <div className="font-medium text-right">{value}</div>
+    <div className="flex items-center justify-between text-sm mt-1">
+      <div className="text-gray-600 dark:text-gray-300">{label}</div>
+      <div className="font-semibold">{value}</div>
     </div>
   );
 }
 
 function ItemsList({ items, currency, t }) {
-  if (!Array.isArray(items) || items.length === 0) {
-    return null;
-  }
+  if (!Array.isArray(items) || items.length === 0) return null;
   return (
     <div>
-      <div className="text-sm text-gray-500 mb-2">
+      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
         {t("guest.items", { defaultValue: "Items" })}
       </div>
-      <ul className="border rounded divide-y divide-gray-200">
+      <ul className="border dark:border-neutral-700 rounded-lg divide-y divide-gray-200 dark:divide-neutral-800">
         {items.map((item, idx) => {
           const key = `${item?.product_id ?? idx}-${idx}`;
           const qty = item?.quantity ?? item?.qty ?? 1;
@@ -82,7 +76,7 @@ function ItemsList({ items, currency, t }) {
                     item?.product_name ||
                     t("guest.item", { defaultValue: "Item" })}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   {t("guest.quantityLabel", { defaultValue: "Qty" })}: {qty} |{" "}
                   {formatCurrency(item?.unit_price, currency)}
                 </div>
@@ -103,9 +97,7 @@ function renderAddress(addr) {
   const parts = [];
   const first = addr.first_name || addr.firstName;
   const last = addr.last_name || addr.lastName;
-  if (first || last) {
-    parts.push([first, last].filter(Boolean).join(" "));
-  }
+  if (first || last) parts.push([first, last].filter(Boolean).join(" "));
   const line1 = addr.line1 || addr.address_line1 || "";
   const line2 = addr.line2 || addr.address_line2 || "";
   if (line1) parts.push(line1);
@@ -119,8 +111,8 @@ function renderAddress(addr) {
   if (addr.phone) parts.push(addr.phone);
   return (
     <>
-      {parts.map((part, idx) => (
-        <div key={`${part}-${idx}`}>{part}</div>
+      {parts.map((p, i) => (
+        <div key={`${p}-${i}`}>{p}</div>
       ))}
     </>
   );
@@ -175,19 +167,15 @@ export default function GuestOrderLookupPage() {
       const parsed = JSON.parse(raw);
       if (parsed?.order_number) setOrderNumber(parsed.order_number);
       if (parsed?.email) setEmail(parsed.email);
-    } catch (err) {
-      // ignore
-    }
+    } catch {}
   }, []);
 
   const onLookup = async (e) => {
     e.preventDefault();
     setError("");
     setResult(null);
-
     const num = orderNumber.trim();
     const em = email.trim();
-
     if (!num || !em) {
       setError(
         t("guest.formError", {
@@ -196,16 +184,13 @@ export default function GuestOrderLookupPage() {
       );
       return;
     }
-
     setLoading(true);
     try {
       const res = await http.post("orders/guest-lookup/", {
         order_number: num,
         email: em,
       });
-
       setResult(res.data || null);
-      setError("");
       sessionStorage.setItem(
         "guest_lookup_last",
         JSON.stringify({ order_number: num, email: em })
@@ -237,162 +222,166 @@ export default function GuestOrderLookupPage() {
   const trackingNumber = result?.tracking_number || result?.tracking?.number;
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-4">
-      <h1 className="text-2xl font-semibold mb-2 text-center">
-        {t("guest.lookupTitle", { defaultValue: "Track your order (guest)" })}
-      </h1>
-      <p className="text-gray-600 text-center mb-8 text-sm">
-        {t("guest.lookupDesc", {
-          defaultValue:
-            "Enter the order number from your confirmation email and the same email address you used at checkout.",
-        })}
-      </p>
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <div className="container max-w-xl mx-auto py-12 px-4">
+        <h1 className="text-2xl font-semibold mb-2 text-center">
+          {t("guest.lookupTitle", { defaultValue: "Track your order (guest)" })}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300 text-center mb-8 text-sm">
+          {t("guest.lookupDesc", {
+            defaultValue:
+              "Enter the order number from your confirmation email and the same email address you used at checkout.",
+          })}
+        </p>
 
-      <form
-        onSubmit={onLookup}
-        className="bg-white rounded shadow p-6 space-y-4"
-      >
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">
-            {t("guest.orderNumber", { defaultValue: "Order number" })}
-            <span className="text-gray-400 text-xs">(e.g. MM00000406)</span>
-          </label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            value={orderNumber}
-            onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="MM00000406"
-            autoComplete="off"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">
-            {t("guest.email", { defaultValue: "Email" })}
-          </label>
-          <input
-            type="email"
-            className="w-full border rounded px-3 py-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-        </div>
-
-        {error && <div className="text-sm text-red-600">{error}</div>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 rounded bg-gray-900 text-white disabled:opacity-60"
+        <form
+          onSubmit={onLookup}
+          className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 space-y-4"
         >
-          {loading
-            ? t("guest.loading", { defaultValue: "Looking up..." })
-            : t("guest.lookupButton", { defaultValue: "Find my order" })}
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              {t("guest.orderNumber", { defaultValue: "Order number" })}{" "}
+              <span className="text-gray-400 dark:text-gray-500 text-xs">
+                (e.g. MM00000406)
+              </span>
+            </label>
+            <input
+              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value)}
+              placeholder="MM00000406"
+              autoComplete="off"
+            />
+          </div>
 
-      {result && (
-        <div className="bg-white rounded shadow p-6 mt-8 space-y-4">
-          <h2 className="text-lg font-semibold">
-            {t("guest.orderSummary", { defaultValue: "Order summary" })}
-          </h2>
+          <div>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+              {t("guest.email", { defaultValue: "Email" })}
+            </label>
+            <input
+              type="email"
+              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
 
-          <Row
-            label={t("guest.resultOrderNumber", {
-              defaultValue: "Order number",
-            })}
-            value={result.order_number || orderNumber}
-          />
+          {error && <div className="text-sm text-red-600">{error}</div>}
 
-          <Row
-            label={t("guest.resultCreated", { defaultValue: "Placed on" })}
-            value={formatDateTime(result.created_at)}
-          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
+          >
+            {loading
+              ? t("guest.loading", { defaultValue: "Looking up..." })
+              : t("guest.lookupButton", { defaultValue: "Find my order" })}
+          </button>
+        </form>
 
-          <Row
-            label={t("guest.resultStatus", { defaultValue: "Status" })}
-            value={prettyStatus(result.status, t)}
-          />
+        {result && (
+          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 mt-8 space-y-4">
+            <h2 className="text-lg font-semibold">
+              {t("guest.orderSummary", { defaultValue: "Order summary" })}
+            </h2>
 
-          <Row
-            label={t("guest.resultTotal", { defaultValue: "Total" })}
-            value={formatCurrency(result.total_price, result.currency)}
-          />
+            <Row
+              label={t("guest.resultOrderNumber", {
+                defaultValue: "Order number",
+              })}
+              value={result.order_number || orderNumber}
+            />
+            <Row
+              label={t("guest.resultCreated", { defaultValue: "Placed on" })}
+              value={formatDateTime(result.created_at)}
+            />
+            <Row
+              label={t("guest.resultStatus", { defaultValue: "Status" })}
+              value={prettyStatus(result.status, t)}
+            />
+            <Row
+              label={t("guest.resultTotal", { defaultValue: "Total" })}
+              value={formatCurrency(result.total_price, result.currency)}
+            />
+            <Row
+              label={t("guest.resultPayment", {
+                defaultValue: "Payment method",
+              })}
+              value={prettyPayment(result.payment_method, t)}
+            />
 
-          <Row
-            label={t("guest.resultPayment", {
-              defaultValue: "Payment method",
-            })}
-            value={prettyPayment(result.payment_method, t)}
-          />
-
-          {shippingSnapshot && (
-            <div>
-              <div className="text-sm text-gray-500">
-                {t("guest.shippingTo", { defaultValue: "Shipping to" })}
-              </div>
-              <div className="text-sm font-medium">
-                {renderAddress(shippingSnapshot)}
-              </div>
-            </div>
-          )}
-
-          <ItemsList items={result.items} currency={result.currency} t={t} />
-
-          {(trackingUrl || trackingNumber) && (
-            <div className="space-y-1">
-              <div className="text-sm text-gray-500">
-                {t("guest.tracking", { defaultValue: "Shipping tracking" })}
-              </div>
-              {trackingUrl && (
-                <a
-                  href={trackingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-sm text-blue-600 underline"
-                >
-                  {t("guest.trackLink", { defaultValue: "Open tracking link" })}
-                </a>
-              )}
-              {trackingNumber && (
-                <div className="text-xs text-gray-500">
-                  {t("guest.trackingNumber", {
-                    defaultValue: "Tracking number",
-                  })}
-                  {": "}
-                  {trackingNumber}
+            {shippingSnapshot && (
+              <div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {t("guest.shippingTo", { defaultValue: "Shipping to" })}
                 </div>
-              )}
-            </div>
-          )}
+                <div className="text-sm font-medium">
+                  {renderAddress(shippingSnapshot)}
+                </div>
+              </div>
+            )}
 
-          {invoiceHref ? (
-            <a
-              href={invoiceHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-4 py-2 rounded bg-gray-900 text-white text-sm"
-            >
-              {t("guest.downloadInvoice", {
-                defaultValue: "Download invoice (PDF)",
-              })}
-            </a>
-          ) : (
-            <div className="text-xs text-gray-500">
-              {t("guest.invoiceNotReady", {
-                defaultValue:
-                  "Your invoice will be available once payment is confirmed.",
-              })}
-            </div>
-          )}
+            <ItemsList items={result.items} currency={result.currency} t={t} />
+
+            {(trackingUrl || trackingNumber) && (
+              <div className="space-y-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {t("guest.tracking", { defaultValue: "Shipping tracking" })}
+                </div>
+                {trackingUrl && (
+                  <a
+                    href={trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-sm text-blue-600 underline"
+                  >
+                    {t("guest.trackLink", {
+                      defaultValue: "Open tracking link",
+                    })}
+                  </a>
+                )}
+                {trackingNumber && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("guest.trackingNumber", {
+                      defaultValue: "Tracking number",
+                    })}
+                    : {trackingNumber}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {invoiceHref ? (
+              <a
+                href={invoiceHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-4 py-2 rounded-lg bg-backnewswhite text-white text-sm hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+              >
+                {t("guest.downloadInvoice", {
+                  defaultValue: "Download invoice (PDF)",
+                })}
+              </a>
+            ) : (
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {t("guest.invoiceNotReady", {
+                  defaultValue:
+                    "Your invoice will be available once payment is confirmed.",
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="text-center mt-8">
+          <Link
+            to="/"
+            className="text-gray-700 dark:text-gray-200 underline text-sm"
+          >
+            {t("guest.backHome", { defaultValue: "Back to Home" })}
+          </Link>
         </div>
-      )}
-
-      <div className="text-center mt-8">
-        <Link to="/" className="text-gray-700 underline text-sm">
-          {t("guest.backHome", { defaultValue: "Back to Home" })}
-        </Link>
       </div>
     </div>
   );
