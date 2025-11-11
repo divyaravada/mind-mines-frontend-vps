@@ -1,5 +1,4 @@
-﻿// src/components/PromoBanner.jsx
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import http from "../services/http";
@@ -17,10 +16,15 @@ export default function PromoBanner() {
   const [promo, setPromo] = useState(null);
   const [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
-  const tickRef = useRef(null);
 
+  const tickRef = useRef(null);
+  const stripRef = useRef(null);
+
+  // fetch active promo
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -53,11 +57,24 @@ export default function PromoBanner() {
     return () => clearInterval(tickRef.current);
   }, [promo, remaining]);
 
+  // detect horizontal overflow (show arrows only when needed)
+  const measureOverflow = () => {
+    const el = stripRef.current;
+    if (!el) return;
+    setHasOverflow(el.scrollWidth > el.clientWidth + 2);
+  };
+
+  useEffect(() => {
+    measureOverflow();
+    window.addEventListener("resize", measureOverflow);
+    return () => window.removeEventListener("resize", measureOverflow);
+  }, [promo, remaining]);
+
   const hhmmss = formatSeconds(remaining);
   const show = !!promo && !hidden;
   if (!show) return null;
 
-  // server can override; otherwise default integrates with your palette
+  // palette from server or brand defaults
   const bg = promo.bg_color || "#17160f"; // marbleblack
   const fg = promo.text_color || "#ffffff";
 
@@ -68,64 +85,137 @@ export default function PromoBanner() {
     if (!location.pathname.startsWith("/checkout")) navigate("/checkout");
   };
 
+  // horizontal scroll helpers
+  const scrollByPx = (px) => {
+    const el = stripRef.current;
+    if (!el) return;
+    el.scrollBy({ left: px, behavior: "smooth" });
+  };
+
+  const onWheelToHorizontal = (e) => {
+    // convert vertical wheel to horizontal scroll for this strip
+    const el = stripRef.current;
+    if (!el) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      el.scrollBy({ left: e.deltaY, behavior: "auto" });
+    }
+  };
+
   return (
     <div
       style={{ backgroundColor: bg, color: fg }}
-      className="
-        w-full border-b border-white/10
-        px-3 md:px-6 py-2 text-sm
-        flex flex-col gap-2 md:flex-row md:items-center md:justify-between
-      "
+      className="relative w-full border-b border-white/10"
     >
-      <div className="flex min-w-0 items-center gap-2 md:gap-3">
-        {promo.image && (
-          <img
-            src={promo.image}
-            alt=""
-            className="h-6 w-6 shrink-0 object-contain rounded"
-          />
-        )}
-        <div className="truncate font-semibold">{promo.headline}</div>
-        {promo.subheadline && (
-          <div className="hidden md:block opacity-90">{promo.subheadline}</div>
-        )}
-        {hhmmss && (
-          <div className="ml-0 md:ml-3 text-xs opacity-90 shrink-0">
-            {t("promo.endsIn", { time: hhmmss })}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        {promo.code && (
+      <div
+        className="
+          px-3 md:px-6 py-2 text-sm flex items-center gap-2
+        "
+      >
+        {/* SCROLL BUTTONS (left) */}
+        {hasOverflow && (
           <button
-            onClick={apply}
-            className="
-              px-3 py-1 rounded
-              bg-white/10 hover:bg-white/20
-              border border-white/20
-              transition-colors
-            "
+            type="button"
+            aria-label={t("promo.scrollLeft", "Scroll left")}
+            onClick={() => scrollByPx(-280)}
+            className="hidden sm:inline-flex shrink-0 items-center justify-center h-7 w-7 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
             style={{ color: fg }}
-            title={t("promo.applyTitle")}
           >
-            {t("promo.applyCoupon", { code: String(promo.code).toUpperCase() })}
+            ‹
           </button>
         )}
-        {promo.link_url && (
-          <a
-            href={promo.link_url}
-            className="underline underline-offset-2 hover:opacity-90"
+
+        {/* SCROLLABLE STRIP */}
+        <div
+          ref={stripRef}
+          onWheel={onWheelToHorizontal}
+          className="
+            flex-1 overflow-x-auto no-scrollbar scroll-smooth
+            whitespace-nowrap flex items-center gap-3 md:gap-4
+            [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
+          "
+          // style fallback if mask-image unsupported
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)",
+          }}
+        >
+          {promo.image && (
+            <img
+              src={promo.image}
+              alt=""
+              className="h-6 w-6 inline-block align-middle object-contain rounded shrink-0"
+            />
+          )}
+
+          {/* Headline */}
+          <span className="inline-block font-semibold shrink-0">
+            {promo.headline}
+          </span>
+
+          {/* Subheadline */}
+          {promo.subheadline && (
+            <span className="inline-block opacity-90">{promo.subheadline}</span>
+          )}
+
+          {/* Timer */}
+          {hhmmss && (
+            <span className="inline-block text-xs opacity-90">
+              {t("promo.endsIn", { time: hhmmss })}
+            </span>
+          )}
+
+          {/* Apply button */}
+          {promo.code && (
+            <button
+              onClick={apply}
+              className="
+                inline-flex items-center px-3 py-1 rounded
+                bg-white/10 hover:bg-white/20
+                border border-white/20
+                transition-colors
+              "
+              style={{ color: fg }}
+              title={t("promo.applyTitle")}
+            >
+              {t("promo.applyCoupon", {
+                code: String(promo.code).toUpperCase(),
+              })}
+            </button>
+          )}
+
+          {/* Deep link */}
+          {promo.link_url && (
+            <a
+              href={promo.link_url}
+              className="inline-block underline underline-offset-2 hover:opacity-90"
+              style={{ color: fg }}
+            >
+              {t("promo.shopNow")}
+            </a>
+          )}
+        </div>
+
+        {/* SCROLL BUTTONS (right) */}
+        {hasOverflow && (
+          <button
+            type="button"
+            aria-label={t("promo.scrollRight", "Scroll right")}
+            onClick={() => scrollByPx(280)}
+            className="hidden sm:inline-flex shrink-0 items-center justify-center h-7 w-7 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
             style={{ color: fg }}
           >
-            {t("promo.shopNow")}
-          </a>
+            ›
+          </button>
         )}
+
+        {/* Close */}
         <button
           onClick={() => setHidden(true)}
-          className="px-2 py-1 rounded hover:bg-white/10"
+          className="ml-1 px-2 py-1 rounded hover:bg-white/10 shrink-0"
           style={{ color: fg }}
           aria-label={t("promo.hide")}
+          title={t("promo.hide")}
         >
           {"\u00d7"}
         </button>
