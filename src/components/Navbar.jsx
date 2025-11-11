@@ -103,12 +103,12 @@ export default function Navbar() {
           <img
             src={LightLogo}
             alt="MindMines"
-            className="h-12 w-auto block dark:hidden"
+            className="h-20 w-auto block dark:hidden"
           />
           <img
             src={DarkLogo}
             alt="MindMines"
-            className="h-12 w-auto hidden dark:block"
+            className="h-20 w-auto hidden dark:block"
           />
         </Link>
 
@@ -169,7 +169,7 @@ export default function Navbar() {
           aria-label={t("navbar.openMenu")}
           onClick={() => dispatch(setMobileMenuOpen(true))}
         >
-          <Menu className="w-8 h-8" />
+          <Menu className="w-12 h-12" />
         </button>
       </div>
 
