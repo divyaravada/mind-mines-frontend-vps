@@ -102,6 +102,22 @@ export default function PromoBanner() {
     }
   };
 
+  // --- overflow detector (put near measureOverflow/useEffect) ---
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setHasOverflow(el.scrollWidth > el.clientWidth + 2);
+    });
+    ro.observe(el);
+    measureOverflow(); // initial
+    window.addEventListener("resize", measureOverflow);
+    return () => {
+      window.removeEventListener("resize", measureOverflow);
+      ro.disconnect();
+    };
+  }, [promo]);
+
   return (
     <div
       style={{ backgroundColor: bg, color: fg }}
@@ -130,11 +146,10 @@ export default function PromoBanner() {
           ref={stripRef}
           onWheel={onWheelToHorizontal}
           className="
-            flex-1 overflow-x-auto no-scrollbar scroll-smooth
-            whitespace-nowrap flex items-center gap-3 md:gap-4
-            [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
-          "
-          // style fallback if mask-image unsupported
+    flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth
+    whitespace-nowrap flex items-center gap-3 md:gap-4
+    [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
+  "
           style={{
             WebkitMaskImage:
               "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)",
@@ -148,33 +163,30 @@ export default function PromoBanner() {
             />
           )}
 
-          {/* Headline */}
           <span className="inline-block font-semibold shrink-0">
             {promo.headline}
           </span>
 
-          {/* Subheadline */}
           {promo.subheadline && (
-            <span className="inline-block opacity-90">{promo.subheadline}</span>
+            <span className="inline-block opacity-90 shrink-0">
+              {promo.subheadline}
+            </span>
           )}
 
-          {/* Timer */}
           {hhmmss && (
-            <span className="inline-block text-xs opacity-90">
+            <span className="inline-block text-xs opacity-90 shrink-0">
               {t("promo.endsIn", { time: hhmmss })}
             </span>
           )}
 
-          {/* Apply button */}
           {promo.code && (
             <button
               onClick={apply}
               className="
-                inline-flex items-center px-3 py-1 rounded
-                bg-white/10 hover:bg-white/20
-                border border-white/20
-                transition-colors
-              "
+        inline-flex items-center px-3 py-1 rounded
+        bg-white/10 hover:bg-white/20
+        border border-white/20 transition-colors shrink-0
+      "
               style={{ color: fg }}
               title={t("promo.applyTitle")}
             >
@@ -184,11 +196,10 @@ export default function PromoBanner() {
             </button>
           )}
 
-          {/* Deep link */}
           {promo.link_url && (
             <a
               href={promo.link_url}
-              className="inline-block underline underline-offset-2 hover:opacity-90"
+              className="inline-block underline underline-offset-2 hover:opacity-90 shrink-0"
               style={{ color: fg }}
             >
               {t("promo.shopNow")}
