@@ -75,7 +75,7 @@ export default function CartPage() {
   useEffect(() => {
     const cart_token = loggedIn ? undefined : getCartToken();
     const itemsPayload = items.map((it) => ({
-      product_id: it.id,
+      product: it.id,
       name: it.name,
       image: it.image,
       price: it.price,
