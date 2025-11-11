@@ -61,21 +61,22 @@ export default function PromoBanner() {
   useEffect(() => {
     const el = stripRef.current;
     if (!el) return;
-
-    const measure = () => {
-      setHasOverflow(el.scrollWidth > el.clientWidth + 2);
-    };
-
-    const ro = new ResizeObserver(measure);
+    const log = () =>
+      console.log(
+        "scrollWidth:",
+        el.scrollWidth,
+        "clientWidth:",
+        el.clientWidth
+      );
+    log();
+    const ro = new ResizeObserver(log);
     ro.observe(el);
-
-    measure(); // initial
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", log);
     return () => {
-      window.removeEventListener("resize", measure);
       ro.disconnect();
+      window.removeEventListener("resize", log);
     };
-  }, [promo]); // re-measure when content changes
+  }, [promo]);
 
   const hhmmss = formatSeconds(remaining);
   const show = !!promo && !hidden;
@@ -132,68 +133,64 @@ export default function PromoBanner() {
           ref={stripRef}
           onWheel={onWheelToHorizontal}
           className="
-            flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth
-            whitespace-nowrap flex items-center gap-3 md:gap-4
-            [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
-          "
-          style={{
-            WebkitMaskImage:
-              "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)",
-          }}
+    w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth
+    overscroll-x-contain touch-pan-x
+  "
+          // TEMP: comment mask while testing; add it back when confirmed
+          // style={{ WebkitMaskImage: "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)" }}
         >
-          {promo.image && (
-            <img
-              src={promo.image}
-              alt=""
-              className="h-6 w-6 inline-block align-middle object-contain rounded shrink-0"
-            />
-          )}
+          {/* TRACK that can grow wider than the box */}
+          <div className="w-max inline-flex items-center gap-3 md:gap-4">
+            {promo.image && (
+              <img
+                src={promo.image}
+                alt=""
+                className="h-6 w-6 inline-block align-middle object-contain rounded shrink-0"
+              />
+            )}
 
-          <span className="inline-block font-semibold shrink-0">
-            {promo.headline}
-          </span>
-
-          {promo.subheadline && (
-            <span className="inline-block opacity-90 shrink-0">
-              {promo.subheadline}
+            <span className="inline-block font-semibold shrink-0">
+              {promo.headline}
             </span>
-          )}
 
-          {hhmmss && (
-            <span className="inline-block text-xs opacity-90 shrink-0">
-              {t("promo.endsIn", { time: hhmmss })}
-            </span>
-          )}
+            {promo.subheadline && (
+              <span className="inline-block opacity-90 shrink-0">
+                {promo.subheadline}
+              </span>
+            )}
 
-          {promo.code && (
-            <button
-              onClick={apply}
-              className="
-                inline-flex items-center px-3 py-1 rounded
-                bg-white/10 hover:bg-white/20
-                border border-white/20 transition-colors shrink-0
-              "
-              style={{ color: fg }}
-              title={t("promo.applyTitle")}
-            >
-              {t("promo.applyCoupon", {
-                code: String(promo.code).toUpperCase(),
-              })}
-            </button>
-          )}
+            {hhmmss && (
+              <span className="inline-block text-xs opacity-90 shrink-0">
+                {t("promo.endsIn", { time: hhmmss })}
+              </span>
+            )}
 
-          {promo.link_url && (
-            <a
-              href={promo.link_url}
-              className="inline-block underline underline-offset-2 hover:opacity-90 shrink-0"
-              style={{ color: fg }}
-            >
-              {t("promo.shopNow")}
-            </a>
-          )}
+            {promo.code && (
+              <button
+                onClick={apply}
+                className="inline-flex items-center px-3 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors shrink-0"
+                style={{ color: fg }}
+                title={t("promo.applyTitle")}
+              >
+                {t("promo.applyCoupon", {
+                  code: String(promo.code).toUpperCase(),
+                })}
+              </button>
+            )}
+
+            {promo.link_url && (
+              <a
+                href={promo.link_url}
+                className="inline-block underline underline-offset-2 hover:opacity-90 shrink-0"
+                style={{ color: fg }}
+              >
+                {t("promo.shopNow")}
+              </a>
+            )}
+          </div>
         </div>
 
-        {/* Right arrow */}
+        {/* RIGHT ARROW */}
         {hasOverflow && (
           <button
             type="button"
@@ -205,7 +202,6 @@ export default function PromoBanner() {
             ›
           </button>
         )}
-
         {/* Close */}
         <button
           onClick={() => setHidden(true)}
