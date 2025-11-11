@@ -57,18 +57,25 @@ export default function PromoBanner() {
     return () => clearInterval(tickRef.current);
   }, [promo, remaining]);
 
-  // detect horizontal overflow (show arrows only when needed)
-  const measureOverflow = () => {
+  // overflow detector (ResizeObserver + resize listener)
+  useEffect(() => {
     const el = stripRef.current;
     if (!el) return;
-    setHasOverflow(el.scrollWidth > el.clientWidth + 2);
-  };
 
-  useEffect(() => {
-    measureOverflow();
-    window.addEventListener("resize", measureOverflow);
-    return () => window.removeEventListener("resize", measureOverflow);
-  }, [promo, remaining]);
+    const measure = () => {
+      setHasOverflow(el.scrollWidth > el.clientWidth + 2);
+    };
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+
+    measure(); // initial
+    window.addEventListener("resize", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      ro.disconnect();
+    };
+  }, [promo]); // re-measure when content changes
 
   const hhmmss = formatSeconds(remaining);
   const show = !!promo && !hidden;
@@ -93,7 +100,6 @@ export default function PromoBanner() {
   };
 
   const onWheelToHorizontal = (e) => {
-    // convert vertical wheel to horizontal scroll for this strip
     const el = stripRef.current;
     if (!el) return;
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
@@ -102,33 +108,13 @@ export default function PromoBanner() {
     }
   };
 
-  // --- overflow detector (put near measureOverflow/useEffect) ---
-  useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      setHasOverflow(el.scrollWidth > el.clientWidth + 2);
-    });
-    ro.observe(el);
-    measureOverflow(); // initial
-    window.addEventListener("resize", measureOverflow);
-    return () => {
-      window.removeEventListener("resize", measureOverflow);
-      ro.disconnect();
-    };
-  }, [promo]);
-
   return (
     <div
       style={{ backgroundColor: bg, color: fg }}
       className="relative w-full border-b border-white/10"
     >
-      <div
-        className="
-          px-3 md:px-6 py-2 text-sm flex items-center gap-2
-        "
-      >
-        {/* SCROLL BUTTONS (left) */}
+      <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
+        {/* Left arrow */}
         {hasOverflow && (
           <button
             type="button"
@@ -141,15 +127,15 @@ export default function PromoBanner() {
           </button>
         )}
 
-        {/* SCROLLABLE STRIP */}
+        {/* Scrollable strip */}
         <div
           ref={stripRef}
           onWheel={onWheelToHorizontal}
           className="
-    flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth
-    whitespace-nowrap flex items-center gap-3 md:gap-4
-    [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
-  "
+            flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth
+            whitespace-nowrap flex items-center gap-3 md:gap-4
+            [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]
+          "
           style={{
             WebkitMaskImage:
               "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)",
@@ -183,10 +169,10 @@ export default function PromoBanner() {
             <button
               onClick={apply}
               className="
-        inline-flex items-center px-3 py-1 rounded
-        bg-white/10 hover:bg-white/20
-        border border-white/20 transition-colors shrink-0
-      "
+                inline-flex items-center px-3 py-1 rounded
+                bg-white/10 hover:bg-white/20
+                border border-white/20 transition-colors shrink-0
+              "
               style={{ color: fg }}
               title={t("promo.applyTitle")}
             >
@@ -207,7 +193,7 @@ export default function PromoBanner() {
           )}
         </div>
 
-        {/* SCROLL BUTTONS (right) */}
+        {/* Right arrow */}
         {hasOverflow && (
           <button
             type="button"
