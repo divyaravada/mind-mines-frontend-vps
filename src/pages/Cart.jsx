@@ -73,12 +73,12 @@ export default function CartPage() {
   }, 500);
 
   useEffect(() => {
-    const cart_token = loggedIn ? undefined : getCartToken();
+    const cart_token = getCartToken();
     const itemsPayload = items.map((it) => ({
       product: it.id,
       name: it.name,
       image: it.image,
-      price: it.price,
+      price: (Number(it.price) ?? 0).toFixed(2),
       qty: it.qty,
       color: it.color || "",
       weight: it.weight || "",
