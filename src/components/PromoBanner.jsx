@@ -65,8 +65,9 @@ export default function PromoBanner() {
     const el = stripRef.current;
     const track = trackRef.current;
     if (!el || !track) return;
-    setHasOverflow(track.scrollWidth > el.clientWidth + 1);
+    setHasOverflow(el.scrollWidth > el.clientWidth + 1);
   }, []);
+
   useEffect(() => {
     if (!show) return;
     recalc();
@@ -130,7 +131,7 @@ export default function PromoBanner() {
         <div
           ref={stripRef}
           onWheel={onWheel}
-          className="w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
+          className="flex-1 basis-0 min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
         >
           <div
             ref={trackRef}
