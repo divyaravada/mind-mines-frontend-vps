@@ -174,7 +174,7 @@ export default function Checkout() {
     setCouponInfo(null);
     const code = (couponCode || "").trim().toUpperCase();
     if (!code) return;
-
+    setCouponCode(code);
     try {
       const r = await previewCoupon({ code, items: backendItems }).unwrap();
       if (r?.ok) setCouponInfo(r);
@@ -184,25 +184,79 @@ export default function Checkout() {
     }
   };
 
-  // auto-apply coupon from storage (once)
+  const autoAppliedRef = useRef(false);
+
+  // A) If we’re already on checkout when user clicks the promo banner
   useEffect(() => {
-    const saved = localStorage.getItem("coupon_auto");
-    if (!saved || couponInfo?.ok || couponCode) return;
-    (async () => {
+    const handler = async (ev) => {
+      if (autoAppliedRef.current) return;
+      const incoming = String(ev?.detail?.code || "").toUpperCase();
+      if (!incoming) return;
+      autoAppliedRef.current = true;
+      // put into input immediately
+      setCouponCode(incoming);
+      // wait until items are ready, then preview+apply
+      const tryApply = async () => {
+        if (backendItems.length === 0) return false;
+        try {
+          const r = await previewCoupon({
+            code: incoming,
+            items: backendItems,
+          }).unwrap();
+          if (r?.ok) setCouponInfo(r);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+      // attempt now, and again on next tick if empty
+      let applied = await tryApply();
+      if (!applied) setTimeout(tryApply, 120);
+    };
+    window.addEventListener("mindmines:apply-coupon", handler);
+    return () => window.removeEventListener("mindmines:apply-coupon", handler);
+  }, [backendItems, previewCoupon]);
+
+  // B) On first mount, pick up the stored code (from PromoBanner navigation)
+  useEffect(() => {
+    if (autoAppliedRef.current) return;
+    const stored = (
+      sessionStorage.getItem("coupon_auto_once") ||
+      localStorage.getItem("coupon_auto") ||
+      ""
+    ).toUpperCase();
+    if (!stored) return;
+    autoAppliedRef.current = true;
+    // show in input right away
+    setCouponCode(stored);
+    // apply as soon as items exist
+    const doApply = async () => {
+      if (backendItems.length === 0) return false;
       try {
         const r = await previewCoupon({
-          code: saved,
+          code: stored,
           items: backendItems,
         }).unwrap();
-        if (r?.ok) {
-          setCouponCode(saved.toUpperCase());
-          setCouponInfo(r);
-        }
+        if (r?.ok) setCouponInfo(r);
+        return true;
       } catch {
-        /* ignore */
+        return false;
       }
+    };
+    (async () => {
+      let ok = await doApply();
+      if (!ok) {
+        const id = setInterval(async () => {
+          ok = await doApply();
+          if (ok) clearInterval(id);
+        }, 120);
+        setTimeout(() => clearInterval(id), 3000); // stop trying after ~3s
+      }
+      sessionStorage.removeItem("coupon_auto_once");
     })();
-  }, [couponCode, couponInfo, backendItems, previewCoupon]);
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const discount = useMemo(() => {
     const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
