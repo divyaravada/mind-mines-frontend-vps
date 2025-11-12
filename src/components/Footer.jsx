@@ -4,9 +4,13 @@ import { Globe, Landmark } from "lucide-react";
 import DarkLogo from "../assets/BlackLogo.jpg";
 import LightLogo from "../assets/OrangeLogo.jpg";
 import paypal from "../assets/paypal.svg";
-import dhl from "../assets/dhl.svg";
+import visa from "../assets/visa.png";
+import mastercard from "../assets/master.png";
+import sepa from "../assets/sepa.png";
+import klarna from "../assets/klarna.png";
+import dhl from "../assets/dhl.png";
 import dpd from "../assets/dpd.png";
-import hermes from "../assets/hermes.svg.png";
+import hermes from "../assets/hermes.png";
 import { useTranslation } from "react-i18next";
 import NewsletterSection from "./NewsletterForm";
 import { useDispatch, useSelector } from "react-redux";
@@ -32,12 +36,12 @@ export default function Footer() {
           <img
             src={LightLogo}
             alt="MindMines"
-            className="h-12 w-auto block dark:hidden"
+            className="h-24 w-auto block dark:hidden"
           />
           <img
             src={DarkLogo}
             alt="MindMines"
-            className="h-12 w-auto hidden dark:block"
+            className="h-24 w-auto hidden dark:block"
           />
         </div>
 
@@ -122,13 +126,10 @@ export default function Footer() {
             {t("footer.secure")}
           </span>
           <img src={paypal} alt="PayPal" className="h-8 md:h-10" />
-          <span
-            className="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs md:text-sm
-                           text-gray-800 dark:text-gray-100 border-black/15 dark:border-white/15"
-          >
-            <Landmark className="w-4 h-4" />
-            {t("footer.payment.bank") || "SEPA Bank Transfer"}
-          </span>
+          <img src={klarna} alt="PayPal" className="h-8 md:h-10" />
+          <img src={sepa} alt="PayPal" className="h-8 md:h-10" />
+          <img src={visa} alt="PayPal" className="h-8 md:h-10" />
+          <img src={mastercard} alt="PayPal" className="h-8 md:h-10" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -137,6 +138,7 @@ export default function Footer() {
           </span>
           <img src={dhl} alt="DHL" className="h-6" />
           <img src={dpd} alt="DPD" className="h-6" />
+
           <img src={hermes} alt="Hermes" className="h-6" />
         </div>
       </div>

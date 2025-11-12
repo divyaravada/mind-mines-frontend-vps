@@ -1,7 +1,16 @@
-﻿import { useEffect, useState, useRef } from "react";
+﻿// src/components/PromoBanner.jsx
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
-import http from "../services/http";
+import { useGetActivePromotionQuery } from "../features/promos/promosApi";
+
+function diffSecondsToNow(iso) {
+  if (!iso) return null;
+  const end = new Date(iso);
+  const now = new Date();
+  if (isNaN(end.getTime())) return null;
+  return Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000));
+}
 
 function formatSeconds(s) {
   if (typeof s !== "number" || s < 0) return null;
@@ -13,77 +22,75 @@ function formatSeconds(s) {
 
 export default function PromoBanner() {
   const { t } = useTranslation();
-  const [promo, setPromo] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // use RTK Query (already created in promosApi)
+  const { data: promo, isFetching } = useGetActivePromotionQuery();
+
   const [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const tickRef = useRef(null);
   const stripRef = useRef(null);
+  const trackRef = useRef(null);
 
-  // fetch active promo
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const r = await http.get("promotions/active/");
-        if (!mounted) return;
-        if (r.data?.active) {
-          setPromo(r.data);
-          setRemaining(r.data.remaining_seconds ?? null);
-        } else {
-          setPromo(null);
-        }
-      } catch {
-        if (mounted) setPromo(null);
-      }
-    })();
-    return () => {
-      mounted = false;
-      clearInterval(tickRef.current);
-    };
-  }, []);
+  const active = !!promo?.active;
+  const show = active && !hidden && !isFetching;
 
-  // countdown timer
+  // compute remaining from end_at (backend doesn’t send remaining_seconds)
   useEffect(() => {
-    if (!promo || typeof remaining !== "number") return;
     clearInterval(tickRef.current);
+    if (!promo?.end_at || !show) return;
+    const initial = diffSecondsToNow(promo.end_at);
+    setRemaining(initial);
     tickRef.current = setInterval(() => {
       setRemaining((s) => (typeof s === "number" ? Math.max(0, s - 1) : s));
     }, 1000);
     return () => clearInterval(tickRef.current);
-  }, [promo, remaining]);
+  }, [promo?.end_at, show]);
 
-  // overflow detector (ResizeObserver + resize listener)
-  useEffect(() => {
+  // overflow measure helper
+  const recalcOverflow = useCallback(() => {
     const el = stripRef.current;
-    if (!el) return;
-    const log = () =>
-      console.log(
-        "scrollWidth:",
-        el.scrollWidth,
-        "clientWidth:",
-        el.clientWidth
-      );
-    log();
-    const ro = new ResizeObserver(log);
+    const track = trackRef.current;
+    if (!el || !track) return;
+    setHasOverflow(track.scrollWidth > el.clientWidth + 1);
+  }, []);
+
+  // observe width changes & window resizes
+  useEffect(() => {
+    if (!show) return;
+    const el = stripRef.current;
+    const track = trackRef.current;
+    if (!el || !track) return;
+
+    recalcOverflow();
+
+    const ro = new ResizeObserver(recalcOverflow);
     ro.observe(el);
-    window.addEventListener("resize", log);
+    ro.observe(track);
+    window.addEventListener("resize", recalcOverflow);
+
+    // Recalc after images load (logo)
+    const imgs = track.querySelectorAll("img");
+    imgs.forEach((img) => {
+      if (!img.complete)
+        img.addEventListener("load", recalcOverflow, { once: true });
+    });
+
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", log);
+      window.removeEventListener("resize", recalcOverflow);
     };
-  }, [promo]);
+  }, [show, recalcOverflow]);
 
   const hhmmss = formatSeconds(remaining);
-  const show = !!promo && !hidden;
+
   if (!show) return null;
 
-  // palette from server or brand defaults
-  const bg = promo.bg_color || "#17160f"; // marbleblack
+  const bg = promo.bg_color || "#17160f";
   const fg = promo.text_color || "#ffffff";
 
   const apply = () => {
@@ -93,7 +100,6 @@ export default function PromoBanner() {
     if (!location.pathname.startsWith("/checkout")) navigate("/checkout");
   };
 
-  // horizontal scroll helpers
   const scrollByPx = (px) => {
     const el = stripRef.current;
     if (!el) return;
@@ -132,20 +138,23 @@ export default function PromoBanner() {
         <div
           ref={stripRef}
           onWheel={onWheelToHorizontal}
-          className="
-    w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth
-    overscroll-x-contain touch-pan-x
-  "
-          // TEMP: comment mask while testing; add it back when confirmed
+          className="w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain touch-pan-x"
+          // NOTE: add a subtle mask back once validated:
           // style={{ WebkitMaskImage: "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)" }}
         >
-          {/* TRACK that can grow wider than the box */}
-          <div className="w-max inline-flex items-center gap-3 md:gap-4">
-            {promo.image && (
+          {/* Track must not wrap, so overflow can happen horizontally */}
+          <div
+            ref={trackRef}
+            className="w-max whitespace-nowrap inline-flex items-center gap-3 md:gap-4"
+          >
+            {/* image uses image_url */}
+            {promo.image_url && (
               <img
-                src={promo.image}
+                src={promo.image_url}
                 alt=""
                 className="h-6 w-6 inline-block align-middle object-contain rounded shrink-0"
+                onLoad={recalcOverflow}
+                onError={recalcOverflow}
               />
             )}
 
@@ -190,7 +199,7 @@ export default function PromoBanner() {
           </div>
         </div>
 
-        {/* RIGHT ARROW */}
+        {/* Right arrow */}
         {hasOverflow && (
           <button
             type="button"
@@ -202,6 +211,7 @@ export default function PromoBanner() {
             ›
           </button>
         )}
+
         {/* Close */}
         <button
           onClick={() => setHidden(true)}
