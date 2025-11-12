@@ -35,7 +35,12 @@ export const promosApi = api.injectEndpoints({
     }),
     getActivePromotion: build.query({
       query: () => "promotions/active/?format=json",
-      transformResponse: (res) => res || {},
+      transformResponse: (res) => {
+        if (Array.isArray(res)) return res; // plain list
+        if (Array.isArray(res?.results)) return res.results; // {results:[...]}
+        if (res?.active) return [res]; // single -> list
+        return [];
+      },
       providesTags: ["Promos"],
     }),
   }),

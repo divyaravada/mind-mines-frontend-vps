@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -44,6 +44,7 @@ export default function Checkout() {
   const locale = i18n.language || "en";
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
@@ -504,6 +505,35 @@ export default function Checkout() {
       ensureStripeOrder(payment);
     }
   }, [payment, ensureStripeOrder]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const qCoupon = (params.get("coupon") || "").trim();
+    if (!qCoupon) return;
+
+    // set the field immediately
+    setCouponCode(qCoupon.toUpperCase());
+
+    // try preview/apply right away
+    (async () => {
+      try {
+        const r = await previewCoupon({
+          code: qCoupon,
+          items: backendItems,
+        }).unwrap();
+        if (r?.ok) setCouponInfo(r);
+      } catch {
+        /* ignore */
+      }
+    })();
+
+    // focus and scroll into view
+    const el = document.getElementById("coupon-input");
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [location.search, backendItems, previewCoupon]);
 
   // PayPal block
   const renderPayPalSection = () => (
@@ -1137,6 +1167,7 @@ export default function Checkout() {
             <div className="mt-3 border dark:border-neutral-700 rounded-lg p-3 space-y-2">
               <div className="flex gap-2">
                 <input
+                  id="coupon-input"
                   className={`${inputCls} flex-1`}
                   placeholder={t("checkout.couponPlaceholder")}
                   value={couponCode}

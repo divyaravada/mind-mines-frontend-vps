@@ -1,4 +1,4 @@
-﻿// src/components/PromoBanner.jsx
+﻿// components/PromoBanner.jsx
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,122 +9,99 @@ function diffSecondsToNow(iso) {
   const end = new Date(iso);
   const now = new Date();
   if (isNaN(end.getTime())) return null;
-  return Math.max(0, Math.floor((end.getTime() - now.getTime()) / 1000));
+  return Math.max(0, Math.floor((end - now) / 1000));
 }
-
-function formatSeconds(s) {
-  if (typeof s !== "number" || s < 0) return null;
-  const h = String(Math.floor(s / 3600)).padStart(2, "0");
-  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const sec = String(s % 60).padStart(2, "0");
-  return `${h}:${m}:${sec}`;
-}
+const fmt = (s) =>
+  typeof s === "number" && s >= 0
+    ? `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(
+        Math.floor((s % 3600) / 60)
+      ).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`
+    : null;
 
 export default function PromoBanner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // use RTK Query (already created in promosApi)
-  const { data: promo, isFetching } = useGetActivePromotionQuery();
+  const { data: promosArr = [], isFetching } = useGetActivePromotionQuery();
 
   const [hidden, setHidden] = useState(false);
-  const [remaining, setRemaining] = useState(null);
+  const [remainingMap, setRemainingMap] = useState({});
   const [hasOverflow, setHasOverflow] = useState(false);
 
-  const raf = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn));
-
-  const tickRef = useRef(null);
   const stripRef = useRef(null);
   const trackRef = useRef(null);
+  const timersRef = useRef({});
 
-  const active = !!promo?.active;
-  const show = active && !hidden && !isFetching;
+  const promos = useMemo(() => promosArr.filter(Boolean), [promosArr]);
+  const show = promos.length > 0 && !hidden && !isFetching;
 
-  // compute remaining from end_at (backend doesn’t send remaining_seconds)
+  // countdown per promo
   useEffect(() => {
-    clearInterval(tickRef.current);
-    if (!promo?.end_at || !show) return;
-    const initial = diffSecondsToNow(promo.end_at);
-    setRemaining(initial);
-    tickRef.current = setInterval(() => {
-      setRemaining((s) => (typeof s === "number" ? Math.max(0, s - 1) : s));
-    }, 1000);
-    return () => clearInterval(tickRef.current);
-  }, [promo?.end_at, show]);
-
-  // overflow measure helper
-  const recalcOverflow = useCallback(() => {
-    const el = stripRef.current;
-    const track = trackRef.current;
-    if (!el || !track) return;
-    // margin of error for subpixel rounding
-    const overflow = track.scrollWidth - el.clientWidth > 4;
-    setHasOverflow(overflow);
-  }, []);
-
-  // 4) after promo loads, measure again on next paint
-  useEffect(() => {
+    // clear old
+    Object.values(timersRef.current).forEach(clearInterval);
+    timersRef.current = {};
     if (!show) return;
-    raf(recalcOverflow);
-  }, [show, recalcOverflow]);
 
-  // observe width changes & window resizes
-  useEffect(() => {
-    if (!show) return;
-    const el = stripRef.current;
-    const track = trackRef.current;
-    if (!el || !track) return;
-
-    recalcOverflow();
-
-    const ro = new ResizeObserver(recalcOverflow);
-    ro.observe(el);
-    ro.observe(track);
-    const onResize = () => recalcOverflow();
-    window.addEventListener("resize", onResize);
-
-    // after images load
-    const imgs = track.querySelectorAll("img");
-    imgs.forEach((img) => {
-      if (!img.complete)
-        img.addEventListener("load", recalcOverflow, { once: true });
+    const next = {};
+    promos.forEach((p) => {
+      next[p.id] = diffSecondsToNow(p.end_at);
+      timersRef.current[p.id] = setInterval(() => {
+        setRemainingMap((m) => ({
+          ...m,
+          [p.id]: typeof m[p.id] === "number" ? Math.max(0, m[p.id] - 1) : 0,
+        }));
+      }, 1000);
     });
+    setRemainingMap(next);
 
     return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onResize);
+      Object.values(timersRef.current).forEach(clearInterval);
+      timersRef.current = {};
     };
-  }, [show, recalcOverflow]);
+  }, [show, promos]);
 
-  // formatted time
-  const hhmmss = formatSeconds(remaining);
+  // overflow detection
+  const recalc = useCallback(() => {
+    const el = stripRef.current;
+    const track = trackRef.current;
+    if (!el || !track) return;
+    setHasOverflow(track.scrollWidth > el.clientWidth + 1);
+  }, []);
+  useEffect(() => {
+    if (!show) return;
+    recalc();
+    const el = stripRef.current;
+    const track = trackRef.current;
+    const ro = new ResizeObserver(recalc);
+    ro.observe(el);
+    ro.observe(track);
+    window.addEventListener("resize", recalc);
+    // images might change width
+    track.querySelectorAll("img").forEach((img) => {
+      if (!img.complete) img.addEventListener("load", recalc, { once: true });
+    });
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", recalc);
+    };
+  }, [show, recalc, promos.length]);
 
   if (!show) return null;
 
-  const bg = promo.bg_color || "#17160f";
-  const fg = promo.text_color || "#ffffff";
+  // Use first promo’s palette as bar chrome; content blocks carry their own contrast.
+  const barBg = promos[0].bg_color || "#111827";
+  const barFg = promos[0].text_color || "#ffffff";
 
-  const apply = () => {
-    if (promo?.code) {
-      const code = String(promo.code).toUpperCase();
-      localStorage.setItem("coupon_auto", code);
-      sessionStorage.setItem("coupon_auto_once", code); // optional extra signal
-      // also broadcast an event in case Checkout is already mounted
-      window.dispatchEvent(
-        new CustomEvent("mindmines:apply-coupon", { detail: { code } })
-      );
-    }
-    if (!location.pathname.startsWith("/checkout")) navigate("/checkout");
+  const goCheckoutWith = (code) => {
+    // put in localStorage (for your existing auto-apply)
+    localStorage.setItem("coupon_auto", String(code).toUpperCase());
+    // ALSO pass via query so we can focus the input
+    navigate(`/checkout?coupon=${encodeURIComponent(code)}`);
   };
 
-  const scrollByPx = (px) => {
-    const el = stripRef.current;
-    if (!el) return;
-    el.scrollBy({ left: px, behavior: "smooth" });
-  };
-
-  const onWheelToHorizontal = (e) => {
+  const scrollByPx = (px) =>
+    stripRef.current?.scrollBy({ left: px, behavior: "smooth" });
+  const onWheel = (e) => {
     const el = stripRef.current;
     if (!el) return;
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
@@ -135,111 +112,107 @@ export default function PromoBanner() {
 
   return (
     <div
-      ref={trackRef}
-      style={{ backgroundColor: bg, color: fg }}
+      style={{ backgroundColor: barBg, color: barFg }}
       className="relative w-full border-b border-white/10"
     >
       <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
-        {/* Left arrow */}
         {hasOverflow && (
           <button
             type="button"
-            aria-label={t("promo.scrollLeft", "Scroll left")}
             onClick={() => scrollByPx(-280)}
-            className="hidden sm:inline-flex shrink-0 items-center justify-center h-7 w-7 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
-            style={{ color: fg }}
+            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
+            aria-label={t("promo.scrollLeft", "Scroll left")}
           >
             ‹
           </button>
         )}
 
-        {/* Scrollable strip */}
         <div
           ref={stripRef}
-          onWheel={onWheelToHorizontal}
-          className="w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain touch-pan-x"
-          // NOTE: add a subtle mask back once validated:
-          // style={{ WebkitMaskImage: "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)" }}
+          onWheel={onWheel}
+          className="w-full min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
         >
-          {/* Track must not wrap, so overflow can happen horizontally */}
           <div
             ref={trackRef}
-            className="w-max whitespace-nowrap inline-flex items-center gap-3 md:gap-4"
+            className="w-max whitespace-nowrap inline-flex items-center gap-6 pr-3"
           >
-            {/* image uses image_url */}
-            {promo.image_url && (
-              <img
-                src={promo.image_url}
-                alt=""
-                className="h-6 w-6 inline-block align-middle object-contain rounded shrink-0"
-                onLoad={recalcOverflow}
-                onError={recalcOverflow}
-              />
-            )}
-
-            <span className="inline-block font-semibold shrink-0">
-              {promo.headline}
-            </span>
-
-            {promo.subheadline && (
-              <span className="inline-block opacity-90 shrink-0">
-                {promo.subheadline}
-              </span>
-            )}
-
-            {hhmmss && (
-              <span className="inline-block text-xs opacity-90 shrink-0">
-                {t("promo.endsIn", { time: hhmmss })}
-              </span>
-            )}
-
-            {promo.code && (
-              <button
-                onClick={apply}
-                className="inline-flex items-center px-3 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors shrink-0"
-                style={{ color: fg }}
-                title={t("promo.applyTitle")}
-              >
-                {t("promo.applyCoupon", {
-                  code: String(promo.code).toUpperCase(),
-                })}
-              </button>
-            )}
-
-            {promo.link_url && (
-              <a
-                href={promo.link_url}
-                className="inline-block underline underline-offset-2 hover:opacity-90 shrink-0"
-                style={{ color: fg }}
-              >
-                {t("promo.shopNow")}
-              </a>
-            )}
+            {promos.map((p) => {
+              const fg = p.text_color || barFg;
+              return (
+                <div
+                  key={p.id}
+                  className="inline-flex items-center gap-3 md:gap-4 shrink-0"
+                >
+                  {p.image_url && (
+                    <img
+                      src={p.image_url}
+                      alt=""
+                      className="h-6 w-6 object-contain rounded shrink-0"
+                    />
+                  )}
+                  <span
+                    className="font-semibold shrink-0"
+                    style={{ color: fg }}
+                  >
+                    {p.headline}
+                  </span>
+                  {p.subheadline && (
+                    <span className="opacity-90 shrink-0" style={{ color: fg }}>
+                      {p.subheadline}
+                    </span>
+                  )}
+                  {typeof remainingMap[p.id] === "number" && (
+                    <span
+                      className="text-xs opacity-90 shrink-0"
+                      style={{ color: fg }}
+                    >
+                      {t("promo.endsIn", { time: fmt(remainingMap[p.id]) })}
+                    </span>
+                  )}
+                  {p.code && (
+                    <button
+                      onClick={() => goCheckoutWith(p.code)}
+                      className="px-3 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/20"
+                      style={{ color: fg }}
+                    >
+                      {t("promo.applyCoupon", {
+                        code: String(p.code).toUpperCase(),
+                      })}
+                    </button>
+                  )}
+                  {p.link_url && (
+                    <a
+                      href={p.link_url}
+                      className="underline underline-offset-2 hover:opacity-90 shrink-0"
+                      style={{ color: fg }}
+                    >
+                      {t("promo.shopNow")}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Right arrow */}
         {hasOverflow && (
           <button
             type="button"
-            aria-label={t("promo.scrollRight", "Scroll right")}
             onClick={() => scrollByPx(280)}
-            className="hidden sm:inline-flex shrink-0 items-center justify-center h-7 w-7 rounded bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
-            style={{ color: fg }}
+            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
+            aria-label={t("promo.scrollRight", "Scroll right")}
           >
             ›
           </button>
         )}
 
-        {/* Close */}
         <button
           onClick={() => setHidden(true)}
           className="ml-1 px-2 py-1 rounded hover:bg-white/10 shrink-0"
-          style={{ color: fg }}
           aria-label={t("promo.hide")}
           title={t("promo.hide")}
         >
-          {"\u00d7"}
+          ×
         </button>
       </div>
     </div>
