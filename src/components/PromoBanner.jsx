@@ -32,6 +32,8 @@ export default function PromoBanner() {
   const [remaining, setRemaining] = useState(null);
   const [hasOverflow, setHasOverflow] = useState(false);
 
+  const raf = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn));
+
   const tickRef = useRef(null);
   const stripRef = useRef(null);
   const trackRef = useRef(null);
@@ -56,8 +58,16 @@ export default function PromoBanner() {
     const el = stripRef.current;
     const track = trackRef.current;
     if (!el || !track) return;
-    setHasOverflow(track.scrollWidth > el.clientWidth + 1);
+    // margin of error for subpixel rounding
+    const overflow = track.scrollWidth - el.clientWidth > 4;
+    setHasOverflow(overflow);
   }, []);
+
+  // 4) after promo loads, measure again on next paint
+  useEffect(() => {
+    if (!show) return;
+    raf(recalcOverflow);
+  }, [show, recalcOverflow]);
 
   // observe width changes & window resizes
   useEffect(() => {
@@ -71,9 +81,10 @@ export default function PromoBanner() {
     const ro = new ResizeObserver(recalcOverflow);
     ro.observe(el);
     ro.observe(track);
-    window.addEventListener("resize", recalcOverflow);
+    const onResize = () => recalcOverflow();
+    window.addEventListener("resize", onResize);
 
-    // Recalc after images load (logo)
+    // after images load
     const imgs = track.querySelectorAll("img");
     imgs.forEach((img) => {
       if (!img.complete)
@@ -82,10 +93,11 @@ export default function PromoBanner() {
 
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", recalcOverflow);
+      window.removeEventListener("resize", onResize);
     };
   }, [show, recalcOverflow]);
 
+  // formatted time
   const hhmmss = formatSeconds(remaining);
 
   if (!show) return null;
@@ -95,7 +107,13 @@ export default function PromoBanner() {
 
   const apply = () => {
     if (promo?.code) {
-      localStorage.setItem("coupon_auto", String(promo.code).toUpperCase());
+      const code = String(promo.code).toUpperCase();
+      localStorage.setItem("coupon_auto", code);
+      sessionStorage.setItem("coupon_auto_once", code); // optional extra signal
+      // also broadcast an event in case Checkout is already mounted
+      window.dispatchEvent(
+        new CustomEvent("mindmines:apply-coupon", { detail: { code } })
+      );
     }
     if (!location.pathname.startsWith("/checkout")) navigate("/checkout");
   };
@@ -117,6 +135,7 @@ export default function PromoBanner() {
 
   return (
     <div
+      ref={trackRef}
       style={{ backgroundColor: bg, color: fg }}
       className="relative w-full border-b border-white/10"
     >

@@ -34,7 +34,7 @@ export const promosApi = api.injectEndpoints({
       },
     }),
     getActivePromotion: build.query({
-      query: () => "promotions/active/",
+      query: () => "promotions/active/?format=json",
       transformResponse: (res) => res || {},
       providesTags: ["Promos"],
     }),
