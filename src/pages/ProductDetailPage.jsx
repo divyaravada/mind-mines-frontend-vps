@@ -88,6 +88,7 @@ export default function ProductDetailPage() {
   const { data: suggestData } = useSuggestProductsQuery(suggestSeed, {
     skip: !suggestSeed,
   });
+
   const suggested = useMemo(() => {
     if (!suggestData) return [];
     return Array.isArray(suggestData)
@@ -97,10 +98,11 @@ export default function ProductDetailPage() {
 
   const { data: relatedResp } = useListProductsQuery(
     product?.category
-      ? { category: product.category, page_size: 8 }
+      ? { category: product.category, page_size: 12 }
       : undefined,
     { skip: !product?.category }
   );
+
   const relatedByCategory = useMemo(() => {
     if (!relatedResp) return [];
     return Array.isArray(relatedResp)
@@ -109,8 +111,30 @@ export default function ProductDetailPage() {
   }, [relatedResp]);
 
   const recommend = useMemo(() => {
-    const base = (suggested.length ? suggested : relatedByCategory) || [];
-    return base.filter((p) => String(p.id) !== String(id)).slice(0, 8);
+    // 1) merge suggested + related
+    const seen = new Set();
+    const merged = [...(suggested || []), ...(relatedByCategory || [])].filter(
+      (p) => {
+        if (!p) return false;
+        const pid = String(p.id);
+        if (seen.has(pid)) return false;
+        seen.add(pid);
+        return true;
+      }
+    );
+
+    if (!merged.length) return [];
+
+    const selfId = String(id);
+
+    // 2) try to remove the current product
+    const filtered = merged.filter((p) => String(p.id) !== selfId);
+
+    // 3) if removing self leaves nothing (e.g. only 1 product exists),
+    //    fall back to showing the merged list including self
+    const base = filtered.length ? filtered : merged;
+
+    return base.slice(0, 8);
   }, [suggested, relatedByCategory, id]);
 
   const [createReview] = useCreateProductReviewMutation();
@@ -561,13 +585,11 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Suggestions */}
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">
-            {t("productReviews.youMay")}
-          </h2>
-          {recommend.length === 0 ? (
-            <div className="text-gray-500">{t("productReviews.noSugg")}</div>
-          ) : (
+        {recommend.length > 0 && (
+          <section className="mt-12">
+            <h2 className="text-2xl font-bold mb-4">
+              {t("productReviews.youMay")}
+            </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
               {recommend.map((p) => (
                 <button
@@ -589,8 +611,8 @@ export default function ProductDetailPage() {
                 </button>
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         <OnDemandModal
           open={openDemand}
