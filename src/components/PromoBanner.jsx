@@ -26,11 +26,17 @@ export default function PromoBanner() {
 
   const [hidden, setHidden] = useState(false);
   const [remainingMap, setRemainingMap] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const timersRef = useRef({});
 
   const promos = useMemo(() => promosArr.filter(Boolean), [promosArr]);
   const show = promos.length > 0 && !hidden && !isFetching;
+
+  // reset to first slide if promos change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [promos.length]);
 
   // countdown per promo
   useEffect(() => {
@@ -60,18 +66,35 @@ export default function PromoBanner() {
     };
   }, [show, promos]);
 
+  // auto-slide horizontally every 7s
+  useEffect(() => {
+    if (!show || promos.length <= 1) return;
+    const id = setInterval(() => {
+      setCurrentIndex((i) => (i + 1) % promos.length);
+    }, 7000);
+    return () => clearInterval(id);
+  }, [show, promos.length]);
+
   const goCheckoutWith = (code) => {
     localStorage.setItem("coupon_auto", String(code).toUpperCase());
     navigate(`/checkout?coupon=${encodeURIComponent(code)}`);
   };
 
+  const goPrev = () => {
+    if (promos.length === 0) return;
+    setCurrentIndex((i) => (i - 1 + promos.length) % promos.length);
+  };
+
+  const goNext = () => {
+    if (promos.length === 0) return;
+    setCurrentIndex((i) => (i + 1) % promos.length);
+  };
+
+  // all hooks above — safe to early-return
   if (!show) return null;
 
   const barBg = promos[0]?.bg_color || "#111827";
   const barFg = promos[0]?.text_color || "#ffffff";
-
-  // we duplicate the promos array so that marquee can loop seamlessly
-  const loopItems = [...promos, ...promos];
 
   return (
     <div
@@ -79,16 +102,35 @@ export default function PromoBanner() {
       className="relative w-full border-b border-white/10"
     >
       <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
-        {/* scroll / marquee area */}
+        {/* left arrow (only if multiple promos) */}
+        {promos.length > 1 && (
+          <button
+            type="button"
+            onClick={goPrev}
+            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
+            aria-label={t("promo.prev", "Previous promotion")}
+          >
+            ‹
+          </button>
+        )}
+
+        {/* slider viewport */}
         <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="promo-marquee">
-            {loopItems.map((p, idx) => {
+          <div
+            className="flex transition-transform duration-700 ease-out"
+            style={{
+              width: `${promos.length * 100}%`,
+              transform: `translateX(-${
+                currentIndex * (100 / promos.length)
+              }%)`,
+            }}
+          >
+            {promos.map((p) => {
               const fg = p.text_color || barFg;
-              const key = `${p.id}-${idx}`; // because we duplicated
               return (
                 <div
-                  key={key}
-                  className="inline-flex items-center gap-3 md:gap-4 px-4 shrink-0"
+                  key={p.id}
+                  className="flex-none w-full inline-flex items-center gap-3 md:gap-4"
                 >
                   {p.image_url && (
                     <img
@@ -141,6 +183,18 @@ export default function PromoBanner() {
             })}
           </div>
         </div>
+
+        {/* right arrow */}
+        {promos.length > 1 && (
+          <button
+            type="button"
+            onClick={goNext}
+            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
+            aria-label={t("promo.next", "Next promotion")}
+          >
+            ›
+          </button>
+        )}
 
         {/* close button */}
         <button
