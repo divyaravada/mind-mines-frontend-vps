@@ -34,7 +34,7 @@ export default function PromoBanner() {
   const promos = useMemo(() => promosArr.filter(Boolean), [promosArr]);
   const show = promos.length > 0 && !hidden && !isFetching;
 
-  // countdown per promo
+  // ---- countdown per promo ----
   useEffect(() => {
     // clear old timers
     Object.values(timersRef.current).forEach(clearInterval);
@@ -63,8 +63,8 @@ export default function PromoBanner() {
     };
   }, [show, promos]);
 
-  // overflow detection
-  const recalc = useCallback(() => {
+  // ---- overflow detection (for showing arrows) ----
+  const recalcOverflow = useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
     setHasOverflow(el.scrollWidth > el.clientWidth + 1);
@@ -74,29 +74,23 @@ export default function PromoBanner() {
     const el = stripRef.current;
     if (!el) return;
 
-    if (!show) {
-      setHasOverflow(false);
-      return;
-    }
-
-    recalc();
-
-    const ro = new ResizeObserver(recalc);
+    recalcOverflow();
+    const ro = new ResizeObserver(recalcOverflow);
     ro.observe(el);
 
-    const onResize = () => recalc();
+    const onResize = () => recalcOverflow();
     window.addEventListener("resize", onResize);
 
-    // images might change width
     el.querySelectorAll("img").forEach((img) => {
-      if (!img.complete) img.addEventListener("load", recalc, { once: true });
+      if (!img.complete)
+        img.addEventListener("load", recalcOverflow, { once: true });
     });
 
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", onResize);
     };
-  }, [show, recalc, promos.length]);
+  }, [recalcOverflow, promos.length]);
 
   const goCheckoutWith = (code) => {
     localStorage.setItem("coupon_auto", String(code).toUpperCase());
@@ -109,16 +103,16 @@ export default function PromoBanner() {
   const onWheel = (e) => {
     const el = stripRef.current;
     if (!el) return;
+    // let normal horizontal wheel work, also map vertical -> horizontal
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
       e.preventDefault();
       el.scrollBy({ left: e.deltaY, behavior: "auto" });
     }
   };
 
-  // ⬇️ early return AFTER hooks
+  // all hooks are above – safe to early-return now
   if (!show) return null;
 
-  // Use first promo’s palette as bar chrome
   const barBg = promos[0].bg_color || "#111827";
   const barFg = promos[0].text_color || "#ffffff";
 
@@ -131,7 +125,7 @@ export default function PromoBanner() {
         {hasOverflow && (
           <button
             type="button"
-            onClick={() => scrollByPx(-280)}
+            onClick={() => scrollByPx(-320)}
             className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
             aria-label={t("promo.scrollLeft", "Scroll left")}
           >
@@ -139,18 +133,19 @@ export default function PromoBanner() {
           </button>
         )}
 
+        {/* SCROLLABLE STRIP */}
         <div
           ref={stripRef}
           onWheel={onWheel}
-          className="flex-1 basis-0 min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
+          className="flex-1 basis-0 min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x snap-x snap-mandatory"
         >
-          <div className="w-max whitespace-nowrap inline-flex items-center gap-6 pr-3">
+          <div className="flex w-max items-center gap-4">
             {promos.map((p) => {
               const fg = p.text_color || barFg;
               return (
                 <div
                   key={p.id}
-                  className="inline-flex items-center gap-3 md:gap-4 shrink-0"
+                  className="snap-start shrink-0 min-w-[280px] md:min-w-[420px] inline-flex items-center gap-3 md:gap-4"
                 >
                   {p.image_url && (
                     <img
@@ -207,7 +202,7 @@ export default function PromoBanner() {
         {hasOverflow && (
           <button
             type="button"
-            onClick={() => scrollByPx(280)}
+            onClick={() => scrollByPx(320)}
             className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
             aria-label={t("promo.scrollRight", "Scroll right")}
           >
