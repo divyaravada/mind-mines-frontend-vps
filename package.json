@@ -21,6 +21,7 @@
     "keen-slider": "^6.8.6",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
+    "react-custom-scrollbars-2": "^4.5.0",
     "react-dom": "^19.1.1",
     "react-helmet-async": "^2.0.5",
     "react-i18next": "^15.7.3",
