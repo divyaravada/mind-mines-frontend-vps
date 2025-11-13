@@ -1,5 +1,5 @@
 ﻿// components/PromoBanner.jsx
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useGetActivePromotionQuery } from "../features/promos/promosApi";
@@ -26,15 +26,16 @@ export default function PromoBanner() {
 
   const [hidden, setHidden] = useState(false);
   const [remainingMap, setRemainingMap] = useState({});
-  const [hasOverflow, setHasOverflow] = useState(false);
-
-  const stripRef = useRef(null);
   const timersRef = useRef({});
+
+  const outerRef = useRef(null); // viewport
+  const innerRef = useRef(null); // moving track
+  const rafRef = useRef(null);
 
   const promos = useMemo(() => promosArr.filter(Boolean), [promosArr]);
   const show = promos.length > 0 && !hidden && !isFetching;
 
-  // --- countdown per promo ---
+  // countdown per promo
   useEffect(() => {
     Object.values(timersRef.current).forEach(clearInterval);
     timersRef.current = {};
@@ -62,56 +63,58 @@ export default function PromoBanner() {
     };
   }, [show, promos]);
 
-  // --- overflow detection for arrows ---
-  const recalc = useCallback(() => {
-    const el = stripRef.current;
-    if (!el) return;
-    setHasOverflow(el.scrollWidth > el.clientWidth + 1);
-  }, []);
-
+  // JS-powered marquee animation (right -> left)
   useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
+    const outer = outerRef.current;
+    const inner = innerRef.current;
 
-    recalc();
-    const ro = new ResizeObserver(recalc);
-    ro.observe(el);
+    if (!show || !outer || !inner) return;
 
-    const onResize = () => recalc();
-    window.addEventListener("resize", onResize);
+    // width of one sequence (we'll render it twice)
+    const fullWidth = inner.scrollWidth / 2;
+    if (!fullWidth) return;
 
-    el.querySelectorAll("img").forEach((img) => {
-      if (!img.complete) img.addEventListener("load", recalc, { once: true });
-    });
+    let x = 0; // current translateX
+    let lastTs = performance.now();
+    const speed = 40; // px per second
+
+    const step = (ts) => {
+      const dt = ts - lastTs;
+      lastTs = ts;
+
+      // move left
+      x -= (speed * dt) / 1000;
+
+      // when we've scrolled one full sequence, reset
+      if (x <= -fullWidth) {
+        x = 0;
+      }
+
+      inner.style.transform = `translateX(${x}px)`;
+      rafRef.current = requestAnimationFrame(step);
+    };
+
+    rafRef.current = requestAnimationFrame(step);
 
     return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onResize);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      if (inner) inner.style.transform = "translateX(0px)";
     };
-  }, [recalc, promos.length]);
+  }, [show, promos.length]);
 
   const goCheckoutWith = (code) => {
     localStorage.setItem("coupon_auto", String(code).toUpperCase());
     navigate(`/checkout?coupon=${encodeURIComponent(code)}`);
   };
 
-  // map vertical wheel -> horizontal scroll for convenience
-  const onWheel = (e) => {
-    const el = stripRef.current;
-    if (!el) return;
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.preventDefault();
-      el.scrollBy({ left: e.deltaY, behavior: "auto" });
-    }
-  };
-
-  const scrollByPx = (px) =>
-    stripRef.current?.scrollBy({ left: px, behavior: "smooth" });
-
   if (!show) return null;
 
-  const barBg = promos[0].bg_color || "#111827";
-  const barFg = promos[0].text_color || "#ffffff";
+  const barBg = promos[0]?.bg_color || "#111827";
+  const barFg = promos[0]?.text_color || "#ffffff";
+
+  // Duplicate promos so we can loop seamlessly
+  const loopItems = [...promos, ...promos];
 
   return (
     <div
@@ -119,31 +122,20 @@ export default function PromoBanner() {
       className="relative w-full border-b border-white/10"
     >
       <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
-        {/* left arrow */}
-        {hasOverflow && (
-          <button
-            type="button"
-            onClick={() => scrollByPx(-320)}
-            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
-            aria-label={t("promo.scrollLeft", "Scroll left")}
+        {/* scrolling viewport */}
+        <div ref={outerRef} className="flex-1 min-w-0 overflow-hidden">
+          <div
+            ref={innerRef}
+            className="inline-flex whitespace-nowrap items-center"
+            style={{ willChange: "transform" }}
           >
-            ‹
-          </button>
-        )}
-
-        {/* SCROLLABLE STRIP */}
-        <div
-          ref={stripRef}
-          onWheel={onWheel}
-          className="flex-1 basis-0 min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
-        >
-          <div className="flex w-max items-center gap-4 pr-3">
-            {promos.map((p) => {
+            {loopItems.map((p, idx) => {
               const fg = p.text_color || barFg;
+              const key = `${p.id}-${idx}`;
               return (
                 <div
-                  key={p.id}
-                  className="shrink-0 min-w-[280px] md:min-w-[420px] inline-flex items-center gap-3 md:gap-4"
+                  key={key}
+                  className="inline-flex items-center gap-3 md:gap-4 px-4 shrink-0"
                 >
                   {p.image_url && (
                     <img
@@ -196,18 +188,6 @@ export default function PromoBanner() {
             })}
           </div>
         </div>
-
-        {/* right arrow */}
-        {hasOverflow && (
-          <button
-            type="button"
-            onClick={() => scrollByPx(320)}
-            className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
-            aria-label={t("promo.scrollRight", "Scroll right")}
-          >
-            ›
-          </button>
-        )}
 
         {/* close button */}
         <button
