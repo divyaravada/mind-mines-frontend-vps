@@ -202,7 +202,7 @@ export default function PromoBanner() {
         {hasOverflow && (
           <button
             type="button"
-            onClick={() => scrollByPx(320)}
+            onClick={() => scrollByPx(1220)}
             className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
             aria-label={t("promo.scrollRight", "Scroll right")}
           >
