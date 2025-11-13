@@ -70,11 +70,14 @@ export default function PromoBanner() {
 
     if (!show || !outer || !inner) return;
 
-    // width of one sequence (we'll render it twice)
-    const fullWidth = inner.scrollWidth / 2;
-    if (!fullWidth) return;
+    const hasMultiple = promos.length > 1;
+    const sequences = hasMultiple ? 2 : 1; // if we duplicated or not
 
-    let x = 0; // current translateX
+    // total width of one full sequence
+    const sequenceWidth = inner.scrollWidth / sequences;
+    if (!sequenceWidth) return;
+
+    let x = 0;
     let lastTs = performance.now();
     const speed = 40; // px per second
 
@@ -85,9 +88,16 @@ export default function PromoBanner() {
       // move left
       x -= (speed * dt) / 1000;
 
-      // when we've scrolled one full sequence, reset
-      if (x <= -fullWidth) {
-        x = 0;
+      if (hasMultiple) {
+        // seamless loop for 2+ promos
+        if (x <= -sequenceWidth) {
+          x = 0;
+        }
+      } else {
+        // only ONE promo: when fully left, jump back to right side of viewport
+        if (x <= -sequenceWidth) {
+          x = outer.clientWidth;
+        }
       }
 
       inner.style.transform = `translateX(${x}px)`;
@@ -99,7 +109,7 @@ export default function PromoBanner() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
-      if (inner) inner.style.transform = "translateX(0px)";
+      inner.style.transform = "translateX(0px)";
     };
   }, [show, promos.length]);
 
@@ -113,8 +123,8 @@ export default function PromoBanner() {
   const barBg = promos[0]?.bg_color || "#111827";
   const barFg = promos[0]?.text_color || "#ffffff";
 
-  // Duplicate promos so we can loop seamlessly
-  const loopItems = [...promos, ...promos];
+  const hasMultiple = promos.length > 1;
+  const renderItems = hasMultiple ? [...promos, ...promos] : promos;
 
   return (
     <div
@@ -129,7 +139,7 @@ export default function PromoBanner() {
             className="inline-flex whitespace-nowrap items-center"
             style={{ willChange: "transform" }}
           >
-            {loopItems.map((p, idx) => {
+            {renderItems.map((p, idx) => {
               const fg = p.text_color || barFg;
               const key = `${p.id}-${idx}`;
               return (
