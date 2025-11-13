@@ -1,9 +1,8 @@
 ﻿// components/PromoBanner.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useGetActivePromotionQuery } from "../features/promos/promosApi";
-import { Scrollbars } from "react-custom-scrollbars-2";
 
 function diffSecondsToNow(iso) {
   if (!iso) return null;
@@ -29,13 +28,13 @@ export default function PromoBanner() {
   const [remainingMap, setRemainingMap] = useState({});
   const [hasOverflow, setHasOverflow] = useState(false);
 
-  const scrollRef = useRef(null);
+  const stripRef = useRef(null);
   const timersRef = useRef({});
 
   const promos = useMemo(() => promosArr.filter(Boolean), [promosArr]);
   const show = promos.length > 0 && !hidden && !isFetching;
 
-  // countdown per promo
+  // --- countdown per promo ---
   useEffect(() => {
     Object.values(timersRef.current).forEach(clearInterval);
     timersRef.current = {};
@@ -63,47 +62,51 @@ export default function PromoBanner() {
     };
   }, [show, promos]);
 
-  // detect overflow to decide if arrows should show (optional)
+  // --- overflow detection for arrows ---
+  const recalc = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    setHasOverflow(el.scrollWidth > el.clientWidth + 1);
+  }, []);
+
   useEffect(() => {
-    const sb = scrollRef.current;
-    if (!sb) return;
+    const el = stripRef.current;
+    if (!el) return;
 
-    const check = () => {
-      const view = sb.getScrollWidth && sb.getClientWidth && sb;
-      if (!view) return;
-      const sw = sb.getScrollWidth();
-      const cw = sb.getClientWidth();
-      setHasOverflow(sw > cw + 1);
-    };
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    ro.observe(el);
 
-    check();
-    const onResize = () => check();
+    const onResize = () => recalc();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [promos.length]);
+
+    el.querySelectorAll("img").forEach((img) => {
+      if (!img.complete) img.addEventListener("load", recalc, { once: true });
+    });
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [recalc, promos.length]);
 
   const goCheckoutWith = (code) => {
     localStorage.setItem("coupon_auto", String(code).toUpperCase());
     navigate(`/checkout?coupon=${encodeURIComponent(code)}`);
   };
 
-  // map vertical wheel -> horizontal scroll
-  const handleWheel = (e) => {
-    const sb = scrollRef.current;
-    if (!sb) return;
+  // map vertical wheel -> horizontal scroll for convenience
+  const onWheel = (e) => {
+    const el = stripRef.current;
+    if (!el) return;
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
       e.preventDefault();
-      const current = sb.getScrollLeft();
-      sb.scrollLeft(current + e.deltaY);
+      el.scrollBy({ left: e.deltaY, behavior: "auto" });
     }
   };
 
-  const scrollByPx = (px) => {
-    const sb = scrollRef.current;
-    if (!sb) return;
-    const current = sb.getScrollLeft();
-    sb.scrollLeft(current + px);
-  };
+  const scrollByPx = (px) =>
+    stripRef.current?.scrollBy({ left: px, behavior: "smooth" });
 
   if (!show) return null;
 
@@ -116,10 +119,11 @@ export default function PromoBanner() {
       className="relative w-full border-b border-white/10"
     >
       <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
+        {/* left arrow */}
         {hasOverflow && (
           <button
             type="button"
-            onClick={() => scrollByPx(-280)}
+            onClick={() => scrollByPx(-320)}
             className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
             aria-label={t("promo.scrollLeft", "Scroll left")}
           >
@@ -127,99 +131,77 @@ export default function PromoBanner() {
           </button>
         )}
 
-        {/* React custom scrollbar wrapper */}
-        <div className="flex-1 min-w-0">
-          <Scrollbars
-            ref={scrollRef}
-            autoHide
-            universal
-            onWheel={handleWheel}
-            renderTrackVertical={(props) => (
-              <div {...props} style={{ display: "none" }} />
-            )}
-            renderThumbVertical={(props) => (
-              <div {...props} style={{ display: "none" }} />
-            )}
-            renderView={(props) => (
-              <div
-                {...props}
-                style={{
-                  ...props.style,
-                  whiteSpace: "nowrap",
-                  display: "inline-flex",
-                }}
-              />
-            )}
-          >
-            {/* content row */}
-            <div className="inline-flex items-center gap-6 pr-3">
-              {promos.map((p) => {
-                const fg = p.text_color || barFg;
-                return (
-                  <div
-                    key={p.id}
-                    className="inline-flex items-center gap-3 md:gap-4 shrink-0"
+        {/* SCROLLABLE STRIP */}
+        <div
+          ref={stripRef}
+          onWheel={onWheel}
+          className="flex-1 basis-0 min-w-0 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
+        >
+          <div className="flex w-max items-center gap-4 pr-3">
+            {promos.map((p) => {
+              const fg = p.text_color || barFg;
+              return (
+                <div
+                  key={p.id}
+                  className="shrink-0 min-w-[280px] md:min-w-[420px] inline-flex items-center gap-3 md:gap-4"
+                >
+                  {p.image_url && (
+                    <img
+                      src={p.image_url}
+                      alt=""
+                      className="h-6 w-6 object-contain rounded shrink-0"
+                    />
+                  )}
+                  <span
+                    className="font-semibold shrink-0"
+                    style={{ color: fg }}
                   >
-                    {p.image_url && (
-                      <img
-                        src={p.image_url}
-                        alt=""
-                        className="h-6 w-6 object-contain rounded shrink-0"
-                      />
-                    )}
+                    {p.headline}
+                  </span>
+                  {p.subheadline && (
+                    <span className="opacity-90 shrink-0" style={{ color: fg }}>
+                      {p.subheadline}
+                    </span>
+                  )}
+                  {typeof remainingMap[p.id] === "number" && (
                     <span
-                      className="font-semibold shrink-0"
+                      className="text-xs opacity-90 shrink-0"
                       style={{ color: fg }}
                     >
-                      {p.headline}
+                      {t("promo.endsIn", { time: fmt(remainingMap[p.id]) })}
                     </span>
-                    {p.subheadline && (
-                      <span
-                        className="opacity-90 shrink-0"
-                        style={{ color: fg }}
-                      >
-                        {p.subheadline}
-                      </span>
-                    )}
-                    {typeof remainingMap[p.id] === "number" && (
-                      <span
-                        className="text-xs opacity-90 shrink-0"
-                        style={{ color: fg }}
-                      >
-                        {t("promo.endsIn", { time: fmt(remainingMap[p.id]) })}
-                      </span>
-                    )}
-                    {p.code && (
-                      <button
-                        onClick={() => goCheckoutWith(p.code)}
-                        className="px-3 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/20"
-                        style={{ color: fg }}
-                      >
-                        {t("promo.applyCoupon", {
-                          code: String(p.code).toUpperCase(),
-                        })}
-                      </button>
-                    )}
-                    {p.link_url && (
-                      <a
-                        href={p.link_url}
-                        className="underline underline-offset-2 hover:opacity-90 shrink-0"
-                        style={{ color: fg }}
-                      >
-                        {t("promo.shopNow")}
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Scrollbars>
+                  )}
+                  {p.code && (
+                    <button
+                      onClick={() => goCheckoutWith(p.code)}
+                      className="px-3 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/20"
+                      style={{ color: fg }}
+                    >
+                      {t("promo.applyCoupon", {
+                        code: String(p.code).toUpperCase(),
+                      })}
+                    </button>
+                  )}
+                  {p.link_url && (
+                    <a
+                      href={p.link_url}
+                      className="underline underline-offset-2 hover:opacity-90 shrink-0"
+                      style={{ color: fg }}
+                    >
+                      {t("promo.shopNow")}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
+        {/* right arrow */}
         {hasOverflow && (
           <button
             type="button"
-            onClick={() => scrollByPx(280)}
+            onClick={() => scrollByPx(320)}
             className="hidden sm:inline-flex h-7 w-7 items-center justify-center rounded bg-white/10 hover:bg-white/20 border border-white/20"
             aria-label={t("promo.scrollRight", "Scroll right")}
           >
@@ -227,6 +209,7 @@ export default function PromoBanner() {
           </button>
         )}
 
+        {/* close button */}
         <button
           onClick={() => setHidden(true)}
           className="ml-1 px-2 py-1 rounded hover:bg-white/10 shrink-0"
