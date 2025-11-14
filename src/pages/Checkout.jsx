@@ -962,27 +962,24 @@ export default function Checkout() {
               <input
                 type="radio"
                 name="payment"
-                value="klarna"
-                checked={payment === "klarna"}
-                onChange={() => setPaymentSafe("klarna")}
+                value="klarna_single"
+                checked={payment === "klarna_single"}
+                onChange={() => setPaymentSafe("klarna_single")}
               />
               <span className="flex-1">
-                {t("checkout.klarnaLabel", {
-                  count: klarnaInstallments,
-                  per: klarnaPerPayment,
-                })}
+                {t("checkout.klarnaSingleLabel", "Klarna – pay now")}
               </span>
-              <span className="text-xs font-semibold">Stripe</span>
+              <span className="text-xs font-semibold">Stripe / Klarna</span>
             </label>
 
-            {payment === "klarna" && (
+            {payment === "klarna_single" && (
               <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
                 <StripeRedirectPay
-                  orderId={localOrderIdRef.current || null} // if you already created one
-                  method="klarna"
+                  orderId={localOrderIdRef.current || null}
+                  method="klarna" // Stripe method stays "klarna"
                   orderPayload={{
                     email: form.email.trim(),
-                    payment_method: "klarna",
+                    payment_method: "klarna_single", // <-- our internal method
                     coupon_code: (couponCode || "").trim(),
                     items: backendItems,
                     shipping: {
@@ -997,7 +994,7 @@ export default function Checkout() {
                       street_name: form.street || "",
                       house_number: form.houseNumber || "",
                     },
-                  }} // used if no orderId → JIT create
+                  }}
                   onSuccess={async () =>
                     await onSuccessfulOrder(localOrderIdRef.current)
                   }
@@ -1006,6 +1003,54 @@ export default function Checkout() {
               </div>
             )}
 
+            {/* Klarna – installments */}
+            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+              <input
+                type="radio"
+                name="payment"
+                value="klarna_installments"
+                checked={payment === "klarna_installments"}
+                onChange={() => setPaymentSafe("klarna_installments")}
+              />
+              <span className="flex-1">
+                {t("checkout.klarnaInstallmentsLabel", {
+                  count: klarnaInstallments, // 3
+                  per: klarnaPerPayment, // e.g. "€33,33"
+                })}
+              </span>
+              <span className="text-xs font-semibold">Stripe / Klarna</span>
+            </label>
+
+            {payment === "klarna_installments" && (
+              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                <StripeRedirectPay
+                  orderId={localOrderIdRef.current || null}
+                  method="klarna" // still just "klarna" for Stripe
+                  orderPayload={{
+                    email: form.email.trim(),
+                    payment_method: "klarna_installments", // <-- our internal method
+                    coupon_code: (couponCode || "").trim(),
+                    items: backendItems,
+                    shipping: {
+                      first_name: form.fullName.split(" ")[0] || form.fullName,
+                      last_name: form.fullName.split(" ").slice(1).join(" "),
+                      line1: `${form.street} ${form.houseNumber}`.trim(),
+                      line2: form.apartment || "",
+                      postal_code: form.postalCode,
+                      city: form.city,
+                      country: normalizeCountry(form.country),
+                      phone: form.telephone || "",
+                      street_name: form.street || "",
+                      house_number: form.houseNumber || "",
+                    },
+                  }}
+                  onSuccess={async () =>
+                    await onSuccessfulOrder(localOrderIdRef.current)
+                  }
+                  onError={(m) => alert(m)}
+                />
+              </div>
+            )}
             {/* giropay */}
             <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
               <input
