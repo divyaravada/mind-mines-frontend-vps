@@ -44,8 +44,9 @@ export default function App() {
   }, []);
   return (
     <div className="font-open-sans flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Navbar />
       <PromoBanner />
+      <Navbar />
+
       <div className="flex-1">
         <ScrollToTop />
         <Routes>
@@ -68,7 +69,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<AboutContactPage />} />
           <Route path="/decorative-products" element={<Products />} />
-          <Route path="/decorative-products/category/:categoryId" element={<Products />} />
+          <Route
+            path="/decorative-products/category/:categoryId"
+            element={<Products />}
+          />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/natural-stone" element={<NaturalStonePage />} />
           <Route path="/cart" element={<Cart />} />
@@ -138,4 +142,3 @@ export default function App() {
     </div>
   );
 }
-
