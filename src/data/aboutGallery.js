@@ -5,7 +5,6 @@ import mindminesvideo4 from "../assets/IMG_4824.MOV";
 import mindminesvideo5 from "../assets/IMG_4829.MOV";
 import mindminesvideo6 from "../assets/IMG_4828.MOV";
 import mindminesvideo7 from "../assets/IMG_4830.MOV";
-import mindminesvideo8 from "../assets/40f183c302a84966b12d4b3e91c624d7.MOV";
 import image1 from "../assets/Kitchen_Mug.jpg";
 import image2 from "../assets/Kitchen_Mug2.jpg";
 import C0072 from "../assets/C0072.jpg";
@@ -15,7 +14,6 @@ import IMG_4788 from "../assets/IMG_4788.jpg";
 import IMG_4829 from "../assets/IMG_4829.jpg";
 import IMG_4828 from "../assets/IMG_4828.jpg";
 import IMG_4830 from "../assets/IMG_4830.jpg";
-import carving from "../assets/40f183c302a84966b12d4b3e91c624d7.jpg";
 import kitchen3 from "../assets/Kitchen_Mug3.jpg";
 import office from "../assets/Office_supplies.jpg";
 import catchAll from "../assets/Catch_All_Tray_Italian-Green.jpg";
@@ -48,6 +46,7 @@ import multiFunctionalTrayBlackMarquina from "../assets/Multi-Functional_Tray_Bl
 import marbleServeWhiteCarrara from "../assets/Marble_Serve_White-Carrara.jpg";
 import eleganceTrayItalianGreen01 from "../assets/Elegance_Tray_Italian-Green01.jpg";
 import marbleServeBlackMarquina from "../assets/Marble_Serve_Black-Marquina.jpg";
+import vanityTrayItalienGreen from "../assets/Vanity_tray_Italian-Green.jpg";
 
 export const galleryItems = [
   {
@@ -106,16 +105,9 @@ export const galleryItems = [
     alt: "MindMines workshop – carving in progress",
     title: "MindMines workshop – carving in progress",
   },
+
   {
     id: 8,
-    type: "video",
-    thumb: carving, // small preview image
-    src: mindminesvideo8, // or your MP4 URL
-    alt: "MindMines workshop – carving in progress",
-    title: "MindMines workshop – carving in progress",
-  },
-  {
-    id: 9,
     type: "image",
     thumb: image1,
     src: image1,
@@ -123,7 +115,7 @@ export const galleryItems = [
     title: "Kitchen Mug",
   },
   {
-    id: 10,
+    id: 9,
     type: "image",
     thumb: image2,
     src: image2,
@@ -131,7 +123,7 @@ export const galleryItems = [
     title: "Kitchen Mug",
   },
   {
-    id: 11,
+    id: 10,
     type: "image",
     thumb: kitchen3,
     src: kitchen3,
@@ -139,7 +131,7 @@ export const galleryItems = [
     title: "Kitchen Mug",
   },
   {
-    id: 12,
+    id: 11,
     type: "image",
     thumb: office,
     src: office,
@@ -147,12 +139,20 @@ export const galleryItems = [
     title: "Office Supplies",
   },
   {
-    id: 13,
+    id: 12,
     type: "image",
     thumb: catchAll,
     src: catchAll,
     alt: "Finished marble sculpture on display",
     title: "Catch All Tray",
+  },
+  {
+    id: 13,
+    type: "image",
+    thumb: vanityTrayItalienGreen,
+    src: vanityTrayItalienGreen,
+    alt: "Finished marble sculpture on display",
+    title: "Vanity Tray Italian Green",
   },
   {
     id: 14,
