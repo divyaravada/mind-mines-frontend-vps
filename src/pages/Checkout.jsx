@@ -488,7 +488,7 @@ export default function Checkout() {
           e?.data?.detail ||
           e?.data?.non_field_errors?.[0] ||
           e?.error ||
-          "Order creation failed.";
+          t("checkout.orderCreateFailed");
         alert(msg);
         return null;
       }
@@ -943,7 +943,7 @@ export default function Checkout() {
               {t("checkout.payment")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {t("checkout.deliveryNote")}
+              {t("checkout.paymentNote")}
             </p>
 
             {!payment && (
@@ -968,7 +968,9 @@ export default function Checkout() {
               <span className="flex-1">
                 {t("checkout.klarnaSingleLabel", "Klarna – pay now")}
               </span>
-              <span className="text-xs font-semibold">Stripe / Klarna</span>
+              <span className="text-xs font-semibold">
+                {t("checkout.processorStripeKlarna")}
+              </span>
             </label>
 
             {payment === "klarna_single" && (
@@ -982,7 +984,7 @@ export default function Checkout() {
                   >
                     {creatingOrder
                       ? t("checkout.initializing")
-                      : t("checkout.continueKlarnaNow", "Continue with Klarna")}
+                      : t("checkout.continueKlarnaNow")}
                   </button>
                 ) : (
                   <StripeRedirectPay
@@ -1031,7 +1033,9 @@ export default function Checkout() {
                   per: klarnaPerPayment, // e.g. "€33,33"
                 })}
               </span>
-              <span className="text-xs font-semibold">Stripe / Klarna</span>
+              <span className="text-xs font-semibold">
+                {t("checkout.processorStripeKlarna")}
+              </span>
             </label>
 
             {payment === "klarna_installments" && (
@@ -1045,10 +1049,7 @@ export default function Checkout() {
                   >
                     {creatingOrder
                       ? t("checkout.initializing")
-                      : t(
-                          "checkout.continueKlarnaInst",
-                          "Continue with Klarna installments"
-                        )}
+                      : t("checkout.continueKlarnaInst")}
                   </button>
                 ) : (
                   <StripeRedirectPay
@@ -1090,8 +1091,10 @@ export default function Checkout() {
                 checked={payment === "giropay"}
                 onChange={() => setPaymentSafe("giropay")}
               />
-              <span className="flex-1">giropay</span>
-              <span className="text-xs font-semibold">Stripe</span>
+              <span className="flex-1">{t("checkout.giropayLabel")}</span>
+              <span className="text-xs font-semibold">
+                {t("checkout.processorStripe")}
+              </span>
             </label>
 
             {payment === "giropay" && (
@@ -1105,7 +1108,7 @@ export default function Checkout() {
                   >
                     {creatingOrder
                       ? t("checkout.initializing")
-                      : t("checkout.continueGiropay", "Continue with giropay")}
+                      : t("checkout.continueGiropay")}
                   </button>
                 ) : (
                   <StripeRedirectPay
@@ -1149,7 +1152,9 @@ export default function Checkout() {
                 onChange={() => setPaymentSafe("card")}
               />
               <span className="flex-1">{t("checkout.card")}</span>
-              <span className="text-xs font-semibold">Stripe</span>
+              <span className="text-xs font-semibold">
+                {t("checkout.processorStripe")}
+              </span>
             </label>
 
             {/* When Card is chosen: ensure local order, then show StripeCard */}
