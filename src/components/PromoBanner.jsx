@@ -129,7 +129,7 @@ export default function PromoBanner() {
   return (
     <div
       style={{ backgroundColor: barBg, color: barFg }}
-      className="relative w-full border-b border-white/10 sticky top-10 z-50 select-none"
+      className="relative w-full border-b border-white/10 sticky top-15 z-50 select-none"
     >
       <div className="px-3 md:px-6 py-2 text-sm flex items-center gap-2">
         {/* scrolling viewport */}
