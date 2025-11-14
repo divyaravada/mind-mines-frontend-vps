@@ -441,14 +441,23 @@ export default function Checkout() {
         alert(t("checkout.emptyCart"));
         return null;
       }
+      let installments_months = null;
+      let pmToSave = pm;
 
-      const installments_months =
-        pm && pm.startsWith("card_installments_")
-          ? Number(pm.split("_").pop())
-          : null;
-
-      let pmToSave = "card";
-      if (installments_months) pmToSave = "card_installments";
+      // card installments: e.g. "card_installments_3"
+      if (pm && pm.startsWith("card_installments_")) {
+        installments_months = Number(pm.split("_").pop());
+        pmToSave = "card_installments";
+      } else if (pm === "card") {
+        pmToSave = "card";
+      } else if (
+        pm === "klarna_single" ||
+        pm === "klarna_installments" ||
+        pm === "giropay"
+      ) {
+        // keep as-is
+        pmToSave = pm;
+      }
 
       try {
         const res = await createOrder({
@@ -495,17 +504,7 @@ export default function Checkout() {
     ]
   );
 
-  // If user switches to card or card installments, pre-create the order
-  useEffect(() => {
-    if (!payment) return;
-    const needsOrder =
-      payment === "card" ||
-      (typeof payment === "string" && payment.startsWith("card_installments"));
-    if (needsOrder) {
-      ensureStripeOrder(payment);
-    }
-  }, [payment, ensureStripeOrder]);
-
+  // URL coupon code pickup
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const qCoupon = (params.get("coupon") || "").trim();
@@ -974,32 +973,46 @@ export default function Checkout() {
 
             {payment === "klarna_single" && (
               <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                <StripeRedirectPay
-                  orderId={localOrderIdRef.current || null}
-                  method="klarna" // Stripe method stays "klarna"
-                  orderPayload={{
-                    email: form.email.trim(),
-                    payment_method: "klarna_single", // <-- our internal method
-                    coupon_code: (couponCode || "").trim(),
-                    items: backendItems,
-                    shipping: {
-                      first_name: form.fullName.split(" ")[0] || form.fullName,
-                      last_name: form.fullName.split(" ").slice(1).join(" "),
-                      line1: `${form.street} ${form.houseNumber}`.trim(),
-                      line2: form.apartment || "",
-                      postal_code: form.postalCode,
-                      city: form.city,
-                      country: normalizeCountry(form.country),
-                      phone: form.telephone || "",
-                      street_name: form.street || "",
-                      house_number: form.houseNumber || "",
-                    },
-                  }}
-                  onSuccess={async () =>
-                    await onSuccessfulOrder(localOrderIdRef.current)
-                  }
-                  onError={(m) => alert(m)}
-                />
+                {!localOrderIdRef.current ? (
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                    disabled={creatingOrder}
+                    onClick={() => ensureStripeOrder("klarna_single")}
+                  >
+                    {creatingOrder
+                      ? t("checkout.initializing")
+                      : t("checkout.continueKlarnaNow", "Continue with Klarna")}
+                  </button>
+                ) : (
+                  <StripeRedirectPay
+                    orderId={localOrderIdRef.current}
+                    method="klarna" // Stripe method stays "klarna"
+                    orderPayload={{
+                      email: form.email.trim(),
+                      payment_method: "klarna_single", // <-- our internal method
+                      coupon_code: (couponCode || "").trim(),
+                      items: backendItems,
+                      shipping: {
+                        first_name:
+                          form.fullName.split(" ")[0] || form.fullName,
+                        last_name: form.fullName.split(" ").slice(1).join(" "),
+                        line1: `${form.street} ${form.houseNumber}`.trim(),
+                        line2: form.apartment || "",
+                        postal_code: form.postalCode,
+                        city: form.city,
+                        country: normalizeCountry(form.country),
+                        phone: form.telephone || "",
+                        street_name: form.street || "",
+                        house_number: form.houseNumber || "",
+                      },
+                    }}
+                    onSuccess={async () =>
+                      await onSuccessfulOrder(localOrderIdRef.current)
+                    }
+                    onError={(m) => alert(m)}
+                  />
+                )}
               </div>
             )}
 
@@ -1023,32 +1036,49 @@ export default function Checkout() {
 
             {payment === "klarna_installments" && (
               <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                <StripeRedirectPay
-                  orderId={localOrderIdRef.current || null}
-                  method="klarna" // still just "klarna" for Stripe
-                  orderPayload={{
-                    email: form.email.trim(),
-                    payment_method: "klarna_installments", // <-- our internal method
-                    coupon_code: (couponCode || "").trim(),
-                    items: backendItems,
-                    shipping: {
-                      first_name: form.fullName.split(" ")[0] || form.fullName,
-                      last_name: form.fullName.split(" ").slice(1).join(" "),
-                      line1: `${form.street} ${form.houseNumber}`.trim(),
-                      line2: form.apartment || "",
-                      postal_code: form.postalCode,
-                      city: form.city,
-                      country: normalizeCountry(form.country),
-                      phone: form.telephone || "",
-                      street_name: form.street || "",
-                      house_number: form.houseNumber || "",
-                    },
-                  }}
-                  onSuccess={async () =>
-                    await onSuccessfulOrder(localOrderIdRef.current)
-                  }
-                  onError={(m) => alert(m)}
-                />
+                {!localOrderIdRef.current ? (
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                    disabled={creatingOrder}
+                    onClick={() => ensureStripeOrder("klarna_installments")}
+                  >
+                    {creatingOrder
+                      ? t("checkout.initializing")
+                      : t(
+                          "checkout.continueKlarnaInst",
+                          "Continue with Klarna installments"
+                        )}
+                  </button>
+                ) : (
+                  <StripeRedirectPay
+                    orderId={localOrderIdRef.current}
+                    method="klarna" // still just "klarna" for Stripe
+                    orderPayload={{
+                      email: form.email.trim(),
+                      payment_method: "klarna_installments", // <-- our internal method
+                      coupon_code: (couponCode || "").trim(),
+                      items: backendItems,
+                      shipping: {
+                        first_name:
+                          form.fullName.split(" ")[0] || form.fullName,
+                        last_name: form.fullName.split(" ").slice(1).join(" "),
+                        line1: `${form.street} ${form.houseNumber}`.trim(),
+                        line2: form.apartment || "",
+                        postal_code: form.postalCode,
+                        city: form.city,
+                        country: normalizeCountry(form.country),
+                        phone: form.telephone || "",
+                        street_name: form.street || "",
+                        house_number: form.houseNumber || "",
+                      },
+                    }}
+                    onSuccess={async () =>
+                      await onSuccessfulOrder(localOrderIdRef.current)
+                    }
+                    onError={(m) => alert(m)}
+                  />
+                )}
               </div>
             )}
             {/* giropay */}
@@ -1066,32 +1096,46 @@ export default function Checkout() {
 
             {payment === "giropay" && (
               <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                <StripeRedirectPay
-                  orderId={localOrderIdRef.current || null}
-                  method="giropay"
-                  orderPayload={{
-                    email: form.email.trim(),
-                    payment_method: "giropay",
-                    coupon_code: (couponCode || "").trim(),
-                    items: backendItems,
-                    shipping: {
-                      first_name: form.fullName.split(" ")[0] || form.fullName,
-                      last_name: form.fullName.split(" ").slice(1).join(" "),
-                      line1: `${form.street} ${form.houseNumber}`.trim(),
-                      line2: form.apartment || "",
-                      postal_code: form.postalCode,
-                      city: form.city,
-                      country: normalizeCountry(form.country),
-                      phone: form.telephone || "",
-                      street_name: form.street || "",
-                      house_number: form.houseNumber || "",
-                    },
-                  }}
-                  onSuccess={async () =>
-                    await onSuccessfulOrder(localOrderIdRef.current)
-                  }
-                  onError={(m) => alert(m)}
-                />
+                {!localOrderIdRef.current ? (
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                    disabled={creatingOrder}
+                    onClick={() => ensureStripeOrder("giropay")}
+                  >
+                    {creatingOrder
+                      ? t("checkout.initializing")
+                      : t("checkout.continueGiropay", "Continue with giropay")}
+                  </button>
+                ) : (
+                  <StripeRedirectPay
+                    orderId={localOrderIdRef.current}
+                    method="giropay"
+                    orderPayload={{
+                      email: form.email.trim(),
+                      payment_method: "giropay",
+                      coupon_code: (couponCode || "").trim(),
+                      items: backendItems,
+                      shipping: {
+                        first_name:
+                          form.fullName.split(" ")[0] || form.fullName,
+                        last_name: form.fullName.split(" ").slice(1).join(" "),
+                        line1: `${form.street} ${form.houseNumber}`.trim(),
+                        line2: form.apartment || "",
+                        postal_code: form.postalCode,
+                        city: form.city,
+                        country: normalizeCountry(form.country),
+                        phone: form.telephone || "",
+                        street_name: form.street || "",
+                        house_number: form.houseNumber || "",
+                      },
+                    }}
+                    onSuccess={async () =>
+                      await onSuccessfulOrder(localOrderIdRef.current)
+                    }
+                    onError={(m) => alert(m)}
+                  />
+                )}
               </div>
             )}
 
