@@ -12,7 +12,7 @@ export const productsApi = api.injectEndpoints({
         // Try a featured flag first (backend may ignore it gracefully)
         const featured = await fetchWithBQ({
           url: "products/list/",
-          params: { page_size: 8, featured: true },
+          params: { page_size: 4, featured: true },
         });
         if (!featured.error && featured.data) {
           const list = Array.isArray(featured.data)
@@ -23,7 +23,7 @@ export const productsApi = api.injectEndpoints({
         // Fallback to newest (your backend supports ordering by created_at)
         const newest = await fetchWithBQ({
           url: "products/list/",
-          params: { page_size: 8, ordering: "-created_at" },
+          params: { page_size: 4, ordering: "-created_at" },
         });
         if (!newest.error && newest.data) {
           const list = Array.isArray(newest.data)

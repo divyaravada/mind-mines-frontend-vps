@@ -31,7 +31,7 @@ const COLORS = [
   { value: "brown", label: "products.filters.color.brown" },
   { value: "green", label: "products.filters.color.green" },
 ];
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 8;
 const BASE_PATH = "/decorative-products";
 
 export default function ProductsPage() {
