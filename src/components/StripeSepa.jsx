@@ -114,7 +114,7 @@ export default function StripeSepa({
         const res = await createSepaIntent(payload).unwrap();
         const cs = res?.clientSecret || res?.client_secret || "";
         const oid = res?.order_id || null;
-        if (!cs || !oid) throw new Error("Incomplete Stripe init.");
+        if (!cs || !oid) throw new Error(t("checkout.sepa.initFailed"));
         if (!cancelled) {
           setClientSecret(cs);
           setOrderId(oid);

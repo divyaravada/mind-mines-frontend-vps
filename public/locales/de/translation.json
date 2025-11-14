@@ -651,7 +651,8 @@
     "removeCurrentImage": "Aktuelles Bild entfernen",
     "authorAvatarAlt": "Profilbild des Bewerters",
     "youMay": "Das könnte Ihnen auch gefallen",
-    "noSugg": "Keine Vorschläge gefunden"
+    "noSugg": "Keine Vorschläge gefunden",
+    "processing": "Wird verarbeitet…"
   },
   "checkout": {
     "contact": "Kontakt",
@@ -752,6 +753,8 @@
       "prepareFailed": "Karte konnte nicht vorbereitet werden.",
       "saveFailed": "Karte konnte nicht gespeichert werden.",
       "noPaymentMethod": "Kein Zahlungsmittel erhalten.",
+      "missingSecret": "Stripe hat kein Setup-Token zurückgegeben. Bitte versuchen Sie es erneut.",
+      "orderMissing": "Bestellung wurde nicht erstellt. Bitte kontaktieren Sie den Support.",
       "storeHint": "Wir speichern Ihre Karte bei Stripe, um monatlich abzurechnen.",
       "startFailed": "Ratenplan konnte nicht gestartet werden.",
       "inactive": "0 % Finanzierung mit Karte ({{months}} Monate)",
@@ -763,6 +766,41 @@
       "saving": "Wird gespeichert…",
       "saveCard": "Karte speichern",
       "useDifferent": "Andere Karte verwenden"
+    },
+    "redirect": {
+      "preparing": "Weiterleitung wird vorbereitet…",
+      "initFailed": "Weiterleitungszahlung konnte nicht gestartet werden.",
+      "paymentFailed": "Zahlung konnte nicht bestätigt werden.",
+      "redirecting": "Weiterleitung…",
+      "payWith": "Mit {{method}} bezahlen",
+      "note": "Sie schließen die Zahlung sicher bei {{brand}} ab.",
+      "klarna": "Klarna",
+      "giropay": "giropay"
+    },
+    "sepa": {
+      "radioLabel": "SEPA-Lastschrift",
+      "authorize": "SEPA-Zahlung bestätigen",
+      "preparing": "SEPA-Zahlung wird vorbereitet…",
+      "processing": "Wird autorisiert…",
+      "paymentFailed": "SEPA-Zahlung fehlgeschlagen.",
+      "paymentError": "SEPA-Mandat konnte nicht bestätigt werden. Bitte versuchen Sie es erneut.",
+      "notice": "Mit Ihrer Bestätigung erteilen Sie MindMines ein SEPA-Lastschriftmandat.",
+      "cartZero": "Der Warenkorb muss größer als 0 € sein, um SEPA zu nutzen.",
+      "initFailed": "SEPA-Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
+    },
+    "sepaInstallments": {
+      "inactive": "SEPA-Raten ({{months}} Monate) sind derzeit deaktiviert.",
+      "intro": "SEPA-Ratenplan ({{months}} Monate) bestätigen.",
+      "notice": "Mit Ihrer Bestätigung erlauben Sie monatliche SEPA-Abbuchungen über {{months}} Monate.",
+      "startCta": "SEPA-Raten starten ({{months}} Monate)",
+      "mandateFailed": "SEPA-Mandat konnte nicht bestätigt werden.",
+      "noPaymentMethod": "Kein SEPA-Zahlungsmittel erhalten.",
+      "orderMissing": "Bestellung wurde nicht erstellt. Bitte kontaktieren Sie den Support.",
+      "prepareFailed": "SEPA-Raten konnten nicht vorbereitet werden.",
+      "preparing": "SEPA-Raten werden vorbereitet…",
+      "savedStart": "Mit gespeichertem SEPA-Mandat starten",
+      "savedStarting": "Startet…",
+      "startFailed": "SEPA-Ratenplan konnte nicht gestartet werden."
     }
   },
   "checkoutSuccess": {

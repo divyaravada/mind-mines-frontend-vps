@@ -15,7 +15,12 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);
-  const label = method === "klarna" ? "Klarna" : "giropay";
+  const label =
+    method === "klarna"
+      ? t("checkout.redirect.klarna")
+      : method === "giropay"
+      ? t("checkout.redirect.giropay")
+      : method;
 
   const onPay = async () => {
     if (!stripe || !elements) return;

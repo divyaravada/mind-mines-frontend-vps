@@ -42,7 +42,8 @@
     "viewAllResults": "View all results",
     "cancel": "Cancel",
     "submit": "Submit",
-    "noResults": "No results found."
+    "noResults": "No results found.",
+    "processing": "Processing…"
   },
   "home": {
     "heroFallback": {
@@ -746,6 +747,8 @@
       "prepareFailed": "Failed to prepare card.",
       "saveFailed": "Failed to save card.",
       "noPaymentMethod": "No payment method returned.",
+      "missingSecret": "Stripe didn’t return a setup token. Please try again.",
+      "orderMissing": "Order was not created. Please contact support.",
       "storeHint": "We'll store your card with Stripe to charge monthly.",
       "startFailed": "Failed to start installments.",
       "inactive": "0% financing with card ({{months}} months)",
@@ -757,6 +760,41 @@
       "saving": "Saving…",
       "saveCard": "Save card",
       "useDifferent": "Use a different card"
+    },
+    "redirect": {
+      "preparing": "Preparing payment…",
+      "initFailed": "Could not start the redirect payment.",
+      "paymentFailed": "Payment could not be confirmed.",
+      "redirecting": "Redirecting…",
+      "payWith": "Pay with {{method}}",
+      "note": "You will finish the payment securely with {{brand}}.",
+      "klarna": "Klarna",
+      "giropay": "giropay"
+    },
+    "sepa": {
+      "radioLabel": "SEPA direct debit",
+      "authorize": "Authorize SEPA payment",
+      "preparing": "Preparing SEPA payment…",
+      "processing": "Authorizing…",
+      "paymentFailed": "SEPA payment failed.",
+      "paymentError": "We couldn’t confirm your SEPA mandate. Please try again.",
+      "notice": "By confirming, you authorize MindMines to debit your account via SEPA.",
+      "cartZero": "Cart total must be greater than zero to use SEPA payment.",
+      "initFailed": "We couldn’t start the SEPA payment. Please try again."
+    },
+    "sepaInstallments": {
+      "inactive": "SEPA installments ({{months}} months) are currently inactive.",
+      "intro": "Confirm your SEPA installments plan ({{months}} months).",
+      "notice": "By confirming, you authorize monthly SEPA debits for {{months}} months.",
+      "startCta": "Start SEPA installments ({{months}} months)",
+      "mandateFailed": "We couldn’t confirm the SEPA mandate. Please try again.",
+      "noPaymentMethod": "No SEPA payment method was returned.",
+      "orderMissing": "Order was not created. Please contact support.",
+      "prepareFailed": "Failed to prepare SEPA installments. Please try again.",
+      "preparing": "Preparing SEPA installments…",
+      "savedStart": "Start with saved SEPA mandate",
+      "savedStarting": "Starting…",
+      "startFailed": "Could not start the SEPA installments plan."
     }
   },
   "checkoutSuccess": {
@@ -937,10 +975,7 @@
       "carriers": "Carrier & handling",
       "carriersText": "DHL/partners handle delivery. Processing typically 1–2 business days.",
       "times": "Estimated delivery times",
-      "timesItems": [
-        "Germany: 2–4 business days",
-        "EU: 3–7 business days"
-      ],
+      "timesItems": ["Germany: 2–4 business days", "EU: 3–7 business days"],
       "costs": "Shipping costs",
       "costsText": "Shown at checkout based on weight/size and destination. Heavy stone items may incur surcharges.",
       "risk": "Risk & damaged parcels",

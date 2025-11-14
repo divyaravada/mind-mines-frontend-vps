@@ -37,7 +37,7 @@ function SaveCardStep({ email, onSaved, onError }) {
     try {
       const r = await createSI({ email: (email || "").trim() }).unwrap();
       const secret = r?.client_secret || r?.clientSecret || "";
-      if (!secret) throw new Error("No client_secret returned.");
+      if (!secret) throw new Error(t("checkout.installments.missingSecret"));
       setCs(secret);
     } catch (e) {
       onError?.(pickErr(e, t("checkout.installments.prepareFailed")));
@@ -137,7 +137,7 @@ export default function StripeCardInstallments({
       });
       const res = await createPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
-      if (!orderId) throw new Error("Order not created.");
+      if (!orderId) throw new Error(t("checkout.installments.orderMissing"));
       setServerSchedule({
         months: res?.months,
         amounts: res?.amounts,

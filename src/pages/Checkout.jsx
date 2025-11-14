@@ -605,7 +605,7 @@ export default function Checkout() {
               if (cap?.status === "COMPLETED") {
                 await onSuccessfulOrder(localOrderIdRef.current);
               } else {
-                alert(t("checkout.captureFailed", "Payment capture failed."));
+                alert(t("checkout.captureFailed"));
               }
             }}
           />
@@ -965,9 +965,7 @@ export default function Checkout() {
                 checked={payment === "klarna_single"}
                 onChange={() => setPaymentSafe("klarna_single")}
               />
-              <span className="flex-1">
-                {t("checkout.klarnaSingleLabel", "Klarna – pay now")}
-              </span>
+              <span className="flex-1">{t("checkout.klarnaSingleLabel")}</span>
               <span className="text-xs font-semibold">
                 {t("checkout.processorStripeKlarna")}
               </span>
@@ -1296,7 +1294,7 @@ export default function Checkout() {
 
             <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
             <Row
-              label={t("checkout.shipmentShort", "Shipment")}
+              label={t("checkout.shipmentShort")}
               value={
                 shippingFee === 0
                   ? t("checkout.free")

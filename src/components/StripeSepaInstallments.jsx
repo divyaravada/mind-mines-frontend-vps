@@ -157,7 +157,7 @@ export default function StripeSepaInstallments({
           r?.client_secret ||
           r?.data?.data?.client_secret ||
           "";
-        if (!cs) throw new Error("Missing SetupIntent client_secret.");
+        if (!cs) throw new Error(t("checkout.sepaInstallments.prepareFailed"));
         if (!cancelled) setClientSecret(cs);
       } catch (e) {
         if (!cancelled)
