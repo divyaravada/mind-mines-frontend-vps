@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
 import { addItem } from "../features/cart/cartSlice";
-import { fmtEUR, resolveProductPrice } from "../lib/money";
+import { resolveProductPrice } from "../lib/money";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
@@ -36,7 +36,6 @@ const BASE_PATH = "/decorative-products";
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language || "en";
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
   const navigate = useNavigate();
@@ -46,7 +45,7 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [materials, setMaterials] = useState([]);
   const [colors, setColors] = useState([]);
-  const [price, setPrice] = useState(1000);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
 
   const { data, isFetching, isError } = useListProductsQuery({
     page,
@@ -54,8 +53,8 @@ export default function ProductsPage() {
     category: categoryId,
     material: materials.join(",") || undefined,
     color: colors.join(",") || undefined,
-    min_price: 0,
-    max_price: price,
+    min_price: priceRange.min,
+    max_price: priceRange.max,
   });
 
   const products = useMemo(() => {
@@ -134,7 +133,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [categoryId, materialsKey, colorsKey, price]);
+  }, [categoryId, materialsKey, colorsKey, priceRange]);
 
   const toggleWishlist = async (id) => {
     if (!isLoggedIn) return toast.warning(t("wishlist.loginRequired"));
@@ -160,7 +159,7 @@ export default function ProductsPage() {
       addItem({
         id: p.id,
         name: productTitle(p, lang), // ✅ cart expects 'name'
-        price: unitPrice,
+        priceRange: unitPrice,
         image: p.image,
       })
     );
@@ -255,17 +254,33 @@ export default function ProductsPage() {
             <h4 className="font-semibold mb-2">
               {t("products.filters.price")}
             </h4>
-            <input
-              type="range"
-              min={0}
-              max={1000}
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-              className="w-full accent-backnewswhite"
-            />
-            <div className="flex justify-between text-xs text-gray-600 dark:text-gray-300 mt-1">
-              <span>{t("products.filters.priceMin")}</span>
-              <span>{fmtEUR(price, locale)}</span>
+
+            {/* Price Options */}
+            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+              {[
+                { label: "0 - 50", min: 0, max: 50 },
+                { label: "50 - 100", min: 50, max: 100 },
+                { label: "100 - 200", min: 100, max: 200 },
+                { label: "200 - 500", min: 200, max: 500 },
+                { label: "500 - 750", min: 500, max: 750 },
+                { label: "750 - 1000", min: 750, max: 1000 },
+              ].map((r) => (
+                <label
+                  key={r.label}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="price_filter"
+                    checked={
+                      priceRange.min === r.min && priceRange.max === r.max
+                    }
+                    onChange={() => setPriceRange({ min: r.min, max: r.max })}
+                    className="accent-backnewswhite"
+                  />
+                  <span>{r.label} €</span>
+                </label>
+              ))}
             </div>
           </div>
         </aside>

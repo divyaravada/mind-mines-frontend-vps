@@ -6,7 +6,6 @@ import office from "../assets/office.jpg";
 import sculpture from "../assets/sculpture.jpg";
 import bathroom from "../assets/bathroom.jpg";
 import naturalStone from "../assets/naturalStone.jpg";
-import countertops from "../assets/countertops.jpg";
 
 export const homeCategories = [
   {

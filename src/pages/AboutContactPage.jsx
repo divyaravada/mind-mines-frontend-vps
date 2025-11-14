@@ -1,7 +1,6 @@
 // src/pages/AboutContactPage.jsx
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import ReactPlayer from "react-player";
 import aboutUs from "../assets/aboutUs.jpg";
 import ContactSection from "../components/ContactForm";
 import TrustBadges from "../components/TrustBadges";

@@ -11,7 +11,7 @@ import { stripePromise } from "../lib/stripe";
 import { useStripeCreateRedirectIntentMutation } from "../features/payments/paymentsApi";
 
 function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);

@@ -1,6 +1,6 @@
 // src/components/Footer.jsx
 import { Link } from "react-router-dom";
-import { Globe, Landmark } from "lucide-react";
+import { Globe } from "lucide-react";
 import DarkLogo from "../assets/BlackLogo.jpg";
 import LightLogo from "../assets/OrangeLogo.jpg";
 import paypal from "../assets/paypal.svg";
