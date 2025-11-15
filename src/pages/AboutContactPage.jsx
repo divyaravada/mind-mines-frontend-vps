@@ -4,13 +4,18 @@ import { useState } from "react";
 import aboutUs from "../assets/aboutUs.jpg";
 import ContactSection from "../components/ContactForm";
 import TrustBadges from "../components/TrustBadges";
-import { galleryItems } from "../data/aboutGallery";
+import marbleCrafting from "../assets/MindminesVideo.mp4";
+import marbleSculpting from "../assets/MindminesAbout.jpg";
 
 // TODO: replace these with your real images / video URLs
 
 export default function AboutContactPage() {
   const { t } = useTranslation();
   const [activeItem, setActiveItem] = useState(null);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const VIDEO_SRC = marbleCrafting;
+  const VIDEO_POSTER = marbleSculpting;
 
   return (
     <main className="bg-marblewhite dark:bg-marbleblack min-h-screen py-10">
@@ -45,42 +50,74 @@ export default function AboutContactPage() {
         </div>
       </div>
 
-      {/* GALLERY SECTION (above TrustBadges) */}
-      <section className="px-6 max-w-6xl mx-auto pb-10">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 text-marbleblack dark:text-white">
-          {t("about.galleryHeading", "Our craft in motion")}
+      {/* VIDEO SECTION (above TrustBadges) */}
+      <section className="w-full mx-auto flex flex-col md:flex-col items-center gap-10 px-6 pb-16 max-w-6xl">
+        <h2 className="text-3xl font-extrabold  text-backnewswhite dark:text-backnewsdark">
+          {t("about.galleryHeading", "Marble Marvels Gallery")}
         </h2>
-        {galleryItems.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
-            {t(
-              "about.galleryEmpty",
-              "Gallery coming soon – we’re preparing new photos and videos."
-            )}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {galleryItems.map((item) => (
+
+        <p className="text-gray-600 dark:text-gray-300 text-sm">
+          {t(
+            "about.galleryIntro",
+            "Take a closer look at how we shape each MindMines piece by hand."
+          )}
+        </p>
+
+        {/* Video teaser card */}
+        <button
+          type="button"
+          onClick={() => setIsVideoOpen(true)}
+          className="relative w-full aspect-video max-w-3xl mx-auto overflow-hidden rounded-2xl shadow-md bg-black/5 dark:bg-white/5 group"
+        >
+          <img
+            src={VIDEO_POSTER}
+            alt={t("about.videoAlt", "MindMines workshop video")}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+
+          {/* dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
+          {/* Play button */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+            <span className="mt-3 text-sm md:text-base font-medium">
+              {t("about.videoCta", "Play video")}
+            </span>
+          </div>
+        </button>
+
+        {/* Modal / Lightbox with big video */}
+        {isVideoOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            {/* close area */}
+            <button
+              type="button"
+              className="absolute inset-0 w-full h-full cursor-default"
+              onClick={() => setIsVideoOpen(false)}
+              aria-label={t("about.closeVideo", "Close video")}
+            />
+
+            <div className="relative w-full max-w-4xl mx-auto px-4">
+              {/* Close button */}
               <button
-                key={item.id}
                 type="button"
-                onClick={() => setActiveItem(item)}
-                className="relative group overflow-hidden rounded-2xl shadow-md bg-black/5 dark:bg-white/5 cursor-pointer"
+                onClick={() => setIsVideoOpen(false)}
+                className="absolute -top-10 right-0 text-white/80 hover:text-white text-2xl"
               >
-                <img
-                  src={item.thumb || item.src}
-                  alt={item.alt}
-                  className="w-full h-52 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <span>{item.title}</span>
-                {item.type === "video" && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-black/60 text-white text-xl">
-                      ▶
-                    </span>
-                  </div>
-                )}
+                ✕
               </button>
-            ))}
+
+              <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
+                <video
+                  src={VIDEO_SRC}
+                  controls
+                  autoPlay
+                  loop
+                  poster={VIDEO_POSTER}
+                  className="w-full h-full max-h-[80vh] object-contain"
+                />
+              </div>
+            </div>
           </div>
         )}
       </section>
