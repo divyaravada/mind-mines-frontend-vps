@@ -13,7 +13,7 @@ function stripeAppearance() {
   return {
     theme: "stripe",
     variables: {
-      colorPrimary: "#855513", // backnewswhite (orange)
+      colorPrimary: "#d78822", // backnewswhite (orange)
       colorText: isDark ? "#e5e7eb" : "#1f2937",
       colorBackground: isDark ? "#17160f" : "#f8fcfe", // marbleblack / marblewhite
       colorDanger: "#dc2626",
@@ -24,8 +24,8 @@ function stripeAppearance() {
         borderColor: isDark ? "#2b2b25" : "#e5e7eb",
       },
       ".Input:focus, .Tab--selected": {
-        boxShadow: "0 0 0 1.5px #855513",
-        borderColor: "#855513",
+        boxShadow: "0 0 0 1.5px #d78822",
+        borderColor: "#d78822",
       },
       ".Label": {
         color: isDark ? "#e5e7eb" : "#374151",

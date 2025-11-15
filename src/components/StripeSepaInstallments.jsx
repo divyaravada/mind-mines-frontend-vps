@@ -207,7 +207,7 @@ export default function StripeSepaInstallments({
   const appearance = {
     theme: "stripe",
     variables: {
-      colorPrimary: "#855513",
+      colorPrimary: "#d78822",
       colorText: isDark ? "#e5e7eb" : "#1f2937",
       colorBackground: isDark ? "#17160f" : "#f8fcfe",
     },
