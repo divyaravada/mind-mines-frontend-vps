@@ -9,9 +9,9 @@ export default {
       colors: {
         marblewhite: "#f8fcfe",
         marbleblack: "#17160f",
-        backnewswhite: "#ec8b0b", // brand orange
-        backnewsdark: "#578d49", // brand green
-        lightgreen: "#9ccb8b", // helper for dark-mode text accents
+        backnewswhite: "#855513", // brand orange
+        backnewsdark: "#134800", // brand green
+        lightgreen: "#578d49", // helper for dark-mode text accents
         darkgray: "#2a2a2a", // helper for dark surfaces
       },
       container: {
