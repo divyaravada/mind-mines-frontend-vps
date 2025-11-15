@@ -51,16 +51,13 @@ export default function AboutContactPage() {
       </div>
 
       {/* VIDEO SECTION (above TrustBadges) */}
-      <section className="w-full mx-auto flex flex-col md:flex-col items-center gap-10 px-6 pb-16 max-w-6xl">
+      <section className="w-full mx-auto flex flex-col md:flex-col items-center gap-4 px-6 pb-16 max-w-6xl">
         <h2 className="text-3xl font-extrabold  text-backnewswhite dark:text-backnewsdark">
-          {t("about.galleryHeading", "Marble Marvels Gallery")}
+          {t("about.galleryHeading")}
         </h2>
 
         <p className="text-gray-600 dark:text-gray-300 text-sm">
-          {t(
-            "about.galleryIntro",
-            "Take a closer look at how we shape each MindMines piece by hand."
-          )}
+          {t("about.galleryIntro")}
         </p>
 
         {/* Video teaser card */}
@@ -71,7 +68,7 @@ export default function AboutContactPage() {
         >
           <img
             src={VIDEO_POSTER}
-            alt={t("about.videoAlt", "MindMines workshop video")}
+            alt={t("about.videoAlt")}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
@@ -81,7 +78,7 @@ export default function AboutContactPage() {
           {/* Play button */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
             <span className="mt-3 text-sm md:text-base font-medium">
-              {t("about.videoCta", "Play video")}
+              {t("about.videoCta")}
             </span>
           </div>
         </button>
@@ -94,7 +91,7 @@ export default function AboutContactPage() {
               type="button"
               className="absolute inset-0 w-full h-full cursor-default"
               onClick={() => setIsVideoOpen(false)}
-              aria-label={t("about.closeVideo", "Close video")}
+              aria-label={t("about.closeVideo")}
             />
 
             <div className="relative w-full max-w-4xl mx-auto px-4">
@@ -103,6 +100,7 @@ export default function AboutContactPage() {
                 type="button"
                 onClick={() => setIsVideoOpen(false)}
                 className="absolute -top-10 right-0 text-white/80 hover:text-white text-2xl"
+                aria-label={t("common.close")}
               >
                 ✕
               </button>
@@ -138,7 +136,7 @@ export default function AboutContactPage() {
               type="button"
               onClick={() => setActiveItem(null)}
               className="absolute -top-10 right-0 md:-top-12 md:-right-2 text-white text-2xl font-bold px-2 py-1 rounded-full hover:bg-white/10"
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>

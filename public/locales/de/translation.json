@@ -221,10 +221,16 @@
   },
   "about": {
     "heading": "Über uns",
+    "imageAlt": "MindMines-Team bei der Arbeit mit Marmor",
     "intro": "Unsere Reise begann als leidenschaftliche Marmorhändler, die erlesene Steine aus Italien bezogen. In Dubai, Indien und Deutschland knüpften wir Beziehungen – getragen von unserer Liebe zur zeitlosen Schönheit von Naturstein.",
     "founded": "2022 gründeten wir MindMines mit einem klaren Ziel: Hochwertige Materialien und Handwerkskunst einem weltweiten Publikum zugänglich zu machen. Jeder Stein besitzt einen einzigartigen Charakter – den wir in jedem Stück feiern.",
     "today": "Heute arbeiten wir mit erfahrenen Kunsthandwerkern zusammen und fertigen Skulpturen und Dekor aus Marmor, Granit und sogar Kieseln – mit Sinn für Eleganz und Raffinesse.",
     "vision": "Unsere Vision: Wärme, Eleganz und ein Stück Natur in Wohn- und Geschäftsräume bringen – durch ethische Beschaffung und nachhaltige Handarbeit.",
+    "galleryHeading": "Marble Marvels Galerie",
+    "galleryIntro": "Werfen Sie einen Blick darauf, wie wir jedes MindMines-Stück in Handarbeit formen.",
+    "videoAlt": "MindMines Werkstattvideo",
+    "videoCta": "Video abspielen",
+    "closeVideo": "Video schließen",
     "contactHeading": "Kontakt",
     "contactSub": "Lieber direkt sprechen? Rufen Sie an oder schreiben Sie uns per WhatsApp – ohne Wartezeit.",
     "success": "Danke! Ihre Nachricht wurde gesendet. Wir melden uns zeitnah.",
@@ -244,6 +250,7 @@
     "addressValue": "Feldstraße 11, 21640 Horneburg, Deutschland"
   },
   "badges": {
+    "ariaLabel": "Vertrauenssiegel",
     "payments": "Sichere Zahlungen",
     "security": "Geschützter Checkout",
     "guarantee": "14-Tage Geld-zurück-Garantie",

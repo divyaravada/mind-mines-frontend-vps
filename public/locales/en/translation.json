@@ -256,10 +256,16 @@
   "No products found in this category.": "No products found in this category.",
   "about": {
     "heading": "About Us",
+    "imageAlt": "MindMines team working with marble",
     "intro": "Our journey began as passionate marble traders, meticulously sourcing exquisite stones from the heart of Italy. We connected with customers across Dubai, India, and Germany, inspired by a deep love for the timeless beauty of natural stone.",
     "founded": "In 2022, we founded MindMines with a clear mission: share fine materials and craftsmanship with a global audience. We believe each stone has a unique character—and we celebrate that individuality in every piece.",
     "today": "Today, fueled by our customers’ inspiration, we collaborate with skilled artisans to craft sculptures and decor from marble, granite, and even pebbles—each designed to resonate with beauty and sophistication.",
     "vision": "Our vision: bring warmth, elegance, and a touch of nature into homes and businesses through ethical sourcing and sustainable craftsmanship.",
+    "galleryHeading": "Marble Marvels Gallery",
+    "galleryIntro": "Take a closer look at how we shape each MindMines piece by hand.",
+    "videoAlt": "MindMines workshop video",
+    "videoCta": "Play video",
+    "closeVideo": "Close video",
     "contactHeading": "Contact Us",
     "contactSub": "Prefer talking? Call or message us directly—no waiting.",
     "success": "Thanks! Your message has been sent. We’ll get back to you shortly.",
@@ -279,6 +285,7 @@
     "addressValue": "Feldstraße 11, 21640 Horneburg, Germany"
   },
   "badges": {
+    "ariaLabel": "Checkout trust highlights",
     "payments": "Trusted payments",
     "security": "Secure checkout",
     "guarantee": "14-day money-back guarantee",

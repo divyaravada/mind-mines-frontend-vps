@@ -1,6 +1,4 @@
 // src/App.jsx
-import { Routes, Route } from "react-router-dom";
-
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ResendVerification from "./pages/ResendVerification";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -36,6 +34,7 @@ import { useEffect } from "react";
 import Unsubscribe from "./routes/Unsubscribe";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
+import { Route, Routes } from "react-router-dom";
 
 export default function App() {
   useEffect(() => {

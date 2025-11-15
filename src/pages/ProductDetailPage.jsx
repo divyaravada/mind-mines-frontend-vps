@@ -471,15 +471,17 @@ export default function ProductDetailPage() {
 
         {/* TABS */}
         <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
-          <div className="flex overflow-x-auto no-scrollbar gap-2 border-b dark:border-neutral-800">
+          {/* TAB HEADERS */}
+          <div className="flex flex-col sm:flex-row sm:overflow-x-auto no-scrollbar gap-2 sm:border-b dark:sm:border-neutral-800">
             {["details", "care", "policy"].map((key) => (
               <button
                 key={key}
-                className={`py-2 px-4 font-semibold whitespace-nowrap -mb-px transition ${
-                  activeTab === key
-                    ? "border-b-2 border-backnewswhite text-backnewswhite"
-                    : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
-                }`}
+                className={`py-2 px-4 font-semibold text-left whitespace-nowrap transition rounded-lg sm:rounded-none sm:-mb-px
+          ${
+            activeTab === key
+              ? "bg-backnewswhite/10 text-backnewswhite sm:bg-transparent sm:border-b-2 sm:border-backnewswhite"
+              : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
+          }`}
                 onClick={() => setActiveTab(key)}
               >
                 {key === "details"
@@ -491,6 +493,7 @@ export default function ProductDetailPage() {
             ))}
           </div>
 
+          {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
             {activeTab === "details" && (
               <>
