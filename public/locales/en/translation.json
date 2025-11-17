@@ -1051,7 +1051,7 @@
       "intro": "This Refund & Return Policy explains how MindMines handles returns, refunds, and exchanges for purchases made through our online shop.",
 
       "section1_title": "1. Right of Return",
-      "section1_text": "You may return items purchased from MindMines within 14 days from the date of delivery, without giving any reason. To start a return, please contact us at support@mindmines.eu with your order number and details of the item(s) you wish to return.",
+      "section1_text": "You may return items purchased from MindMines within 14 days from the date of delivery, without giving any reason. To start a return, please contact us at service@mindmines.eu with your order number and details of the item(s) you wish to return.",
 
       "section2_title": "2. Condition of Returned Items",
       "section2_text": "Returned items must be in their original condition, unused and undamaged, with all original packaging and protective materials. Items that show signs of use, scratches, or damage may be rejected and sent back to you at your cost.",
@@ -1060,7 +1060,7 @@
       "section3_text": "Custom-made or personalized items and items that are clearly marked as non-returnable on the product page cannot be returned, except where required by law.",
 
       "section4_title": "4. Return Process",
-      "section4_text": "To initiate a return, please contact us at support@mindmines.eu before sending any items back. We will provide you with instructions and the correct return address. Returns sent without prior contact may not be accepted.",
+      "section4_text": "To initiate a return, please contact us at service@mindmines.eu before sending any items back. We will provide you with instructions and the correct return address. Returns sent without prior contact may not be accepted.",
 
       "section5_title": "5. Return Shipping Costs",
       "section5_text": "You are responsible for the cost of return shipping, unless the item is faulty or damaged upon arrival. We recommend using an insured and trackable shipping service, as you are responsible for the goods until they reach us.",
@@ -1075,7 +1075,7 @@
       "section8_text": "We currently do not offer direct exchanges. If you would like a different item, please return the original product according to this policy and place a new order.",
 
       "section9_title": "9. Contact",
-      "section9_text": "For questions regarding returns, refunds, or this policy, please contact us at support@mindmines.eu."
+      "section9_text": "For questions regarding returns, refunds, or this policy, please contact us at service@mindmines.eu."
     },
     "shipping": {
       "title": "Shipping Policy",
@@ -1089,7 +1089,7 @@
       "section2_text": "Orders are usually processed and dispatched within 48 hours (on working days, Monday to Friday), excluding public holidays. During busy periods, processing times may be slightly longer.",
 
       "section3_title": "3. Shipping Destinations",
-      "section3_text": "We currently ship within Germany and selected countries within the European Union. If you are located outside the EU and would like to place an order, please contact us at support@mindmines.eu to check individual shipping options.",
+      "section3_text": "We currently ship within Germany and selected countries within the European Union. If you are located outside the EU and would like to place an order, please contact us at service@mindmines.eu to check individual shipping options.",
 
       "section4_title": "4. Shipping Costs",
       "section4_text": "We offer free delivery on orders unless otherwise stated at checkout. Any additional shipping charges (for example, for special services or remote areas) will be clearly displayed during the checkout process before you confirm your order.",
@@ -1104,13 +1104,13 @@
       "section7_text": "If a parcel cannot be delivered and is returned to us due to reasons such as an incorrect address, uncollected parcel, or refusal of acceptance, we may charge you for re-shipping the order. Refunds for undeliverable parcels are handled in accordance with our Refund & Return Policy.",
 
       "section8_title": "8. Damaged Parcels",
-      "section8_text": "If your order arrives visibly damaged, please document the damage with photographs of the outer packaging and the product, and contact us within 48 hours at support@mindmines.eu. We will review your case and offer a suitable solution in line with your statutory rights.",
+      "section8_text": "If your order arrives visibly damaged, please document the damage with photographs of the outer packaging and the product, and contact us within 48 hours at service@mindmines.eu. We will review your case and offer a suitable solution in line with your statutory rights.",
 
       "section9_title": "9. Customs and Import Duties",
       "section9_text": "For deliveries outside the European Union (if offered), local customs duties, taxes, or import fees may apply. These charges are the responsibility of the customer and are not included in our product prices or shipping costs.",
 
       "section10_title": "10. Contact",
-      "section10_text": "If you have any questions about shipping, delivery times, or your order status, please contact us at support@mindmines.eu."
+      "section10_text": "If you have any questions about shipping, delivery times, or your order status, please contact us at service@mindmines.eu."
     },
     "cookies": {
       "title": "Cookie Policy",
