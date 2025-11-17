@@ -509,11 +509,20 @@ export default function ProductDetailPage() {
             {/* CARE TAB – from translation.json */}
             {activeTab === "care" && (
               <div className="space-y-3 text-sm leading-relaxed">
-                {t("productDetail.policy.careText")
-                  .split(/\n\n/)
-                  .map((para, i) => (
-                    <p key={i}>{para}</p>
-                  ))}
+                {t("productDetail.policy.careText")?.map((line, i) => {
+                  const ci = line.indexOf(":");
+                  if (ci !== -1) {
+                    const title = line.slice(0, ci).trim();
+                    const content = line.slice(ci + 1).trim();
+                    return (
+                      <p key={i}>
+                        <span className="font-semibold">{title}:</span>{" "}
+                        {content}
+                      </p>
+                    );
+                  }
+                  return <p key={i}>{line}</p>;
+                })}
               </div>
             )}
 
@@ -525,22 +534,22 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
                   </h3>
-                  {t("productDetail.policy.delivery_content", {
-                    returnObjects: true,
-                  })?.map((line, i) => {
-                    const ci = line.indexOf(":");
-                    if (ci !== -1) {
-                      const title = line.slice(0, ci).trim();
-                      const content = line.slice(ci + 1).trim();
-                      return (
-                        <p key={i}>
-                          <span className="font-semibold">{title}:</span>{" "}
-                          {content}
-                        </p>
-                      );
+                  {t("productDetail.policy.delivery_content")?.map(
+                    (line, i) => {
+                      const ci = line.indexOf(":");
+                      if (ci !== -1) {
+                        const title = line.slice(0, ci).trim();
+                        const content = line.slice(ci + 1).trim();
+                        return (
+                          <p key={i}>
+                            <span className="font-semibold">{title}:</span>{" "}
+                            {content}
+                          </p>
+                        );
+                      }
+                      return <p key={i}>{line}</p>;
                     }
-                    return <p key={i}>{line}</p>;
-                  })}
+                  )}
                 </section>
 
                 {/* Returns section */}
