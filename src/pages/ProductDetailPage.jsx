@@ -537,11 +537,24 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.returns")}
                   </h3>
-                  {t("productDetail.returnsText")
+
+                  {/* Optional intro paragraph */}
+                  {t("productDetail.returnsIntro")
                     .split(/\n\n/)
                     .map((p, i) => (
                       <p key={i}>{p}</p>
                     ))}
+
+                  {/* Bullet list from translation.json */}
+                  <ul className="list-disc pl-5 space-y-1">
+                    {t("productDetail.returnsBullets")
+                      .split("•")
+                      .map((raw, i) => {
+                        const text = raw.trim();
+                        if (!text) return null;
+                        return <li key={i}>{text}</li>;
+                      })}
+                  </ul>
                 </section>
               </div>
             )}
