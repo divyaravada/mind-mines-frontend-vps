@@ -509,7 +509,7 @@ export default function ProductDetailPage() {
             {/* CARE TAB – from translation.json */}
             {activeTab === "care" && (
               <div className="space-y-3 text-sm leading-relaxed">
-                {t("productDetail.careText")
+                {t("productDetail.policy.careText")
                   .split(/\n\n/)
                   .map((para, i) => (
                     <p key={i}>{para}</p>
@@ -525,7 +525,7 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
                   </h3>
-                  {t("productDetail.delivery_content", {
+                  {t("productDetail.policy.delivery_content", {
                     returnObjects: true,
                   })?.map((line, i) => {
                     const ci = line.indexOf(":");
@@ -550,7 +550,7 @@ export default function ProductDetailPage() {
                   </h3>
 
                   {/* Optional intro paragraph */}
-                  {t("productDetail.returns_content", {
+                  {t("productDetail.policy.returns_content", {
                     returnObjects: true,
                   })?.map((line, i) => {
                     const ci = line.indexOf(":");
