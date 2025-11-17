@@ -288,13 +288,22 @@ export default function ProductDetailPage() {
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const deliveryLines = t("productDetail.policy.delivery_content", {
+  const rawDelivery = t("productDetail.policy.delivery_content", {
     returnObjects: true,
   });
 
-  const returnsLines = t("productDetail.policy.returns_content", {
+  const rawReturns = t("productDetail.policy.returns_content", {
     returnObjects: true,
   });
+
+  const toArray = (v) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") return [v];
+    return [];
+  };
+
+  const deliveryLines = toArray(rawDelivery);
+  const returnsLines = toArray(rawReturns);
 
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
@@ -480,13 +489,34 @@ export default function ProductDetailPage() {
         {/* TABS */}
         <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
           {/* TAB HEADERS */}
+          <div className="flex flex-col sm:flex-row sm:overflow-x-auto no-scrollbar gap-2 sm:border-b dark:sm:border-neutral-800">
+            {["details", "care", "policy"].map((key) => (
+              <button
+                key={key}
+                className={`py-2 px-4 font-semibold text-left whitespace-nowrap transition rounded-lg sm:rounded-none sm:-mb-px
+          ${
+            activeTab === key
+              ? "bg-backnewswhite/10 text-backnewswhite sm:bg-transparent sm:border-b-2 sm:border-backnewswhite"
+              : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
+          }`}
+                onClick={() => setActiveTab(key)}
+              >
+                {key === "details"
+                  ? t("productDetail.tabs.details")
+                  : key === "care"
+                  ? t("productDetail.tabs.care")
+                  : t("productDetail.tabs.policy")}
+              </button>
+            ))}
+          </div>
+
           {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
-            {/* ✅ DETAILS – FROM BACKEND */}
+            {/* ✅ DETAILS – from backend */}
             {activeTab === "details" && (
               <>
                 {[1, 2, 3].map((n) => {
-                  const v = product[`descriptionpara${n}_${lang}`]; // <-- DB fields
+                  const v = product[`descriptionpara${n}_${lang}`];
                   return typeof v === "string" || typeof v === "number" ? (
                     <p key={n}>{v}</p>
                   ) : null;
@@ -494,14 +524,14 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {/* ✅ CARE – FROM JSON (en/de translation files) */}
+            {/* ✅ CARE – from translation.json */}
             {activeTab === "care" && (
               <div className="space-y-3 text-sm leading-relaxed">
                 <p>{t("productDetail.policy.careText")}</p>
               </div>
             )}
 
-            {/* ✅ POLICY – FROM JSON (en/de translation files) */}
+            {/* ✅ POLICY – from translation.json */}
             {activeTab === "policy" && (
               <div className="space-y-6 text-sm leading-relaxed">
                 {/* Delivery */}
@@ -509,21 +539,20 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
                   </h3>
-                  {Array.isArray(deliveryLines) &&
-                    deliveryLines.map((line, i) => {
-                      const ci = line.indexOf(":");
-                      if (ci !== -1) {
-                        const title = line.slice(0, ci).trim();
-                        const content = line.slice(ci + 1).trim();
-                        return (
-                          <p key={i}>
-                            <span className="font-semibold">{title}:</span>{" "}
-                            {content}
-                          </p>
-                        );
-                      }
-                      return <p key={i}>{line}</p>;
-                    })}
+                  {deliveryLines.map((line, i) => {
+                    const ci = line.indexOf(":");
+                    if (ci !== -1) {
+                      const title = line.slice(0, ci).trim();
+                      const content = line.slice(ci + 1).trim();
+                      return (
+                        <p key={i}>
+                          <span className="font-semibold">{title}:</span>{" "}
+                          {content}
+                        </p>
+                      );
+                    }
+                    return <p key={i}>{line}</p>;
+                  })}
                 </section>
 
                 {/* Returns */}
@@ -531,21 +560,20 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.returns")}
                   </h3>
-                  {Array.isArray(returnsLines) &&
-                    returnsLines.map((line, i) => {
-                      const ci = line.indexOf(":");
-                      if (ci !== -1) {
-                        const title = line.slice(0, ci).trim();
-                        const content = line.slice(ci + 1).trim();
-                        return (
-                          <p key={i}>
-                            <span className="font-semibold">{title}:</span>{" "}
-                            {content}
-                          </p>
-                        );
-                      }
-                      return <p key={i}>{line}</p>;
-                    })}
+                  {returnsLines.map((line, i) => {
+                    const ci = line.indexOf(":");
+                    if (ci !== -1) {
+                      const title = line.slice(0, ci).trim();
+                      const content = line.slice(ci + 1).trim();
+                      return (
+                        <p key={i}>
+                          <span className="font-semibold">{title}:</span>{" "}
+                          {content}
+                        </p>
+                      );
+                    }
+                    return <p key={i}>{line}</p>;
+                  })}
                 </section>
               </div>
             )}
