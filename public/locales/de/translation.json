@@ -1070,10 +1070,21 @@
     },
 
     "careText": "Pflegehinweise:\nFür Natursteinoberflächen, wie Marmor, verwenden Sie milde, pH-neutrale Reiniger und ein weiches Tuch. Wischen Sie verschüttete Flüssigkeiten schnell auf, um Flecken zu vermeiden. Verwenden Sie Untersetzer und Glasuntersetzer, um vor Hitze zu schützen. Stauben Sie regelmäßig ab und reinigen Sie sanft. Tragen Sie gelegentlich einen Steinschutz auf. Vermeiden Sie die Verwendung von abrasiven Materialien oder scharfen Chemikalien, um die Schönheit und Langlebigkeit Ihres Steins zu bewahren.",
-
-    "deliveryText": "Wir bieten kostenlosen Versand für alle Bestellungen an.\nAlle Bestellungen werden innerhalb von 48 Stunden versendet.\nIm Checkout sehen Sie die passenden Versandoptionen basierend auf Ihrem Warenkorb und Ihrer Lieferadresse.\nUnser Qualitätskontrollteam prüft jedes Produkt sorgfältig, und alle Bestellungen werden vor dem Versand dokumentiert.",
-    "returnsIntro": "Allgemeine Rücksenderichtlinien:",
-    "returnsBullets": "• Die Rücksendekosten trägt der Kunde.\n• Wir empfehlen einen versicherten Rückversand, da wir beschädigte Rücksendungen nicht erstatten können.\n• Bitte verwenden Sie die Originalverpackung, um das Produkt sicher zu schützen.\n• Artikel mit Gebrauchsspuren, Kratzern oder Schäden werden nicht akzeptiert und auf Ihre Kosten zurückgesendet."
+    "delivery_content": [
+      "**Kostenloser Versand:** Wir bieten kostenlosen Versand für alle Bestellungen.",
+      "**Schneller Versand:** Alle Bestellungen werden innerhalb von 48 Stunden versendet.",
+      "**Lieferoptionen:** Im Checkout sehen Sie passende Lieferoptionen für Ihre Artikel und Ihre Lieferadresse.",
+      "**Qualitätsprüfung:** Jedes Produkt wird von unserem Qualitätskontrollteam geprüft und dokumentiert, bevor es versendet wird."
+    ],
+    "returns_content": [
+      "**14-Tage-Rückgabefrist:** Sie können Ihr Produkt innerhalb von 14 Tagen nach Erhalt zurücksenden.",
+      "**Wenn der Kunde nicht zufrieden ist:** Wir erstatten die **Produktkosten**.",
+      "**Wenn das Produkt während des Transports beschädigt ankommt:** Wir erstatten die **Produktkosten + Versandkosten**.",
+      "**Rücksendekosten:** Die Rücksendekosten trägt der Kunde.",
+      "**Versicherter Versand empfohlen:** Wir empfehlen einen versicherten Rückversand, da wir beschädigte Rücksendungen nicht erstatten können.",
+      "**Verpackung:** Bitte verwenden Sie die Originalverpackung. Artikel mit Gebrauchsspuren, Kratzern oder Schäden werden nicht akzeptiert.",
+      "**Erstattungszeit:** Nach Bearbeitung erfolgt die Rückerstattung innerhalb von 7 Werktagen."
+    ]
   },
   "products": {
     "filters": {

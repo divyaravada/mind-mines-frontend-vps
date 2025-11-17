@@ -1073,10 +1073,21 @@
     },
 
     "careText": "Care Instructions:\nFor natural stone surfaces, like marble, use gentle pH-neutral cleaners and a soft cloth. Quickly wipe up spills to prevent stains. Use trivets and coasters to protect from heat. Dust regularly and clean softly. Occasionally apply a stone protector. Avoid using abrasive materials or harsh chemicals to keep your stone beautiful and lasting.",
-
-    "deliveryText": "We offer free delivery on all orders. Every order is dispatched within 48 hours.\nAt checkout, you will see the delivery options available based on your items and shipping address.\nOur quality control team checks every product carefully before shipping, and all orders are documented before leaving our warehouse.",
-    "returnsIntro": "General return policy:",
-    "returnsBullets": "• Return shipping costs are paid by the customer.\n• We recommend sending the return with insurance, as we cannot refund items that arrive damaged in the return shipment.\n• Please use the original box and packaging materials to protect the product.\n• Items showing signs of use, scratches, or damage will not be accepted and will be returned to you at your cost."
+    "delivery_content": [
+      "**Free Delivery:** We offer free delivery on all orders.",
+      "**Fast Dispatch:** All orders are dispatched within 48 hours.",
+      "**Delivery Options:** At checkout, you will see delivery options based on your items and shipping address.",
+      "**Quality Checked:** Every product is inspected by our quality control team and documented before leaving our warehouse."
+    ],
+    "returns_content": [
+      "**14-Day Return Window:** You may return your product within 14 days of delivery.",
+      "**If the customer is not satisfied:** We refund the **product cost**.",
+      "**If the product arrives damaged during transport:** We refund the **product cost + shipping cost**.",
+      "**Return Shipping:** Return shipping costs are paid by the customer.",
+      "**Insurance Recommended:** We recommend returning the package with insurance, as we cannot refund items that arrive damaged during return shipping.",
+      "**Packaging:** Please use the original box and packing materials. Items with signs of use, scratches, or damage cannot be accepted.",
+      "**Refund Time:** Once processed, refunds are issued within 7 working days."
+    ]
   },
   "products": {
     "filters": {

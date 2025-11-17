@@ -525,11 +525,22 @@ export default function ProductDetailPage() {
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
                   </h3>
-                  {t("productDetail.deliveryText")
-                    .split(/\n\n/)
-                    .map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
+                  {t("productDetail.delivery_content", {
+                    returnObjects: true,
+                  })?.map((line, i) => {
+                    const ci = line.indexOf(":");
+                    if (ci !== -1) {
+                      const title = line.slice(0, ci).trim();
+                      const content = line.slice(ci + 1).trim();
+                      return (
+                        <p key={i}>
+                          <span className="font-semibold">{title}:</span>{" "}
+                          {content}
+                        </p>
+                      );
+                    }
+                    return <p key={i}>{line}</p>;
+                  })}
                 </section>
 
                 {/* Returns section */}
@@ -539,22 +550,22 @@ export default function ProductDetailPage() {
                   </h3>
 
                   {/* Optional intro paragraph */}
-                  {t("productDetail.returnsIntro")
-                    .split(/\n\n/)
-                    .map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-
-                  {/* Bullet list from translation.json */}
-                  <ul className="list-disc pl-5 space-y-1">
-                    {t("productDetail.returnsBullets")
-                      .split("•")
-                      .map((raw, i) => {
-                        const text = raw.trim();
-                        if (!text) return null;
-                        return <li key={i}>{text}</li>;
-                      })}
-                  </ul>
+                  {t("productDetail.returns_content", {
+                    returnObjects: true,
+                  })?.map((line, i) => {
+                    const ci = line.indexOf(":");
+                    if (ci !== -1) {
+                      const title = line.slice(0, ci).trim();
+                      const content = line.slice(ci + 1).trim();
+                      return (
+                        <p key={i}>
+                          <span className="font-semibold">{title}:</span>{" "}
+                          {content}
+                        </p>
+                      );
+                    }
+                    return <p key={i}>{line}</p>;
+                  })}
                 </section>
               </div>
             )}
