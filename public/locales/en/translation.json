@@ -60,7 +60,7 @@
     "aboutUs": {
       "alt": "About Us",
       "heading": "Crafted from Stone, Designed for Living",
-      "text": "We source and craft premium natural stone pieces for everyday life—made to last and made to be loved.",
+      "text": "We source and craft premium natural stone pieces for everyday life, made to last and made to be loved.",
       "secText": "From bespoke kitchen countertops to sculptural décor and smart office accessories, every item is built with care."
     },
     "features": {
@@ -107,7 +107,7 @@
       },
       "sculpture": {
         "heading": "Sculptures & Custom",
-        "description": "Statement sculptures and one-off commissions.",
+        "description": "Timeless handcrafted sculptures with the option to create fully customized designs for your unique space.",
         "button": "Explore Sculptures"
       }
     },
@@ -129,9 +129,9 @@
     },
     "trust": {
       "title": "Why Choose MindMines",
-      "secure": "100% Secure Payments (PayPal & SEPA)",
-      "based": "Based in Germany (Horneburg)",
-      "dhl": "Fast DHL Shipping in the EU",
+      "secure": "100% Secure Payments & Buyer Protection",
+      "based": "Based in Germany",
+      "dhl": "Fast & Free Shipping in the EU*",
       "packaging": "Safe Packaging for Fragile Marble Items",
       "handmade": "Handmade Premium Quality",
       "badgePayments": "Secure checkout & buyer protection"
@@ -142,9 +142,9 @@
     },
     "shipping": {
       "title": "Free Delivery Conditions",
-      "de": "Germany: Free delivery on orders",
-      "eu": "EU: Free delivery on orders",
-      "note": "Heavy/oversize items may incur a surcharge (shown at checkout)."
+      "de": "Germany: Free delivery on orders*",
+      "eu": "EU: Free delivery on orders*",
+      "note": "*Heavy/oversize items may incur a surcharge (shown at checkout)."
     },
     "carousel": {
       "goToSlide": "Go to slide {{index}}"
@@ -255,12 +255,18 @@
   "All": "All",
   "No products found in this category.": "No products found in this category.",
   "about": {
+    "storyTitle": "Our Story",
+    "storyParagraph1": "Our journey began long before MindMines was founded — as passionate explorers of marble and natural stone. What started as a deep admiration for the timeless beauty of raw materials soon grew into a commitment to bring the world’s finest stones into everyday living.",
+    "storyParagraph2": "For years, we travelled, learned, and traded, carefully sourcing exquisite marble, granite, soapstone, and rare natural stones from different parts of the world. Each stone we encountered had its own story, its own patterns, and its own personality — and we believed these unique characteristics deserved to be celebrated, not hidden.",
+    "storyParagraph3": "In 2022, this passion took a new shape. We established MindMines with a clear mission: to share exceptional materials and authentic craftsmanship with a global audience. We understood that a stone is not just a piece of nature — it is a piece of history, shaped over thousands of years. And when placed in the hands of a skilled artisan, it transforms into art that carries emotion, tradition, and culture.",
+    "storyParagraph4": "Today, MindMines stands as a house of creativity and craftsmanship. Inspired by the ideas and trust of our customers, we work closely with talented artisans to create sculptures, home décor, utility pieces, and custom-made designs. Whether crafted from marble, granite, or even humble pebbles, each product is thoughtfully designed to resonate with elegance, purity, and timeless sophistication.",
+    "storyParagraph5": "Our purpose remains unchanged: to connect people with art born from the earth — art that lasts, inspires, and adds meaning to the spaces we live in.",
     "heading": "About Us",
     "imageAlt": "MindMines team working with marble",
-    "intro": "Our journey began as passionate marble traders, meticulously sourcing exquisite stones from the heart of Italy. We connected with customers across Dubai, India, and Germany, inspired by a deep love for the timeless beauty of natural stone.",
-    "founded": "In 2022, we founded MindMines with a clear mission: share fine materials and craftsmanship with a global audience. We believe each stone has a unique character—and we celebrate that individuality in every piece.",
-    "today": "Today, fueled by our customers’ inspiration, we collaborate with skilled artisans to craft sculptures and decor from marble, granite, and even pebbles—each designed to resonate with beauty and sophistication.",
-    "vision": "Our vision: bring warmth, elegance, and a touch of nature into homes and businesses through ethical sourcing and sustainable craftsmanship.",
+    "intro": "Our journey began long before MindMines was founded — as passionate explorers of marble and natural stone. What started as a deep admiration for the timeless beauty of raw materials soon grew into a commitment to bring the world’s finest stones into everyday living.",
+    "founded": "In 2022, we founded MindMines with a clear mission: to share exceptional materials and authentic craftsmanship with a global audience. We believe each stone is more than just a material — it is a piece of history, shaped over thousands of years.",
+    "today": "Today, inspired by our customers, we collaborate with skilled artisans to create sculptures, home décor, utility pieces, and custom-made designs from marble, granite, soapstone, and even pebbles — each thoughtfully crafted to embody elegance, purity, and timeless sophistication.",
+    "vision": "Our purpose is to connect people with art born from the earth — art that lasts, inspires, and adds meaning to the spaces we live in.",
     "galleryHeading": "Marble Marvels Gallery",
     "galleryIntro": "Take a closer look at how we shape each MindMines piece by hand.",
     "videoAlt": "MindMines workshop video",
@@ -288,7 +294,7 @@
     "ariaLabel": "Checkout trust highlights",
     "payments": "Trusted payments",
     "security": "Secure checkout",
-    "guarantee": "14-day money-back guarantee",
+    "guarantee": "14 working day money-back guarantee",
     "ssl": "SSL protected",
     "shipsTo": "Ships to Germany & EU"
   },
@@ -909,8 +915,8 @@
       "paymentText": "We accept PayPal, credit/debit cards (via Stripe), SEPA bank transfer, and Klarna (where available).",
       "shipping": "6. Shipping, Delivery Times & Risk Transfer",
       "shippingText": "We ship to Germany and EU via DHL/partners. Delivery times are shown at checkout. For consumer sales, risk transfers upon delivery to you.",
-      "withdrawal": "7. Right of Withdrawal (14 days)",
-      "withdrawalText": "Consumers have 14 days to withdraw without giving reasons. Custom-made items are excluded. Details in the Return & Refund Policy.",
+      "withdrawal": "7. Right of Withdrawal (14 working days)",
+      "withdrawalText": "Consumers have 14 working days to withdraw without giving reasons. Custom-made items are excluded. Details in the Return & Refund Policy.",
       "warranty": "8. Warranty & Defect Liability",
       "warrantyText": "Statutory consumer rights under German law apply. Natural stone variations (color/veining) are not defects.",
       "titleRetention": "9. Retention of Title",
@@ -961,17 +967,17 @@
     },
     "returns": {
       "title": "Return & Refund Policy",
-      "intro": "You have 14 days to return most items. Custom-made products are non-refundable.",
+      "intro": "You have 14 working days to return most items. Custom-made products are non-refundable.",
       "how": "How to start a return",
       "howItems": [
-        "Email service@mindmines.eu with your order number within 14 days of delivery.",
+        "Email service@mindmines.eu with your order number within 14 working days of delivery.",
         "Use the original packaging when possible; protect heavy stone items carefully.",
         "Ship to the return address below. You are responsible for return shipping unless the item is defective or we made a mistake."
       ],
       "condition": "Item condition",
       "conditionText": "Items must be unused and in resellable condition. Natural stone variations are normal and not defects.",
       "refunds": "Refunds",
-      "refundsText": "Upon inspection, we refund to your original payment method within 14 days. Shipping fees are non-refundable unless due to our error.",
+      "refundsText": "Upon inspection, we refund to your original payment method within 14 working days. Shipping fees are non-refundable unless due to our error.",
       "returnAddress": "Return address",
       "address": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany"
     },
@@ -1064,7 +1070,13 @@
     "policy": {
       "delivery": "Delivery",
       "returns": "Returns"
-    }
+    },
+
+    "careText": "Care Instructions:\nFor natural stone surfaces, like marble, use gentle pH-neutral cleaners and a soft cloth. Quickly wipe up spills to prevent stains. Use trivets and coasters to protect from heat. Dust regularly and clean softly. Occasionally apply a stone protector. Avoid using abrasive materials or harsh chemicals to keep your stone beautiful and lasting.",
+
+    "deliveryText": "We offer free delivery on all orders. Every order is dispatched within 48 hours.\n\nAt checkout, you will see the delivery options available based on your items and shipping address.\n\nOur quality control team checks every product carefully before shipping, and all orders are documented before leaving our warehouse.",
+
+    "returnsText": "If you are not completely satisfied with your purchase, you may return it within 14 days of delivery.\nTo start your return, please email us at service@mindmines.eu.\n\nImportant return conditions:\n\nIf the customer is not satisfied:\nYou may return the product within 14 days, and we will refund the product cost.\n\nIf the product arrives damaged during transport:\nPlease contact us immediately with photos. In this case, we will refund the product cost and the shipping cost.\n\nGeneral return policy:\n\n• Return shipping costs are paid by the customer.\n• We recommend sending the return with insurance, as we cannot refund items that arrive damaged in the return shipment.\n• Please use the original box and packaging materials to protect the product.\n• Items showing signs of use, scratches, or damage will not be accepted and will be returned to you at your cost.\n\nOnce your return has been processed, you will receive a confirmation email.\nRefunds (product cost) will be issued to your original payment method within 7 working days."
   },
   "products": {
     "filters": {

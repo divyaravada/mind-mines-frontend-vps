@@ -87,14 +87,14 @@
     "aboutUs": {
       "alt": "Über uns",
       "heading": "Aus Stein gefertigt, fürs Leben gestaltet",
-      "text": "Wir beziehen und fertigen hochwertige Natursteinprodukte für den Alltag – langlebig und mit Liebe zum Detail.",
-      "secText": "Von maßgefertigten Küchenarbeitsplatten bis zu Skulpturen und Büroaccessoires – jedes Stück entsteht mit Sorgfalt."
+      "text": "Wir beziehen und fertigen hochwertige Natursteinprodukte für den Alltag, langlebig und mit Liebe zum Detail.",
+      "secText": "Von maßgefertigten Küchenarbeitsplatten bis zu Skulpturen und Büroaccessoires, jedes Stück entsteht mit Sorgfalt."
     },
     "features": {
       "materials": "Hochwertige Naturmaterialien",
       "germany": "Sitz in Deutschland",
       "stones": "Marmor · Granit · Travertin",
-      "return": "14 Tage Rückgabe"
+      "return": "14 Werktage Rückgabe"
     },
     "categories": {
       "natural_stone": {
@@ -134,7 +134,7 @@
       },
       "sculpture": {
         "heading": "Skulpturen & Maßanfertigung",
-        "description": "Statement-Skulpturen und Einzelanfertigungen.",
+        "description": "Zeitlose handgefertigte Skulpturen mit der Möglichkeit, individuelle Designs für Ihren einzigartigen Raum zu gestalten.",
         "button": "Skulpturen ansehen"
       }
     },
@@ -156,9 +156,9 @@
     },
     "trust": {
       "title": "Warum MindMines?",
-      "secure": "100 % sichere Zahlungen (PayPal & SEPA)",
-      "based": "Sitz in Deutschland (Horneburg)",
-      "dhl": "Schneller DHL-Versand in der EU",
+      "secure": "100 % sichere Zahlungen & Käuferschutz",
+      "based": "Sitz in Deutschland ",
+      "dhl": "Schneller & kostenloser Versand in der EU*",
       "packaging": "Sichere Verpackung für empfindliche Marmorartikel",
       "handmade": "Handarbeit in Premium-Qualität",
       "badgePayments": "Sicherer Checkout & Käuferschutz"
@@ -169,9 +169,9 @@
     },
     "shipping": {
       "title": "Bedingungen für kostenlosen Versand",
-      "de": "Deutschland: Kostenloser Versand ab {{amount}} €",
-      "eu": "EU: Kostenloser Versand ab {{amount}} €",
-      "note": "Schwere/Übergrößen können Zuschläge verursachen (an der Kasse ersichtlich)."
+      "de": "Deutschland: Kostenloser Versand*",
+      "eu": "EU: Kostenloser Versand*",
+      "note": "*Schwere/Übergrößen können Zuschläge verursachen (an der Kasse ersichtlich)."
     },
     "carousel": {
       "goToSlide": "Zur Folie {{index}}"
@@ -220,12 +220,18 @@
     "cta": "Zur Startseite"
   },
   "about": {
+    "storyTitle": "Unsere Geschichte",
+    "storyParagraph1": "Unsere Reise begann lange bevor MindMines gegründet wurde — als leidenschaftliche Entdecker von Marmor und Naturstein. Aus einer tiefen Bewunderung für die zeitlose Schönheit dieser Materialien entwickelte sich der Wunsch, die feinsten Steine der Welt in den Alltag der Menschen zu bringen.",
+    "storyParagraph2": "Viele Jahre lang reisten und lernten wir, handelten mit hochwertigen Natursteinen und wählten sorgfältig edlen Marmor, Granit, Speckstein und seltene Steinsorten aus verschiedenen Regionen der Welt aus. Jeder Stein, den wir fanden, erzählte seine eigene Geschichte — mit einzigartigen Strukturen, Farben und Charakterzügen. Für uns stand fest: Diese Individualität verdient es, sichtbar und wertgeschätzt zu werden.",
+    "storyParagraph3": "Im Jahr 2022 nahm diese Leidenschaft eine neue Form an. Wir gründeten MindMines mit einer klaren Mission: erstklassige Materialien und echte Handwerkskunst mit Menschen weltweit zu teilen. Wir wussten, dass ein Stein nicht einfach nur ein Naturprodukt ist — er ist ein Stück Geschichte, über Jahrtausende geformt. Und in den Händen talentierter Kunsthandwerker verwandelt er sich in Kunst, die Emotionen, Tradition und kulturelle Werte in sich trägt.",
+    "storyParagraph4": "Heute steht MindMines für Kreativität, Präzision und kunstvolles Handwerk. Inspiriert durch die Wünsche und Ideen unserer Kunden arbeiten wir eng mit erfahrenen Kunsthandwerkern zusammen, um Skulpturen, Wohnaccessoires, Gebrauchsgegenstände und individuelle Sonderanfertigungen zu erschaffen. Ob aus Marmor, Granit oder sogar aus schlichten Kieselsteinen — jedes Stück ist so gestaltet, dass es Eleganz, Reinheit und zeitlose Raffinesse ausstrahlt.",
+    "storyParagraph5": "Unser Ziel bleibt unverändert: Menschen mit Kunstwerken zu verbinden, die aus der Erde geboren sind — langlebig, inspirierend und voller Bedeutung für die Räume, in denen wir leben.",
     "heading": "Über uns",
     "imageAlt": "MindMines-Team bei der Arbeit mit Marmor",
-    "intro": "Unsere Reise begann als leidenschaftliche Marmorhändler, die erlesene Steine aus Italien bezogen. In Dubai, Indien und Deutschland knüpften wir Beziehungen – getragen von unserer Liebe zur zeitlosen Schönheit von Naturstein.",
-    "founded": "2022 gründeten wir MindMines mit einem klaren Ziel: Hochwertige Materialien und Handwerkskunst einem weltweiten Publikum zugänglich zu machen. Jeder Stein besitzt einen einzigartigen Charakter – den wir in jedem Stück feiern.",
-    "today": "Heute arbeiten wir mit erfahrenen Kunsthandwerkern zusammen und fertigen Skulpturen und Dekor aus Marmor, Granit und sogar Kieseln – mit Sinn für Eleganz und Raffinesse.",
-    "vision": "Unsere Vision: Wärme, Eleganz und ein Stück Natur in Wohn- und Geschäftsräume bringen – durch ethische Beschaffung und nachhaltige Handarbeit.",
+    "intro": "Unsere Reise begann lange bevor MindMines gegründet wurde — als leidenschaftliche Entdecker von Marmor und Naturstein. Aus einer tiefen Bewunderung für die zeitlose Schönheit dieser Rohstoffe entstand der Wunsch, die feinsten Steine der Welt in den Alltag der Menschen zu bringen.",
+    "founded": "Im Jahr 2022 nahm diese Leidenschaft eine neue Form an: Wir gründeten MindMines mit einer klaren Mission, außergewöhnliche Materialien und echte Handwerkskunst mit einem weltweiten Publikum zu teilen. Für uns ist jeder Stein mehr als nur ein Material — er ist ein Stück Geschichte, über Jahrtausende geformt.",
+    "today": "Heute steht MindMines für Kreativität, Präzision und kunstvolles Handwerk. Gemeinsam mit erfahrenen Kunsthandwerkern gestalten wir Skulpturen, Wohnaccessoires, Gebrauchsgegenstände und individuelle Sonderanfertigungen aus Marmor, Granit, Speckstein und sogar schlichten Kieseln — jedes Stück mit einem Sinn für Eleganz, Reinheit und zeitlose Raffinesse.",
+    "vision": "Unser Ziel ist es, Menschen mit Kunstwerken zu verbinden, die aus der Erde geboren sind — langlebig, inspirierend und voller Bedeutung für die Räume, in denen wir leben.",
     "galleryHeading": "Marble Marvels Galerie",
     "galleryIntro": "Werfen Sie einen Blick darauf, wie wir jedes MindMines-Stück in Handarbeit formen.",
     "videoAlt": "MindMines Werkstattvideo",
@@ -253,7 +259,7 @@
     "ariaLabel": "Vertrauenssiegel",
     "payments": "Sichere Zahlungen",
     "security": "Geschützter Checkout",
-    "guarantee": "14-Tage Geld-zurück-Garantie",
+    "guarantee": "14 Arbeitstage Geld-zurück-Garantie",
     "ssl": "SSL geschützt",
     "shipsTo": "Versand nach Deutschland & EU"
   },
@@ -915,8 +921,8 @@
       "paymentText": "Wir akzeptieren PayPal, Kredit-/Debitkarte (Stripe), SEPA-Überweisung und Klarna (sofern verfügbar).",
       "shipping": "6. Versand, Lieferzeiten & Gefahrenübergang",
       "shippingText": "Versand nach Deutschland und EU per DHL/Partner. Lieferzeiten werden an der Kasse angezeigt. Beim Verbrauchsgüterkauf geht die Gefahr mit Übergabe an Sie über.",
-      "withdrawal": "7. Widerrufsrecht (14 Tage)",
-      "withdrawalText": "Verbraucher haben 14 Tage Widerrufsrecht ohne Angabe von Gründen. Maßanfertigungen sind ausgeschlossen. Details siehe Widerruf & Rückgabe.",
+      "withdrawal": "7. Widerrufsrecht (14 Werktage)",
+      "withdrawalText": "Verbraucher haben 14 Werktage Widerrufsrecht ohne Angabe von Gründen. Maßanfertigungen sind ausgeschlossen. Details siehe Widerruf & Rückgabe.",
       "warranty": "8. Gewährleistung",
       "warrantyText": "Es gelten die gesetzlichen Verbraucherrechte. Natursteinvariationen (Farbe/Maserung) stellen keinen Mangel dar.",
       "titleRetention": "9. Eigentumsvorbehalt",
@@ -988,10 +994,7 @@
       "carriers": "Versanddienst & Bearbeitung",
       "carriersText": "DHL/Partner übernehmen die Zustellung. Bearbeitung i. d. R. 1–2 Werktage.",
       "times": "Voraussichtliche Lieferzeiten",
-      "timesItems": [
-        "Deutschland: 2–4 Werktage",
-        "EU: 3–7 Werktage"
-      ],
+      "timesItems": ["Deutschland: 2–4 Werktage", "EU: 3–7 Werktage"],
       "costs": "Versandkosten",
       "costsText": "An der Kasse je nach Gewicht/Größe & Zielort. Für schwere Steinartikel können Zuschläge anfallen.",
       "risk": "Gefahr & beschädigte Pakete",
@@ -1064,7 +1067,13 @@
     "policy": {
       "delivery": "Versand",
       "returns": "Rückgabe"
-    }
+    },
+
+    "careText": "Pflegehinweise:\nFür Natursteinoberflächen, wie Marmor, verwenden Sie milde, pH-neutrale Reiniger und ein weiches Tuch. Wischen Sie verschüttete Flüssigkeiten schnell auf, um Flecken zu vermeiden. Verwenden Sie Untersetzer und Glasuntersetzer, um vor Hitze zu schützen. Stauben Sie regelmäßig ab und reinigen Sie sanft. Tragen Sie gelegentlich einen Steinschutz auf. Vermeiden Sie die Verwendung von abrasiven Materialien oder scharfen Chemikalien, um die Schönheit und Langlebigkeit Ihres Steins zu bewahren.",
+
+    "deliveryText": "Wir bieten kostenlosen Versand für alle Bestellungen an. Alle Bestellungen werden innerhalb von 48 Stunden versendet.\n\nIm Checkout sehen Sie die passenden Lieferoptionen basierend auf Ihrem Warenkorb und Ihrer Lieferadresse.\n\nUnser Qualitätskontrollteam prüft jedes Produkt sorgfältig, und alle Bestellungen werden vor dem Versand dokumentiert.",
+
+    "returnsText": "Wenn Sie mit Ihrem Kauf nicht vollständig zufrieden sind, können Sie ihn innerhalb von 14 Tagen nach Erhalt zurücksenden.\nUm eine Rücksendung zu starten, schreiben Sie uns bitte an service@mindmines.eu.\n\nWichtige Rücksende-Bedingungen:\n\nWenn der Kunde nicht zufrieden ist:\nSie können das Produkt innerhalb von 14 Tagen zurücksenden, und wir erstatten Ihnen die Produktkosten.\n\nWenn das Produkt während des Transports beschädigt ankommt:\nBitte kontaktieren Sie uns sofort mit Fotos. In diesem Fall erstatten wir Ihnen die Produktkosten und die Versandkosten.\n\nAllgemeine Rücksenderichtlinien:\n\n• Die Rücksendekosten trägt der Kunde.\n• Wir empfehlen einen versicherten Versand, da wir beschädigte Rücksendungen nicht erstatten können.\n• Bitte verwenden Sie die Originalverpackung, um das Produkt sicher zu schützen.\n• Artikel mit Gebrauchsspuren, Kratzern oder Schäden werden nicht akzeptiert und auf Ihre Kosten zurückgesendet.\n\nSobald Ihre Rücksendung bearbeitet wurde, erhalten Sie eine Bestätigung per E-Mail.\nDie Rückerstattung (Produktkosten) erfolgt innerhalb von 7 Werktagen auf Ihre ursprüngliche Zahlungsmethode."
   },
   "products": {
     "filters": {

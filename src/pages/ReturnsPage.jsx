@@ -16,14 +16,14 @@ export default function ReturnsPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10 prose prose-neutral">
-      <h1>{t("legal.returns.title")}</h1>
+      <h1 className="font-extrabold">{t("legal.returns.title")}</h1>
       <p>
         <em>{t("legal.lastUpdated", { date: today })}</em>
       </p>
 
       <p>{t("legal.returns.intro")}</p>
 
-      <h3>{t("legal.returns.how")}</h3>
+      <h3 className="h3">{t("legal.returns.how")}</h3>
       {list(t("legal.returns.howItems", { returnObjects: true }))}
 
       <h3>{t("legal.returns.condition")}</h3>

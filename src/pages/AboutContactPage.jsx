@@ -29,23 +29,21 @@ export default function AboutContactPage() {
           />
         </div>
 
+        {/* Text content */}
         <div className="w-full md:w-1/2 flex flex-col gap-5">
-          <h1 className="text-4xl font-extrabold mb-2 text-backnewswhite dark:text-backnewsdark">
-            {t("about.heading")}
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-2 text-backnewswhite dark:text-backnewsdark">
+            {t("about.storyTitle")}
           </h1>
 
-          <p className="text-lg text-gray-700 dark:text-gray-200">
-            {t("about.intro")}
-          </p>
-          <p className="text-lg text-gray-700 dark:text-gray-200">
-            {t("about.founded")}
-          </p>
-          <p className="text-lg text-gray-700 dark:text-gray-200">
-            {t("about.today")}
-          </p>
+          <div className="space-y-4 text-lg leading-relaxed text-gray-700 dark:text-gray-200">
+            <p>{t("about.storyParagraph1")}</p>
+            <p>{t("about.storyParagraph2")}</p>
+            <p>{t("about.storyParagraph3")}</p>
+            <p>{t("about.storyParagraph4")}</p>
+          </div>
 
           <div className="bg-[#b3dad5] dark:bg-neutral-800 px-5 py-4 rounded-xl text-lg font-semibold text-marbleblack dark:text-white shadow mt-2">
-            {t("about.vision")}
+            {t("about.storyParagraph5")}
           </div>
         </div>
       </div>

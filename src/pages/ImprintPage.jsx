@@ -22,11 +22,6 @@ export default function ImprintPage() {
               <br />
               {t("legal.imprint.address")}
             </p>
-            <p>
-              <strong>{t("legal.imprint.managingPartners")}:</strong>
-              <br />
-              {t("legal.imprint.partnersList")}
-            </p>
           </section>
 
           <section>

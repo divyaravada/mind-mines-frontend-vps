@@ -506,48 +506,44 @@ export default function ProductDetailPage() {
               </>
             )}
 
+            {/* CARE TAB – from translation.json */}
             {activeTab === "care" && (
-              <div className="whitespace-pre-line">
-                {product[`carepara_${lang}`]
-                  ?.split(/\r?\n\r?\n/)
-                  .map((para, i) => {
-                    const ci = para.indexOf(":");
-                    if (ci !== -1) {
-                      const title = para.slice(0, ci).trim();
-                      const content = para.slice(ci + 1).trim();
-                      return (
-                        <p key={i}>
-                          <span className="font-semibold">{title}:</span>{" "}
-                          {content}
-                        </p>
-                      );
-                    }
-                    return <p key={i}>{para.trim()}</p>;
-                  })}
+              <div className="space-y-3 text-sm leading-relaxed">
+                {t("productDetail.careText")
+                  .split(/\n\n/)
+                  .map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
               </div>
             )}
 
+            {/* POLICY TAB – from translation.json */}
             {activeTab === "policy" && (
-              <>
-                <div className="space-y-2">
-                  <strong>{t("productDetail.policy.delivery")}:</strong>
-                  {product[`delivery_${lang}`]
-                    ?.split(/\r?\n\r?\n/)
+              <div className="space-y-6 text-sm leading-relaxed">
+                {/* Delivery section */}
+                <section className="space-y-2">
+                  <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
+                    {t("productDetail.policy.delivery")}
+                  </h3>
+                  {t("productDetail.deliveryText")
+                    .split(/\n\n/)
                     .map((p, i) => (
                       <p key={i}>{p}</p>
                     ))}
-                </div>
-                <div className="space-y-2">
-                  <strong>{t("productDetail.policy.returns")}:</strong>
-                  {[1, 2, 3].map((n) =>
-                    product[`returnspara${n}_${lang}`]
-                      ? product[`returnspara${n}_${lang}`]
-                          .split(/\r?\n\r?\n/)
-                          .map((p, i) => <p key={`${n}-${i}`}>{p}</p>)
-                      : null
-                  )}
-                </div>
-              </>
+                </section>
+
+                {/* Returns section */}
+                <section className="space-y-2">
+                  <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
+                    {t("productDetail.policy.returns")}
+                  </h3>
+                  {t("productDetail.returnsText")
+                    .split(/\n\n/)
+                    .map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                </section>
+              </div>
             )}
           </div>
         </div>
