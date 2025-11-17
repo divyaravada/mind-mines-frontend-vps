@@ -880,64 +880,143 @@
       "terms": "Allgemeine Geschäftsbedingungen (AGB)",
       "privacy": "Datenschutzerklärung (DSGVO)",
       "returns": "Widerruf & Rückgabe",
-      "shipping": "Versandrichtlinie"
+      "shipping": "Versandrichtlinie",
+      "cookies": "Cookie-Richtlinie"
     },
     "imprint": {
       "title": "Impressum",
-      "company": "MindMines GbR",
-      "addressLabel": "Eingetragene Anschrift",
-      "address": "Feldstraße 11, 21640 Horneburg, Deutschland",
-      "managingPartners": "Geschäftsführende Gesellschafter",
-      "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
-      "contact": "Kontakt",
-      "email": "E-Mail",
-      "emailValue": "info@mindmines.eu",
-      "supportEmail": "Support-E-Mail",
-      "supportEmailValue": "service@mindmines.eu",
-      "whatsapp": "WhatsApp",
-      "whatsappValue": "+49 170 4658188",
-      "vat": "USt-IdNr.",
-      "vatValue": "DE362093828",
-      "businessType": "Unternehmensart",
-      "businessTypeValue": "Verkauf von physischen Marmor- & Stein-Produkten für Zuhause/Büro (B2C).",
-      "hours": "Kundensupportzeiten",
-      "hoursValue": "Montag–Freitag, 09:00–18:00 Uhr CET",
-      "dispute": "Verbraucherschlichtung",
-      "disputeText": "Die EU-Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit. Wir sind weder verpflichtet noch bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
-      "liability": "Haftung für Inhalte & Links",
-      "liabilityText": "Wir pflegen unsere Inhalte sorgfältig, übernehmen jedoch keine Haftung für externe Links. Für deren Inhalte sind stets die jeweiligen Betreiber verantwortlich."
+
+      "section1_title": "1. Angaben gemäß § 5 TMG",
+      "section1_text_a": "Diese Website wird betrieben von:",
+      "section1_text_b": "MindMines\nFeldstraße 11\n21640 Horneburg\nDeutschland",
+      "section1_text_c": "E-Mail: service@mindmines.eu\nWebsite: https://mindmines.eu",
+      "section1_text_d": "Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DE362093828",
+
+      "section2_title": "2. Verantwortlich im Sinne des § 18 MStV",
+      "section2_text": "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: MindMines, Feldstraße 11, 21640 Horneburg, Deutschland.",
+
+      "section3_title": "3. Haftung für Inhalte",
+      "section3_text": "Wir sind bemüht, die Inhalte unserer Website stets aktuell und korrekt zu halten. Dennoch können wir keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernehmen. Als Diensteanbieter sind wir gemäß den allgemeinen Gesetzen für eigene Inhalte auf diesen Seiten verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.",
+
+      "section4_title": "4. Haftung für Links",
+      "section4_text": "Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Daher können wir für diese fremden Inhalte keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.",
+
+      "section5_title": "5. Urheberrecht",
+      "section5_text": "Die durch MindMines erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der vorherigen schriftlichen Zustimmung von MindMines oder des jeweiligen Rechteinhabers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.",
+
+      "section6_title": "6. Online-Streitbeilegung",
+      "section6_text": "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS-Plattform) bereit: https://ec.europa.eu/consumers/odr. Wir sind weder verpflichtet noch bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
+
+      "section7_title": "7. Kontakt",
+      "section7_text": "Bei Fragen zu diesem Impressum kontaktieren Sie uns bitte unter service@mindmines.eu."
     },
     "terms": {
       "title": "Allgemeine Geschäftsbedingungen (AGB)",
-      "scope": "1. Geltung & Vertragspartner",
-      "scopeText": "Diese Bedingungen regeln alle B2C-Käufe über mindmines.eu. Vertragspartner: MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland.",
-      "definitions": "2. Begriffe",
-      "definitionsText": "„Kunde“ ist Verbraucher i.S.d. §13 BGB. „Produkte“ sind physische Marmor-/Steinartikel.",
-      "ordering": "3. Bestellablauf & Vertragsschluss",
-      "orderingText": "Shop-Angebote sind unverbindlich. Mit Ihrer Bestellung geben Sie ein verbindliches Angebot ab. Die Annahme erfolgt per E-Mail-Bestätigung oder Versand.",
-      "pricing": "4. Preise, Steuern & Rechnung",
-      "pricingText": "Alle Preise inkl. gesetzlicher MwSt., soweit anwendbar. Versandkosten an der Kasse. Sie erhalten eine MwSt.-Rechnung per E-Mail.",
-      "payment": "5. Zahlungsmethoden",
-      "paymentText": "Wir akzeptieren PayPal, Kredit-/Debitkarte (Stripe), SEPA-Überweisung und Klarna (sofern verfügbar).",
-      "shipping": "6. Versand, Lieferzeiten & Gefahrenübergang",
-      "shippingText": "Versand nach Deutschland und EU per DHL/Partner. Lieferzeiten werden an der Kasse angezeigt. Beim Verbrauchsgüterkauf geht die Gefahr mit Übergabe an Sie über.",
-      "withdrawal": "7. Widerrufsrecht (14 Werktage)",
-      "withdrawalText": "Verbraucher haben 14 Werktage Widerrufsrecht ohne Angabe von Gründen. Maßanfertigungen sind ausgeschlossen. Details siehe Widerruf & Rückgabe.",
-      "warranty": "8. Gewährleistung",
-      "warrantyText": "Es gelten die gesetzlichen Verbraucherrechte. Natursteinvariationen (Farbe/Maserung) stellen keinen Mangel dar.",
-      "titleRetention": "9. Eigentumsvorbehalt",
-      "titleRetentionText": "Bis zur vollständigen Zahlung bleibt die Ware unser Eigentum.",
-      "liability": "10. Haftung",
-      "liabilityText": "Wir haften für Vorsatz und grobe Fahrlässigkeit; für leichte Fahrlässigkeit nur bei Verletzung wesentlicher Pflichten und begrenzt auf vorhersehbare Schäden.",
-      "data": "11. Datenschutz & Cookies",
-      "dataText": "Einzelheiten zur Verarbeitung und zu Cookies finden Sie in unserer Datenschutzerklärung.",
-      "jurisdiction": "12. Recht & Gerichtsstand",
-      "jurisdictionText": "Es gilt deutsches Recht; zwingende Verbraucherschutzvorschriften Ihres Wohnsitzes bleiben unberührt. Gerichtsstand: Amtsgericht Stade, Deutschland.",
-      "final": "13. Schlussbestimmungen",
-      "finalText": "Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der übrigen unberührt."
+      "overview": "Diese Website wird von MindMines betrieben. Die Begriffe „wir“, „uns“ und „unser“ beziehen sich auf MindMines. MindMines stellt diese Website sowie alle Informationen, Tools und Dienstleistungen unter der Voraussetzung bereit, dass Sie alle hier angegebenen Bedingungen akzeptieren.",
+      "acceptance": "Durch den Besuch unserer Website und/oder den Kauf eines Produkts erklären Sie sich mit unseren Dienstleistungen einverstanden und stimmen diesen AGB zu. Bitte lesen Sie diese Bedingungen sorgfältig, bevor Sie unsere Website nutzen.",
+      "updates": "Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern oder zu aktualisieren. Ihre weitere Nutzung der Website gilt als Zustimmung zu den Änderungen.",
+
+      "section1_title": "ABSCHNITT 1 – BEDINGUNGEN FÜR DEN ONLINE-SHOP",
+      "section1_text": "Durch die Nutzung unserer Dienste bestätigen Sie, dass Sie volljährig sind. Sie dürfen unsere Produkte nicht für illegale oder unbefugte Zwecke verwenden.",
+
+      "section2_title": "ABSCHNITT 2 – ALLGEMEINE BEDINGUNGEN",
+      "section2_text": "Wir behalten uns das Recht vor, Serviceleistungen jederzeit zu verweigern. Sie stimmen zu, keine Teile des Dienstes ohne unsere schriftliche Zustimmung zu reproduzieren oder auszunutzen.",
+
+      "section3_title": "ABSCHNITT 3 – GENAUIGKEIT DER INFORMATIONEN",
+      "section3_text": "Wir übernehmen keine Verantwortung, wenn Informationen auf dieser Website ungenau, unvollständig oder veraltet sind. Sie sind dafür verantwortlich, Änderungen der Website zu überprüfen.",
+
+      "section4_title": "ABSCHNITT 4 – ÄNDERUNGEN DES DIENSTES UND DER PREISE",
+      "section4_text": "Produktpreise können sich ohne vorherige Ankündigung ändern. Wir behalten uns das Recht vor, den Dienst jederzeit zu ändern oder einzustellen.",
+
+      "section5_title": "ABSCHNITT 5 – PRODUKTE ODER DIENSTLEISTUNGEN",
+      "section5_text": "Einige Produkte sind möglicherweise ausschließlich online verfügbar und in begrenzter Menge. Wir garantieren nicht, dass Produkte oder Dienstleistungen Ihren Erwartungen entsprechen.",
+
+      "section6_title": "ABSCHNITT 6 – RECHNUNGS- UND KONTOINFORMATIONEN",
+      "section6_text": "Wir behalten uns das Recht vor, Bestellungen abzulehnen oder zu stornieren. Sie verpflichten sich, vollständige und korrekte Kontodaten anzugeben.",
+
+      "section7_title": "ABSCHNITT 7 – OPTIONALE TOOLS",
+      "section7_text": "Wir können Ihnen Zugang zu Tools von Drittanbietern gewähren, über die wir keine Kontrolle haben. Die Nutzung erfolgt auf eigene Verantwortung.",
+
+      "section8_title": "ABSCHNITT 8 – LINKS VON DRITTANBIETERN",
+      "section8_text": "Wir sind nicht verantwortlich für Inhalte oder Websites von Drittanbietern. Bitte prüfen Sie deren Richtlinien, bevor Sie Transaktionen durchführen.",
+
+      "section9_title": "ABSCHNITT 9 – BENUTZERKOMMENTARE UND FEEDBACK",
+      "section9_text": "Von Ihnen bereitgestellte Kommentare oder Materialien dürfen von uns ohne Einschränkung verwendet werden. Sie dürfen keine rechtswidrigen oder schädlichen Inhalte einreichen.",
+
+      "section10_title": "ABSCHNITT 10 – PERSONENBEZOGENE DATEN",
+      "section10_text": "Die Übermittlung personenbezogener Daten unterliegt unserer Datenschutzrichtlinie.",
+
+      "section11_title": "ABSCHNITT 11 – FEHLER UND UNGENAUIGKEITEN",
+      "section11_text": "Informationen auf dieser Website können Fehler oder Ungenauigkeiten enthalten. Wir behalten uns das Recht vor, diese jederzeit zu korrigieren oder zu aktualisieren.",
+
+      "section12_title": "ABSCHNITT 12 – VERBOTENE NUTZUNGEN",
+      "section12_text": "Die Nutzung der Website für rechtswidrige, beleidigende, schädliche oder irreführende Zwecke ist verboten. Verstöße können zur Beendigung des Dienstes führen.",
+
+      "section13_title": "ABSCHNITT 13 – HAFTUNGSAUSSCHLUSS",
+      "section13_text": "Wir garantieren keinen ununterbrochenen oder fehlerfreien Service. Produkte und Dienstleistungen werden „wie gesehen“ bereitgestellt. MindMines haftet nicht für direkte oder indirekte Schäden.",
+
+      "section14_title": "ABSCHNITT 14 – SCHADENERSATZ",
+      "section14_text": "Sie stimmen zu, MindMines von allen Ansprüchen freizustellen, die aus einem Verstoß gegen diese AGB entstehen.",
+
+      "section15_title": "ABSCHNITT 15 – SALVATORISCHE KLAUSEL",
+      "section15_text": "Sollte eine Bestimmung dieser AGB ungültig sein, bleiben die übrigen Bestimmungen weiterhin gültig.",
+
+      "section16_title": "ABSCHNITT 16 – KÜNDIGUNG",
+      "section16_text": "Wir können Ihren Zugang zum Dienst kündigen, wenn Sie gegen diese Bedingungen verstoßen. Sie bleiben weiterhin für alle offenen Zahlungen verantwortlich.",
+
+      "section17_title": "ABSCHNITT 17 – GESAMTE VEREINBARUNG",
+      "section17_text": "Diese AGB stellen die gesamte Vereinbarung zwischen Ihnen und MindMines dar.",
+
+      "section18_title": "ABSCHNITT 18 – ANWENDBARES RECHT",
+      "section18_text": "Diese Bedingungen unterliegen den Gesetzen Deutschlands.",
+
+      "section19_title": "ABSCHNITT 19 – ÄNDERUNGEN DER AGB",
+      "section19_text": "Wir können diese Bedingungen jederzeit aktualisieren. Ihre Nutzung der Website gilt als Zustimmung zu den Änderungen.",
+
+      "section20_title": "ABSCHNITT 20 – KONTAKT",
+      "section20_text": "Fragen zu diesen AGB können an service@mindmines.eu gesendet werden."
     },
     "privacy": {
-      "title": "Datenschutzerklärung (DSGVO)",
+      "title": "Datenschutzerklärung",
+
+      "intro": "Diese Datenschutzerklärung erläutert, wie MindMines personenbezogene Daten erhebt, nutzt und schützt, die Sie bei der Nutzung unserer Website bereitstellen. Wenn wir Sie um personenbezogene Daten bitten, werden diese ausschließlich gemäß dieser Datenschutzerklärung verwendet.",
+
+      "updateNotice": "MindMines kann diese Richtlinie gelegentlich aktualisieren. Wir empfehlen Ihnen, diese Seite regelmäßig zu überprüfen, um über Änderungen informiert zu bleiben.",
+
+      "section1_title": "1. Wer wir sind",
+      "section1_text": "Diese Website wird von MindMines betrieben. Für datenschutzbezogene Anfragen können Sie uns unter service@mindmines.eu kontaktieren. MindMines ist der Verantwortliche für die Verarbeitung personenbezogener Daten gemäß der DSGVO.",
+
+      "section2_title": "2. Was diese Datenschutzerklärung abdeckt",
+      "section2_text": "Diese Datenschutzerklärung gilt für personenbezogene Daten, die wir von Ihnen über unsere Website oder im Rahmen unserer Dienstleistungen erheben. Sie beschreibt, welche Daten wir sammeln, warum wir diese erheben, wie sie verwendet werden und auf welcher rechtlichen Grundlage die Verarbeitung erfolgt.",
+
+      "section3_title": "3. Welche personenbezogenen Daten wir erheben",
+      "section3_text_a": "a. Von Ihnen bereitgestellte Daten wie Name, E-Mail-Adresse, Rechnungs- und Lieferadresse sowie Kontoinformationen.",
+      "section3_text_b": "b. Transaktionsdaten wie Zahlungsinformationen (verarbeitet durch sichere Zahlungsanbieter), Bestellhistorie und Rechnungsdetails. Wir speichern keine vollständigen Kreditkartendaten.",
+      "section3_text_c": "c. Automatisch erfasste Daten wie IP-Adresse, Gerätetyp, Browserinformationen sowie Nutzungsdaten über Cookies und Protokolle.",
+
+      "section4_title": "4. Wie wir Ihre personenbezogenen Daten verwenden",
+      "section4_text": "Wir verwenden Ihre personenbezogenen Daten, um Bestellungen zu bearbeiten, Kundenservice zu leisten, Ihr Konto zu verwalten, das Einkaufserlebnis zu verbessern, die Website zu optimieren und notwendige Mitteilungen wie Bestell- und Versandbestätigungen zu senden. Marketing-E-Mails werden nur nach Ihrer ausdrücklichen Zustimmung versendet.",
+
+      "section5_title": "5. Weitergabe Ihrer Informationen",
+      "section5_text": "Wir geben personenbezogene Daten nur an vertrauenswürdige Dritte weiter, die uns bei der Bereitstellung unserer Dienstleistungen unterstützen, wie Zahlungsanbieter, Versanddienstleister, Hosting-Dienste und IT-Unternehmen. Alle Partner sind DSGVO-konform und verpflichtet, Ihre Daten zu schützen. Wir verkaufen Ihre personenbezogenen Daten nicht.",
+
+      "section6_title": "6. Datensicherheit",
+      "section6_text": "Wir setzen technische und organisatorische Maßnahmen ein, um Ihre Daten zu schützen. Dennoch kann kein Online-System absolute Sicherheit garantieren. Wir tun unser Bestes, um Ihre Daten zu schützen, jedoch erfolgt jede Datenübertragung auf eigenes Risiko.",
+
+      "section7_title": "7. Speicherdauer",
+      "section7_text": "Wir speichern Ihre personenbezogenen Daten nur so lange, wie es zur Erfüllung der in dieser Erklärung genannten Zwecke notwendig ist, einschließlich gesetzlicher Aufbewahrungspflichten, Betrugsprävention und Kundensupport. Bestelldaten werden gemäß deutschem Steuerrecht in der Regel bis zu 10 Jahre gespeichert.",
+
+      "section8_title": "8. Ihre Rechte (DSGVO)",
+      "section8_text": "Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch gegen bestimmte Verarbeitungen, einschließlich Direktwerbung. Sie können Ihre Einwilligung jederzeit widerrufen.",
+
+      "section8_contact": "Um Ihre Rechte auszuüben, kontaktieren Sie uns unter service@mindmines.eu.",
+
+      "section9_title": "9. Änderungen an dieser Datenschutzerklärung",
+      "section9_text": "Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Wesentliche Änderungen werden gemäß gesetzlichen Vorgaben mitgeteilt. Alle Aktualisierungen werden auf dieser Seite veröffentlicht.",
+
+      "section10_title": "10. Kontakt",
+      "section10_text": "Wenn Sie Fragen oder Anliegen zu dieser Datenschutzerklärung oder zur Verarbeitung Ihrer personenbezogenen Daten haben, kontaktieren Sie uns bitte unter service@mindmines.eu.",
+
       "controller": "Verantwortlicher",
       "controllerText": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland, info@mindmines.eu",
       "processing": "Welche Daten wir verarbeiten & warum",
@@ -972,35 +1051,100 @@
       "contactText": "E-Mail: info@mindmines.eu — wir antworten zeitnah."
     },
     "returns": {
-      "title": "Widerruf & Rückgabe",
-      "intro": "Sie können die meisten Artikel innerhalb von 14 Tagen zurückgeben. Maßanfertigungen sind vom Widerruf ausgeschlossen.",
-      "how": "So starten Sie eine Rückgabe",
-      "howItems": [
-        "E-Mail an service@mindmines.eu mit Bestellnummer innerhalb von 14 Tagen nach Zustellung.",
-        "Wenn möglich Originalverpackung verwenden; schwere Steinartikel sorgfältig polstern.",
-        "An die unten stehende Adresse zurücksenden. Rücksendekosten tragen Sie, außer bei Defekt oder unserem Fehler."
-      ],
-      "condition": "Zustand der Ware",
-      "conditionText": "Unbenutzt und wiederverkaufsfähig. Natursteinvariationen sind normal und kein Mangel.",
-      "refunds": "Rückerstattungen",
-      "refundsText": "Nach Prüfung erstatten wir innerhalb von 14 Tagen auf die ursprüngliche Zahlungsart. Versandkosten sind nicht erstattungsfähig, außer bei unserem Fehler.",
-      "returnAddress": "Rücksendeadresse",
-      "address": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Deutschland"
+      "title": "Rückgabe- und Erstattungsrichtlinie",
+
+      "intro": "Diese Rückgabe- und Erstattungsrichtlinie erläutert, wie MindMines Rücksendungen, Rückerstattungen und Umtausch für Käufe in unserem Online-Shop handhabt.",
+
+      "section1_title": "1. Rückgaberecht",
+      "section1_text": "Sie können bei MindMines gekaufte Artikel innerhalb von 14 Tagen nach Erhalt der Ware zurückgeben, ohne einen Grund angeben zu müssen. Um eine Rückgabe zu veranlassen, kontaktieren Sie uns bitte unter support@mindmines.eu und geben Sie Ihre Bestellnummer sowie die betroffenen Artikel an.",
+
+      "section2_title": "2. Zustand der zurückgesandten Artikel",
+      "section2_text": "Zurückgesandte Artikel müssen sich im Originalzustand befinden: unbenutzt, unbeschädigt und mit der Originalverpackung und allen Schutzmaterialien. Artikel mit Gebrauchsspuren, Kratzern oder Beschädigungen können abgelehnt und auf Ihre Kosten an Sie zurückgesendet werden.",
+
+      "section3_title": "3. Vom Umtausch oder von der Rückgabe ausgeschlossene Artikel",
+      "section3_text": "Sonderanfertigungen, personalisierte Produkte sowie Artikel, die auf der Produktseite ausdrücklich als nicht rückgabefähig gekennzeichnet sind, können grundsätzlich nicht zurückgegeben werden, es sei denn, das Gesetz schreibt etwas anderes vor.",
+
+      "section4_title": "4. Ablauf der Rücksendung",
+      "section4_text": "Bitte kontaktieren Sie uns unter support@mindmines.eu, bevor Sie Artikel an uns zurücksenden. Wir teilen Ihnen die weiteren Schritte sowie die korrekte Rücksendeadresse mit. Rücksendungen ohne vorherige Kontaktaufnahme können möglicherweise nicht angenommen werden.",
+
+      "section5_title": "5. Rücksendekosten",
+      "section5_text": "Die Kosten für die Rücksendung tragen Sie als Kundin/Kunde, sofern der Artikel nicht bereits bei Ankunft beschädigt oder fehlerhaft war. Wir empfehlen einen versicherten und nachverfolgbaren Versand, da Sie bis zum Eintreffen der Ware bei uns für die Produkte verantwortlich sind.",
+
+      "section6_title": "6. Beschädigte oder fehlerhafte Artikel",
+      "section6_text": "Sollte Ihr Artikel beschädigt oder defekt bei Ihnen ankommen, kontaktieren Sie uns bitte innerhalb von 48 Stunden nach Zustellung und senden Sie uns Fotos des Produkts und der Verpackung. Nach Prüfung des Falles bieten wir Ihnen gemäß Ihren gesetzlichen Rechten einen Ersatz oder eine Rückerstattung an.",
+
+      "section7_title": "7. Rückerstattungen",
+      "section7_text": "Nachdem Ihre Rücksendung eingegangen und geprüft wurde, informieren wir Sie per E-Mail. Wenn die Rückgabe genehmigt wird, erstatten wir den Produktpreis innerhalb von 7–10 Werktagen auf die ursprünglich verwendete Zahlungsmethode. Die ursprünglichen Versandkosten werden nur soweit erstattet, wie es gesetzlich vorgeschrieben ist.",
+
+      "section8_title": "8. Umtausch",
+      "section8_text": "Derzeit bieten wir keinen direkten Umtausch an. Wenn Sie einen anderen Artikel wünschen, senden Sie bitte den ursprünglichen Artikel gemäß dieser Richtlinie zurück und geben Sie eine neue Bestellung auf.",
+
+      "section9_title": "9. Kontakt",
+      "section9_text": "Bei Fragen zu Rücksendungen, Rückerstattungen oder dieser Richtlinie kontaktieren Sie uns bitte unter support@mindmines.eu."
     },
     "shipping": {
       "title": "Versandrichtlinie",
-      "zones": "Liefergebiete",
-      "zonesText": "Deutschland und Europäische Union.",
-      "carriers": "Versanddienst & Bearbeitung",
-      "carriersText": "DHL/Partner übernehmen die Zustellung. Bearbeitung i. d. R. 1–2 Werktage.",
-      "times": "Voraussichtliche Lieferzeiten",
-      "timesItems": ["Deutschland: 2–4 Werktage", "EU: 3–7 Werktage"],
-      "costs": "Versandkosten",
-      "costsText": "An der Kasse je nach Gewicht/Größe & Zielort. Für schwere Steinartikel können Zuschläge anfallen.",
-      "risk": "Gefahr & beschädigte Pakete",
-      "riskText": "Die Gefahr geht mit Übergabe auf Sie über. Bei Schäden bitte Fotos erstellen und uns innerhalb von 48 Stunden kontaktieren.",
-      "undeliverable": "Unzustellbare Sendungen",
-      "undeliverableText": "Kommt eine Sendung wegen falscher Adresse/Annahmeverweigerung zurück, versenden wir erneut gegen Kostenerstattung oder erstatten abzüglich Versand."
+
+      "intro": "Diese Versandrichtlinie erläutert, wie MindMines die Bearbeitung, den Versand und die Lieferung von Bestellungen aus unserem Online-Shop handhabt.",
+
+      "section1_title": "1. Allgemeine Informationen",
+      "section1_text": "Alle Bestellungen werden von Deutschland aus bearbeitet und versendet. Wir sind bemüht, einen sicheren und zuverlässigen Versand für alle MindMines-Produkte zu gewährleisten.",
+
+      "section2_title": "2. Bearbeitungszeit",
+      "section2_text": "Bestellungen werden in der Regel innerhalb von 48 Stunden (an Werktagen, Montag bis Freitag) bearbeitet und versendet, ausgenommen gesetzliche Feiertage. In Zeiten mit hohem Bestellaufkommen kann sich die Bearbeitungszeit leicht verlängern.",
+
+      "section3_title": "3. Versandgebiete",
+      "section3_text": "Wir versenden derzeit innerhalb Deutschlands sowie in ausgewählte Länder der Europäischen Union. Wenn Sie außerhalb der EU leben und eine Bestellung aufgeben möchten, kontaktieren Sie uns bitte unter support@mindmines.eu, um individuelle Versandoptionen zu prüfen.",
+
+      "section4_title": "4. Versandkosten",
+      "section4_text": "Wir bieten kostenlosen Versand für Bestellungen an, sofern im Checkout nichts anderes angegeben ist. Etwaige zusätzliche Versandkosten (z. B. für besondere Dienstleistungen oder schwer erreichbare Regionen) werden während des Bestellvorgangs klar angezeigt, bevor Sie Ihre Bestellung bestätigen.",
+
+      "section5_title": "5. Lieferzeiten",
+      "section5_text": "Die Lieferzeiten variieren je nach Zielland und Versanddienstleister. Innerhalb Deutschlands beträgt die Lieferzeit in der Regel 2–5 Werktage nach Versand. Für andere EU-Länder kann die Lieferung länger dauern. Bitte beachten Sie, dass es sich bei den angegebenen Lieferzeiten um Richtwerte handelt, die nicht garantiert werden können.",
+
+      "section6_title": "6. Sendungsverfolgung und Zustellung",
+      "section6_text": "Sobald Ihre Bestellung versendet wurde, erhalten Sie eine Versandbestätigung per E-Mail und – sofern verfügbar – eine Sendungsverfolgungsnummer. Bitte stellen Sie sicher, dass Ihre Lieferadresse vollständig und korrekt ist. Wir übernehmen keine Haftung für Verzögerungen oder fehlgeschlagene Zustellungen, die auf unvollständige oder fehlerhafte Adressangaben zurückzuführen sind.",
+
+      "section7_title": "7. Fehlgeschlagene Zustellung und Rücksendungen",
+      "section7_text": "Kann ein Paket nicht zugestellt werden und wird an uns zurückgesendet, etwa aufgrund einer falschen Adresse, Nichtabholung oder Annahmeverweigerung, können wir Ihnen die Kosten für einen erneuten Versand berechnen. Rückerstattungen für unzustellbare Sendungen erfolgen gemäß unserer Rückgabe- und Erstattungsrichtlinie.",
+
+      "section8_title": "8. Beschädigte Sendungen",
+      "section8_text": "Sollte Ihre Bestellung sichtbar beschädigt bei Ihnen eintreffen, dokumentieren Sie den Schaden bitte mit Fotos der Außenverpackung und des Produkts und kontaktieren Sie uns innerhalb von 48 Stunden unter support@mindmines.eu. Wir prüfen den Fall und bieten Ihnen eine passende Lösung im Rahmen Ihrer gesetzlichen Rechte an.",
+
+      "section9_title": "9. Zölle und Einfuhrabgaben",
+      "section9_text": "Bei Lieferungen außerhalb der Europäischen Union (sofern angeboten) können Zölle, Steuern oder sonstige Einfuhrabgaben anfallen. Diese Gebühren liegen in der Verantwortung der Kundin/des Kunden und sind nicht in unseren Produktpreisen oder Versandkosten enthalten.",
+
+      "section10_title": "10. Kontakt",
+      "section10_text": "Wenn Sie Fragen zum Versand, zu Lieferzeiten oder zum Status Ihrer Bestellung haben, kontaktieren Sie uns bitte unter support@mindmines.eu."
+    },
+    "cookies": {
+      "title": "Cookie-Richtlinie",
+
+      "intro": "Diese Cookie-Richtlinie erklärt, wie MindMines Cookies und ähnliche Technologien auf dieser Website verwendet.",
+
+      "section1_title": "1. Was sind Cookies?",
+      "section1_text": "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden, wenn Sie eine Website besuchen. Sie ermöglichen es der Website, sich über einen bestimmten Zeitraum an Ihre Aktionen und Einstellungen zu erinnern.",
+
+      "section2_title": "2. Arten von Cookies, die wir verwenden",
+      "section2_text": "Wir verwenden verschiedene Arten von Cookies, um unsere Website zu betreiben und zu verbessern, darunter unbedingt erforderliche Cookies, Leistungs-Cookies, Funktions-Cookies und – soweit zutreffend – Cookies für Marketing oder Analysezwecke.",
+
+      "section3_title": "3. Wie MindMines Cookies verwendet",
+      "section3_text": "Cookies helfen uns, den technischen Betrieb der Website sicherzustellen, Ihre Sprach- und Regionseinstellungen zu speichern, den Datenverkehr und das Nutzungsverhalten zu analysieren und das Nutzererlebnis insgesamt zu verbessern.",
+
+      "section4_title": "4. Rechtsgrundlage und Einwilligung",
+      "section4_text": "Für unbedingt erforderliche Cookies stützen wir uns auf unser berechtigtes Interesse, eine sichere und funktionsfähige Website bereitzustellen. Für alle anderen Cookies benötigen wir Ihre Einwilligung, die beim ersten Besuch unserer Website über das Cookie-Banner oder entsprechende Einstellungen eingeholt wird.",
+
+      "section5_title": "5. Verwaltung von Cookies",
+      "section5_text": "Sie können Cookies über die Einstellungen Ihres Browsers verwalten oder löschen. Sie können Ihre Einwilligung zu nicht unbedingt erforderlichen Cookies jederzeit widerrufen, indem Sie Ihre Cookie-Einstellungen anpassen, sofern ein entsprechendes Tool auf unserer Website angeboten wird. Bitte beachten Sie, dass das Deaktivieren bestimmter Cookies die Funktionalität und Leistung der Website beeinträchtigen kann.",
+
+      "section6_title": "6. Cookies von Drittanbietern",
+      "section6_text": "Wir können Dienste von Drittanbietern (z. B. Analyseanbieter oder eingebettete Inhalte anderer Websites) verwenden, die Cookies auf Ihrem Gerät setzen. Diese Drittanbieter haben eigene Datenschutz- und Cookie-Richtlinien, die Sie separat prüfen sollten.",
+
+      "section7_title": "7. Änderungen dieser Cookie-Richtlinie",
+      "section7_text": "Wir können diese Cookie-Richtlinie von Zeit zu Zeit aktualisieren, um Änderungen in der Technologie, der Rechtslage oder unseren Dienstleistungen widerzuspiegeln. Aktualisierungen werden auf dieser Seite veröffentlicht.",
+
+      "section8_title": "8. Kontakt",
+      "section8_text": "Wenn Sie Fragen zur Verwendung von Cookies durch uns haben, kontaktieren Sie uns bitte unter service@mindmines.eu."
     }
   },
   "dimension": "Abmessungen",

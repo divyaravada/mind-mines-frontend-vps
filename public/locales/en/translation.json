@@ -874,64 +874,144 @@
       "terms": "Terms & Conditions (AGB)",
       "privacy": "Privacy Policy (GDPR)",
       "returns": "Return & Refund Policy",
-      "shipping": "Shipping Policy"
+      "shipping": "Shipping Policy",
+      "cookies": "Cookie Policy"
     },
     "imprint": {
       "title": "Imprint",
-      "company": "MindMines GbR",
-      "addressLabel": "Registered address",
-      "address": "Feldstraße 11, 21640 Horneburg, Germany",
-      "managingPartners": "Managing partners",
-      "partnersList": "Veera Divya Ravada; Vamsi Dwarapureddy",
-      "contact": "Contact",
-      "email": "Email",
-      "emailValue": "info@mindmines.eu",
-      "supportEmail": "Support Email",
-      "supportEmailValue": "service@mindmines.eu",
-      "whatsapp": "WhatsApp",
-      "whatsappValue": "+49 170 4658188",
-      "vat": "VAT ID (USt-IdNr.)",
-      "vatValue": "DE362093828",
-      "businessType": "Business type",
-      "businessTypeValue": "Sale of physical marble & stone home/office products (B2C).",
-      "hours": "Customer support hours",
-      "hoursValue": "Monday–Friday, 09:00–18:00 CET",
-      "dispute": "Dispute resolution for consumers",
-      "disputeText": "The European Commission provides an online dispute resolution (ODR) platform. We are neither obliged nor willing to participate in a dispute resolution procedure before a consumer arbitration board.",
-      "liability": "Liability for contents & links",
-      "liabilityText": "We carefully curate our content. Nevertheless, we cannot assume liability for external links. The respective provider or operator is always responsible for the content of linked pages."
+
+      "section1_title": "1. Responsible for this Website",
+      "section1_text_a": "This website is operated by MindMines.",
+      "section1_text_b": "MindMines\nFeldstraße 11\n21640 Horneburg\nGermany",
+      "section1_text_c": "Email: service@mindmines.eu\nWebsite: https://mindmines.eu",
+      "section1_text_d": "VAT ID (USt-IdNr.): DE362093828",
+
+      "section2_title": "2. Responsible According to § 18 MStV",
+      "section2_text": "Responsible for editorial content according to § 18 MStV (Germany): MindMines, Feldstraße 11, 21640 Horneburg, Germany.",
+
+      "section3_title": "3. Liability for Content",
+      "section3_text": "We make every effort to keep the information on our website up to date and correct. However, we cannot accept any liability for the completeness, accuracy, or timeliness of the content. As a service provider, we are responsible for our own content on these pages in accordance with general laws. We are not obligated to monitor transmitted or stored third-party information or to investigate circumstances indicating illegal activity. Obligations to remove or block the use of information under general laws remain unaffected.",
+
+      "section4_title": "4. Liability for Links",
+      "section4_text": "Our website may contain links to external third-party websites over which we have no control. Therefore, we cannot accept any responsibility for their content. The respective provider or operator of the linked pages is always responsible for their content. Illegal content was not identifiable at the time of linking. Permanent monitoring of the contents of the linked pages is not reasonable without concrete evidence of a violation of law. Upon notification of violations, we will remove such links immediately.",
+
+      "section5_title": "5. Copyright",
+      "section5_text": "The content and works created by MindMines on these pages are subject to German copyright law. Reproduction, processing, distribution, or any kind of use outside the limits of copyright law requires the prior written consent of MindMines or the respective rights holder. Downloads and copies of this site are permitted for private, non-commercial use only.",
+
+      "section6_title": "6. Online Dispute Resolution",
+      "section6_text": "The European Commission provides a platform for online dispute resolution (ODR) at https://ec.europa.eu/consumers/odr. We are neither obligated nor willing to participate in dispute resolution proceedings before a consumer arbitration board.",
+
+      "section7_title": "7. Contact",
+      "section7_text": "If you have any questions about this imprint, please contact us at service@mindmines.eu."
     },
     "terms": {
-      "title": "Terms & Conditions (AGB)",
-      "scope": "1. Scope & Contracting Party",
-      "scopeText": "These terms govern all B2C purchases via mindmines.eu. Contracting party: MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany.",
-      "definitions": "2. Definitions",
-      "definitionsText": "“Customer” means a consumer within §13 BGB. “Products” are physical marble/stone items.",
-      "ordering": "3. Ordering Process & Contract Formation",
-      "orderingText": "Items in the shop are non-binding. By placing an order you submit a binding offer. We accept by email confirmation or by dispatch of goods.",
-      "pricing": "4. Prices, Taxes & Invoicing",
-      "pricingText": "All prices include statutory VAT where applicable. Shipping costs are shown at checkout. You will receive a VAT invoice by email.",
-      "payment": "5. Payment Methods",
-      "paymentText": "We accept PayPal, credit/debit cards (via Stripe), SEPA bank transfer, and Klarna (where available).",
-      "shipping": "6. Shipping, Delivery Times & Risk Transfer",
-      "shippingText": "We ship to Germany and EU via DHL/partners. Delivery times are shown at checkout. For consumer sales, risk transfers upon delivery to you.",
-      "withdrawal": "7. Right of Withdrawal (14 working days)",
-      "withdrawalText": "Consumers have 14 working days to withdraw without giving reasons. Custom-made items are excluded. Details in the Return & Refund Policy.",
-      "warranty": "8. Warranty & Defect Liability",
-      "warrantyText": "Statutory consumer rights under German law apply. Natural stone variations (color/veining) are not defects.",
-      "titleRetention": "9. Retention of Title",
-      "titleRetentionText": "Goods remain our property until paid in full (Eigentumsvorbehalt).",
-      "liability": "10. Liability",
-      "liabilityText": "We are liable for intent and gross negligence; for slight negligence only for breach of essential duties, capped to foreseeable damages.",
-      "data": "11. Data Protection & Cookies",
-      "dataText": "See our Privacy Policy for details on processing and cookies.",
-      "jurisdiction": "12. Governing Law & Jurisdiction",
-      "jurisdictionText": "German law applies; mandatory consumer protections of your residence remain. Place of jurisdiction: Amtsgericht Stade, Germany.",
-      "final": "13. Final Provisions",
-      "finalText": "If a clause is invalid, the remainder stays effective."
+      "title": "Terms of Service",
+      "overview": "This website is operated by MindMines. Throughout the site, the terms “we”, “us” and “our” refer to MindMines. MindMines offers this website and all information, tools, and services available from this site to you, the user, conditioned upon your acceptance of all terms and conditions stated here.",
+      "acceptance": "By visiting our site and/or purchasing something from us, you engage in our Service and agree to be bound by these Terms of Service. Please read these Terms carefully before accessing or using our website.",
+      "updates": "We reserve the right to update or change these Terms at any time by posting updates on our website. Your continued use of the site constitutes acceptance of any changes.",
+
+      "section1_title": "SECTION 1 – ONLINE STORE TERMS",
+      "section1_text": "By using our Services, you confirm that you are at least the age of majority in your country of residence. You may not use our products for any illegal or unauthorized purpose.",
+
+      "section2_title": "SECTION 2 – GENERAL CONDITIONS",
+      "section2_text": "We reserve the right to refuse service to anyone. You agree not to reproduce or exploit any part of the Service without written permission.",
+
+      "section3_title": "SECTION 3 – ACCURACY OF INFORMATION",
+      "section3_text": "We are not responsible if information on this site is inaccurate, incomplete, or outdated. You agree it is your responsibility to monitor any changes.",
+
+      "section4_title": "SECTION 4 – MODIFICATIONS TO SERVICE AND PRICES",
+      "section4_text": "Prices for our products may change without notice. We reserve the right to modify or discontinue the Service at any time.",
+
+      "section5_title": "SECTION 5 – PRODUCTS OR SERVICES",
+      "section5_text": "Some products may be available exclusively online and may have limited quantities. We do not guarantee that products or services will meet your expectations.",
+
+      "section6_title": "SECTION 6 – ACCURACY OF BILLING AND ACCOUNT INFORMATION",
+      "section6_text": "We reserve the right to refuse or cancel any order. You agree to provide accurate and complete purchase and account information.",
+
+      "section7_title": "SECTION 7 – OPTIONAL TOOLS",
+      "section7_text": "We may provide access to third-party tools which we do not control. You use such tools at your own risk.",
+
+      "section8_title": "SECTION 8 – THIRD-PARTY LINKS",
+      "section8_text": "We are not responsible for third-party websites or their content. Please review their policies before making any transactions.",
+
+      "section9_title": "SECTION 9 – USER COMMENTS AND FEEDBACK",
+      "section9_text": "Any comments or materials you submit may be used by us without restriction. You agree not to submit unlawful or harmful content.",
+
+      "section10_title": "SECTION 10 – PERSONAL INFORMATION",
+      "section10_text": "Your submission of personal data is governed by our Privacy Policy.",
+
+      "section11_title": "SECTION 11 – ERRORS AND OMISSIONS",
+      "section11_text": "Information on the site may contain errors or inaccuracies. We reserve the right to correct any errors and update information at any time.",
+
+      "section12_title": "SECTION 12 – PROHIBITED USES",
+      "section12_text": "You are prohibited from using the site for unlawful, abusive, harmful, or misleading purposes. Violation may result in termination.",
+
+      "section13_title": "SECTION 13 – WARRANTY DISCLAIMER; LIMITATION OF LIABILITY",
+      "section13_text": "We do not guarantee uninterrupted or error-free service. Products and services are provided 'as is'. MindMines is not liable for direct or indirect damages.",
+
+      "section14_title": "SECTION 14 – INDEMNIFICATION",
+      "section14_text": "You agree to indemnify and hold harmless MindMines from any claims arising from your breach of these Terms.",
+
+      "section15_title": "SECTION 15 – SEVERABILITY",
+      "section15_text": "If any provision of these Terms is deemed void or unenforceable, the remaining provisions remain valid.",
+
+      "section16_title": "SECTION 16 – TERMINATION",
+      "section16_text": "We may terminate your access to the Service if you fail to comply with these Terms. You remain liable for outstanding amounts.",
+
+      "section17_title": "SECTION 17 – ENTIRE AGREEMENT",
+      "section17_text": "These Terms constitute the entire agreement between you and MindMines.",
+
+      "section18_title": "SECTION 18 – GOVERNING LAW",
+      "section18_text": "These Terms shall be governed by the laws of Germany.",
+
+      "section19_title": "SECTION 19 – CHANGES TO TERMS",
+      "section19_text": "We reserve the right to update these Terms at any time. Continued use of the site constitutes acceptance.",
+
+      "section20_title": "SECTION 20 – CONTACT INFORMATION",
+      "section20_text": "Questions about these Terms should be sent to service@mindmines.eu."
     },
+
     "privacy": {
-      "title": "Privacy Policy (GDPR)",
+      "title": "Privacy Policy",
+
+      "intro": "This Privacy Policy explains how MindMines collects, uses, and protects the personal information you provide when using our website. If we ask you to provide identifiable information, it will only be used in accordance with this Privacy Policy.",
+
+      "updateNotice": "MindMines may update this policy periodically. We encourage you to review this page occasionally to stay informed about any changes.",
+
+      "section1_title": "1. Who We Are",
+      "section1_text": "This website is operated by MindMines, located in Germany. For privacy-related inquiries, you may contact us at service@mindmines.eu. MindMines is the data controller responsible for processing your personal data under the GDPR.",
+
+      "section2_title": "2. What This Privacy Policy Covers",
+      "section2_text": "This Privacy Policy applies to personal data collected from you when using our website or services. It describes what data we collect, why we collect it, how it is used, and the lawful basis for processing it.",
+
+      "section3_title": "3. Personal Data We Collect",
+      "section3_text_a": "a. Information you provide directly, such as name, email address, billing and shipping address, and your account details.",
+      "section3_text_b": "b. Transactional data, such as payment details (handled by secure payment partners), order history, and invoices. We do not store full credit card information.",
+      "section3_text_c": "c. Automatically collected data, such as IP address, device information, browser type, and usage analytics obtained through cookies and log files.",
+
+      "section4_title": "4. How We Use Your Personal Data",
+      "section4_text": "We use your personal data to process orders, provide customer support, manage your account, enhance your shopping experience, improve website functionality, and send essential communication such as order confirmations and delivery updates. Marketing emails are sent only with your explicit consent.",
+
+      "section5_title": "5. Disclosure of Your Information",
+      "section5_text": "We may share your personal data with trusted third parties for operational purposes, such as payment processors, delivery carriers, hosting providers, and IT services. These partners are GDPR-compliant and obligated to safeguard your data. We do not sell your personal data.",
+
+      "section6_title": "6. Data Security",
+      "section6_text": "We implement strong technical and organizational measures to protect your personal data. However, no online system can guarantee absolute security. While we strive to protect your information, you share data at your own risk.",
+
+      "section7_title": "7. Data Retention",
+      "section7_text": "We retain your personal data only for as long as necessary to fulfill the purposes outlined in this policy, including tax compliance, fraud prevention, and customer service. In many cases, order-related data is retained for up to 10 years per German tax law.",
+
+      "section8_title": "8. Your Rights (GDPR)",
+      "section8_text": "You have the right to access, correct, erase, or restrict the processing of your data, the right to data portability, and the right to object to certain processing activities, including marketing. You may withdraw your consent at any time.",
+
+      "section8_contact": "To exercise your rights, contact us at service@mindmines.eu.",
+
+      "section9_title": "9. Changes to This Privacy Policy",
+      "section9_text": "We may update this Privacy Policy from time to time. Significant changes will be communicated where legally required. All changes will be posted on this page.",
+
+      "section10_title": "10. Contact",
+      "section10_text": "For any questions or concerns regarding this Privacy Policy or how your data is handled, please contact us at service@mindmines.eu.",
+
       "controller": "Controller",
       "controllerText": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany, info@mindmines.eu",
       "processing": "What we process & why",
@@ -966,35 +1046,100 @@
       "contactText": "Email: info@mindmines.eu — we’ll respond promptly."
     },
     "returns": {
-      "title": "Return & Refund Policy",
-      "intro": "You have 14 working days to return most items. Custom-made products are non-refundable.",
-      "how": "How to start a return",
-      "howItems": [
-        "Email service@mindmines.eu with your order number within 14 working days of delivery.",
-        "Use the original packaging when possible; protect heavy stone items carefully.",
-        "Ship to the return address below. You are responsible for return shipping unless the item is defective or we made a mistake."
-      ],
-      "condition": "Item condition",
-      "conditionText": "Items must be unused and in resellable condition. Natural stone variations are normal and not defects.",
-      "refunds": "Refunds",
-      "refundsText": "Upon inspection, we refund to your original payment method within 14 working days. Shipping fees are non-refundable unless due to our error.",
-      "returnAddress": "Return address",
-      "address": "MindMines GbR, Feldstraße 11, 21640 Horneburg, Germany"
+      "title": "Refund & Return Policy",
+
+      "intro": "This Refund & Return Policy explains how MindMines handles returns, refunds, and exchanges for purchases made through our online shop.",
+
+      "section1_title": "1. Right of Return",
+      "section1_text": "You may return items purchased from MindMines within 14 days from the date of delivery, without giving any reason. To start a return, please contact us at support@mindmines.eu with your order number and details of the item(s) you wish to return.",
+
+      "section2_title": "2. Condition of Returned Items",
+      "section2_text": "Returned items must be in their original condition, unused and undamaged, with all original packaging and protective materials. Items that show signs of use, scratches, or damage may be rejected and sent back to you at your cost.",
+
+      "section3_title": "3. Non-Returnable Items",
+      "section3_text": "Custom-made or personalized items and items that are clearly marked as non-returnable on the product page cannot be returned, except where required by law.",
+
+      "section4_title": "4. Return Process",
+      "section4_text": "To initiate a return, please contact us at support@mindmines.eu before sending any items back. We will provide you with instructions and the correct return address. Returns sent without prior contact may not be accepted.",
+
+      "section5_title": "5. Return Shipping Costs",
+      "section5_text": "You are responsible for the cost of return shipping, unless the item is faulty or damaged upon arrival. We recommend using an insured and trackable shipping service, as you are responsible for the goods until they reach us.",
+
+      "section6_title": "6. Damaged or Defective Items",
+      "section6_text": "If your item arrives damaged or defective, please contact us within 48 hours of delivery with photos of the product and packaging. Once we review and confirm the issue, we will offer a replacement or refund in accordance with your statutory rights.",
+
+      "section7_title": "7. Refunds",
+      "section7_text": "Once your return is received and inspected, we will notify you by email. If approved, a refund of the product price will be processed to your original payment method within 7–10 business days. Original shipping charges may not be refunded, except where required by law.",
+
+      "section8_title": "8. Exchanges",
+      "section8_text": "We currently do not offer direct exchanges. If you would like a different item, please return the original product according to this policy and place a new order.",
+
+      "section9_title": "9. Contact",
+      "section9_text": "For questions regarding returns, refunds, or this policy, please contact us at support@mindmines.eu."
     },
     "shipping": {
       "title": "Shipping Policy",
-      "zones": "Where we ship",
-      "zonesText": "Germany and European Union.",
-      "carriers": "Carrier & handling",
-      "carriersText": "DHL/partners handle delivery. Processing typically 1–2 business days.",
-      "times": "Estimated delivery times",
-      "timesItems": ["Germany: 2–4 business days", "EU: 3–7 business days"],
-      "costs": "Shipping costs",
-      "costsText": "Shown at checkout based on weight/size and destination. Heavy stone items may incur surcharges.",
-      "risk": "Risk & damaged parcels",
-      "riskText": "Risk transfers to you on delivery. If damaged, document with photos and contact support within 48 hours.",
-      "undeliverable": "Undeliverable shipments",
-      "undeliverableText": "If parcels return due to incorrect address/refusal, we can reship at cost or refund minus shipping."
+
+      "intro": "This Shipping Policy explains how MindMines handles the processing, shipping, and delivery of orders placed through our online shop.",
+
+      "section1_title": "1. General Information",
+      "section1_text": "All orders are processed and shipped from Germany. We aim to provide a safe and reliable delivery service for all MindMines products.",
+
+      "section2_title": "2. Processing Time",
+      "section2_text": "Orders are usually processed and dispatched within 48 hours (on working days, Monday to Friday), excluding public holidays. During busy periods, processing times may be slightly longer.",
+
+      "section3_title": "3. Shipping Destinations",
+      "section3_text": "We currently ship within Germany and selected countries within the European Union. If you are located outside the EU and would like to place an order, please contact us at support@mindmines.eu to check individual shipping options.",
+
+      "section4_title": "4. Shipping Costs",
+      "section4_text": "We offer free delivery on orders unless otherwise stated at checkout. Any additional shipping charges (for example, for special services or remote areas) will be clearly displayed during the checkout process before you confirm your order.",
+
+      "section5_title": "5. Delivery Times",
+      "section5_text": "Delivery times vary depending on the destination country and the shipping service used. Within Germany, delivery usually takes 2–5 working days after dispatch. For other EU countries, delivery may take longer. Please note that delivery times are estimates and not guaranteed.",
+
+      "section6_title": "6. Tracking and Delivery",
+      "section6_text": "Once your order has been shipped, you will receive a shipping confirmation email and, where available, a tracking number. Please ensure that your delivery address details are complete and correct. We are not responsible for delays or failed deliveries caused by incorrect or incomplete address information.",
+
+      "section7_title": "7. Failed Delivery and Return Shipments",
+      "section7_text": "If a parcel cannot be delivered and is returned to us due to reasons such as an incorrect address, uncollected parcel, or refusal of acceptance, we may charge you for re-shipping the order. Refunds for undeliverable parcels are handled in accordance with our Refund & Return Policy.",
+
+      "section8_title": "8. Damaged Parcels",
+      "section8_text": "If your order arrives visibly damaged, please document the damage with photographs of the outer packaging and the product, and contact us within 48 hours at support@mindmines.eu. We will review your case and offer a suitable solution in line with your statutory rights.",
+
+      "section9_title": "9. Customs and Import Duties",
+      "section9_text": "For deliveries outside the European Union (if offered), local customs duties, taxes, or import fees may apply. These charges are the responsibility of the customer and are not included in our product prices or shipping costs.",
+
+      "section10_title": "10. Contact",
+      "section10_text": "If you have any questions about shipping, delivery times, or your order status, please contact us at support@mindmines.eu."
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+
+      "intro": "This Cookie Policy explains how MindMines uses cookies and similar technologies on this website.",
+
+      "section1_title": "1. What Are Cookies?",
+      "section1_text": "Cookies are small text files that are stored on your device when you visit a website. They help the website remember your actions and preferences over a period of time.",
+
+      "section2_title": "2. Types of Cookies We Use",
+      "section2_text": "We use different types of cookies to operate and improve our website, including strictly necessary cookies, performance cookies, functional cookies, and, where applicable, cookies for marketing or analytics.",
+
+      "section3_title": "3. How MindMines Uses Cookies",
+      "section3_text": "Cookies help us ensure the technical functioning of the website, remember your language and region preferences, analyze traffic and usage patterns, and improve the overall user experience.",
+
+      "section4_title": "4. Legal Basis and Consent",
+      "section4_text": "For strictly necessary cookies, the legal basis is our legitimate interest in providing a secure and functional website. For all other cookies, we rely on your consent, which is obtained when you first visit our website via the cookie banner or settings.",
+
+      "section5_title": "5. Managing Cookies",
+      "section5_text": "You can manage or delete cookies through your browser settings. You may also withdraw your consent for non-essential cookies at any time by adjusting your cookie preferences if such a tool is provided on our website. Please note that disabling certain cookies may affect the functionality and performance of the site.",
+
+      "section6_title": "6. Third-Party Cookies",
+      "section6_text": "We may use third-party services (such as analytics providers or embedded content from other websites) that place cookies on your device. These third parties have their own privacy and cookie policies, which we recommend you review.",
+
+      "section7_title": "7. Changes to This Cookie Policy",
+      "section7_text": "We may update this Cookie Policy from time to time to reflect changes in technology, law, or our services. Any updates will be posted on this page.",
+
+      "section8_title": "8. Contact",
+      "section8_text": "If you have any questions about our use of cookies, please contact us at service@mindmines.eu."
     }
   },
   "dimension": "Dimensions",

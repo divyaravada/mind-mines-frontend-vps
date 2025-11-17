@@ -47,10 +47,15 @@ export default function Footer() {
 
         {/* Help & Contact */}
         <div>
-          <h2 className="text-lg mb-4 text-backnewswhite dark:text-backnewsdark font-bold">
+          <h1 className="text-lg mb-4 text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.help.title")}
-          </h2>
+          </h1>
           <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+            <li>
+              <Link to="/guest-order" className="hover:underline">
+                {t("footer.help.track")}
+              </Link>
+            </li>
             <li>
               <Link to="/help" className="hover:underline">
                 {t("footer.help.allTopics")}
@@ -100,6 +105,11 @@ export default function Footer() {
             <li>
               <Link to="/returns" className="hover:underline">
                 {t("legal.nav.returns")}
+              </Link>
+            </li>
+            <li>
+              <Link to="/cookies" className="hover:underline">
+                {t("legal.nav.cookies")}
               </Link>
             </li>
             <li>

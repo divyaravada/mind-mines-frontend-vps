@@ -35,6 +35,7 @@ import Unsubscribe from "./routes/Unsubscribe";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
 import { Route, Routes } from "react-router-dom";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
 
 export default function App() {
   useEffect(() => {
@@ -83,7 +84,9 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/returns" element={<ReturnsPage />} />
           <Route path="/shipping" element={<ShippingPolicyPage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
           <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
+
           {/* Account (protected) */}
           <Route
             path="/account"
