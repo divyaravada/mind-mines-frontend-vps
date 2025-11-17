@@ -480,33 +480,13 @@ export default function ProductDetailPage() {
         {/* TABS */}
         <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
           {/* TAB HEADERS */}
-          <div className="flex flex-col sm:flex-row sm:overflow-x-auto no-scrollbar gap-2 sm:border-b dark:sm:border-neutral-800">
-            {["details", "care", "policy"].map((key) => (
-              <button
-                key={key}
-                className={`py-2 px-4 font-semibold text-left whitespace-nowrap transition rounded-lg sm:rounded-none sm:-mb-px
-          ${
-            activeTab === key
-              ? "bg-backnewswhite/10 text-backnewswhite sm:bg-transparent sm:border-b-2 sm:border-backnewswhite"
-              : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
-          }`}
-                onClick={() => setActiveTab(key)}
-              >
-                {key === "details"
-                  ? t("productDetail.tabs.details")
-                  : key === "care"
-                  ? t("productDetail.tabs.care")
-                  : t("productDetail.tabs.policy")}
-              </button>
-            ))}
-          </div>
-
           {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
+            {/* ✅ DETAILS – FROM BACKEND */}
             {activeTab === "details" && (
               <>
                 {[1, 2, 3].map((n) => {
-                  const v = product[`descriptionpara${n}_${lang}`];
+                  const v = product[`descriptionpara${n}_${lang}`]; // <-- DB fields
                   return typeof v === "string" || typeof v === "number" ? (
                     <p key={n}>{v}</p>
                   ) : null;
@@ -514,17 +494,17 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {/* CARE TAB – from translation.json */}
+            {/* ✅ CARE – FROM JSON (en/de translation files) */}
             {activeTab === "care" && (
               <div className="space-y-3 text-sm leading-relaxed">
                 <p>{t("productDetail.policy.careText")}</p>
               </div>
             )}
 
-            {/* POLICY TAB – from translation.json */}
+            {/* ✅ POLICY – FROM JSON (en/de translation files) */}
             {activeTab === "policy" && (
               <div className="space-y-6 text-sm leading-relaxed">
-                {/* Delivery section */}
+                {/* Delivery */}
                 <section className="space-y-2">
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
@@ -546,12 +526,11 @@ export default function ProductDetailPage() {
                     })}
                 </section>
 
-                {/* Returns section */}
+                {/* Returns */}
                 <section className="space-y-2">
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.returns")}
                   </h3>
-
                   {Array.isArray(returnsLines) &&
                     returnsLines.map((line, i) => {
                       const ci = line.indexOf(":");
