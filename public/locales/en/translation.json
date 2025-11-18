@@ -35,6 +35,7 @@
     "learnMore": "Learn more",
     "close": "Close",
     "ok": "Ok",
+    "open": "Open",
     "loading": "Loading...",
     "notFound": "Not found.",
     "clear": "Clear",
@@ -869,6 +870,11 @@
   },
   "legal": {
     "lastUpdated": "Last updated: {{date}}",
+    "hideToc": "Hide sections",
+    "showToc": "Show sections",
+    "jumpToSection": "Jump to section",
+    "open": "Contents",
+    "close": "Close",
     "nav": {
       "imprint": "Imprint",
       "terms": "Terms & Conditions (AGB)",

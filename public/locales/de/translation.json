@@ -64,6 +64,7 @@
     "loading": "Wird geladen…",
     "ok": "OK",
     "close": "Schließen",
+    "open": "Öffnen",
     "notFound": "Nicht gefunden.",
     "clear": "Leeren",
     "searching": "Suche…",
@@ -875,6 +876,11 @@
   },
   "legal": {
     "lastUpdated": "Zuletzt aktualisiert: {{date}}",
+    "hideToc": "Abschnitte ausblenden",
+    "showToc": "Abschnitte anzeigen",
+    "jumpToSection": "Zum Abschnitt springen",
+    "open": "Inhalt",
+    "close": "Schließen",
     "nav": {
       "imprint": "Impressum",
       "terms": "Allgemeine Geschäftsbedingungen (AGB)",

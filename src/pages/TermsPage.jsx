@@ -1,10 +1,12 @@
 // src/pages/TermsPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
+import { useState } from "react";
 
 export default function TermsPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
+  const [tocOpen, setTocOpen] = useState(false);
 
   const sections = [
     {
@@ -118,6 +120,15 @@ export default function TermsPage() {
     },
   ];
 
+  const handleScrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Close the TOC on mobile after clicking
+      setTocOpen(false);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -125,53 +136,86 @@ export default function TermsPage() {
         <meta name="description" content={t("legal.terms.overview")} />
       </Helmet>
 
-      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-8 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">
-          {/* Left: small table of contents */}
-          <aside className="lg:w-1/4 border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 h-max sticky top-20 bg-white/70 dark:bg-neutral-900/80 backdrop-blur">
-            <h2 className="text-sm font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-              {t("legal.terms.title")}{" "}
-            </h2>
-            <p>
-              <em>{t("legal.lastUpdated", { date: today })}</em>
-            </p>
-            <nav className="space-y-2 text-sm">
-              {sections.map((section) => (
+      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-10">
+          {/* Left: table of contents */}
+          <aside className="w-full lg:w-1/4">
+            {/* Mobile TOC header */}
+            <div className="border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 bg-white/80 dark:bg-neutral-900/90 backdrop-blur lg:sticky lg:top-20">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xs sm:text-sm font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                    {t("legal.terms.title")}
+                  </h2>
+                </div>
+
+                {/* Toggle button only on mobile/tablet */}
                 <button
-                  key={section.id}
-                  onClick={() => {
-                    const el = document.getElementById(section.id);
-                    if (el)
-                      el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className="block w-full text-left px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-200"
+                  type="button"
+                  onClick={() => setTocOpen((prev) => !prev)}
+                  className="lg:hidden inline-flex items-center gap-1 text-xs sm:text-sm px-3 py-1.5 rounded-full border border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-gray-100 bg-gray-50 dark:bg-neutral-800"
                 >
-                  {section.title}
+                  <span>
+                    {tocOpen
+                      ? t("legal.hideToc") ?? "Hide sections"
+                      : t("legal.showToc") ?? "Show sections"}
+                  </span>
+                  <span
+                    className={`transition-transform ${
+                      tocOpen ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
                 </button>
-              ))}
-            </nav>
+              </div>
+
+              {/* TOC list: always visible on lg, collapsible on small */}
+              <nav
+                className={`mt-4 space-y-1 text-xs sm:text-sm ${
+                  tocOpen ? "block" : "hidden lg:block"
+                }`}
+              >
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => handleScrollTo(section.id)}
+                    className="block w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-200"
+                  >
+                    {section.title}
+                  </button>
+                ))}
+              </nav>
+            </div>
           </aside>
 
           {/* Right: content */}
-          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-6 sm:px-8 py-8 space-y-8">
-            <header className="border-b border-gray-200 dark:border-neutral-800 pb-5 mb-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-2">
+          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-4 sm:px-6 md:px-8 py-6 sm:py-8 space-y-8">
+            <header className="border-b border-gray-200 dark:border-neutral-800 pb-4 sm:pb-5 mb-4">
+              <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">
                 MindMines
               </p>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
                 {t("legal.terms.title")}
               </h1>
+              <p className="text-xs text-gray-500 py-2 dark:text-gray-400">
+                <em>{t("legal.lastUpdated", { date: today })}</em>
+              </p>
             </header>
 
             {sections.map((section) => (
-              <section key={section.id} id={section.id} className="space-y-3">
-                <h2 className="text-lg md:text-xl font-semibold text-marbleblack dark:text-white">
+              <section
+                key={section.id}
+                id={section.id}
+                className="space-y-2 sm:space-y-3"
+              >
+                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-marbleblack dark:text-white">
                   {section.title}
                 </h2>
                 {section.text.map((para, idx) => (
                   <p
                     key={idx}
-                    className="text-sm md:text-base leading-relaxed text-gray-700 dark:text-gray-200"
+                    className="text-xs sm:text-sm md:text-base leading-relaxed text-gray-700 dark:text-gray-200"
                   >
                     {para}
                   </p>

@@ -1,9 +1,12 @@
-//src/pages/ReturnsPage.jsx
+// src/pages/ReturnsPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
+import { useState } from "react";
 
 export default function ReturnsPage() {
   const { t } = useTranslation();
+  const today = new Date().toISOString().slice(0, 10);
+  const [mobileTocOpen, setMobileTocOpen] = useState(false);
 
   const sections = [
     {
@@ -58,6 +61,15 @@ export default function ReturnsPage() {
     },
   ];
 
+  const handleScrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    // Close mobile TOC after navigating
+    setMobileTocOpen(false);
+  };
+
   return (
     <>
       <Helmet>
@@ -65,9 +77,40 @@ export default function ReturnsPage() {
         <meta name="description" content={t("legal.returns.intro")} />
       </Helmet>
 
-      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-8 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">
-          <aside className="lg:w-1/4 border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 h-max sticky top-20 bg-white/70 dark:bg-neutral-900/80 backdrop-blur">
+      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-10">
+          {/* Mobile TOC */}
+          <div className="lg:hidden mb-2">
+            <button
+              type="button"
+              onClick={() => setMobileTocOpen((o) => !o)}
+              className="w-full flex items-center justify-between rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900 px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm"
+            >
+              <span>{t("legal.returns.title")}</span>
+              <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                {mobileTocOpen
+                  ? t("legal.close") || "Close"
+                  : t("legal.open") || "Contents"}
+              </span>
+            </button>
+
+            {mobileTocOpen && (
+              <nav className="mt-2 space-y-1 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 text-sm max-h-72 overflow-y-auto">
+                {sections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => handleScrollToSection(section.id)}
+                    className="block w-full text-left px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-200"
+                  >
+                    {section.title}
+                  </button>
+                ))}
+              </nav>
+            )}
+          </div>
+
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:block lg:w-1/4 border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 h-max sticky top-24 bg-white/70 dark:bg-neutral-900/80 backdrop-blur">
             <h2 className="text-sm font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-3">
               {t("legal.returns.title")}
             </h2>
@@ -75,11 +118,7 @@ export default function ReturnsPage() {
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  onClick={() => {
-                    const el = document.getElementById(section.id);
-                    if (el)
-                      el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
+                  onClick={() => handleScrollToSection(section.id)}
                   className="block w-full text-left px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-200"
                 >
                   {section.title}
@@ -88,19 +127,23 @@ export default function ReturnsPage() {
             </nav>
           </aside>
 
-          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-6 sm:px-8 py-8 space-y-8">
-            <header className="border-b border-gray-200 dark:border-neutral-800 pb-5 mb-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-2">
+          {/* Main content */}
+          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-4 sm:px-6 md:px-8 py-6 sm:py-8 space-y-8">
+            <header className="border-b border-gray-200 dark:border-neutral-800 pb-4 sm:pb-5 mb-4">
+              <p className="text-[11px] sm:text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-2">
                 MindMines
               </p>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
                 {t("legal.returns.title")}
               </h1>
+              <p className="text-xs text-gray-500 py-2 dark:text-gray-400">
+                <em>{t("legal.lastUpdated", { date: today })}</em>
+              </p>
             </header>
 
             {sections.map((section) => (
               <section key={section.id} id={section.id} className="space-y-3">
-                <h2 className="text-lg md:text-xl font-semibold text-marbleblack dark:text-white">
+                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-marbleblack dark:text-white">
                   {section.title}
                 </h2>
                 {section.text.map((para, idx) => (

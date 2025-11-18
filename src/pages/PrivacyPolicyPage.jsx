@@ -1,11 +1,12 @@
 // src/pages/PrivacyPage.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
+  const [mobileSection, setMobileSection] = useState("intro");
 
   const sections = [
     {
@@ -72,6 +73,19 @@ export default function PrivacyPolicyPage() {
     },
   ];
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleMobileChange = (e) => {
+    const value = e.target.value;
+    setMobileSection(value);
+    scrollToSection(value);
+  };
+
   return (
     <>
       <Helmet>
@@ -79,25 +93,19 @@ export default function PrivacyPolicyPage() {
         <meta name="description" content={t("legal.privacy.intro")} />
       </Helmet>
 
-      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-8 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">
-          {/* Sidebar / TOC */}
-          <aside className="lg:w-1/4 border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 h-max sticky top-20 bg-white/70 dark:bg-neutral-900/80 backdrop-blur">
-            <h2 className="text-sm font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+      <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-14 px-4 sm:px-5 lg:px-8">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-10">
+          {/* Sidebar / TOC - Desktop & Large Screens */}
+          <aside className="hidden lg:block lg:w-1/4 border border-gray-200 dark:border-neutral-800 rounded-2xl p-4 h-max sticky top-20 bg-white/70 dark:bg-neutral-900/80 backdrop-blur">
+            <h2 className="text-sm font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-2">
               {t("legal.privacy.title")}
-            </h2>{" "}
-            <p>
-              <em>{t("legal.lastUpdated", { date: today })}</em>
-            </p>
+            </h2>
+
             <nav className="space-y-2 text-sm">
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  onClick={() => {
-                    const el = document.getElementById(section.id);
-                    if (el)
-                      el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
+                  onClick={() => scrollToSection(section.id)}
                   className="block w-full text-left px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-200"
                 >
                   {section.title}
@@ -107,19 +115,44 @@ export default function PrivacyPolicyPage() {
           </aside>
 
           {/* Content */}
-          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-6 sm:px-8 py-8 space-y-8">
+          <main className="lg:w-3/4 bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-gray-200/70 dark:border-neutral-800 px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-8">
             <header className="border-b border-gray-200 dark:border-neutral-800 pb-5 mb-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-2">
+              <p className="text-xs uppercase tracking-[0.25em] text-gray-500 dark:text-gray-400 mb-1">
                 MindMines
               </p>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
+              <h1 className="text-2xl md:text-4xl font-extrabold text-backnewsdark dark:text-backnewswhite">
                 {t("legal.privacy.title")}
               </h1>
+              <p className="text-xs text-gray-500 py-2 dark:text-gray-400 mb-3">
+                <em>{t("legal.lastUpdated", { date: today })}</em>
+              </p>
+
+              {/* Mobile "Jump to section" selector */}
+              <div className="mt-4 lg:hidden">
+                <label
+                  htmlFor="privacy-mobile-nav"
+                  className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1"
+                >
+                  {t("legal.jumpToSection") || "Jump to section"}
+                </label>
+                <select
+                  id="privacy-mobile-nav"
+                  value={mobileSection}
+                  onChange={handleMobileChange}
+                  className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm px-3 py-2 text-gray-800 dark:text-gray-100"
+                >
+                  {sections.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </header>
 
             {sections.map((section) => (
               <section key={section.id} id={section.id} className="space-y-3">
-                <h2 className="text-lg md:text-xl font-semibold text-marbleblack dark:text-white">
+                <h2 className="text-base md:text-xl font-semibold text-marbleblack dark:text-white">
                   {section.title}
                 </h2>
                 {section.text.map((para, idx) => (
