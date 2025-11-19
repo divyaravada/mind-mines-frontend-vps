@@ -1,3 +1,4 @@
+// src/pages/Cart.jsx
 import { useMemo, useCallback, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -96,7 +97,9 @@ export default function CartPage() {
     const body = { cart_token, currency: "EUR", items: itemsPayload };
     syncNow(body);
   }, [items, loggedIn, syncNow]);
+
   console.log(items);
+
   // Shipping: currently free — keep as constant for now
   const shippingFee = 0;
   const total = subtotal + shippingFee;
@@ -167,6 +170,7 @@ export default function CartPage() {
                 : Number(item.priceRange ?? 0);
 
             const lineTotal = unitPrice * item.qty;
+
             return (
               <div
                 key={item.id}
@@ -186,6 +190,10 @@ export default function CartPage() {
                           {item.category}
                         </div>
                       )}
+                      {/* Optional: show unit price */}
+                      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
+                      </div>
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}
