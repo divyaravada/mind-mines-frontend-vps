@@ -78,7 +78,7 @@ export default function CartPage() {
       product: it.id,
       name: it.name,
       image: it.image,
-      priceRange: (Number(it.priceRange) ?? 0).toFixed(2),
+      price: (Number(it.priceRange) ?? 0).toFixed(2),
       qty: it.qty,
       color: it.color || "",
       weight: it.weight || "",
@@ -151,7 +151,7 @@ export default function CartPage() {
         <div className="space-y-4">
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
-            const lineTotal = item.priceRange * item.qty;
+            const lineTotal = item.price * item.qty;
             return (
               <div
                 key={item.id}
