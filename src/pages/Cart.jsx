@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   selectCartItems,
   selectCartCount,
-  selectCartSubtotal,
   removeItem,
   updateQty,
   clearCart,
@@ -47,7 +46,6 @@ export default function CartPage() {
 
   const items = useSelector(selectCartItems);
   const count = useSelector(selectCartCount);
-  const subtotal = useSelector(selectCartSubtotal);
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
@@ -76,7 +74,7 @@ export default function CartPage() {
   useEffect(() => {
     const cart_token = getCartToken();
     const itemsPayload = items.map((it) => {
-      // FIX: use price if > 0, otherwise fall back to priceRange
+      // use price if > 0, otherwise priceRange
       const unitPrice =
         it.price && Number(it.price) > 0
           ? Number(it.price)
@@ -99,6 +97,19 @@ export default function CartPage() {
   }, [items, loggedIn, syncNow]);
 
   console.log(items);
+
+  // 👉 compute subtotal here so it uses price/priceRange correctly
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const unitPrice =
+        item.price && Number(item.price) > 0
+          ? Number(item.price)
+          : Number(item.priceRange ?? 0);
+
+      const qty = item.qty || 1;
+      return sum + unitPrice * qty;
+    }, 0);
+  }, [items]);
 
   // Shipping: currently free — keep as constant for now
   const shippingFee = 0;
@@ -163,7 +174,7 @@ export default function CartPage() {
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
 
-            // FIX: derive unitPrice from price or priceRange
+            // unit price per item (same logic)
             const unitPrice =
               item.price && Number(item.price) > 0
                 ? Number(item.price)
@@ -190,7 +201,6 @@ export default function CartPage() {
                           {item.category}
                         </div>
                       )}
-                      {/* Optional: show unit price */}
                       <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                       </div>
