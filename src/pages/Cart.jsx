@@ -88,7 +88,7 @@ export default function CartPage() {
     const body = { cart_token, currency: "EUR", items: itemsPayload };
     syncNow(body);
   }, [items, loggedIn, syncNow]);
-
+  console.log(items);
   // Shipping: currently free — keep as constant for now
   const shippingFee = 0;
   const total = subtotal + shippingFee;
