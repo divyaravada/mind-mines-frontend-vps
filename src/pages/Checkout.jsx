@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   selectCartItems,
   selectCartCount,
-  selectCartSubtotal,
   clearCart,
 } from "../features/cart/cartSlice";
 
@@ -48,8 +47,19 @@ export default function Checkout() {
 
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
-  const subtotal = useSelector(selectCartSubtotal);
-
+  // compute subtotal here so it respects priceRange when price is 0
+  const subtotal = useMemo(
+    () =>
+      items.reduce((sum, it) => {
+        const unitPrice =
+          it.price && Number(it.price) > 0
+            ? Number(it.price)
+            : Number(it.priceRange ?? 0);
+        const qty = it.qty || 1;
+        return sum + unitPrice * qty;
+      }, 0),
+    [items]
+  );
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
@@ -1232,26 +1242,33 @@ export default function Checkout() {
             </h2>
 
             <div className="space-y-4">
-              {items.map((it) => (
-                <div key={it.id} className="flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={it.image}
-                      alt={it.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                      {it.qty}
-                    </span>
+              {items.map((it) => {
+                const unitPrice =
+                  it.price && Number(it.price) > 0
+                    ? Number(it.price)
+                    : Number(it.priceRange ?? 0);
+
+                return (
+                  <div key={it.id} className="flex items-center gap-3">
+                    <div className="relative">
+                      <img
+                        src={it.image}
+                        alt={it.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                      <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                        {it.qty}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{it.name}</div>
+                    </div>
+                    <div className="font-medium text-sm">
+                      {fmtEUR(unitPrice * it.qty, locale)}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{it.name}</div>
-                  </div>
-                  <div className="font-medium text-sm">
-                    {fmtEUR(it.price * it.qty, locale)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <hr className="my-4" />
