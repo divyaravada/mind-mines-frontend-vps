@@ -74,17 +74,25 @@ export default function CartPage() {
 
   useEffect(() => {
     const cart_token = getCartToken();
-    const itemsPayload = items.map((it) => ({
-      product: it.id,
-      name: it.name,
-      image: it.image,
-      price: (Number(it.priceRange) ?? 0).toFixed(2),
-      qty: it.qty,
-      color: it.color || "",
-      weight: it.weight || "",
-      dimensions: it.dimensions || "",
-      category: it.category || "",
-    }));
+    const itemsPayload = items.map((it) => {
+      // FIX: use price if > 0, otherwise fall back to priceRange
+      const unitPrice =
+        it.price && Number(it.price) > 0
+          ? Number(it.price)
+          : Number(it.priceRange ?? 0);
+
+      return {
+        product: it.id,
+        name: it.name,
+        image: it.image,
+        price: unitPrice.toFixed(2),
+        qty: it.qty,
+        color: it.color || "",
+        weight: it.weight || "",
+        dimensions: it.dimensions || "",
+        category: it.category || "",
+      };
+    });
     const body = { cart_token, currency: "EUR", items: itemsPayload };
     syncNow(body);
   }, [items, loggedIn, syncNow]);
@@ -151,7 +159,14 @@ export default function CartPage() {
         <div className="space-y-4">
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
-            const lineTotal = item.price * item.qty;
+
+            // FIX: derive unitPrice from price or priceRange
+            const unitPrice =
+              item.price && Number(item.price) > 0
+                ? Number(item.price)
+                : Number(item.priceRange ?? 0);
+
+            const lineTotal = unitPrice * item.qty;
             return (
               <div
                 key={item.id}
