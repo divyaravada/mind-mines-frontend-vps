@@ -197,14 +197,14 @@ export default function CheckoutSuccess() {
 
   if (!orderId) {
     return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack p-10 text-center">
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark p-10 text-center">
         {t("checkoutSuccess.noOrder")}
       </div>
     );
   }
   if (loading) {
     return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack p-10 text-center">
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark p-10 text-center">
         {t("common.loading")}
       </div>
     );
@@ -224,8 +224,8 @@ export default function CheckoutSuccess() {
     const isPaid = order?.status === "paid";
 
     return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-        <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 text-center">
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark">
+        <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 text-center">
           <h1 className="text-2xl font-bold mb-2">
             {t("checkoutSuccess.thankYou")}
           </h1>
@@ -273,8 +273,8 @@ export default function CheckoutSuccess() {
 
   // ---- Guest mode ----
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-      <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 text-center">
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark">
+      <div className="max-w-2xl mx-auto p-6 mt-10 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 text-center">
         <h1 className="text-2xl font-bold mb-2">
           {t("checkoutSuccess.thankYou")}
         </h1>
@@ -310,7 +310,7 @@ export default function CheckoutSuccess() {
         )}
 
         {guestInfo?.bank && (
-          <div className="mb-6 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 bg-gray-50 dark:bg-neutral-900/60 text-left">
+          <div className="mb-6 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 bg-gray-50 dark:bg-neutral-900/60 dark:text-backnewsdark text-left">
             <h2 className="font-semibold mb-2">
               {t("checkoutSuccess.bankTitle")}
             </h2>
@@ -338,7 +338,7 @@ export default function CheckoutSuccess() {
             </div>
 
             {guestInfo.bank.instructions && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-backnewsdark mt-3">
                 {guestInfo.bank.instructions}
               </p>
             )}
@@ -357,13 +357,13 @@ export default function CheckoutSuccess() {
             </a>
           </div>
         ) : guestSummary ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-6">
+          <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-backnewsdark text-center mb-6">
             {t("checkoutSuccess.guestInvoicePending")}
           </div>
         ) : null}
 
         {guestLookupError && (
-          <div className="text-xs text-red-600 text-center mb-4">
+          <div className="text-xs text-red-600 dark:text-red-500 text-center mb-4">
             {guestLookupError}
           </div>
         )}

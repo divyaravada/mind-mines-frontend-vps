@@ -96,8 +96,6 @@ export default function CartPage() {
     syncNow(body);
   }, [items, loggedIn, syncNow]);
 
-  console.log(items);
-
   // 👉 compute subtotal here so it uses price/priceRange correctly
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {

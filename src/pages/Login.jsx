@@ -54,8 +54,8 @@ export default function LoginPage() {
         <div className="max-w-4xl mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-8">
             {/* Login */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-white">
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
+              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
                 {t("auth.loginTitle")}
               </h2>
               <p className="mb-6 text-gray-700 dark:text-gray-300">
@@ -133,8 +133,8 @@ export default function LoginPage() {
             </div>
 
             {/* Register */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-white">
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
+              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
                 {t("auth.registerTitle")}
               </h2>
               <p className="mb-6 text-gray-700 dark:text-gray-300">

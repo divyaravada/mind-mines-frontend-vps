@@ -105,7 +105,9 @@ export default function ProductTile({
       </div>
 
       <div className="p-4">
-        <h3 className="font-semibold line-clamp-2">{title}</h3>
+        <h3 className="font-semibold line-clamp-2  dark:text-white text-gray-900">
+          {title}
+        </h3>
         {subtitle && (
           <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mt-1">
             {subtitle}
@@ -127,7 +129,7 @@ export default function ProductTile({
         <div className="flex items-center justify-between mt-3">
           <div className="flex flex-col">
             {priceEl}
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[11px] text-gray-500 dark:text-gray-400">
               {t("product.inclVat", "incl. 19% VAT")}
             </span>
           </div>

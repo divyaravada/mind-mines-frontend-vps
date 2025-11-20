@@ -738,7 +738,7 @@ export default function Checkout() {
 
   // ---- RENDER ----
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-white ">
       <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {/* Contact + Address */}
@@ -840,6 +840,8 @@ export default function Checkout() {
                   value={form.fullName}
                   onChange={onChange}
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
               </div>
 
@@ -852,6 +854,8 @@ export default function Checkout() {
                   value={form.street}
                   onChange={onChange}
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
               </div>
 
@@ -864,6 +868,8 @@ export default function Checkout() {
                   value={form.houseNumber}
                   onChange={onChange}
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
               </div>
 
@@ -888,6 +894,8 @@ export default function Checkout() {
                   value={form.postalCode}
                   onChange={onChange}
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
               </div>
 
@@ -900,6 +908,8 @@ export default function Checkout() {
                   value={form.city}
                   onChange={onChange}
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
               </div>
 

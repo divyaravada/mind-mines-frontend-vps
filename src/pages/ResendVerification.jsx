@@ -29,8 +29,8 @@ export default function ResendVerification() {
     "focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition";
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center bg-marblewhite dark:bg-marbleblack px-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+    <div className="min-h-[70vh] flex items-center justify-center bg-marblewhite dark:text-backnewsdark dark:bg-marbleblack px-4">
+      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
         <h2 className="text-2xl font-bold mb-2 text-center">
           {t("auth.resendTitle")}
         </h2>

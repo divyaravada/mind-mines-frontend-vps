@@ -222,7 +222,7 @@ export default function GuestOrderLookupPage() {
   const trackingNumber = result?.tracking_number || result?.tracking?.number;
 
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+    <div className="min-h-screen bg-marblewhite dark:text-backnewsdark dark:bg-marbleblack">
       <div className="container max-w-xl mx-auto py-12 px-4">
         <h1 className="text-2xl font-semibold mb-2 text-center">
           {t("guest.lookupTitle", { defaultValue: "Track your order (guest)" })}

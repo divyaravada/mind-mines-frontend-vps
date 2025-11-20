@@ -74,7 +74,7 @@ export default function CheckoutReturn() {
   }, [searchParams, t, navigate]);
 
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark flex items-center justify-center px-4">
       <div className="max-w-lg mx-auto py-12 px-4">
         <div className="text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-8">
           <h1 className="text-2xl font-semibold mb-4">

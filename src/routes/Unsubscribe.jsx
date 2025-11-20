@@ -37,8 +37,10 @@ export default function Unsubscribe() {
   }, [token, unsubscribe]);
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-semibold mb-4">Unsubscribe</h1>
+    <div className="max-w-xl mx-auto px-4 py-12 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5">
+      <h1 className="text-2xl font-semibold mb-4 dark:text-backnewsdark">
+        Unsubscribe
+      </h1>
       <div
         className={`p-4 rounded border ${
           state.ok === null

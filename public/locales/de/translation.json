@@ -846,6 +846,8 @@
   "cart": {
     "title_one": "Warenkorb",
     "title_other": "Warenkorb ({{count}} Artikel)",
+    "piece": "Stück",
+    "pieces": "Stücke",
     "clear": "Warenkorb leeren",
     "empty": "Ihr Warenkorb ist leer.",
     "continue": "Weiter einkaufen",

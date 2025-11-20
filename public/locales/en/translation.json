@@ -840,6 +840,8 @@
   "cart": {
     "title_one": "Cart",
     "title_other": "Cart ({{count}} items)",
+    "piece": "piece",
+    "pieces": "pieces",
     "clear": "Clear cart",
     "empty": "Your cart is empty.",
     "continue": "Continue shopping",

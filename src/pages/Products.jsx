@@ -204,7 +204,7 @@ export default function ProductsPage() {
 
         {/* Filters (desktop only) */}
         <aside className="w-64 hidden md:block">
-          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
             <h4 className="font-semibold mb-2">
               {t("products.filters.material.title")}
             </h4>
@@ -227,7 +227,7 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5  dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
             <h4 className="font-semibold mb-2">
               {t("products.filters.color.title")}
             </h4>
@@ -250,7 +250,7 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          <div className="p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+          <div className="p-4 rounded-xl shadow-sm ring-1 ring-black/5  dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
             <h4 className="font-semibold mb-2">
               {t("products.filters.price")}
             </h4>
@@ -339,7 +339,7 @@ export default function ProductsPage() {
               {t("products.noResults")}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map((p) => (
                 <ProductTile
                   key={p.id}
