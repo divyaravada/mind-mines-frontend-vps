@@ -313,9 +313,9 @@
     "help": {
       "title": "Kundenservice & Kontakt",
       "order": "Bestellübersicht",
-      "trck": "Sendung verfolgen",
+      "track": "Sendung verfolgen",
       "returnOrder": "Rücksendung",
-      "AllTopics": "Alle Hilfethemen",
+      "allTopics": "Alle Hilfethemen",
       "contact": "Kontakt:",
       "contactno": " +49 170 4658188",
       "emailtitle": "E-Mail:",
