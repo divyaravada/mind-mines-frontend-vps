@@ -17,24 +17,24 @@ export default function ResendVerification() {
 
     try {
       const res = await resend({ email: email.trim() }).unwrap();
-      const code = res?.code;
-
-      if (code === "user_not_found") {
-        setError(t("auth.resendUserNotFound"));
-      } else if (code === "already_verified") {
-        setError(t("auth.resendAlreadyVerified"));
-      } else {
-        // generic success message
-        setMsg(t("auth.resendSuccess"));
-      }
+      // If backend ever returns a custom message, you can use it,
+      // but usually we just show the generic success:
+      setMsg(t("auth.resendSuccess"));
     } catch (err) {
-      const code = err?.data?.code;
-      if (code === "user_not_found") {
-        setError(t("auth.resendUserNotFound"));
-      } else if (code === "already_verified") {
+      const detail = (err?.data?.detail || "").toLowerCase();
+
+      if (detail.includes("already verified")) {
+        // 🔴 special case: account already verified
         setError(t("auth.resendAlreadyVerified"));
+      } else if (
+        detail.includes("no active account") ||
+        detail.includes("no account")
+      ) {
+        // optional: if you later standardise backend messages
+        setError(t("auth.resendUserNotFound"));
       } else {
-        setError(t("auth.resendError"));
+        // generic fallback
+        setError(err?.data?.detail || t("auth.resendError"));
       }
     }
   };
@@ -79,7 +79,6 @@ export default function ResendVerification() {
             {t("auth.resendButton")}
           </button>
 
-          {/* status messages */}
           {msg && (
             <p
               className="text-center text-backnewsdark"

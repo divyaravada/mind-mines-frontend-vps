@@ -236,7 +236,9 @@
       "success": "E-Mail bestätigt! Weiterleitung zum Login...",
       "error": "Link ist ungültig oder abgelaufen. Bitte erneut registrieren.",
       "redirect": "Sie werden in Kürze weitergeleitet...",
-      "pleaseWait": "Bitte warten Sie ein paar Sekunden..."
+      "pleaseWait": "Bitte warten Sie ein paar Sekunden...",
+      "resendAlreadyVerified": "Ihr Konto ist bereits registriert und verifiziert. Sie können sich einloggen.",
+      "resendError": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es später erneut."
     }
   },
   "logout": {

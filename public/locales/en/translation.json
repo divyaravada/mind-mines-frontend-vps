@@ -211,7 +211,9 @@
       "success": "Email verified! Redirecting to login...",
       "error": "Link is invalid or expired. Please register again.",
       "redirect": "You will be redirected shortly...",
-      "pleaseWait": "Please wait a few seconds..."
+      "pleaseWait": "Please wait a few seconds...",
+      "resendAlreadyVerified": "Your account is already registered and verified. You can log in.",
+      "resendError": "We could not send the verification e-mail. Please try again later."
     }
   },
   "logout": {
