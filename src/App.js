@@ -58,7 +58,7 @@ export default function App() {
           <Route path="/resend-verification" element={<ResendVerification />} />
 
           <Route
-            path="/reset-password/:uid64/:token/"
+            path="/reset-password/:uidb64/:token"
             element={<ResetPasswordPage />}
           />
 
