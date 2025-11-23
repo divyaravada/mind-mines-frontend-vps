@@ -32,6 +32,16 @@ export default function Navbar() {
   const darkMode = useSelector((s) => s.ui.darkMode);
   const mobileMenu = useSelector((s) => s.ui.mobileMenuOpen);
 
+  // Consider these routes as "auth pages" where we always show Login in navbar
+  const isAuthFlow =
+    pathname.startsWith("/users/login") ||
+    pathname.startsWith("/users/register") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/verify-email");
+
+  // Logged in only if we have a user AND we are not on auth flow pages
+  const isLoggedIn = Boolean(user) && !isAuthFlow;
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
@@ -62,7 +72,7 @@ export default function Navbar() {
     return pathname === to || pathname.startsWith(`${to}/`);
   };
 
-  const navLinks = user
+  const navLinks = isLoggedIn
     ? [
         { to: "/", label: t("navbar.home") },
         { to: "/about", label: t("navbar.about") },
@@ -250,7 +260,7 @@ export default function Navbar() {
                   {t("navbar.naturalStone")}
                 </Link>
 
-                {user ? (
+                {isLoggedIn ? (
                   <>
                     <Link
                       to="/account"
