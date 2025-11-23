@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     }
     try {
       await resetConfirm({
-        uid: uidb64,
+        uidb64,
         token,
         new_password1: password,
         new_password2: password2,

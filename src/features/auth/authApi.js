@@ -59,8 +59,8 @@ export const authApi = api.injectEndpoints({
     }),
 
     resetPasswordConfirm: build.mutation({
-      query: ({ uid, token, new_password1, new_password2 }) => ({
-        url: `auth/password/reset/confirm/${uid}/${token}/`,
+      query: ({ uidb64, token, new_password1, new_password2 }) => ({
+        url: `auth/password/reset/confirm/${uidb64}/${token}/`,
         method: "POST",
         body: { new_password1, new_password2 },
       }),
