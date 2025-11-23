@@ -186,12 +186,33 @@
     "adminTab": "Admin",
     "loginTitle": "Ich bin bereits Kunde",
     "loginSub": "Schon Kunde? Dann loggen Sie sich direkt mit Ihren Benutzerdaten ein.",
-    "registerTitle": "Ich bin ein neuer Kunde",
+    "registerTitle": "Konto erstellen",
+    "registerButton": "Registrieren",
+    "username": "Benutzername",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "passwordRepeat": "Passwort wiederholen",
+
+    "registerMismatch": "Die Passwörter stimmen nicht überein.",
+    "registerEmailExists": "Es existiert bereits ein Konto mit dieser E-Mail-Adresse.",
+    "registerFailed": "Die Registrierung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+
+    "registerSuccess": "Sie haben sich erfolgreich registriert. Wir haben Ihnen eine Bestätigungs-E-Mail gesendet. Bitte bestätigen Sie Ihre E-Mail-Adresse, danach können Sie sich einloggen und mit dem Einkauf beginnen.",
+    "registerNoEmailHint": "Wenn Sie die E-Mail nicht innerhalb weniger Minuten erhalten, können Sie die Bestätigungs-E-Mail erneut anfordern.",
+    "registerResendLink": "Bestätigungs-E-Mail erneut senden",
+
+    "resendTitle": "Bestätigungs-E-Mail erneut senden",
+    "resendDesc": "Geben Sie die E-Mail-Adresse ein, mit der Sie sich registriert haben. Wir senden Ihnen einen neuen Bestätigungslink, falls Ihr Konto noch nicht bestätigt ist.",
+    "resendPlaceholder": "Ihre Registrierungs-E-Mail-Adresse",
+    "resendButton": "Bestätigungs-E-Mail senden",
+    "resendSuccess": "Eine neue Bestätigungs-E-Mail wurde gesendet. Bitte prüfen Sie Ihr Postfach und den Spam-Ordner.",
+    "resendUserNotFound": "Es wurde kein Konto mit dieser E-Mail-Adresse gefunden.",
+    "resendAlreadyVerified": "Ihre E-Mail-Adresse ist bereits bestätigt. Sie können sich jetzt einloggen.",
+    "resendError": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
+
     "registerSub": "Noch kein Konto? Jetzt registrieren und alle Vorteile genießen!",
     "adminLoginTitle": "Admin Login",
     "adminLoginSub": "Nur für Seitenadministratoren.",
-    "email": "E-Mail-Adresse",
-    "password": "Passwort",
     "passwordHint": "Passwort (mind. 12 Zeichen)",
     "login": "Anmelden",
     "register": "Registrieren",
@@ -1269,10 +1290,12 @@
   },
   "forgotPassword": {
     "title": "Passwort vergessen",
-    "emailPlaceholder": "E-Mail-Adresse eingeben",
+    "emailPlaceholder": "Bitte Ihre E-Mail-Adresse eingeben",
     "send": "Link zum Zurücksetzen senden",
-    "success": "Wenn diese E-Mail existiert, wurde ein Reset-Link versendet.",
-    "error": "Reset-E-Mail konnte nicht gesendet werden."
+    "success": "Die E-Mail zum Zurücksetzen des Passworts wurde gesendet. Bitte prüfen Sie Ihr Postfach.",
+    "userNotFound": "Es wurde kein Konto mit dieser E-Mail-Adresse gefunden.",
+    "emailRequired": "Bitte geben Sie Ihre E-Mail-Adresse ein.",
+    "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
   },
   "installments": {
     "summaryTitle": "Ratenplan",

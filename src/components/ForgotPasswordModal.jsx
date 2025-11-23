@@ -11,11 +11,22 @@ export default function ForgotPasswordModal({ open, onClose }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setMessageKey("");
+
     try {
       await send({ email }).unwrap();
       setMessageKey("forgotPassword.success");
-    } catch {
-      setMessageKey("forgotPassword.error");
+      setEmail("");
+    } catch (err) {
+      const code = err?.data?.code;
+
+      if (code === "user_not_found") {
+        setMessageKey("forgotPassword.userNotFound");
+      } else if (code === "email_required") {
+        setMessageKey("forgotPassword.emailRequired");
+      } else {
+        setMessageKey("forgotPassword.error");
+      }
     }
   }
 

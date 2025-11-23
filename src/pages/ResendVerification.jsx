@@ -1,4 +1,4 @@
-//src/pages/ResendVerification.jsx
+// src/pages/ResendVerification.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useResendVerificationMutation } from "../features/auth/authApi";
@@ -14,11 +14,28 @@ export default function ResendVerification() {
     e.preventDefault();
     setMsg("");
     setError("");
+
     try {
       const res = await resend({ email: email.trim() }).unwrap();
-      setMsg(res?.detail || t("auth.resendSuccess"));
+      const code = res?.code;
+
+      if (code === "user_not_found") {
+        setError(t("auth.resendUserNotFound"));
+      } else if (code === "already_verified") {
+        setError(t("auth.resendAlreadyVerified"));
+      } else {
+        // generic success message
+        setMsg(t("auth.resendSuccess"));
+      }
     } catch (err) {
-      setError(err?.data?.detail || t("auth.resendError"));
+      const code = err?.data?.code;
+      if (code === "user_not_found") {
+        setError(t("auth.resendUserNotFound"));
+      } else if (code === "already_verified") {
+        setError(t("auth.resendAlreadyVerified"));
+      } else {
+        setError(t("auth.resendError"));
+      }
     }
   };
 
