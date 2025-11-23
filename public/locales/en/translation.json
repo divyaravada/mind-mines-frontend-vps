@@ -207,8 +207,11 @@
     "hidePassword": "Hide password",
     "emailVerification": {
       "verifying": "Verifying your email...",
+      "tryAgain": "Try again later",
       "success": "Email verified! Redirecting to login...",
-      "error": "Link is invalid or expired. Please register again."
+      "error": "Link is invalid or expired. Please register again.",
+      "redirect": "You will be redirected shortly...",
+      "pleaseWait": "Please wait a few seconds..."
     }
   },
   "logout": {

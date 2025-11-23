@@ -232,8 +232,11 @@
     "enterEmailForGuest": "Geben Sie Ihre E-Mail-Adresse ein",
     "emailVerification": {
       "verifying": "E-Mail wird verifiziert...",
+      "tryAgain": "Versuchen Sie es später noch einmal",
       "success": "E-Mail bestätigt! Weiterleitung zum Login...",
-      "error": "Link ist ungültig oder abgelaufen. Bitte erneut registrieren."
+      "error": "Link ist ungültig oder abgelaufen. Bitte erneut registrieren.",
+      "redirect": "Sie werden in Kürze weitergeleitet...",
+      "pleaseWait": "Bitte warten Sie ein paar Sekunden..."
     }
   },
   "logout": {
