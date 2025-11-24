@@ -14,7 +14,7 @@ export default function NotFoundPage() {
         </p>
 
         <Link
-          to="/"
+          to="/decorative-products"
           className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
         >
           {t("notFound.backToShop")}

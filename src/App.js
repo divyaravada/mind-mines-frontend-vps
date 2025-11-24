@@ -36,6 +36,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
 import { Route, Routes } from "react-router-dom";
 import CookiePolicyPage from "./pages/CookiePolicyPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   useEffect(() => {
@@ -136,6 +137,8 @@ export default function App() {
               </RequireAuth>
             }
           />
+          {/* 404 catch-all – MUST be last */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
       <CookieConsent />
