@@ -658,6 +658,12 @@
     }
   },
   "product": {
+    "quickView": "Quick View",
+    "closeQuickView": "Close",
+    "addToCart": "Add to cart",
+    "viewDetails": "View more details",
+    "inclVat": "incl. 19% VAT",
+    "off": "OFF",
     "orderOnDemand": "Order on demand",
     "onDemandMsg": "Order can be taken on demand.",
     "lowStockBanner": {

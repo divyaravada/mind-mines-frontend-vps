@@ -675,6 +675,12 @@
     }
   },
   "product": {
+    "quickView": "Schnellansicht",
+    "closeQuickView": "Schließen",
+    "addToCart": "In den Warenkorb",
+    "viewDetails": "Mehr Details ansehen",
+    "inclVat": "inkl. 19 % MwSt.",
+    "off": "RABATT",
     "orderOnDemand": "Auf Anfrage bestellbar",
     "onDemandMsg": "Bestellung kann auf Anfrage entgegengenommen werden.",
     "lowStockBanner": {

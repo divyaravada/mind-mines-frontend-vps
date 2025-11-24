@@ -16,6 +16,7 @@ import {
   useGetWishlistQuery,
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
+import QuickViewModal from "../components/QuickViewModal";
 
 const MATERIALS = [
   { value: "marble", label: "products.filters.material.marble" },
@@ -39,6 +40,7 @@ export default function ProductsPage() {
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const { categoryId } = useParams();
   const navigate = useNavigate();
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
@@ -168,6 +170,16 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      {/* Quick View modal */}
+      <QuickViewModal
+        open={!!quickViewProduct}
+        product={quickViewProduct}
+        lang={lang}
+        wished={quickViewProduct ? wlIds.has(quickViewProduct.id) : false}
+        onToggleWishlist={toggleWishlist}
+        onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
+        onClose={() => setQuickViewProduct(null)}
+      />
       <div className="container max-w-7xl mx-auto px-4 py-8 flex gap-6">
         <Helmet>
           <title>{pageTitle}</title>
@@ -350,6 +362,7 @@ export default function ProductsPage() {
                   wished={wlIds.has(p.id)}
                   onToggleWishlist={toggleWishlist}
                   onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
+                  onQuickView={() => setQuickViewProduct(p)}
                 />
               ))}
             </div>
