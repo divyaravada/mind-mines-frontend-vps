@@ -246,6 +246,11 @@
     "thanks": "Vielen Dank für Ihren Besuch! Wir hoffen, Sie bald wiederzusehen.",
     "cta": "Zur Startseite"
   },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Die von Ihnen aufgerufene Seite existiert nicht oder wurde verschoben.",
+    "backToShop": "Zurück zum Shop"
+  },
   "about": {
     "storyTitle": "Unsere Geschichte",
     "storyParagraph1": "Unsere Reise begann lange bevor MindMines gegründet wurde — als leidenschaftliche Entdecker von Marmor und Naturstein. Aus einer tiefen Bewunderung für die zeitlose Schönheit dieser Materialien entwickelte sich der Wunsch, die feinsten Steine der Welt in den Alltag der Menschen zu bringen.",

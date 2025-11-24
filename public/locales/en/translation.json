@@ -222,6 +222,11 @@
     "cta": "Back to Home",
     "iconLabel": "Waving hand icon"
   },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you are looking for does not exist or may have been moved.",
+    "backToShop": "Back to shop"
+  },
   "naturalStone": {
     "title": "Natural Stone",
     "description": "Explore our exquisite collection of natural stones, each piece a testament to timeless beauty and craftsmanship. From elegant marble to robust granite, discover the perfect stone to enhance your space.",
