@@ -230,6 +230,10 @@
     "googleLogin": "Mit Google fortfahren",
     "continueAsGuest": "Als Gast fortfahren",
     "enterEmailForGuest": "Geben Sie Ihre E-Mail-Adresse ein",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "loginInvalid": "E-Mail-Adresse oder Passwort ist falsch.",
+    "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "emailVerification": {
       "verifying": "E-Mail wird verifiziert...",
       "tryAgain": "Versuchen Sie es später noch einmal",

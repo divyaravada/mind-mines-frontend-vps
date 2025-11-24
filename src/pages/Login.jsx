@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [resetOpen, setResetOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -35,11 +36,23 @@ export default function LoginPage() {
   async function handleLogin(e) {
     e.preventDefault();
     if (!email || !password) return;
+    setLoginError("");
+
     try {
       await login({ email, password }).unwrap();
       navigate(nextPath, { replace: true });
     } catch (e) {
       console.warn("Login failed", e);
+
+      const detail = (err?.data?.detail || "").toLowerCase();
+
+      if (detail.includes("no active account") || err?.status === 401) {
+        // Wrong email or password
+        setLoginError(t("auth.loginInvalid"));
+      } else {
+        // Generic error
+        setLoginError(t("auth.loginFailed"));
+      }
     }
   }
 
@@ -62,6 +75,11 @@ export default function LoginPage() {
                 {t("auth.loginSub")}
               </p>
 
+              {/* error message */}
+              {loginError && (
+                <div className="mb-4 text-sm text-red-600">{loginError}</div>
+              )}
+
               {mode === "login" ? (
                 <form className="space-y-5" onSubmit={handleLogin}>
                   <input
@@ -71,6 +89,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="username"
+                    required
                   />
 
                   <div className="relative">
@@ -81,6 +100,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="current-password"
+                      required
                     />
                     <button
                       type="button"

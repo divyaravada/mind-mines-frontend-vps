@@ -205,6 +205,8 @@
     "enterEmailForGuest": "Enter you Email Address",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "loginInvalid": "Incorrect e-mail or password.",
+    "loginFailed": "Login failed. Please try again.",
     "emailVerification": {
       "verifying": "Verifying your email...",
       "tryAgain": "Try again later",
