@@ -41,8 +41,8 @@ export default function LoginPage() {
     try {
       await login({ email, password }).unwrap();
       navigate(nextPath, { replace: true });
-    } catch (e) {
-      console.warn("Login failed", e);
+    } catch (err) {
+      console.warn("Login failed", err);
 
       const detail = (err?.data?.detail || "").toLowerCase();
 
