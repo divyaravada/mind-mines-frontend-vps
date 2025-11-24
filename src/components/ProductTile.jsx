@@ -55,73 +55,99 @@ export default function ProductTile({
     <div className="font-semibold">{fmtEUR(baseGross || priceNum, locale)}</div>
   );
 
+  const handleImageClick = (e) => {
+    e.stopPropagation();
+    if (onQuickView) {
+      onQuickView(product); // open quick view modal
+    } else {
+      navigate(`/products/${product.id}`);
+    }
+  };
+
   return (
-    <article
-      className="group rounded-2xl bg-marblewhite dark:bg-marbleblack border border-gray-100 dark:border-gray-700 shadow hover:shadow-md transition overflow-hidden cursor-pointer"
-      onClick={() => navigate(`/products/${product.id}`)}
-    >
-      <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
-        <img
-          src={image}
-          alt={title}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
-          loading="lazy"
-          onError={(e) => (e.currentTarget.style.display = "none")}
-        />
-        <button
-          type="button"
-          aria-label={t("wishlist.buttonLabel")}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWishlist?.(product.id);
-          }}
-          className={`absolute top-3 right-3 p-2 rounded-full shadow ${
-            wished
-              ? "bg-red-500 text-white"
-              : "bg-white/90 dark:bg-gray-900/80 hover:bg-white"
-          }`}
-          title={
-            wished
-              ? t("wishlist.remove", "Remove from wishlist")
-              : t("wishlist.add", "Add to wishlist")
-          }
+    <article className="group cursor-pointer">
+      {/* IMAGE AREA – hover shows quick view overlay, click opens quick view */}
+      <div className="relative bg-marblewhite dark:bg-marbleblack">
+        <div
+          className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-700 overflow-hidden"
+          onClick={handleImageClick}
         >
-          <Heart className="w-5 h-5" />
-        </button>
-        {onQuickView && (
+          <img
+            src={image}
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+            loading="lazy"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+
+          {/* wishlist */}
           <button
             type="button"
+            aria-label={t("wishlist.buttonLabel")}
             onClick={(e) => {
               e.stopPropagation();
-              onQuickView(product);
+              onToggleWishlist?.(product.id);
             }}
-            className="absolute inset-x-4 bottom-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            className={`absolute top-3 right-3 p-2 rounded-full shadow ${
+              wished
+                ? "bg-red-500 text-white"
+                : "bg-white/90 dark:bg-gray-900/80 hover:bg-white"
+            }`}
+            title={
+              wished
+                ? t("wishlist.remove", "Remove from wishlist")
+                : t("wishlist.add", "Add to wishlist")
+            }
           >
-            {t("product.quickView", "Quick View")}
+            <Heart className="w-5 h-5" />
           </button>
-        )}
-        {isOut && (
-          <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-gray-900/90 text-white text-xs font-semibold">
-            {t("product.outOfStock", "Out of stock — arriving soon")}
-            <div className="text-[11px] px-2 py-1 rounded bg-white/90 text-gray-800 inline-block">
-              {t("product.notifyCta", "Tap to see details & get notified")}
-            </div>
-          </div>
-        )}
 
-        {!isOut && hasDiscount && (
-          <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-red-600 text-white text-xs font-semibold">
-            -{percent}% {t("product.off", "OFF")}
-          </div>
-        )}
+          {/* badges */}
+          {isOut && (
+            <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-gray-900/90 text-white text-xs font-semibold">
+              {t("product.outOfStock", "Out of stock — arriving soon")}
+              <div className="text-[11px] px-2 py-1 rounded bg-white/90 text-gray-800 inline-block">
+                {t("product.notifyCta", "Tap to see details & get notified")}
+              </div>
+            </div>
+          )}
+
+          {!isOut && hasDiscount && (
+            <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-red-600 text-white text-xs font-semibold">
+              -{percent}% {t("product.off", "OFF")}
+            </div>
+          )}
+
+          {/* QUICK VIEW OVERLAY */}
+          {onQuickView && (
+            <button
+              type="button"
+              onClick={handleImageClick}
+              className="absolute inset-0 flex items-center justify-center bg-black/10 dark:bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <span className="px-4 py-2 rounded-full bg-white/95 dark:bg-neutral-900/95 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm">
+                {t("product.quickView", "Quick View")}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="p-4">
-        <h3 className="font-semibold line-clamp-2  dark:text-backnewsdark text-gray-900">
+      {/* TEXT + PRICE – no card border / shadow, simple layout like sofa screenshot */}
+      <div className="pt-3">
+        <h3
+          className="font-medium text-sm md:text-base text-gray-900 dark:text-backnewsdark line-clamp-2"
+          // optional: clicking title goes to product page
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/products/${product.id}`);
+          }}
+        >
           {title}
         </h3>
+
         {subtitle && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mt-1">
+          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mt-1">
             {subtitle}
           </p>
         )}
@@ -145,14 +171,14 @@ export default function ProductTile({
               {t("product.inclVat", "incl. 19% VAT")}
             </span>
           </div>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
               if (!isOut) onAddToCart?.(product, priceNum);
             }}
             disabled={isOut}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-backnewswhite text-white hover:opacity-90 transition disabled:opacity-50
-            dark:bg-backnewsdark dark:text-marbleblack"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-backnewswhite text-white hover:opacity-90 transition disabled:opacity-50 dark:bg-backnewsdark dark:text-marbleblack"
             title={isOut ? t("product.cannotAdd", "Out of stock") : undefined}
           >
             <ShoppingCart className="w-4 h-4" />
