@@ -122,7 +122,8 @@ export default function CookieConsent() {
               {t("save")}
             </button>
             <button
-              className="px-4 py-2 rounded-md border border-black/10 dark:border-white/10 opacity-70"
+              className="px-4 py-2 rounded-md border border-black/10 dark:border-white/10 opacity-70 text-backnewswhite hover:text-backnewsdark
+                         dark:text-backnewsdark dark:hover:text-backnewswhite"
               onClick={() => dispatch(closeManager())}
             >
               {t("close") || "Close"}
