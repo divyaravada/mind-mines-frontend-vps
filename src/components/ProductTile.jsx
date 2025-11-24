@@ -88,7 +88,18 @@ export default function ProductTile({
         >
           <Heart className="w-5 h-5" />
         </button>
-
+        {onQuickView && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickView(product);
+            }}
+            className="absolute inset-x-4 bottom-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {t("product.quickView", "Quick View")}
+          </button>
+        )}
         {isOut && (
           <div className="absolute left-0 top-3 px-3 py-1 rounded-r-xl bg-gray-900/90 text-white text-xs font-semibold">
             {t("product.outOfStock", "Out of stock — arriving soon")}
@@ -126,18 +137,7 @@ export default function ProductTile({
             </div>
           ) : null}
         </div>
-        {onQuickView && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickView(product);
-            }}
-            className="absolute inset-x-4 bottom-4 py-2 rounded-full bg-white/90 dark:bg-neutral-900/90 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            {t("product.quickView", "Quick View")}
-          </button>
-        )}
+
         <div className="flex items-center justify-between mt-3">
           <div className="flex flex-col dark:text-backnewswhite">
             {priceEl}
