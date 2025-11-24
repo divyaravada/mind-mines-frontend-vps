@@ -183,7 +183,7 @@ export default function CartPage() {
             return (
               <div
                 key={item.id}
-                className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800"
+                className="bg-marblewhite dark:text-backnewsdark dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800"
               >
                 <img
                   src={item.image}
@@ -195,7 +195,7 @@ export default function CartPage() {
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
                       {item.category && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                        <div className="text-sm text-gray-500 dark:text-backnewsdark capitalize">
                           {item.category}
                         </div>
                       )}
@@ -308,7 +308,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-gray-500 dark:text-backnewsdark">
                         {t("cart.total")}
                       </div>
                       <div className="text-lg font-semibold">
@@ -338,7 +338,7 @@ export default function CartPage() {
 
       {/* RIGHT */}
       <aside className="lg:col-span-1">
-        <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800">
+        <div className="bg-marblewhite dark:bg-neutral-900 dark:text-backnewsdark rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800">
           <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
           <div className="space-y-3 text-sm">
             <Row label={t("cart.subtotal")} value={fmtEUR(subtotal, locale)} />

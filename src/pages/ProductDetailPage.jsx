@@ -332,7 +332,7 @@ export default function ProductDetailPage() {
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* MEDIA */}
           <div className="w-full lg:w-1/2">
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-2">
+            <div className="bg-white dark:bg-neutral-900 dark:text-backnewsdark rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-2">
               <Carousel
                 showThumbs
                 showStatus={false}
@@ -370,7 +370,7 @@ export default function ProductDetailPage() {
 
           {/* INFO */}
           <div className="flex-1 flex flex-col gap-4">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-500 dark:text-backnewsdark">
               {t("Key")}: {product.key}
             </div>
 
@@ -584,7 +584,7 @@ export default function ProductDetailPage() {
         <ProductReviews productId={product.id} />
 
         {/* WRITE REVIEW */}
-        <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5 space-y-3">
+        <div className="p-4 rounded-xl bg-white dark:text-backnewsdark dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5 space-y-3">
           <div className="flex items-center gap-3">
             <label className="font-medium">{t("productReviews.title")}:</label>
             <StarRating value={revRating} onChange={setRevRating} />
@@ -618,7 +618,7 @@ export default function ProductDetailPage() {
         {/* Suggestions */}
         {recommend.length > 0 && (
           <section className="mt-12">
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="text-2xl font-bold mb-4 dark:text-backnewsdark">
               {t("productReviews.youMay")}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
@@ -626,7 +626,7 @@ export default function ProductDetailPage() {
                 <button
                   key={p.id}
                   onClick={() => navigate(`/products/${p.id}`)}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
+                  className="bg-white dark:text-backnewsdark dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
                 >
                   <img
                     src={p.image}
