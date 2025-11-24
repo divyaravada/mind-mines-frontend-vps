@@ -54,7 +54,7 @@ export default function ProductReviews({ productId }) {
   };
 
   return (
-    <div className="mt-12">
+    <div className="mt-12 dark:text-backnewsdark">
       <h3 className="text-xl font-semibold mb-4">
         {t("productReviews.title")}
       </h3>

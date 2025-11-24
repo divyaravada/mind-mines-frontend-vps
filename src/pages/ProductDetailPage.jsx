@@ -369,8 +369,8 @@ export default function ProductDetailPage() {
           </div>
 
           {/* INFO */}
-          <div className="flex-1 flex flex-col gap-4">
-            <div className="text-xs text-gray-500 dark:text-backnewsdark">
+          <div className="flex-1 flex flex-col gap-4 dark:text-backnewsdark">
+            <div className="text-xs text-gray-500">
               {t("Key")}: {product.key}
             </div>
 
