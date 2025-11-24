@@ -34,7 +34,7 @@ export default function EmailVerificationPage() {
       : t("auth.emailVerification.verifying");
 
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center">
+    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-backnewsdark  flex items-center">
       <div className="container max-w-lg mx-auto px-4">
         <div className="text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-8">
           <h1 className="text-2xl font-semibold mb-2">{title}</h1>

@@ -6,7 +6,7 @@ export default function NotFoundPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-marblewhite dark:bg-marbleblack px-4">
+    <div className="min-h-[60vh] flex items-center justify-center bg-marblewhite dark:text-backnewsdark dark:bg-marbleblack px-4">
       <div className="max-w-md w-full text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
         <h1 className="text-3xl font-bold mb-2">{t("notFound.title")}</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
