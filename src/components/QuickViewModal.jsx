@@ -95,7 +95,7 @@ export default function QuickViewModal({
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 dark:text-backnewsdark">
               {hasDiscount ? (
                 <>
                   <span className="text-xl font-semibold">
