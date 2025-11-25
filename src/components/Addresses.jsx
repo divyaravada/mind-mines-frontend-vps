@@ -1,5 +1,5 @@
 // src/components/Addresses.jsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   useGetAddressesQuery,
@@ -10,6 +10,8 @@ import {
 } from "../features/addresses/addressApi";
 import { useTranslation } from "react-i18next";
 import { normalizeCountry } from "../utils/invoice";
+import { lookupCityFromPostal } from "../utils/addressApi";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 const DEFAULT_COUNTRY = "DE";
 
@@ -125,169 +127,132 @@ export default function AccountAddresses() {
   const [editingId, setEditingId] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // 🔴 NEW: field-level validation errors
-  const [errors, setErrors] = useState({});
+  // field-level errors
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [cityOptions, setCityOptions] = useState([]);
+  const [cityLoading, setCityLoading] = useState(false);
 
   useEffect(() => {
-    if (!isFetching && !editingId) setForm(initial);
+    if (!isFetching && !editingId) {
+      setForm(initial);
+      setFieldErrors({});
+      setCityOptions([]);
+    }
   }, [isFetching, editingId]);
 
-  // 🔵 Simple postal → city lookup (DE only)
-  const lookupCityByPostal = useCallback((country, postal) => {
-    if (!postal) return "";
-    if (country !== "DE") return "";
-    const mapDE = {
-      21640: "Horneburg",
-      20095: "Hamburg",
-      10115: "Berlin",
-    };
-    return mapDE[postal] || "";
-  }, []);
-
-  useEffect(() => {
-    const postal = (form.postal_code || "").trim();
-    const country = normalizeCountry(form.country);
-    if (!postal || country !== "DE") return;
-
-    const foundCity = lookupCityByPostal(country, postal);
-    if (foundCity && !form.city) {
-      setForm((prev) => ({ ...prev, city: foundCity }));
-      setErrors((prev) => ({ ...prev, city: "" }));
+  const validatePhone = (phone, country) => {
+    const trimmed = (phone || "").trim();
+    if (!trimmed) {
+      return t("addresses.errPhoneRequired", "Telephone is required.");
     }
-  }, [form.postal_code, form.country, form.city, lookupCityByPostal]);
-
-  // 🔧 Validation logic (similar style as Checkout)
-
-  const validateField = useCallback(
-    (name, value, currentForm) => {
-      const v = (value || "").toString().trim();
-      const country = normalizeCountry(currentForm.country);
-
-      if (name === "first_name") {
-        if (!v)
-          return t(
-            "addresses.errors.firstNameRequired",
-            "First name is required."
-          );
-        return "";
+    try {
+      const cc = normalizeCountry(country || "DE");
+      const parsed = parsePhoneNumberFromString(trimmed, cc || "DE");
+      if (!parsed || !parsed.isValid()) {
+        return t(
+          "addresses.errPhoneFormat",
+          "Please enter a valid phone number for the selected country."
+        );
       }
+    } catch {
+      return t(
+        "addresses.errPhoneFormat",
+        "Please enter a valid phone number for the selected country."
+      );
+    }
+    return null;
+  };
 
-      if (name === "last_name") {
-        if (!v)
-          return t(
-            "addresses.errors.lastNameRequired",
-            "Last name is required."
-          );
-        return "";
+  const validateForm = () => {
+    const errors = {};
+
+    if (!form.first_name.trim()) {
+      errors.first_name = t(
+        "addresses.errFirstName",
+        "First name is required."
+      );
+    }
+    if (!form.last_name.trim()) {
+      errors.last_name = t("addresses.errLastName", "Last name is required.");
+    }
+    if (!form.address_line1.trim()) {
+      errors.address_line1 = t(
+        "addresses.errStreetRequired",
+        "Street and house number are required."
+      );
+    } else if (!/\d/.test(form.address_line1)) {
+      // needs at least one digit → house number
+      errors.address_line1 = t(
+        "addresses.errHouseNumber",
+        "Please include a house number (digits, letters like 12a are ok)."
+      );
+    }
+    if (!form.postal_code.trim()) {
+      errors.postal_code = t("addresses.errPostal", "Postal code is required.");
+    }
+    if (!form.city.trim()) {
+      errors.city = t("addresses.errCity", "City is required.");
+    }
+
+    const phoneErr = validatePhone(form.phone, form.country);
+    if (phoneErr) {
+      errors.phone = phoneErr;
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handlePostalBlur = async () => {
+    const postal = (form.postal_code || "").trim();
+    if (!postal) return;
+
+    setCityLoading(true);
+    try {
+      const cities = await lookupCityFromPostal(form.country, postal);
+      setCityOptions(cities);
+      if (cities.length === 1 && !form.city.trim()) {
+        setForm((prev) => ({ ...prev, city: cities[0] }));
       }
-
-      if (name === "address_line1") {
-        if (!v)
-          return t(
-            "addresses.errors.streetRequired",
-            "Street and house number are required."
-          );
-        // must contain at least one digit (house number check)
-        if (!/\d/.test(v)) {
-          return t(
-            "addresses.errors.streetHouseInvalid",
-            "Please include a house number with digits (letters allowed)."
-          );
-        }
-        return "";
-      }
-
-      if (name === "postal_code") {
-        if (!v)
-          return t(
-            "addresses.errors.postalRequired",
-            "Postal code is required."
-          );
-        if (country === "DE") {
-          if (!/^\d{5}$/.test(v)) {
-            return t(
-              "addresses.errors.postalDE",
-              "Please enter a 5-digit German postal code."
-            );
-          }
-        }
-        return "";
-      }
-
-      if (name === "city") {
-        if (!v) return t("addresses.errors.cityRequired", "City is required.");
-        return "";
-      }
-
-      if (name === "phone") {
-        if (!v)
-          return t(
-            "addresses.errors.phoneRequired",
-            "Telephone number is required."
-          );
-        const numeric = v.replace(/\s+/g, "");
-        if (country === "DE") {
-          if (!/^(?:\+49|0)\d{6,14}$/.test(numeric)) {
-            return t(
-              "addresses.errors.phoneDE",
-              "Please enter a valid German phone number (e.g. 01701234567 or +491701234567)."
-            );
-          }
-          return "";
-        }
-        if (!/^\+?[0-9][0-9\s\-()]{6,}$/.test(v)) {
-          return t(
-            "addresses.errors.phoneGeneric",
-            "Please enter a valid phone number including country/area code."
-          );
-        }
-        return "";
-      }
-
-      return "";
-    },
-    [t]
-  );
-
-  const validateAll = useCallback(
-    (f) => {
-      const toCheck = [
-        "first_name",
-        "last_name",
-        "address_line1",
-        "postal_code",
-        "city",
-        "phone",
-      ];
-      const nextErrors = {};
-      toCheck.forEach((name) => {
-        const err = validateField(name, f[name], f);
-        if (err) nextErrors[name] = err;
-      });
-      setErrors(nextErrors);
-      return Object.keys(nextErrors).length === 0;
-    },
-    [validateField]
-  );
+    } catch (e) {
+      console.warn("City lookup failed", e);
+    } finally {
+      setCityLoading(false);
+    }
+  };
 
   const save = async () => {
     setErrorMsg("");
-    const ok = validateAll(form);
-    if (!ok) return; // stop if invalid
-
-    const payload = {
-      ...form,
-      country: ensureCountryCode(form.country),
-    };
-
-    if (editingId) {
-      await updateAddress({ id: editingId, ...payload }).unwrap();
-    } else {
-      await createAddress(payload).unwrap();
+    if (!validateForm()) {
+      setErrorMsg(
+        t(
+          "addresses.formInvalid",
+          "Please fix the highlighted fields before saving."
+        )
+      );
+      return;
     }
-    setForm(initial);
-    setEditingId(null);
-    setErrors({});
+
+    try {
+      if (editingId) {
+        await updateAddress({ id: editingId, ...form }).unwrap();
+      } else {
+        await createAddress(form).unwrap();
+      }
+      setForm(initial);
+      setEditingId(null);
+      setFieldErrors({});
+      setCityOptions([]);
+    } catch (err) {
+      console.error("Save address failed", err);
+      setErrorMsg(
+        err?.data?.detail ||
+          t(
+            "addresses.saveError",
+            "Could not save the address. Please try again."
+          )
+      );
+    }
   };
 
   const edit = (a) => {
@@ -297,7 +262,8 @@ export default function AccountAddresses() {
       ...a,
       country: ensureCountryCode(a.country),
     });
-    setErrors({});
+    setFieldErrors({});
+    setCityOptions([]);
   };
 
   const del = async (id) => {
@@ -332,18 +298,6 @@ export default function AccountAddresses() {
     "focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark " +
     "focus:border-backnewswhite dark:focus:border-backnewsdark";
 
-  const handleCountryChange = (e) => {
-    const code = ensureCountryCode(e.target.value);
-    setForm((prev) => ({ ...prev, country: code }));
-    setErrors((prev) => ({ ...prev, phone: "" })); // clear phone error when country changes
-  };
-
-  const handleChange = (field) => (e) => {
-    const { value } = e.target;
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
       {/* Header */}
@@ -358,11 +312,13 @@ export default function AccountAddresses() {
           {t("backtoAccount")}
         </Link>
       </div>
+
       {errorMsg && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-100">
           {errorMsg}
         </div>
       )}
+
       <div className="grid md:grid-cols-2 gap-6">
         {/* Form */}
         <div className="p-6 rounded-xl border border-black/5 dark:border-white/10 bg-marblewhite dark:bg-marbleblack shadow-sm">
@@ -378,124 +334,115 @@ export default function AccountAddresses() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
+            {/* First name */}
             <div>
               <input
                 placeholder={t("addresses.firstName")}
                 value={form.first_name}
-                onChange={handleChange("first_name")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    first_name: validateField(
-                      "first_name",
-                      e.target.value,
-                      form
-                    ),
-                  }))
+                onChange={(e) =>
+                  setForm({ ...form, first_name: e.target.value })
                 }
                 className={inputBase}
               />
-              {errors.first_name && (
-                <p className="mt-1 text-xs text-red-600">{errors.first_name}</p>
+              {fieldErrors.first_name && (
+                <p className="mt-1 text-xs text-red-600">
+                  {fieldErrors.first_name}
+                </p>
               )}
             </div>
 
+            {/* Last name */}
             <div>
               <input
                 placeholder={t("addresses.lastName")}
                 value={form.last_name}
-                onChange={handleChange("last_name")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    last_name: validateField("last_name", e.target.value, form),
-                  }))
+                onChange={(e) =>
+                  setForm({ ...form, last_name: e.target.value })
                 }
                 className={inputBase}
               />
-              {errors.last_name && (
-                <p className="mt-1 text-xs text-red-600">{errors.last_name}</p>
+              {fieldErrors.last_name && (
+                <p className="mt-1 text-xs text-red-600">
+                  {fieldErrors.last_name}
+                </p>
               )}
             </div>
 
+            {/* Street + house no */}
             <div className="md:col-span-2">
               <input
                 placeholder={t("addresses.street")}
                 value={form.address_line1}
-                onChange={handleChange("address_line1")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    address_line1: validateField(
-                      "address_line1",
-                      e.target.value,
-                      form
-                    ),
-                  }))
+                onChange={(e) =>
+                  setForm({ ...form, address_line1: e.target.value })
                 }
                 className={inputBase}
               />
-              {errors.address_line1 && (
+              {fieldErrors.address_line1 && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.address_line1}
+                  {fieldErrors.address_line1}
                 </p>
               )}
             </div>
 
+            {/* Address line 2 */}
             <div className="md:col-span-2">
               <input
                 placeholder={t("addresses.address2")}
                 value={form.address_line2}
-                onChange={handleChange("address_line2")}
+                onChange={(e) =>
+                  setForm({ ...form, address_line2: e.target.value })
+                }
                 className={inputBase}
               />
             </div>
 
+            {/* Postal code */}
             <div>
               <input
                 placeholder={t("addresses.postalCode")}
                 value={form.postal_code}
-                onChange={handleChange("postal_code")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    postal_code: validateField(
-                      "postal_code",
-                      e.target.value,
-                      form
-                    ),
-                  }))
+                onChange={(e) =>
+                  setForm({ ...form, postal_code: e.target.value })
                 }
+                onBlur={handlePostalBlur}
                 className={inputBase}
               />
-              {errors.postal_code && (
+              {fieldErrors.postal_code && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.postal_code}
+                  {fieldErrors.postal_code}
+                </p>
+              )}
+              {cityLoading && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("addresses.lookupCity", "Looking up city…")}
                 </p>
               )}
             </div>
 
+            {/* City with datalist */}
             <div>
               <input
                 placeholder={t("addresses.city")}
                 value={form.city}
-                onChange={handleChange("city")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    city: validateField("city", e.target.value, form),
-                  }))
-                }
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                list="account-city-options"
                 className={inputBase}
               />
-              {errors.city && (
-                <p className="mt-1 text-xs text-red-600">{errors.city}</p>
+              <datalist id="account-city-options">
+                {cityOptions.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              {fieldErrors.city && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.city}</p>
               )}
             </div>
 
+            {/* Country */}
             <select
               value={form.country}
-              onChange={handleCountryChange}
+              onChange={(e) => setForm({ ...form, country: e.target.value })}
               className={inputBase}
             >
               {groupedCountries
@@ -520,21 +467,16 @@ export default function AccountAddresses() {
                   ))}
             </select>
 
+            {/* Phone */}
             <div>
               <input
                 placeholder={t("addresses.phone")}
                 value={form.phone}
-                onChange={handleChange("phone")}
-                onBlur={(e) =>
-                  setErrors((prev) => ({
-                    ...prev,
-                    phone: validateField("phone", e.target.value, form),
-                  }))
-                }
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className={inputBase}
               />
-              {errors.phone && (
-                <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
+              {fieldErrors.phone && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
               )}
             </div>
           </div>
