@@ -452,6 +452,33 @@
     "filterMonth": "Month",
     "filterActive": "Showing orders from {{month}} {{year}}",
     "itemsLabel": "Items",
+    "errors": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email.",
+      "fullNameRequired": "Full name is required.",
+      "fullNameTwoWords": "Please enter first and last name.",
+      "streetRequired": "Street address is required.",
+      "houseNumberRequired": "House number is required.",
+      "houseNumberInvalid": "Please enter a house number with digits (letters allowed).",
+      "postalRequired": "Postal code is required.",
+      "postalDE": "Please enter a 5-digit German postal code.",
+      "cityRequired": "City is required.",
+      "telephoneRequired": "Telephone number is required.",
+      "telephoneDE": "Please enter a valid German phone number (e.g. 01701234567 or +491701234567).",
+      "telephoneGeneric": "Please enter a valid phone number including country/area code.",
+      "errors": {
+        "firstNameRequired": "First name is required.",
+        "lastNameRequired": "Last name is required.",
+        "streetRequired": "Street and house number are required.",
+        "streetHouseInvalid": "Please include a house number with digits (letters allowed).",
+        "postalRequired": "Postal code is required.",
+        "postalDE": "Please enter a 5-digit German postal code.",
+        "cityRequired": "City is required.",
+        "phoneRequired": "Telephone number is required.",
+        "phoneDE": "Please enter a valid German phone number (e.g. 01701234567 or +491701234567).",
+        "phoneGeneric": "Please enter a valid phone number including country/area code."
+      }
+    },
     "status": {
       "pending": "Pending",
       "processing": "Processing",

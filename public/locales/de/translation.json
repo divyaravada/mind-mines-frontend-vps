@@ -560,7 +560,19 @@
     "delete": "Löschen",
     "none": "Noch keine Adressen.",
     "inUseError": "Diese Adresse wird von bestehenden Bestellungen verwendet und kann nicht gelöscht werden.",
-    "deleteError": "Die Adresse konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+    "deleteError": "Die Adresse konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "errors": {
+      "firstNameRequired": "Vorname ist erforderlich.",
+      "lastNameRequired": "Nachname ist erforderlich.",
+      "streetRequired": "Straße und Hausnummer sind erforderlich.",
+      "streetHouseInvalid": "Bitte eine Hausnummer mit Ziffern angeben (Buchstaben erlaubt).",
+      "postalRequired": "Postleitzahl ist erforderlich.",
+      "postalDE": "Bitte eine fünfstellige deutsche Postleitzahl eingeben.",
+      "cityRequired": "Ort ist erforderlich.",
+      "phoneRequired": "Telefonnummer ist erforderlich.",
+      "phoneDE": "Bitte eine gültige deutsche Telefonnummer eingeben (z.B. 01701234567 oder +491701234567).",
+      "phoneGeneric": "Bitte eine gültige Telefonnummer mit Vorwahl eingeben."
+    }
   },
   "countryGroups": {
     "western": "Westeuropa",
@@ -803,6 +815,21 @@
     "paymentReference": "Zahlungsreferenz: {{id}}",
     "viewOrders": "Meine Bestellungen ansehen",
     "backHome": "Zur Startseite",
+    "errors": {
+      "emailRequired": "E-Mail ist erforderlich.",
+      "emailInvalid": "Bitte eine gültige E-Mail-Adresse eingeben.",
+      "fullNameRequired": "Vollständiger Name ist erforderlich.",
+      "fullNameTwoWords": "Bitte Vor- und Nachnamen eingeben.",
+      "streetRequired": "Straße ist erforderlich.",
+      "houseNumberRequired": "Hausnummer ist erforderlich.",
+      "houseNumberInvalid": "Bitte eine Hausnummer mit Ziffern eingeben (Buchstaben erlaubt).",
+      "postalRequired": "Postleitzahl ist erforderlich.",
+      "postalDE": "Bitte eine fünfstellige deutsche Postleitzahl eingeben.",
+      "cityRequired": "Ort ist erforderlich.",
+      "telephoneRequired": "Telefonnummer ist erforderlich.",
+      "telephoneDE": "Bitte eine gültige deutsche Telefonnummer eingeben (z.B. 01701234567 oder +491701234567).",
+      "telephoneGeneric": "Bitte eine gültige Telefonnummer mit Vorwahl eingeben."
+    },
     "stripe": {
       "initFailed": "Stripe-Zahlung konnte nicht initialisiert werden.",
       "paymentFailed": "Zahlung fehlgeschlagen.",

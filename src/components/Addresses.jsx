@@ -1,5 +1,5 @@
 // src/components/Addresses.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   useGetAddressesQuery,
@@ -125,23 +125,179 @@ export default function AccountAddresses() {
   const [editingId, setEditingId] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // 🔴 NEW: field-level validation errors
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     if (!isFetching && !editingId) setForm(initial);
   }, [isFetching, editingId]);
 
+  // 🔵 Simple postal → city lookup (DE only)
+  const lookupCityByPostal = useCallback((country, postal) => {
+    if (!postal) return "";
+    if (country !== "DE") return "";
+    const mapDE = {
+      21640: "Horneburg",
+      20095: "Hamburg",
+      10115: "Berlin",
+    };
+    return mapDE[postal] || "";
+  }, []);
+
+  useEffect(() => {
+    const postal = (form.postal_code || "").trim();
+    const country = normalizeCountry(form.country);
+    if (!postal || country !== "DE") return;
+
+    const foundCity = lookupCityByPostal(country, postal);
+    if (foundCity && !form.city) {
+      setForm((prev) => ({ ...prev, city: foundCity }));
+      setErrors((prev) => ({ ...prev, city: "" }));
+    }
+  }, [form.postal_code, form.country, form.city, lookupCityByPostal]);
+
+  // 🔧 Validation logic (similar style as Checkout)
+
+  const validateField = useCallback(
+    (name, value, currentForm) => {
+      const v = (value || "").toString().trim();
+      const country = normalizeCountry(currentForm.country);
+
+      if (name === "first_name") {
+        if (!v)
+          return t(
+            "addresses.errors.firstNameRequired",
+            "First name is required."
+          );
+        return "";
+      }
+
+      if (name === "last_name") {
+        if (!v)
+          return t(
+            "addresses.errors.lastNameRequired",
+            "Last name is required."
+          );
+        return "";
+      }
+
+      if (name === "address_line1") {
+        if (!v)
+          return t(
+            "addresses.errors.streetRequired",
+            "Street and house number are required."
+          );
+        // must contain at least one digit (house number check)
+        if (!/\d/.test(v)) {
+          return t(
+            "addresses.errors.streetHouseInvalid",
+            "Please include a house number with digits (letters allowed)."
+          );
+        }
+        return "";
+      }
+
+      if (name === "postal_code") {
+        if (!v)
+          return t(
+            "addresses.errors.postalRequired",
+            "Postal code is required."
+          );
+        if (country === "DE") {
+          if (!/^\d{5}$/.test(v)) {
+            return t(
+              "addresses.errors.postalDE",
+              "Please enter a 5-digit German postal code."
+            );
+          }
+        }
+        return "";
+      }
+
+      if (name === "city") {
+        if (!v) return t("addresses.errors.cityRequired", "City is required.");
+        return "";
+      }
+
+      if (name === "phone") {
+        if (!v)
+          return t(
+            "addresses.errors.phoneRequired",
+            "Telephone number is required."
+          );
+        const numeric = v.replace(/\s+/g, "");
+        if (country === "DE") {
+          if (!/^(?:\+49|0)\d{6,14}$/.test(numeric)) {
+            return t(
+              "addresses.errors.phoneDE",
+              "Please enter a valid German phone number (e.g. 01701234567 or +491701234567)."
+            );
+          }
+          return "";
+        }
+        if (!/^\+?[0-9][0-9\s\-()]{6,}$/.test(v)) {
+          return t(
+            "addresses.errors.phoneGeneric",
+            "Please enter a valid phone number including country/area code."
+          );
+        }
+        return "";
+      }
+
+      return "";
+    },
+    [t]
+  );
+
+  const validateAll = useCallback(
+    (f) => {
+      const toCheck = [
+        "first_name",
+        "last_name",
+        "address_line1",
+        "postal_code",
+        "city",
+        "phone",
+      ];
+      const nextErrors = {};
+      toCheck.forEach((name) => {
+        const err = validateField(name, f[name], f);
+        if (err) nextErrors[name] = err;
+      });
+      setErrors(nextErrors);
+      return Object.keys(nextErrors).length === 0;
+    },
+    [validateField]
+  );
+
   const save = async () => {
+    setErrorMsg("");
+    const ok = validateAll(form);
+    if (!ok) return; // stop if invalid
+
+    const payload = {
+      ...form,
+      country: ensureCountryCode(form.country),
+    };
+
     if (editingId) {
-      await updateAddress({ id: editingId, ...form }).unwrap();
+      await updateAddress({ id: editingId, ...payload }).unwrap();
     } else {
-      await createAddress(form).unwrap();
+      await createAddress(payload).unwrap();
     }
     setForm(initial);
     setEditingId(null);
+    setErrors({});
   };
 
   const edit = (a) => {
     setEditingId(a.id);
-    setForm({ ...initial, ...a, country: ensureCountryCode(a.country) });
+    setForm({
+      ...initial,
+      ...a,
+      country: ensureCountryCode(a.country),
+    });
+    setErrors({});
   };
 
   const del = async (id) => {
@@ -175,6 +331,18 @@ export default function AccountAddresses() {
     "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 " +
     "focus:outline-none focus:ring-2 focus:ring-backnewswhite dark:focus:ring-backnewsdark " +
     "focus:border-backnewswhite dark:focus:border-backnewsdark";
+
+  const handleCountryChange = (e) => {
+    const code = ensureCountryCode(e.target.value);
+    setForm((prev) => ({ ...prev, country: code }));
+    setErrors((prev) => ({ ...prev, phone: "" })); // clear phone error when country changes
+  };
+
+  const handleChange = (field) => (e) => {
+    const { value } = e.target;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -210,51 +378,124 @@ export default function AccountAddresses() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <input
-              placeholder={t("addresses.firstName")}
-              value={form.first_name}
-              onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-              className={inputBase}
-            />
-            <input
-              placeholder={t("addresses.lastName")}
-              value={form.last_name}
-              onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-              className={inputBase}
-            />
-            <input
-              placeholder={t("addresses.street")}
-              value={form.address_line1}
-              onChange={(e) =>
-                setForm({ ...form, address_line1: e.target.value })
-              }
-              className={`${inputBase} md:col-span-2`}
-            />
-            <input
-              placeholder={t("addresses.address2")}
-              value={form.address_line2}
-              onChange={(e) =>
-                setForm({ ...form, address_line2: e.target.value })
-              }
-              className={`${inputBase} md:col-span-2`}
-            />
-            <input
-              placeholder={t("addresses.postalCode")}
-              value={form.postal_code}
-              onChange={(e) =>
-                setForm({ ...form, postal_code: e.target.value })
-              }
-              className={inputBase}
-            />
-            <input
-              placeholder={t("addresses.city")}
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-              className={inputBase}
-            />
+            <div>
+              <input
+                placeholder={t("addresses.firstName")}
+                value={form.first_name}
+                onChange={handleChange("first_name")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    first_name: validateField(
+                      "first_name",
+                      e.target.value,
+                      form
+                    ),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.first_name && (
+                <p className="mt-1 text-xs text-red-600">{errors.first_name}</p>
+              )}
+            </div>
+
+            <div>
+              <input
+                placeholder={t("addresses.lastName")}
+                value={form.last_name}
+                onChange={handleChange("last_name")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    last_name: validateField("last_name", e.target.value, form),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.last_name && (
+                <p className="mt-1 text-xs text-red-600">{errors.last_name}</p>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <input
+                placeholder={t("addresses.street")}
+                value={form.address_line1}
+                onChange={handleChange("address_line1")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    address_line1: validateField(
+                      "address_line1",
+                      e.target.value,
+                      form
+                    ),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.address_line1 && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.address_line1}
+                </p>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <input
+                placeholder={t("addresses.address2")}
+                value={form.address_line2}
+                onChange={handleChange("address_line2")}
+                className={inputBase}
+              />
+            </div>
+
+            <div>
+              <input
+                placeholder={t("addresses.postalCode")}
+                value={form.postal_code}
+                onChange={handleChange("postal_code")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    postal_code: validateField(
+                      "postal_code",
+                      e.target.value,
+                      form
+                    ),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.postal_code && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.postal_code}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                placeholder={t("addresses.city")}
+                value={form.city}
+                onChange={handleChange("city")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    city: validateField("city", e.target.value, form),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.city && (
+                <p className="mt-1 text-xs text-red-600">{errors.city}</p>
+              )}
+            </div>
+
             <select
               value={form.country}
-              onChange={(e) => setForm({ ...form, country: e.target.value })}
+              onChange={handleCountryChange}
               className={inputBase}
             >
               {groupedCountries
@@ -278,12 +519,24 @@ export default function AccountAddresses() {
                     </option>
                   ))}
             </select>
-            <input
-              placeholder={t("addresses.phone")}
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className={inputBase}
-            />
+
+            <div>
+              <input
+                placeholder={t("addresses.phone")}
+                value={form.phone}
+                onChange={handleChange("phone")}
+                onBlur={(e) =>
+                  setErrors((prev) => ({
+                    ...prev,
+                    phone: validateField("phone", e.target.value, form),
+                  }))
+                }
+                className={inputBase}
+              />
+              {errors.phone && (
+                <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
+              )}
+            </div>
           </div>
 
           <label className="flex items-center gap-2 mt-4 text-gray-800 dark:text-gray-200">
