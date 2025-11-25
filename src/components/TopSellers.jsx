@@ -71,12 +71,12 @@ export default function TopSellers() {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
             {t("home.topsellers.title")}
           </h2>
-          <a
-            href="/decorative-products"
+          <Link
+            to="/decorative-products"
             className="text-sm font-medium text-backnewswhite hover:opacity-90"
           >
             {t("home.topsellers.seeAll")}
-          </a>
+          </Link>
         </div>
 
         {isLoading ? (

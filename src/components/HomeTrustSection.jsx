@@ -12,7 +12,10 @@ import { useTranslation } from "react-i18next";
 
 const Item = ({ icon: Icon, text }) => (
   <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 shadow-sm">
-    <Icon className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
+    <Icon
+      className="w-5 h-5 text-backnewswhite dark:text-backnewsdark"
+      aria-hidden="true"
+    />
     <span className="text-sm md:text-base text-gray-800 dark:text-gray-100">
       {text}
     </span>

@@ -28,6 +28,9 @@ export default function HomeCarousel() {
 
   useEffect(() => {
     if (!slider?.current) return;
+
+    // Disable autoplay on small screens
+    if (window.innerWidth < 768) return;
     if (timer.current) clearInterval(timer.current);
     timer.current = setInterval(() => slider.current?.next(), 4000);
     return () => timer.current && clearInterval(timer.current);
@@ -75,12 +78,13 @@ export default function HomeCarousel() {
               src={cat.image}
               alt={t(`home.categories.${cat.id}.heading`, cat.id)}
               className="absolute inset-0 w-full h-full object-cover opacity-80"
-              loading="eager"
+              loading={idx === 0 ? "eager" : "lazy"}
+              decoding="async"
             />
             <div className="relative z-10 p-6 md:p-12 max-w-3xl">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow mb-2">
+              <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow mb-2">
                 {t(`home.categories.${cat.id}.heading`, cat.id)}
-              </h2>
+              </h1>
               <div className="w-16 border-b-2 border-white mb-4" />
               <p className="text-base md:text-lg text-gray-100 max-w-xl mb-8 drop-shadow">
                 {t(`home.categories.${cat.id}.description`, "")}
@@ -123,7 +127,7 @@ export default function HomeCarousel() {
             key={idx}
             className={`w-3.5 h-3.5 rounded-full border-2 border-white/90 bg-white/40 hover:bg-white transition ${
               currentSlide === idx ? "bg-white shadow-lg" : ""
-            }`}
+            }  focus:outline-none focus-visible:ring-2 focus-visible:ring-white`}
             onClick={() => slider.current?.moveToIdx(idx)}
             aria-label={t("home.carousel.goToSlide", { index: idx + 1 })}
           />

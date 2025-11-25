@@ -5,11 +5,20 @@ import { useTranslation } from "react-i18next";
 export function FeatureStrip() {
   const { t } = useTranslation();
   const features = [
-    { icon: <Gem className="w-6 h-6" />, label: t("home.features.materials") },
-    { icon: <Home className="w-6 h-6" />, label: t("home.features.germany") },
-    { icon: <Globe className="w-6 h-6" />, label: t("home.features.stones") },
     {
-      icon: <RotateCw className="w-6 h-6" />,
+      icon: <Gem className="w-6 h-6" aria-hidden="true" />,
+      label: t("home.features.materials"),
+    },
+    {
+      icon: <Home className="w-6 h-6" aria-hidden="true" />,
+      label: t("home.features.germany"),
+    },
+    {
+      icon: <Globe className="w-6 h-6" aria-hidden="true" />,
+      label: t("home.features.stones"),
+    },
+    {
+      icon: <RotateCw className="w-6 h-6" aria-hidden="true" />,
       label: t("home.features.return"),
     },
   ];

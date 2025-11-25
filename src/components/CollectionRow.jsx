@@ -50,6 +50,8 @@ export function CollectionRow() {
                   src={item.image}
                   alt={t(`home.collection.${item.key}`)}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <span className="mt-3 sm:mt-4 block text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
