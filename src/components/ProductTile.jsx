@@ -55,23 +55,19 @@ export default function ProductTile({
     <div className="font-semibold">{fmtEUR(baseGross || priceNum, locale)}</div>
   );
 
-  const handleImageClick = (e) => {
-    e.stopPropagation();
-    if (onQuickView) {
-      onQuickView(product); // open quick view modal
-    } else {
-      navigate(`/products/${product.id}`);
-    }
+  // 👉 Global click: go to product details
+  const goToDetail = () => {
+    navigate(`/products/${product.id}`);
   };
 
   return (
-    <article className="group cursor-pointer">
-      {/* IMAGE AREA – hover shows quick view overlay, click opens quick view */}
+    <article
+      className="group cursor-pointer"
+      onClick={goToDetail} // whole card navigates
+    >
+      {/* IMAGE AREA */}
       <div className="relative bg-marblewhite dark:bg-marbleblack">
-        <div
-          className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-700 overflow-hidden"
-          onClick={handleImageClick}
-        >
+        <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-700 overflow-hidden">
           <img
             src={image}
             alt={title}
@@ -85,7 +81,7 @@ export default function ProductTile({
             type="button"
             aria-label={t("wishlist.buttonLabel")}
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); // don't navigate
               onToggleWishlist?.(product.id);
             }}
             className={`absolute top-3 right-3 p-2 rounded-full shadow ${
@@ -118,11 +114,14 @@ export default function ProductTile({
             </div>
           )}
 
-          {/* QUICK VIEW OVERLAY */}
+          {/* QUICK VIEW OVERLAY – separate button */}
           {onQuickView && (
             <button
               type="button"
-              onClick={handleImageClick}
+              onClick={(e) => {
+                e.stopPropagation(); // prevent navigation
+                onQuickView(product);
+              }}
               className="absolute inset-0 flex items-center justify-center bg-black/10 dark:bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <span className="px-4 py-2 rounded-full bg-white/95 dark:bg-neutral-900/95 text-sm font-medium text-gray-800 dark:text-gray-100 shadow-sm">
@@ -133,14 +132,13 @@ export default function ProductTile({
         </div>
       </div>
 
-      {/* TEXT + PRICE – no card border / shadow, simple layout like sofa screenshot */}
+      {/* TEXT + PRICE */}
       <div className="pt-3">
         <h3
           className="font-medium text-sm md:text-base text-gray-900 dark:text-backnewsdark line-clamp-2"
-          // optional: clicking title goes to product page
           onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/products/${product.id}`);
+            e.stopPropagation(); // already handled by article, but to be safe
+            goToDetail();
           }}
         >
           {title}
@@ -174,7 +172,7 @@ export default function ProductTile({
 
           <button
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); // don't navigate when adding to cart
               if (!isOut) onAddToCart?.(product, priceNum);
             }}
             disabled={isOut}
