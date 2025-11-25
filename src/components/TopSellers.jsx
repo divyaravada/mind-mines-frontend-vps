@@ -12,7 +12,7 @@ import {
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { addItem } from "../features/cart/cartSlice";
 import { productTitle } from "../lib/i18n";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { resolveProductPrice } from "../lib/money";
 
 export default function TopSellers() {
