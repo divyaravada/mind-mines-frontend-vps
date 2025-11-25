@@ -61,6 +61,28 @@ export default function CartPage() {
   const [addW] = useAddToWishlistMutation();
   const [remW] = useRemoveFromWishlistMutation();
 
+  // 🔹 Ensure Redux qty never exceeds stock
+  useEffect(() => {
+    items.forEach((it) => {
+      const maxQty =
+        typeof it.stock === "number" && it.stock > 0 ? it.stock : null;
+      const current = it.qty || 1;
+
+      // If we don't know stock, don't clamp
+      if (maxQty === null) {
+        if (current < 1) {
+          dispatch(updateQty({ id: it.id, qty: 1 }));
+        }
+        return;
+      }
+
+      const clamped = Math.min(Math.max(1, current), maxQty);
+      if (clamped !== current) {
+        dispatch(updateQty({ id: it.id, qty: clamped }));
+      }
+    });
+  }, [items, dispatch]);
+
   // Backend sync
   const [saveCart] = useSaveCartMutation();
   const syncNow = useDebounce(async (payload) => {
@@ -79,17 +101,25 @@ export default function CartPage() {
           ? Number(it.price)
           : Number(it.priceRange ?? 0);
 
+      const maxQty =
+        typeof it.stock === "number" && it.stock > 0 ? it.stock : null;
+      let qty = it.qty || 1;
+      if (maxQty !== null) {
+        qty = Math.min(Math.max(1, qty), maxQty);
+      } else {
+        qty = Math.max(1, qty);
+      }
+
       return {
         product: it.id,
         name: it.name,
         image: it.image,
         price: unitPrice.toFixed(2),
-        qty: it.qty,
+        qty,
         color: it.color || "",
         weight: it.weight || "",
         dimensions: it.dimensions || "",
         category: it.category || "",
-        // 🔹 (optional) send stock if you want to store it server side too
         stock: typeof it.stock === "number" ? it.stock : undefined,
       };
     });
@@ -97,7 +127,7 @@ export default function CartPage() {
     syncNow(body);
   }, [items, loggedIn, syncNow]);
 
-  // 🔹 subtotal now respects max stock per item
+  // Subtotal uses clamped qty as well
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
       const unitPrice =
@@ -106,11 +136,14 @@ export default function CartPage() {
           : Number(item.priceRange ?? 0);
 
       const maxQty =
-        typeof item.stock === "number" && item.stock > 0
-          ? item.stock
-          : Number.POSITIVE_INFINITY;
+        typeof item.stock === "number" && item.stock > 0 ? item.stock : null;
+      let qty = item.qty || 1;
+      if (maxQty !== null) {
+        qty = Math.min(Math.max(1, qty), maxQty);
+      } else {
+        qty = Math.max(1, qty);
+      }
 
-      const qty = Math.min(item.qty || 1, maxQty);
       return sum + unitPrice * qty;
     }, 0);
   }, [items]);
@@ -182,16 +215,19 @@ export default function CartPage() {
                 ? Number(item.price)
                 : Number(item.priceRange ?? 0);
 
-            // 🔹 max quantity based on stock
             const maxQty =
               typeof item.stock === "number" && item.stock > 0
                 ? item.stock
-                : 99; // fallback if no stock info
+                : null;
+            let effectiveQty = item.qty || 1;
+            if (maxQty !== null) {
+              effectiveQty = Math.min(Math.max(1, effectiveQty), maxQty);
+            } else {
+              effectiveQty = Math.max(1, effectiveQty);
+            }
 
-            const effectiveQty = Math.min(Math.max(1, item.qty || 1), maxQty);
             const lineTotal = unitPrice * effectiveQty;
-
-            const disablePlus = effectiveQty >= maxQty;
+            const disablePlus = maxQty !== null && effectiveQty >= maxQty;
 
             return (
               <div
@@ -215,7 +251,6 @@ export default function CartPage() {
                       <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                       </div>
-                      {/* 🔹 Stock info line */}
                       {typeof item.stock === "number" && item.stock > 0 && (
                         <div className="text-xs text-gray-500 mt-1">
                           {t("cart.stockInfo", {
@@ -282,12 +317,14 @@ export default function CartPage() {
                         <input
                           type="number"
                           min={1}
-                          max={maxQty}
+                          max={maxQty ?? undefined}
                           value={effectiveQty}
                           onChange={(e) => {
                             const raw = Number(e.target.value || 1);
                             let next = Math.max(1, raw);
-                            next = Math.min(next, maxQty);
+                            if (maxQty !== null) {
+                              next = Math.min(next, maxQty);
+                            }
                             dispatch(
                               updateQty({
                                 id: item.id,

@@ -1,3 +1,4 @@
+// src/pages/Checkout.jsx
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
@@ -47,7 +48,9 @@ export default function Checkout() {
 
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
-  // compute subtotal here so it respects priceRange when price is 0
+  const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
+
+  // subtotal (respects priceRange if price is 0)
   const subtotal = useMemo(
     () =>
       items.reduce((sum, it) => {
@@ -60,7 +63,6 @@ export default function Checkout() {
       }, 0),
     [items]
   );
-  const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
   const [paypalCreateOrder] = usePaypalCreateOrderMutation();
@@ -95,17 +97,165 @@ export default function Checkout() {
     telephone: "",
   });
 
+  // 🔴 NEW: field error state
+  const [errors, setErrors] = useState({});
+
   // coupon state
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
-  // single guard flag for redirects related to cart clearing
+  // guards
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
   const localOrderIdRef = useRef(null);
 
-  // Prefill address from default
+  // ---------- VALIDATION HELPERS ----------
+
+  const validateField = useCallback(
+    (name, value, currentForm) => {
+      const v = (value || "").toString().trim();
+      const country = normalizeCountry(currentForm.country);
+
+      // email
+      if (name === "email") {
+        if (!v) return t("checkout.errors.emailRequired", "Email is required.");
+        const re = /^\S+@\S+\.\S+$/;
+        if (!re.test(v))
+          return t(
+            "checkout.errors.emailInvalid",
+            "Please enter a valid email."
+          );
+        return "";
+      }
+
+      // full name
+      if (name === "fullName") {
+        if (!v)
+          return t(
+            "checkout.errors.fullNameRequired",
+            "Full name is required."
+          );
+        if (v.split(" ").filter(Boolean).length < 2)
+          return t(
+            "checkout.errors.fullNameTwoWords",
+            "Please enter first and last name."
+          );
+        return "";
+      }
+
+      // street
+      if (name === "street") {
+        if (!v)
+          return t(
+            "checkout.errors.streetRequired",
+            "Street address is required."
+          );
+        return "";
+      }
+
+      // house number: must contain at least one digit; letters allowed
+      if (name === "houseNumber") {
+        if (!v)
+          return t(
+            "checkout.errors.houseNumberRequired",
+            "House number is required."
+          );
+        if (!/\d/.test(v)) {
+          return t(
+            "checkout.errors.houseNumberInvalid",
+            "Please enter a house number with digits (letters allowed)."
+          );
+        }
+        return "";
+      }
+
+      // postal code
+      if (name === "postalCode") {
+        if (!v)
+          return t(
+            "checkout.errors.postalRequired",
+            "Postal code is required."
+          );
+        if (country === "DE") {
+          if (!/^\d{5}$/.test(v)) {
+            return t(
+              "checkout.errors.postalDE",
+              "Please enter a 5-digit German postal code."
+            );
+          }
+        }
+        return "";
+      }
+
+      // city
+      if (name === "city") {
+        if (!v) return t("checkout.errors.cityRequired", "City is required.");
+        return "";
+      }
+
+      // telephone – country-specific
+      if (name === "telephone") {
+        if (!v)
+          return t(
+            "checkout.errors.telephoneRequired",
+            "Telephone number is required."
+          );
+        const numeric = v.replace(/\s+/g, "");
+        if (country === "DE") {
+          // Very simple DE pattern: +49 or 0 followed by 6–14 digits
+          if (!/^(?:\+49|0)\d{6,14}$/.test(numeric)) {
+            return t(
+              "checkout.errors.telephoneDE",
+              "Please enter a valid German phone number (e.g. 01701234567 or +491701234567)."
+            );
+          }
+          return "";
+        }
+        // Generic: at least 7 digits total
+        if (!/^\+?[0-9][0-9\s\-()]{6,}$/.test(v)) {
+          return t(
+            "checkout.errors.telephoneGeneric",
+            "Please enter a valid phone number including country/area code."
+          );
+        }
+        return "";
+      }
+
+      return "";
+    },
+    [t]
+  );
+
+  const validateAll = useCallback(
+    (f) => {
+      const fieldsToCheck = [
+        "email",
+        "fullName",
+        "street",
+        "houseNumber",
+        "postalCode",
+        "city",
+        "telephone",
+      ];
+      const nextErrors = {};
+      fieldsToCheck.forEach((name) => {
+        const err = validateField(name, f[name], f);
+        if (err) nextErrors[name] = err;
+      });
+      setErrors(nextErrors);
+      return Object.keys(nextErrors).length === 0;
+    },
+    [validateField]
+  );
+
+  // helper used by payments/address saving
+  const hasMinimalAddress = useCallback(() => {
+    return validateAll(form);
+  }, [form, validateAll]);
+
+  // ---------- PREFILL ADDRESS FROM ACCOUNT / DEFAULT ADDRESS ----------
+
   useEffect(() => {
     if (!isAuth || addrLoading || addrList.length === 0) return;
 
@@ -150,7 +300,7 @@ export default function Checkout() {
     }
   }, [acct?.email]);
 
-  // redirect away if cart is empty (single guard)
+  // -------- CART GUARD (if empty redirect) --------
   useEffect(() => {
     if (skipCartGuardRef.current || items.length > 0) return;
     try {
@@ -179,7 +329,8 @@ export default function Checkout() {
     [items]
   );
 
-  // coupon preview apply
+  // --- COUPON ---
+
   const applyCoupon = async () => {
     setCouponErr("");
     setCouponInfo(null);
@@ -197,16 +348,14 @@ export default function Checkout() {
 
   const autoAppliedRef = useRef(false);
 
-  // A) If we’re already on checkout when user clicks the promo banner
+  // coupon auto-apply from promo banner events
   useEffect(() => {
     const handler = async (ev) => {
       if (autoAppliedRef.current) return;
       const incoming = String(ev?.detail?.code || "").toUpperCase();
       if (!incoming) return;
       autoAppliedRef.current = true;
-      // put into input immediately
       setCouponCode(incoming);
-      // wait until items are ready, then preview+apply
       const tryApply = async () => {
         if (backendItems.length === 0) return false;
         try {
@@ -220,7 +369,6 @@ export default function Checkout() {
           return false;
         }
       };
-      // attempt now, and again on next tick if empty
       let applied = await tryApply();
       if (!applied) setTimeout(tryApply, 120);
     };
@@ -228,7 +376,6 @@ export default function Checkout() {
     return () => window.removeEventListener("mindmines:apply-coupon", handler);
   }, [backendItems, previewCoupon]);
 
-  // B) On first mount, pick up the stored code (from PromoBanner navigation)
   useEffect(() => {
     if (autoAppliedRef.current) return;
     const stored = (
@@ -238,9 +385,7 @@ export default function Checkout() {
     ).toUpperCase();
     if (!stored) return;
     autoAppliedRef.current = true;
-    // show in input right away
     setCouponCode(stored);
-    // apply as soon as items exist
     const doApply = async () => {
       if (backendItems.length === 0) return false;
       try {
@@ -261,11 +406,10 @@ export default function Checkout() {
           ok = await doApply();
           if (ok) clearInterval(id);
         }, 120);
-        setTimeout(() => clearInterval(id), 3000); // stop trying after ~3s
+        setTimeout(() => clearInterval(id), 3000);
       }
       sessionStorage.removeItem("coupon_auto_once");
     })();
-    // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -278,6 +422,7 @@ export default function Checkout() {
     const ttotal = subtotal + shippingFee - discount;
     return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, discount]);
+
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
     () => fmtEUR((payTotal || 0) / klarnaInstallments, locale),
@@ -288,11 +433,23 @@ export default function Checkout() {
       ? t("checkout.subtotal_one", { count: itemsCount })
       : t("checkout.subtotal_other", { count: itemsCount });
 
-  // address save
+  // --- SAVE ADDRESS ---
+
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
 
   const saveAddress = async () => {
+    // run validation first
+    if (!validateAll(form)) {
+      // focus first error field
+      const firstErrorKey = Object.keys(errors)[0];
+      if (firstErrorKey) {
+        const el = document.querySelector(`[name="${firstErrorKey}"]`);
+        if (el) el.focus();
+      }
+      return;
+    }
+
     setSavingAddr(true);
     try {
       const payload = buildAddressPayload(form, addressIdRef);
@@ -316,7 +473,7 @@ export default function Checkout() {
     }
   };
 
-  // wipe cart after success
+  // --- wipe cart after success ---
   const wipeCart = useCallback(() => {
     skipCartGuardRef.current = true;
     dispatch(clearCart());
@@ -365,7 +522,7 @@ export default function Checkout() {
             })
           );
         } catch {
-          // ignore storage failures
+          // ignore
         }
       }
     },
@@ -394,20 +551,7 @@ export default function Checkout() {
   const [savedCardPaymentMethodId] = useState(null);
   const [savedSepaPaymentMethodId] = useState(null);
 
-  // minimal address check
-  const hasMinimalAddress = useCallback(() => {
-    const needed = [
-      "email",
-      "fullName",
-      "street",
-      "postalCode",
-      "city",
-      "country",
-    ];
-    return needed.every((k) => (form[k] || "").toString().trim().length > 0);
-  }, [form]);
-
-  // handle country + DE-only restriction
+  // country change + DE only payment guard
   const handleCountryChange = (e) => {
     const newCode = normalizeCountry(e.target.value);
     const isDEOnly =
@@ -426,6 +570,7 @@ export default function Checkout() {
       return;
     }
     setForm((prev) => ({ ...prev, country: newCode }));
+    setErrors((prev) => ({ ...prev, telephone: "" })); // clear tel errors when changing country
   };
 
   const countryCode = normalizeCountry(form.country);
@@ -438,23 +583,50 @@ export default function Checkout() {
     }
   }, [countryCode, deOnlyActive]);
 
-  // === NEW: Create a local order for Stripe card ===
+  // 🔵 NEW: postalCode → auto-fill city (simple map for DE)
+  const lookupCityByPostal = useCallback((country, postal) => {
+    if (!postal) return "";
+    if (country !== "DE") return "";
+    const mapDE = {
+      21640: "Horneburg",
+      20095: "Hamburg",
+      10115: "Berlin",
+    };
+    return mapDE[postal] || "";
+  }, []);
+
+  useEffect(() => {
+    const postal = (form.postalCode || "").trim();
+    const ctry = normalizeCountry(form.country);
+    if (!postal || ctry !== "DE") return;
+    const cityFound = lookupCityByPostal(ctry, postal);
+    if (cityFound && !form.city) {
+      setForm((prev) => ({ ...prev, city: cityFound }));
+      setErrors((prev) => ({ ...prev, city: "" }));
+    }
+  }, [form.postalCode, form.country, form.city, lookupCityByPostal]);
+
+  // === Ensure Stripe order ===
   const ensureStripeOrder = useCallback(
     async (pm) => {
       if (localOrderIdRef.current) return localOrderIdRef.current;
-      if (!hasMinimalAddress()) {
-        alert(t("checkout.fillFirst"));
 
+      if (!hasMinimalAddress()) {
+        alert(
+          t(
+            "checkout.fillFirst",
+            "Please fill in all required contact and address fields correctly."
+          )
+        );
         return null;
       }
       if (items.length === 0) {
-        alert(t("checkout.emptyCart"));
+        alert(t("checkout.emptyCart", "Your cart is empty."));
         return null;
       }
       let installments_months = null;
       let pmToSave = pm;
 
-      // card installments: e.g. "card_installments_3"
       if (pm && pm.startsWith("card_installments_")) {
         installments_months = Number(pm.split("_").pop());
         pmToSave = "card_installments";
@@ -465,7 +637,6 @@ export default function Checkout() {
         pm === "klarna_installments" ||
         pm === "giropay"
       ) {
-        // keep as-is
         pmToSave = pm;
       }
 
@@ -489,8 +660,6 @@ export default function Checkout() {
             house_number: form.houseNumber || "",
           },
         }).unwrap();
-
-        // Expecting { id, number, ... }
         localOrderIdRef.current = res?.id;
         return res?.id || null;
       } catch (e) {
@@ -514,16 +683,14 @@ export default function Checkout() {
     ]
   );
 
-  // URL coupon code pickup
+  // coupon from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const qCoupon = (params.get("coupon") || "").trim();
     if (!qCoupon) return;
 
-    // set the field immediately
     setCouponCode(qCoupon.toUpperCase());
 
-    // try preview/apply right away
     (async () => {
       try {
         const r = await previewCoupon({
@@ -536,7 +703,6 @@ export default function Checkout() {
       }
     })();
 
-    // focus and scroll into view
     const el = document.getElementById("coupon-input");
     if (el) {
       el.focus();
@@ -544,7 +710,7 @@ export default function Checkout() {
     }
   }, [location.search, backendItems, previewCoupon]);
 
-  // PayPal block
+  // PayPal section
   const renderPayPalSection = () => (
     <PayPalScriptProvider
       options={{
@@ -577,7 +743,7 @@ export default function Checkout() {
                 alert(
                   t(
                     "checkout.fillFirst",
-                    "Please fill in contact + delivery first."
+                    "Please fill in all required contact and address fields correctly."
                   )
                 );
                 return actions.reject();
@@ -601,8 +767,6 @@ export default function Checkout() {
                   phone: form.telephone || "",
                 },
               }).unwrap();
-
-              // backend should return both: { id: <paypal_id>, order_id: <local_order_id> }
               localOrderIdRef.current = res?.order_id;
               return res?.id;
             }}
@@ -624,7 +788,7 @@ export default function Checkout() {
     </PayPalScriptProvider>
   );
 
-  // Card installments toggle + component
+  // Card installments
   const renderCardInstallmentsBlock = () => (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
@@ -677,7 +841,7 @@ export default function Checkout() {
     </div>
   );
 
-  // SEPA installments (DE only)
+  // SEPA installments
   const renderSepaInstallmentsBlock = () => (
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
@@ -733,10 +897,14 @@ export default function Checkout() {
     </div>
   );
 
-  const onChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  // handle field change – clears error for that field
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
-  // ---- RENDER ----
+  // ---------- RENDER ----------
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-white ">
       <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -752,8 +920,17 @@ export default function Checkout() {
               placeholder={t("checkout.emailPlaceholder")}
               value={form.email}
               onChange={onChange}
-              className={`${inputCls} mb-4`}
+              onBlur={(e) =>
+                setErrors((prev) => ({
+                  ...prev,
+                  email: validateField("email", e.target.value, form),
+                }))
+              }
+              className={`${inputCls} mb-1`}
             />
+            {errors.email && (
+              <p className="mb-3 text-xs text-red-600">{errors.email}</p>
+            )}
 
             <h2 className="text-lg font-semibold mb-2">
               {t("checkout.delivery")}
@@ -839,10 +1016,19 @@ export default function Checkout() {
                   name="fullName"
                   value={form.fullName}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      fullName: validateField("fullName", e.target.value, form),
+                    }))
+                  }
                   className={inputCls}
                   aria-required="true"
                   required
                 />
+                {errors.fullName && (
+                  <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>
+                )}
               </div>
 
               <div className="md:col-span-2">
@@ -853,10 +1039,19 @@ export default function Checkout() {
                   name="street"
                   value={form.street}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      street: validateField("street", e.target.value, form),
+                    }))
+                  }
                   className={inputCls}
                   aria-required="true"
                   required
                 />
+                {errors.street && (
+                  <p className="mt-1 text-xs text-red-600">{errors.street}</p>
+                )}
               </div>
 
               <div>
@@ -867,10 +1062,25 @@ export default function Checkout() {
                   name="houseNumber"
                   value={form.houseNumber}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      houseNumber: validateField(
+                        "houseNumber",
+                        e.target.value,
+                        form
+                      ),
+                    }))
+                  }
                   className={inputCls}
                   aria-required="true"
                   required
                 />
+                {errors.houseNumber && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.houseNumber}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -893,10 +1103,25 @@ export default function Checkout() {
                   name="postalCode"
                   value={form.postalCode}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      postalCode: validateField(
+                        "postalCode",
+                        e.target.value,
+                        form
+                      ),
+                    }))
+                  }
                   className={inputCls}
                   aria-required="true"
                   required
                 />
+                {errors.postalCode && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.postalCode}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -907,10 +1132,19 @@ export default function Checkout() {
                   name="city"
                   value={form.city}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      city: validateField("city", e.target.value, form),
+                    }))
+                  }
                   className={inputCls}
                   aria-required="true"
                   required
                 />
+                {errors.city && (
+                  <p className="mt-1 text-xs text-red-600">{errors.city}</p>
+                )}
               </div>
 
               <div className="md:col-span-2">
@@ -921,8 +1155,25 @@ export default function Checkout() {
                   name="telephone"
                   value={form.telephone}
                   onChange={onChange}
+                  onBlur={(e) =>
+                    setErrors((prev) => ({
+                      ...prev,
+                      telephone: validateField(
+                        "telephone",
+                        e.target.value,
+                        form
+                      ),
+                    }))
+                  }
                   className={inputCls}
+                  aria-required="true"
+                  required
                 />
+                {errors.telephone && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.telephone}
+                  </p>
+                )}
               </div>
             </div>
 
