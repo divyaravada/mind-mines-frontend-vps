@@ -372,23 +372,33 @@ export default function Checkout() {
   }, [form, t, validatePhone]);
 
   const saveAddress = async () => {
-    // ✅ run validation first
+    // 🛑 If not logged in, don't call address API
+    if (!isAuth) {
+      alert(
+        t(
+          "checkout.saveAddressLogin",
+          "Please log in or create an account to save this address."
+        )
+      );
+      return;
+    }
+
+    // ✅ Validate fields and show inline errors
     const ok = validateAddress();
     if (!ok) {
-      // Optional: small message at top; field errors are already shown
-      // alert(t("checkout.fillFirst", "Please fill in all required address fields."));
+      // field-level errors already shown under each input
       return;
     }
 
     setSavingAddr(true);
     try {
-      const payload = buildAddressPayload(form, addressIdRef);
-      if (addressIdRef.current) {
-        await updateAddress({ id: addressIdRef.current, ...payload }).unwrap();
-      } else {
-        const res = await createAddress(payload).unwrap();
-        addressIdRef.current = res?.id ?? null;
-      }
+      // always create a NEW address/contact
+      const payload = buildAddressPayload(form, null);
+      const res = await createAddress(payload).unwrap();
+
+      // remember the last created address id for shipping/order creation
+      addressIdRef.current = res?.id ?? null;
+
       setAddrSaved(true);
       setTimeout(() => setAddrSaved(false), 1800);
     } catch (e) {
