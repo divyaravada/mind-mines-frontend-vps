@@ -74,7 +74,6 @@ export default function CartPage() {
   useEffect(() => {
     const cart_token = getCartToken();
     const itemsPayload = items.map((it) => {
-      // use price if > 0, otherwise priceRange
       const unitPrice =
         it.price && Number(it.price) > 0
           ? Number(it.price)
@@ -90,13 +89,15 @@ export default function CartPage() {
         weight: it.weight || "",
         dimensions: it.dimensions || "",
         category: it.category || "",
+        // 🔹 (optional) send stock if you want to store it server side too
+        stock: typeof it.stock === "number" ? it.stock : undefined,
       };
     });
     const body = { cart_token, currency: "EUR", items: itemsPayload };
     syncNow(body);
   }, [items, loggedIn, syncNow]);
 
-  // 👉 compute subtotal here so it uses price/priceRange correctly
+  // 🔹 subtotal now respects max stock per item
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
       const unitPrice =
@@ -104,12 +105,16 @@ export default function CartPage() {
           ? Number(item.price)
           : Number(item.priceRange ?? 0);
 
-      const qty = item.qty || 1;
+      const maxQty =
+        typeof item.stock === "number" && item.stock > 0
+          ? item.stock
+          : Number.POSITIVE_INFINITY;
+
+      const qty = Math.min(item.qty || 1, maxQty);
       return sum + unitPrice * qty;
     }, 0);
   }, [items]);
 
-  // Shipping: currently free — keep as constant for now
   const shippingFee = 0;
   const total = subtotal + shippingFee;
 
@@ -172,13 +177,21 @@ export default function CartPage() {
           {items.map((item) => {
             const inWishlist = wishlistIds.includes(item.id);
 
-            // unit price per item (same logic)
             const unitPrice =
               item.price && Number(item.price) > 0
                 ? Number(item.price)
                 : Number(item.priceRange ?? 0);
 
-            const lineTotal = unitPrice * item.qty;
+            // 🔹 max quantity based on stock
+            const maxQty =
+              typeof item.stock === "number" && item.stock > 0
+                ? item.stock
+                : 99; // fallback if no stock info
+
+            const effectiveQty = Math.min(Math.max(1, item.qty || 1), maxQty);
+            const lineTotal = unitPrice * effectiveQty;
+
+            const disablePlus = effectiveQty >= maxQty;
 
             return (
               <div
@@ -202,6 +215,15 @@ export default function CartPage() {
                       <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                       </div>
+                      {/* 🔹 Stock info line */}
+                      {typeof item.stock === "number" && item.stock > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {t("cart.stockInfo", {
+                            stock: item.stock,
+                            defaultValue: "Max. {{stock}} piece(s) available",
+                          })}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}
@@ -248,7 +270,7 @@ export default function CartPage() {
                             dispatch(
                               updateQty({
                                 id: item.id,
-                                qty: Math.max(1, item.qty - 1),
+                                qty: Math.max(1, effectiveQty - 1),
                               })
                             )
                           }
@@ -260,25 +282,34 @@ export default function CartPage() {
                         <input
                           type="number"
                           min={1}
-                          value={item.qty}
-                          onChange={(e) =>
+                          max={maxQty}
+                          value={effectiveQty}
+                          onChange={(e) => {
+                            const raw = Number(e.target.value || 1);
+                            let next = Math.max(1, raw);
+                            next = Math.min(next, maxQty);
                             dispatch(
                               updateQty({
                                 id: item.id,
-                                qty: Math.max(1, Number(e.target.value || 1)),
+                                qty: next,
                               })
-                            )
-                          }
+                            );
+                          }}
                           className="w-12 text-center outline-none p-1 bg-transparent"
                           aria-label={t("cart.quantity")}
                         />
                         <button
-                          className="px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-r"
+                          className="px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-r disabled:opacity-40 disabled:cursor-not-allowed"
                           onClick={() =>
+                            !disablePlus &&
                             dispatch(
-                              updateQty({ id: item.id, qty: item.qty + 1 })
+                              updateQty({
+                                id: item.id,
+                                qty: effectiveQty + 1,
+                              })
                             )
                           }
+                          disabled={disablePlus}
                           aria-label={t("cart.increaseQty")}
                           title={t("cart.increaseQty")}
                         >

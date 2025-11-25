@@ -111,7 +111,6 @@ export default function ProductDetailPage() {
   }, [relatedResp]);
 
   const recommend = useMemo(() => {
-    // 1) merge suggested + related
     const seen = new Set();
     const merged = [...(suggested || []), ...(relatedByCategory || [])].filter(
       (p) => {
@@ -126,12 +125,7 @@ export default function ProductDetailPage() {
     if (!merged.length) return [];
 
     const selfId = String(id);
-
-    // 2) try to remove the current product
     const filtered = merged.filter((p) => String(p.id) !== selfId);
-
-    // 3) if removing self leaves nothing (e.g. only 1 product exists),
-    //    fall back to showing the merged list including self
     const base = filtered.length ? filtered : merged;
 
     return base.slice(0, 8);
@@ -195,6 +189,7 @@ export default function ProductDetailPage() {
       ? product.is_discounted
       : hasDiscountCalc(product);
 
+  // 🔹 Unified stock number: use product.stock or product.quantity
   const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
   const isOut = stockNum <= 0;
 
@@ -258,7 +253,43 @@ export default function ProductDetailPage() {
     ],
   };
 
+  // 🔹 Clamp quantity to stock
+  const handleQtyChange = (e) => {
+    const raw = Number(e.target.value);
+    if (Number.isNaN(raw)) {
+      setQty(1);
+      return;
+    }
+    let next = Math.max(1, raw);
+    if (stockNum > 0) {
+      next = Math.min(next, stockNum);
+    }
+    setQty(next);
+  };
+
+  // 🔹 Enforce stock when adding to cart
   const handleAddToCart = () => {
+    if (isOut || stockNum <= 0) {
+      alert(
+        t("productDetail.outOfStock", {
+          defaultValue: "This product is currently out of stock.",
+        })
+      );
+      return;
+    }
+
+    if (qty > stockNum) {
+      alert(
+        t("productDetail.notEnoughStock", {
+          stock: stockNum,
+          defaultValue:
+            "Only {{stock}} item(s) in stock. Please reduce the quantity.",
+        })
+      );
+      setQty(stockNum);
+      return;
+    }
+
     const unit = resolveProductPrice(product);
     dispatch(
       addItem({
@@ -427,6 +458,7 @@ export default function ProductDetailPage() {
               <strong>{t("weight")}:</strong> {product.weight} kg
             </div>
 
+            {/* 🔹 Quantity with stock-aware clamp */}
             <div className="flex items-center gap-2">
               <label htmlFor="qty" className="font-medium">
                 {t("productDetail.quantity")}:
@@ -435,15 +467,27 @@ export default function ProductDetailPage() {
                 id="qty"
                 type="number"
                 min={1}
-                max={product.quantity || 99}
+                max={stockNum > 0 ? stockNum : 1}
                 value={qty}
-                onChange={(e) => setQty(Number(e.target.value))}
-                className="border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent"
+                onChange={handleQtyChange}
+                disabled={isOut}
+                className="border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
               />
+              {stockNum > 0 && (
+                <span className="text-xs text-gray-500">
+                  {t("productDetail.stockInfo", {
+                    stock: stockNum,
+                    defaultValue: "{{stock}} in stock",
+                  })}
+                </span>
+              )}
             </div>
 
             <p>
-              <strong>{t("stock")}:</strong> {product.quantity}
+              <strong>{t("stock")}:</strong>{" "}
+              {stockNum > 0
+                ? stockNum
+                : t("productDetail.outOfStockShort", "Out of stock")}
             </p>
 
             <LowStockBanner stock={stockNum} />
@@ -477,11 +521,15 @@ export default function ProductDetailPage() {
               </div>
             )}
 
+            {/* 🔹 Add to cart respects stock */}
             <button
               onClick={handleAddToCart}
-              className="mt-4 w-full inline-flex items-center justify-center py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack transition"
+              disabled={isOut}
+              className="mt-4 w-full inline-flex items-center justify-center py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {t("productDetail.addToCart")}
+              {isOut
+                ? t("productDetail.outOfStockCta", "Currently out of stock")
+                : t("productDetail.addToCart")}
             </button>
           </div>
         </div>
@@ -512,7 +560,6 @@ export default function ProductDetailPage() {
 
           {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
-            {/* ✅ DETAILS – from backend */}
             {activeTab === "details" && (
               <>
                 {[1, 2, 3].map((n) => {
@@ -524,17 +571,14 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {/* ✅ CARE – from translation.json */}
             {activeTab === "care" && (
               <div className="space-y-3 text-sm leading-relaxed">
                 <p>{t("productDetail.policy.careText")}</p>
               </div>
             )}
 
-            {/* ✅ POLICY – from translation.json */}
             {activeTab === "policy" && (
               <div className="space-y-6 text-sm leading-relaxed">
-                {/* Delivery */}
                 <section className="space-y-2">
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.delivery")}
@@ -555,7 +599,6 @@ export default function ProductDetailPage() {
                   })}
                 </section>
 
-                {/* Returns */}
                 <section className="space-y-2">
                   <h3 className="text-xs font-semibold tracking-wide uppercase text-gray-500 dark:text-gray-400">
                     {t("productDetail.policy.returns")}
