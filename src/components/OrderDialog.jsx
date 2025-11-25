@@ -484,7 +484,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-4 py-4 sm:py-6"
       aria-modal="true"
       role="dialog"
     >
@@ -493,18 +493,19 @@ export default function OrderDialog({ orderId, open, onClose }) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative bg-marblewhite dark:bg-marbleblack text-gray-800 dark:text-gray-100 w-[95%] max-w-2xl rounded-lg shadow-xl p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-semibold text-backnewswhite dark:text-backnewsdark">
+      <div className="relative w-full max-w-2xl bg-marblewhite dark:bg-marbleblack text-gray-800 dark:text-gray-100 rounded-lg shadow-xl p-4 sm:p-6 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4 gap-2">
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-xl font-semibold text-backnewswhite dark:text-backnewsdark truncate">
               {t("order.details")}
             </h3>
             {order && (
-              <p className="text-sm text-gray-500">
+              <p className="mt-1 text-xs sm:text-sm text-gray-500 break-words">
                 {t("order.orderHash")} #{orderNumber}
                 {createdAtLabel ? <> | {createdAtLabel}</> : null}
                 {isDelivered && deliveredAt ? (
-                  <span className="ml-2 text-xs text-gray-500">
+                  <span className="block sm:inline text-xs text-gray-500 sm:ml-2">
                     ({t("order.delivered")}:{" "}
                     {deliveredAt.toLocaleDateString(locale)}
                     {typeof ageDays === "number"
@@ -518,308 +519,337 @@ export default function OrderDialog({ orderId, open, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="shrink-0 rounded px-2 py-1 text-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label={t("common.close")}
           >
             &times;
           </button>
         </div>
 
-        {isFetching && <div>{t("common.loading")}</div>}
-        {isError && <div className="text-red-600">{t("order.loadError")}</div>}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-6">
+          {isFetching && (
+            <div className="text-sm text-gray-600">{t("common.loading")}</div>
+          )}
+          {isError && (
+            <div className="text-sm text-red-600">{t("order.loadError")}</div>
+          )}
 
-        {order && (
-          <div className="space-y-6 text-backnewswhite dark:text-backnewsdark">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span
-                    className={`text-sm font-medium px-2 py-1 rounded ${statusClass(
-                      order.status
-                    )}`}
-                  >
-                    {statusLabel(order.status)}
-                  </span>
-                  {trackingCarrier && (
-                    <span className="text-xs text-gray-500">
-                      {trackingCarrier}
+          {order && (
+            <div className="space-y-6 text-backnewswhite dark:text-backnewsdark">
+              {/* Status + Total */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span
+                      className={`text-xs sm:text-sm font-medium px-2 py-1 rounded ${statusClass(
+                        order.status
+                      )}`}
+                    >
+                      {statusLabel(order.status)}
                     </span>
-                  )}
-                </div>
-                {(trackingNumber || trackingHref) && (
-                  <div className="text-xs text-gray-500 space-x-2">
-                    {trackingNumber && (
-                      <span>
-                        {t("order.tracking")}:{" "}
-                        <span className="font-mono">{trackingNumber}</span>
+                    {trackingCarrier && (
+                      <span className="text-xs text-gray-500">
+                        {trackingCarrier}
                       </span>
                     )}
-                    {trackingHref && (
-                      <a
-                        href={trackingHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        {t("order.trackPackage", "Track shipment")}
-                      </a>
-                    )}
                   </div>
+                  {(trackingNumber || trackingHref) && (
+                    <div className="text-xs text-gray-500 space-x-2 break-words">
+                      {trackingNumber && (
+                        <span>
+                          {t("order.tracking")}:{" "}
+                          <span className="font-mono">{trackingNumber}</span>
+                        </span>
+                      )}
+                      {trackingHref && (
+                        <a
+                          href={trackingHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          {t("order.trackPackage", "Track shipment")}
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">
+                    {t("order.total")}
+                  </div>
+                  <div className="text-lg font-semibold">
+                    {formatMoney(totalValue, locale, orderCurrency)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="space-y-3 max-h-[40vh] sm:max-h-[50vh] overflow-auto pr-1">
+                {items.length === 0 ? (
+                  <div className="text-sm text-gray-500">
+                    {t("order.noItems", "No items available")}
+                  </div>
+                ) : (
+                  items.map((it, idx) => {
+                    const line = resolveLineItem(
+                      it,
+                      lang,
+                      t,
+                      orderImageFallback
+                    );
+                    const key = it?.id ?? it?.line_id ?? `${line.title}-${idx}`;
+                    const unitNumeric = toNumeric(line.unitPrice);
+                    const lineTotal =
+                      line.lineTotal ??
+                      (unitNumeric !== null
+                        ? unitNumeric * line.quantity
+                        : null);
+                    return (
+                      <div
+                        key={key}
+                        className="flex gap-3 sm:gap-4 items-center"
+                      >
+                        {line.image ? (
+                          <img
+                            src={line.image}
+                            alt={line.title}
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded flex items-center justify-center text-gray-500">
+                            {line.initial || "?"}
+                          </div>
+                        )}
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm sm:text-base truncate">
+                            {line.title}
+                          </div>
+                          {line.sku && (
+                            <div className="text-xs text-gray-500">
+                              {t("order.sku", "SKU")}: {line.sku}
+                            </div>
+                          )}
+                          <div className="text-xs sm:text-sm text-gray-500">
+                            {t("order.qty")}: {line.quantity}
+                            {line.unitPrice != null && (
+                              <>
+                                {" | "}
+                                {t("order.unit")}:{" "}
+                                {formatMoney(
+                                  line.unitPrice,
+                                  locale,
+                                  orderCurrency
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="font-medium text-xs sm:text-sm shrink-0">
+                          {lineTotal != null
+                            ? formatMoney(lineTotal, locale, orderCurrency)
+                            : line.unitPrice != null
+                            ? formatMoney(line.unitPrice, locale, orderCurrency)
+                            : "-"}
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
-              <div className="text-right">
-                <div className="text-xs text-gray-500">{t("order.total")}</div>
-                <div className="text-lg font-semibold">
+
+              {/* Totals */}
+              <div className="mt-2 border-t pt-3 grid grid-cols-2 gap-y-1 text-xs sm:text-sm">
+                <div className="text-gray-500">{t("order.items")}</div>
+                <div className="text-right">{totalQty}</div>
+
+                <div className="text-gray-500">{t("order.subtotal")}</div>
+                <div className="text-right">
+                  {formatMoney(subtotalValue, locale, orderCurrency)}
+                </div>
+
+                {hasDiscount && (
+                  <>
+                    <div className="text-gray-500">
+                      {t("order.discount", "Discounts")}
+                    </div>
+                    <div className="text-right text-green-700">
+                      -{formatMoney(discountValue, locale, orderCurrency)}
+                    </div>
+                  </>
+                )}
+
+                <div className="text-gray-500">{t("order.shipping")}</div>
+                <div className="text-right">
+                  {formatMoney(shippingFeeValue, locale, orderCurrency)}
+                </div>
+
+                {vatValue !== null && (
+                  <>
+                    <div className="text-gray-500">{t("order.vat", "VAT")}</div>
+                    <div className="text-right">
+                      {formatMoney(vatValue, locale, orderCurrency)}
+                    </div>
+                  </>
+                )}
+
+                <div className="font-medium">{t("order.total", "Total")}</div>
+                <div className="text-right font-semibold">
                   {formatMoney(totalValue, locale, orderCurrency)}
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-3 max-h-[50vh] overflow-auto pr-1">
-              {items.length === 0 ? (
-                <div className="text-sm text-gray-500">
-                  {t("order.noItems", "No items available")}
+              {couponCode && (
+                <div className="text-xs text-gray-500">
+                  {t("order.couponCode", "Coupon code")}: {couponCode}
                 </div>
-              ) : (
-                items.map((it, idx) => {
-                  const line = resolveLineItem(it, lang, t, orderImageFallback);
-                  const key = it?.id ?? it?.line_id ?? `${line.title}-${idx}`;
-                  const unitNumeric = toNumeric(line.unitPrice);
-                  const lineTotal =
-                    line.lineTotal ??
-                    (unitNumeric !== null ? unitNumeric * line.quantity : null);
-                  return (
-                    <div key={key} className="flex gap-4 items-center">
-                      {line.image ? (
-                        <img
-                          src={line.image}
-                          alt={line.title}
-                          className="w-20 h-20 object-cover rounded"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-500">
-                          {line.initial || "?"}
-                        </div>
-                      )}
+              )}
 
-                      <div className="flex-1">
-                        <div className="font-semibold">{line.title}</div>
-                        {line.sku && (
-                          <div className="text-xs text-gray-500">
-                            {t("order.sku", "SKU")}: {line.sku}
-                          </div>
-                        )}
-                        <div className="text-sm text-gray-500">
-                          {t("order.qty")}: {line.quantity}
-                          {line.unitPrice != null && (
-                            <>
-                              {" | "}
-                              {t("order.unit")}:{" "}
-                              {formatMoney(
-                                line.unitPrice,
-                                locale,
-                                orderCurrency
-                              )}
-                            </>
-                          )}
-                        </div>
+              {(paymentMethodLabel ||
+                paymentStatusLabel ||
+                installmentsLabel) && (
+                <div>
+                  <div className="text-sm font-semibold mb-1">
+                    {t("order.paymentDetails", "Payment details")}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600 space-y-1">
+                    {paymentMethodLabel && (
+                      <div>
+                        <span className="text-gray-500">
+                          {t("order.paymentMethodLabel", "Method")}:
+                        </span>{" "}
+                        {paymentMethodLabel}
                       </div>
-                      <div className="font-medium text-sm">
-                        {lineTotal != null
-                          ? formatMoney(lineTotal, locale, orderCurrency)
-                          : line.unitPrice != null
-                          ? formatMoney(line.unitPrice, locale, orderCurrency)
-                          : "-"}
+                    )}
+                    {paymentStatusLabel && (
+                      <div>
+                        <span className="text-gray-500">
+                          {t("order.paymentStatusLabel", "Status")}:
+                        </span>{" "}
+                        {paymentStatusLabel}
                       </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="mt-2 border-t pt-3 grid grid-cols-2 gap-y-1 text-sm">
-              <div className="text-gray-500">{t("order.items")}</div>
-              <div className="text-right">{totalQty}</div>
-
-              <div className="text-gray-500">{t("order.subtotal")}</div>
-              <div className="text-right">
-                {formatMoney(subtotalValue, locale, orderCurrency)}
-              </div>
-
-              {hasDiscount && (
-                <>
-                  <div className="text-gray-500">
-                    {t("order.discount", "Discounts")}
+                    )}
+                    {installmentsLabel && <div>{installmentsLabel}</div>}
                   </div>
-                  <div className="text-right text-green-700">
-                    -{formatMoney(discountValue, locale, orderCurrency)}
-                  </div>
-                </>
+                </div>
               )}
 
-              <div className="text-gray-500">{t("order.shipping")}</div>
-              <div className="text-right">
-                {formatMoney(shippingFeeValue, locale, orderCurrency)}
-              </div>
-
-              {vatValue !== null && (
-                <>
-                  <div className="text-gray-500">{t("order.vat", "VAT")}</div>
-                  <div className="text-right">
-                    {formatMoney(vatValue, locale, orderCurrency)}
-                  </div>
-                </>
-              )}
-
-              <div className="font-medium">{t("order.total", "Total")}</div>
-              <div className="text-right font-semibold">
-                {formatMoney(totalValue, locale, orderCurrency)}
-              </div>
-            </div>
-
-            {couponCode && (
-              <div className="text-xs text-gray-500">
-                {t("order.couponCode", "Coupon code")}: {couponCode}
-              </div>
-            )}
-
-            {(paymentMethodLabel ||
-              paymentStatusLabel ||
-              installmentsLabel) && (
+              {/* Shipping address */}
               <div>
                 <div className="text-sm font-semibold mb-1">
-                  {t("order.paymentDetails", "Payment details")}
+                  {t("order.shippingAddress")}
                 </div>
-                <div className="text-sm text-gray-600 space-y-1">
-                  {paymentMethodLabel && (
-                    <div>
-                      <span className="text-gray-500">
-                        {t("order.paymentMethodLabel", "Method")}:
-                      </span>{" "}
-                      {paymentMethodLabel}
-                    </div>
-                  )}
-                  {paymentStatusLabel && (
-                    <div>
-                      <span className="text-gray-500">
-                        {t("order.paymentStatusLabel", "Status")}:
-                      </span>{" "}
-                      {paymentStatusLabel}
-                    </div>
-                  )}
-                  {installmentsLabel && <div>{installmentsLabel}</div>}
-                </div>
+                {shippingLines.length > 0 ? (
+                  <div className="text-xs sm:text-sm space-y-1">
+                    {shippingLines.map((line, idx) => (
+                      <div key={`${line}-${idx}`}>{line}</div>
+                    ))}
+                    {shippingPhone && (
+                      <div>
+                        {t("order.phone", "Phone")}: {shippingPhone}
+                      </div>
+                    )}
+                    {shippingEmail && (
+                      <div>
+                        {t("order.email", "Email")}: {shippingEmail}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs sm:text-sm text-gray-500">
+                    {t("order.noAddress")}
+                  </div>
+                )}
               </div>
+
+              {isPaidOrLater && !showDownload && (
+                <div className="text-xs text-backnewswhite dark:text-backnewsdark">
+                  {t("order.invoicePending")}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer buttons */}
+        {order && (
+          <div className="mt-4 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
+            <button
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
+            >
+              {t("common.close")}
+            </button>
+
+            {showDownload && (
+              <a
+                href={invoiceHref}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full sm:w-auto px-4 py-2 rounded bg-backnewswhite text-white text-center hover:opacity-90
+                  dark:bg-backnewsdark dark:text-marbleblack"
+              >
+                {t("order.downloadInvoice")}
+              </a>
             )}
 
-            <div>
-              <div className="text-sm font-semibold mb-1">
-                {t("order.shippingAddress")}
-              </div>
-              {shippingLines.length > 0 ? (
-                <div className="text-sm space-y-1">
-                  {shippingLines.map((line, idx) => (
-                    <div key={`${line}-${idx}`}>{line}</div>
-                  ))}
-                  {shippingPhone && (
-                    <div>
-                      {t("order.phone", "Phone")}: {shippingPhone}
-                    </div>
-                  )}
-                  {shippingEmail && (
-                    <div>
-                      {t("order.email", "Email")}: {shippingEmail}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">
-                  {t("order.noAddress")}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-2 flex-wrap">
-              {showReturnBtn && (
-                <button
-                  onClick={() => !returnDisabled && setRetOpen(true)}
-                  disabled={returnDisabled}
-                  className={`px-4 py-2 rounded border ${
-                    returnDisabled
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50"
-                  }`}
-                  title={
-                    returnDisabled
-                      ? t(
-                          "order.returnUnavailable",
-                          "Return request is not available for this order"
-                        )
-                      : ""
-                  }
-                >
-                  {t("order.return", "Return")}
-                  {!returnDisabled && typeof daysLeft === "number"
-                    ? ` (${t("order.daysLeft", { count: daysLeft })})`
-                    : !returnDisabled && returnDeadline
-                    ? ` (${returnDeadline.toLocaleDateString(locale)})`
-                    : ""}
-                </button>
-              )}
-
-              {showCancelBtn && (
-                <button
-                  onClick={() => setCancelOpen(true)}
-                  className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
-                >
-                  {t("order.cancel")}
-                </button>
-              )}
-
-              {showDownload && (
-                <a
-                  href={invoiceHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 rounded bg-backnewswhite text-white hover:opacity-90
-          dark:bg-backnewsdark dark:text-marbleblack"
-                >
-                  {t("order.downloadInvoice")}
-                </a>
-              )}
-
+            {showCancelBtn && (
               <button
-                onClick={onClose}
-                className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
+                onClick={() => setCancelOpen(true)}
+                className="w-full sm:w-auto px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
               >
-                {t("common.close")}
+                {t("order.cancel")}
               </button>
-            </div>
+            )}
 
-            {isPaidOrLater && !showDownload && (
-              <div className="text-xs text-backnewswhite dark:text-backnewsdark">
-                {t("order.invoicePending")}
-              </div>
+            {showReturnBtn && (
+              <button
+                onClick={() => !returnDisabled && setRetOpen(true)}
+                disabled={returnDisabled}
+                className={`w-full sm:w-auto px-4 py-2 rounded border ${
+                  returnDisabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-50"
+                }`}
+                title={
+                  returnDisabled
+                    ? t(
+                        "order.returnUnavailable",
+                        "Return request is not available for this order"
+                      )
+                    : ""
+                }
+              >
+                {t("order.return", "Return")}
+                {!returnDisabled && typeof daysLeft === "number"
+                  ? ` (${t("order.daysLeft", { count: daysLeft })})`
+                  : !returnDisabled && returnDeadline
+                  ? ` (${returnDeadline.toLocaleDateString(locale)})`
+                  : ""}
+              </button>
             )}
           </div>
         )}
 
+        {/* Cancel modal */}
         {cancelOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-5 w-[92%] sm:w-full max-w-md text-gray-800 dark:text-gray-100">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center px-2">
+            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-4 sm:p-5 w-full max-w-md max-h-[90vh] overflow-y-auto text-gray-800 dark:text-gray-100">
               <h3 className="text-lg font-semibold mb-2">
                 {t("order.cancelOrder")}
               </h3>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">
                 {t("order.cancelExplainRequired")}
               </p>
               <textarea
                 value={cancelMsg}
                 onChange={(e) => setCancelMsg(e.target.value)}
-                className="w-full border rounded p-2 h-28"
+                className="w-full border rounded p-2 h-28 text-sm"
                 placeholder={t("order.cancelReasonPlaceholder")}
                 aria-invalid={!cancelMsgTrimmed}
               />
@@ -828,17 +858,17 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   {t("order.cancelReasonInline")}
                 </div>
               )}
-              <div className="mt-3 flex justify-end gap-2">
+              <div className="mt-3 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                 <button
                   onClick={() => setCancelOpen(false)}
-                  className="px-3 py-2 border rounded"
+                  className="w-full sm:w-auto px-3 py-2 border rounded"
                 >
                   {t("common.close")}
                 </button>
                 <button
                   onClick={submitCancel}
                   disabled={!cancelMsgTrimmed || canceling}
-                  className={`px-3 py-2 rounded text-white ${
+                  className={`w-full sm:w-auto px-3 py-2 rounded text-white ${
                     cancelMsgTrimmed && !canceling
                       ? "bg-black"
                       : "bg-gray-400 cursor-not-allowed"
@@ -852,13 +882,14 @@ export default function OrderDialog({ orderId, open, onClose }) {
           </div>
         )}
 
+        {/* Return modal */}
         {retOpen && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-5 w-[92%] sm:w-full max-w-md text-gray-800 dark:text-gray-100">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center px-2">
+            <div className="bg-marblewhite dark:bg-marbleblack rounded shadow p-4 sm:p-5 w-full max-w-md max-h-[90vh] overflow-y-auto text-gray-800 dark:text-gray-100">
               <h3 className="text-lg font-semibold mb-2">
                 {t("order.returnOrder")}
               </h3>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">
                 {t("order.returnExplainRequired", { max: MAX_UPLOAD_MB })}
               </p>
 
@@ -872,7 +903,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 id="retMessage"
                 value={retMsg}
                 onChange={(e) => setRetMsg(e.target.value)}
-                className="w-full border rounded p-2 h-28"
+                className="w-full border rounded p-2 h-28 text-sm"
                 placeholder={t("order.returnReasonPlaceholder")}
                 aria-invalid={!hasReason}
               />
@@ -894,7 +925,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 multiple
                 accept="image/*,video/*"
                 onChange={onChangeFiles}
-                className="mt-1"
+                className="mt-1 text-xs"
                 aria-invalid={!hasFiles || !filesSizeOk}
               />
               {(!hasFiles || retFilesError) && (
@@ -908,17 +939,17 @@ export default function OrderDialog({ orderId, open, onClose }) {
                 </div>
               )}
 
-              <div className="mt-3 flex justify-end gap-2">
+              <div className="mt-3 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                 <button
                   onClick={() => setRetOpen(false)}
-                  className="px-3 py-2 border rounded"
+                  className="w-full sm:w-auto px-3 py-2 border rounded"
                 >
                   {t("common.close")}
                 </button>
                 <button
                   onClick={submitReturn}
                   disabled={!canSubmitReturn || returning}
-                  className={`px-3 py-2 rounded text-white ${
+                  className={`w-full sm:w-auto px-3 py-2 rounded text-white ${
                     canSubmitReturn && !returning
                       ? "bg-black"
                       : "bg-gray-400 cursor-not-allowed"
