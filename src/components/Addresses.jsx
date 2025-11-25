@@ -107,7 +107,8 @@ export default function AccountAddresses() {
 
   const formatCountry = (value) => {
     const normalized = normalizeCountry(value, null);
-    if (normalized && flatCountries[normalized]) return flatCountries[normalized];
+    if (normalized && flatCountries[normalized])
+      return flatCountries[normalized];
     const trimmed = (value || "").trim();
     if (!trimmed) return "";
     if (flatCountries[trimmed]) return flatCountries[trimmed];
@@ -122,6 +123,7 @@ export default function AccountAddresses() {
 
   const [form, setForm] = useState(initial);
   const [editingId, setEditingId] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (!isFetching && !editingId) setForm(initial);
@@ -143,7 +145,29 @@ export default function AccountAddresses() {
   };
 
   const del = async (id) => {
-    await deleteAddress(id).unwrap();
+    setErrorMsg("");
+    try {
+      await deleteAddress(id).unwrap();
+    } catch (err) {
+      console.error("Failed to delete address", err);
+
+      const code = err?.data?.code;
+      if (code === "address_in_use") {
+        setErrorMsg(
+          t(
+            "addresses.inUseError",
+            "This address is used by existing orders and cannot be deleted."
+          )
+        );
+      } else {
+        setErrorMsg(
+          t(
+            "addresses.deleteError",
+            "Could not delete this address. Please try again."
+          )
+        );
+      }
+    }
   };
 
   const inputBase =
@@ -166,7 +190,11 @@ export default function AccountAddresses() {
           {t("backtoAccount")}
         </Link>
       </div>
-
+      {errorMsg && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-950/60 dark:text-red-100">
+          {errorMsg}
+        </div>
+      )}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Form */}
         <div className="p-6 rounded-xl border border-black/5 dark:border-white/10 bg-marblewhite dark:bg-marbleblack shadow-sm">

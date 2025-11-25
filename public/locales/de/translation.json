@@ -554,7 +554,9 @@
     "makeMain": "Als Haupt festlegen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
-    "none": "Noch keine Adressen."
+    "none": "Noch keine Adressen.",
+    "inUseError": "Diese Adresse wird von bestehenden Bestellungen verwendet und kann nicht gelöscht werden.",
+    "deleteError": "Die Adresse konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
   },
   "countryGroups": {
     "western": "Westeuropa",

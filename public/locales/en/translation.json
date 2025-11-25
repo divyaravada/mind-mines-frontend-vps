@@ -537,7 +537,9 @@
     "makeMain": "Make main",
     "edit": "Edit",
     "delete": "Delete",
-    "none": "No addresses yet."
+    "none": "No addresses yet.",
+    "inUseError": "This address is used by existing orders and cannot be deleted.",
+    "deleteError": "Could not delete this address. Please try again."
   },
   "countryGroups": {
     "western": "Western Europe",
