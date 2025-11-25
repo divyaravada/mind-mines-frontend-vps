@@ -1260,6 +1260,7 @@ export default function Checkout() {
                     orderId={localOrderIdRef.current}
                     method="klarna" // Stripe method stays "klarna"
                     orderPayload={{
+                      order_id: localOrderIdRef.current,
                       email: form.email.trim(),
                       payment_method: "klarna_single", // <-- our internal method
                       coupon_code: (couponCode || "").trim(),
@@ -1325,6 +1326,7 @@ export default function Checkout() {
                     orderId={localOrderIdRef.current}
                     method="klarna" // still just "klarna" for Stripe
                     orderPayload={{
+                      order_id: localOrderIdRef.current,
                       email: form.email.trim(),
                       payment_method: "klarna_installments", // <-- our internal method
                       coupon_code: (couponCode || "").trim(),
@@ -1384,6 +1386,7 @@ export default function Checkout() {
                     orderId={localOrderIdRef.current}
                     method="giropay"
                     orderPayload={{
+                      order_id: localOrderIdRef.current,
                       email: form.email.trim(),
                       payment_method: "giropay",
                       coupon_code: (couponCode || "").trim(),
