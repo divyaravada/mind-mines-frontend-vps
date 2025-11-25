@@ -9,6 +9,43 @@ import {
   useMakeDefaultAddressMutation,
 } from "../features/addresses/addressApi";
 import { useTranslation } from "react-i18next";
+import { normalizeCountry } from "../utils/invoice";
+
+const DEFAULT_COUNTRY = "DE";
+
+const FALLBACK_COUNTRIES = {
+  DE: "Germany",
+  FR: "France",
+  IE: "Ireland",
+  BE: "Belgium",
+  NL: "Netherlands",
+  LU: "Luxembourg",
+  DK: "Denmark",
+  SE: "Sweden",
+  FI: "Finland",
+  NO: "Norway",
+  IS: "Iceland",
+  AT: "Austria",
+  CH: "Switzerland",
+  PL: "Poland",
+  CZ: "Czech Republic",
+  HU: "Hungary",
+  SK: "Slovakia",
+  IT: "Italy",
+  ES: "Spain",
+  PT: "Portugal",
+  MT: "Malta",
+  GR: "Greece",
+  CY: "Cyprus",
+  EE: "Estonia",
+  LV: "Latvia",
+  LT: "Lithuania",
+  SI: "Slovenia",
+  HR: "Croatia",
+  RO: "Romania",
+  BG: "Bulgaria",
+  LI: "Liechtenstein",
+};
 
 const initial = {
   first_name: "",
@@ -17,13 +54,65 @@ const initial = {
   address_line2: "",
   postal_code: "",
   city: "",
-  country: "Germany",
+  country: DEFAULT_COUNTRY,
   phone: "",
   is_default: true,
 };
 
 export default function AccountAddresses() {
   const { t } = useTranslation();
+
+  const rawGroups = t("countryGroups", { returnObjects: true });
+  const groupLabels =
+    rawGroups && typeof rawGroups === "object" && !Array.isArray(rawGroups)
+      ? rawGroups
+      : {};
+
+  const rawCountries = t("countries", { returnObjects: true });
+  const maybeGrouped =
+    rawCountries &&
+    typeof rawCountries === "object" &&
+    !Array.isArray(rawCountries) &&
+    Object.values(rawCountries).every(
+      (val) => val && typeof val === "object" && !Array.isArray(val)
+    );
+
+  let groupedCountries = null;
+  let flatCountries = FALLBACK_COUNTRIES;
+  if (maybeGrouped) {
+    groupedCountries = rawCountries;
+    flatCountries = Object.values(rawCountries).reduce((acc, group) => {
+      if (group && typeof group === "object") {
+        Object.entries(group).forEach(([code, label]) => {
+          acc[code] = label;
+        });
+      }
+      return acc;
+    }, {});
+  } else if (
+    rawCountries &&
+    typeof rawCountries === "object" &&
+    !Array.isArray(rawCountries)
+  ) {
+    flatCountries = rawCountries;
+  }
+
+  const ensureCountryCode = (value) => {
+    const normalized = normalizeCountry(value, null);
+    if (normalized && flatCountries[normalized]) return normalized;
+    const trimmed = (value || "").trim().toUpperCase();
+    if (trimmed && flatCountries[trimmed]) return trimmed;
+    return DEFAULT_COUNTRY;
+  };
+
+  const formatCountry = (value) => {
+    const normalized = normalizeCountry(value, null);
+    if (normalized && flatCountries[normalized]) return flatCountries[normalized];
+    const trimmed = (value || "").trim();
+    if (!trimmed) return "";
+    if (flatCountries[trimmed]) return flatCountries[trimmed];
+    return trimmed;
+  };
 
   const { data: list = [], isFetching } = useGetAddressesQuery();
   const [createAddress, { isLoading: creating }] = useCreateAddressMutation();
@@ -50,7 +139,7 @@ export default function AccountAddresses() {
 
   const edit = (a) => {
     setEditingId(a.id);
-    setForm({ ...initial, ...a });
+    setForm({ ...initial, ...a, country: ensureCountryCode(a.country) });
   };
 
   const del = async (id) => {
@@ -140,12 +229,26 @@ export default function AccountAddresses() {
               onChange={(e) => setForm({ ...form, country: e.target.value })}
               className={inputBase}
             >
-              <option value="Germany">{t("countries.germany")}</option>
-              <option value="Austria">{t("countries.austria")}</option>
-              <option value="Switzerland">{t("countries.switzerland")}</option>
-              <option value="France">{t("countries.france")}</option>
-              <option value="Italy">{t("countries.italy")}</option>
-              <option value="Netherlands">{t("countries.netherlands")}</option>
+              {groupedCountries
+                ? Object.entries(groupedCountries).map(
+                    ([groupKey, countryMap]) => (
+                      <optgroup
+                        key={groupKey}
+                        label={groupLabels[groupKey] || groupKey}
+                      >
+                        {Object.entries(countryMap).map(([code, label]) => (
+                          <option key={code} value={code}>
+                            {label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )
+                  )
+                : Object.entries(flatCountries).map(([code, label]) => (
+                    <option key={code} value={code}>
+                      {label}
+                    </option>
+                  ))}
             </select>
             <input
               placeholder={t("addresses.phone")}
@@ -211,7 +314,7 @@ export default function AccountAddresses() {
                   {a.postal_code} {a.city}
                 </div>
                 <div className="text-gray-700 dark:text-gray-300">
-                  {a.country}
+                  {formatCountry(a.country)}
                 </div>
                 {a.phone ? (
                   <div className="text-gray-700 dark:text-gray-300">

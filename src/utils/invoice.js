@@ -31,8 +31,8 @@ export function getCheckoutIdem() {
 }
 
 // --- country helpers
-export function normalizeCountry(c) {
-  if (!c) return "DE";
+export function normalizeCountry(c, fallback = "DE") {
+  if (!c) return fallback;
   const s = String(c).trim();
   if (s.length === 2) return s.toUpperCase();
   const map = {
@@ -48,8 +48,56 @@ export function normalizeCountry(c) {
     Frankreich: "FR",
     Netherlands: "NL",
     Niederlande: "NL",
+    Ireland: "IE",
+    Irland: "IE",
+    Belgium: "BE",
+    Belgien: "BE",
+    Luxembourg: "LU",
+    Luxemburg: "LU",
+    Denmark: "DK",
+    Dänemark: "DK",
+    Sweden: "SE",
+    Schweden: "SE",
+    Finland: "FI",
+    Finnland: "FI",
+    Norway: "NO",
+    Norwegen: "NO",
+    Iceland: "IS",
+    Island: "IS",
+    Poland: "PL",
+    Polen: "PL",
+    "Czech Republic": "CZ",
+    Czechia: "CZ",
+    Tschechien: "CZ",
+    Hungary: "HU",
+    Ungarn: "HU",
+    Slovakia: "SK",
+    Slowakei: "SK",
+    Spain: "ES",
+    Spanien: "ES",
+    Portugal: "PT",
+    Malta: "MT",
+    Greece: "GR",
+    Griechenland: "GR",
+    Cyprus: "CY",
+    Zypern: "CY",
+    Estonia: "EE",
+    Estland: "EE",
+    Latvia: "LV",
+    Lettland: "LV",
+    Lithuania: "LT",
+    Litauen: "LT",
+    Slovenia: "SI",
+    Slowenien: "SI",
+    Croatia: "HR",
+    Kroatien: "HR",
+    Romania: "RO",
+    Rumänien: "RO",
+    Bulgaria: "BG",
+    Bulgarien: "BG",
+    Liechtenstein: "LI",
   };
-  return map[s] || "DE";
+  return map[s] || fallback;
 }
 
 function splitName(full) {

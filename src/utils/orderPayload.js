@@ -1,24 +1,6 @@
-// normalize country -> ISO alpha-2 uppercase
-export function normalizeCountry(c) {
-  if (!c) return "DE";
-  const s = String(c).trim();
-  if (s.length === 2) return s.toUpperCase();
-  const map = {
-    Germany: "DE",
-    Deutschland: "DE",
-    Austria: "AT",
-    Österreich: "AT",
-    Switzerland: "CH",
-    Schweiz: "CH",
-    Italy: "IT",
-    Italia: "IT",
-    France: "FR",
-    Frankreich: "FR",
-    Netherlands: "NL",
-    Niederlande: "NL",
-  };
-  return map[s] || "DE";
-}
+import { normalizeCountry as normalizeCountryBase } from "./invoice";
+
+export const normalizeCountry = normalizeCountryBase;
 
 // split "Anna Maria Müller" -> { first_name: "Anna Maria", last_name: "Müller" }
 function splitName(full) {
