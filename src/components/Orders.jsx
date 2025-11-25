@@ -1,5 +1,5 @@
 ﻿// src/components/Orders.jsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useGetOrdersQuery } from "../features/orders/ordersApi";
@@ -41,6 +41,7 @@ export default function Orders() {
   const fmtDateTime = (v) => {
     try {
       const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return String(v);
       return d.toLocaleString(locale);
     } catch {
       return String(v);
@@ -57,6 +58,7 @@ export default function Orders() {
       : s === "cancelled"
       ? "bg-red-100 text-red-700"
       : "bg-gray-100 text-gray-700";
+
   const statusLabel = (s) =>
     s
       ? t(`order.status.${s}`, s.charAt(0).toUpperCase() + s.slice(1))
@@ -138,6 +140,51 @@ export default function Orders() {
     return translated;
   };
 
+  // 🔹 NEW: group orders by year and month
+  const grouped = useMemo(() => {
+    const map = {};
+    orders.forEach((o) => {
+      if (!o?.created_at) return;
+      const d = new Date(o.created_at);
+      if (Number.isNaN(d.getTime())) return;
+
+      const year = d.getFullYear();
+      const monthIndex = d.getMonth(); // 0–11
+
+      if (!map[year]) map[year] = {};
+      if (!map[year][monthIndex]) map[year][monthIndex] = [];
+      map[year][monthIndex].push(o);
+    });
+
+    // convert to sorted array [{ year, months: [{monthIndex, label, orders}] }]
+    const years = Object.keys(map)
+      .map((y) => parseInt(y, 10))
+      .filter((y) => !Number.isNaN(y))
+      .sort((a, b) => b - a); // latest year first
+
+    return years.map((year) => {
+      const monthsMap = map[year];
+      const monthIndices = Object.keys(monthsMap)
+        .map((m) => parseInt(m, 10))
+        .filter((m) => !Number.isNaN(m))
+        .sort((a, b) => b - a); // latest month first
+
+      const months = monthIndices.map((mi) => {
+        const label = new Date(year, mi, 1).toLocaleDateString(locale, {
+          month: "long",
+          year: "numeric",
+        });
+        return {
+          monthIndex: mi,
+          label,
+          orders: monthsMap[mi],
+        };
+      });
+
+      return { year, months };
+    });
+  }, [orders, locale]);
+
   if (error?.status === 401) {
     const next = encodeURIComponent(loc.pathname + loc.search);
     return (
@@ -155,84 +202,115 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
-      <div className="flex items-center justify-between mb-8 ">
-        <h2 className="text-2xl font-light mb-8 text-backnewswhite dark:text-backnewsdark">
-          {t("order.yourOrders")}
-        </h2>
-        <Link to="/account" className="p-6 hover:underline">
-          <h6 className="text-xl font-light mb-8">{t("backtoAccount")}</h6>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 text-gray-900 dark:text-gray-100">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <div>
+          <h2 className="text-2xl font-light text-backnewswhite dark:text-backnewsdark">
+            {t("order.yourOrders")}
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500">
+            {t("order.count", { count: orders.length })}
+          </p>
+        </div>
+        <Link
+          to="/account"
+          className="text-sm sm:text-base hover:underline text-backnewswhite dark:text-backnewsdark"
+        >
+          {t("backtoAccount")}
         </Link>
-        <span className="text-sm text-gray-500">
-          {t("order.count", { count: orders.length })}
-        </span>
       </div>
 
+      {/* Content */}
       {isFetching ? (
         <div className="text-gray-500">{t("common.loading")}</div>
       ) : orders.length === 0 ? (
         <div className="text-gray-400">{t("order.none")}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
-          {orders.map((o) => {
-            const primaryMeta = resolveItemMeta(o, o.items?.[0] || {});
-            const itemCount = o.items?.length || 0;
-            return (
-              <button
-                key={o.id}
-                onClick={() => {
-                  setSelectedId(o.id);
-                  setOpen(true);
-                }}
-                className="bg-marblewhite dark:bg-marbleblack text-left p-4 rounded shadow hover:shadow-md transition"
-              >
-                <div className="flex gap-3">
-                  {primaryMeta.image ? (
-                    <img
-                      src={primaryMeta.image}
-                      alt={primaryMeta.title}
-                      className="w-20 h-20 object-cover rounded"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
-                      aria-hidden="true"
-                    >
-                      {primaryMeta.initial || "?"}
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div className="font-semibold leading-tight line-clamp-2">
-                        {primaryMeta.title}
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${statusClass(
-                          o.status
-                        )}`}
-                      >
-                        {statusLabel(o.status)}
-                      </span>
-                    </div>
+        <div className="space-y-8">
+          {grouped.map(({ year, months }) => (
+            <section key={year} className="space-y-4">
+              {/* Year heading */}
+              <h3 className="text-xl font-semibold text-backnewswhite dark:text-backnewsdark">
+                {year}
+              </h3>
 
-                    <div className="text-sm text-gray-500">
-                      {fmtDateTime(o.created_at)}
-                    </div>
+              {months.map(({ monthIndex, label, orders: monthOrders }) => (
+                <div key={`${year}-${monthIndex}`} className="space-y-3">
+                  {/* Month heading */}
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {label}
+                  </h4>
 
-                    <div className="text-sm">
-                      {t("order.total")}: {fmtMoney(o.total_price)}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {getItemsCountLabel(itemCount)}
-                    </div>
+                  {/* Orders grid for this month */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {monthOrders.map((o) => {
+                      const primaryMeta = resolveItemMeta(
+                        o,
+                        o.items?.[0] || {}
+                      );
+                      const itemCount = o.items?.length || 0;
+                      return (
+                        <button
+                          key={o.id}
+                          onClick={() => {
+                            setSelectedId(o.id);
+                            setOpen(true);
+                          }}
+                          className="w-full bg-marblewhite dark:bg-marbleblack text-left p-4 rounded shadow hover:shadow-md transition"
+                        >
+                          <div className="flex gap-3">
+                            {primaryMeta.image ? (
+                              <img
+                                src={primaryMeta.image}
+                                alt={primaryMeta.title}
+                                className="w-20 h-20 object-cover rounded"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
+                                aria-hidden="true"
+                              >
+                                {primaryMeta.initial || "?"}
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="font-semibold leading-tight line-clamp-2">
+                                  {primaryMeta.title}
+                                </div>
+                                <span
+                                  className={`text-xs px-2 py-1 rounded whitespace-nowrap ${statusClass(
+                                    o.status
+                                  )}`}
+                                >
+                                  {statusLabel(o.status)}
+                                </span>
+                              </div>
+
+                              <div className="text-sm text-gray-500">
+                                {fmtDateTime(o.created_at)}
+                              </div>
+
+                              <div className="text-sm">
+                                {t("order.total")}: {fmtMoney(o.total_price)}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {getItemsCountLabel(itemCount)}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </button>
-            );
-          })}
+              ))}
+            </section>
+          ))}
         </div>
       )}
 
