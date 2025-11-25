@@ -12,13 +12,13 @@ export default function Home() {
   return (
     <main>
       <HomeCarousel />
+      {/* <CountertopCTA /> */}
       <TopSellers />
+      <HandmadeGuarantee />
       <CollectionRow />
       <HomeTrustSection />
       <FreeDelivery />
       <AboutUsRow />
-
-      <HandmadeGuarantee />
       <FeatureStrip />
     </main>
   );
