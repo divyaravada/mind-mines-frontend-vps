@@ -64,11 +64,11 @@ export default function CartPage() {
   // 🔹 Ensure Redux qty never exceeds stock
   useEffect(() => {
     items.forEach((it) => {
+      const stockNum = Number(it.stock); // ✅ cast
       const maxQty =
-        typeof it.stock === "number" && it.stock > 0 ? it.stock : null;
+        Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       const current = it.qty || 1;
 
-      // If we don't know stock, don't clamp
       if (maxQty === null) {
         if (current < 1) {
           dispatch(updateQty({ id: it.id, qty: 1 }));
@@ -101,8 +101,9 @@ export default function CartPage() {
           ? Number(it.price)
           : Number(it.priceRange ?? 0);
 
+      const stockNum = Number(it.stock); // ✅
       const maxQty =
-        typeof it.stock === "number" && it.stock > 0 ? it.stock : null;
+        Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       let qty = it.qty || 1;
       if (maxQty !== null) {
         qty = Math.min(Math.max(1, qty), maxQty);
@@ -120,7 +121,7 @@ export default function CartPage() {
         weight: it.weight || "",
         dimensions: it.dimensions || "",
         category: it.category || "",
-        stock: typeof it.stock === "number" ? it.stock : undefined,
+        stock: Number.isFinite(stockNum) ? stockNum : undefined, // ✅
       };
     });
     const body = { cart_token, currency: "EUR", items: itemsPayload };
@@ -135,8 +136,9 @@ export default function CartPage() {
           ? Number(item.price)
           : Number(item.priceRange ?? 0);
 
+      const stockNum = Number(item.stock); // ✅
       const maxQty =
-        typeof item.stock === "number" && item.stock > 0 ? item.stock : null;
+        Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       let qty = item.qty || 1;
       if (maxQty !== null) {
         qty = Math.min(Math.max(1, qty), maxQty);
@@ -215,10 +217,9 @@ export default function CartPage() {
                 ? Number(item.price)
                 : Number(item.priceRange ?? 0);
 
+            const stockNum = Number(item.stock); // ✅
             const maxQty =
-              typeof item.stock === "number" && item.stock > 0
-                ? item.stock
-                : null;
+              Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
             let effectiveQty = item.qty || 1;
             if (maxQty !== null) {
               effectiveQty = Math.min(Math.max(1, effectiveQty), maxQty);
@@ -251,14 +252,15 @@ export default function CartPage() {
                       <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                       </div>
-                      {typeof item.stock === "number" && item.stock > 0 && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {t("cart.stockInfo", {
-                            stock: item.stock,
-                            defaultValue: "Max. {{stock}} piece(s) available",
-                          })}
-                        </div>
-                      )}
+                      {Number.isFinite(stockNum) &&
+                        stockNum > 0 && ( // ✅
+                          <div className="text-xs text-gray-500 mt-1">
+                            {t("cart.stockInfo", {
+                              stock: stockNum,
+                              defaultValue: "Max. {{stock}} piece(s) available",
+                            })}
+                          </div>
+                        )}
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}

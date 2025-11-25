@@ -302,6 +302,7 @@ export default function ProductDetailPage() {
         dimensions: product.dimensions,
         weight: product.weight,
         color: product.color,
+        stock: Number.isFinite(stockNum) ? stockNum : 0,
       })
     );
     navigate("/cart");

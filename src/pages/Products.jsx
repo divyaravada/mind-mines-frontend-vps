@@ -163,6 +163,7 @@ export default function ProductsPage() {
         name: productTitle(p, lang), // ✅ cart expects 'name'
         priceRange: unitPrice,
         image: p.image,
+        stock: Number.isFinite(stockNum) ? stockNum : 0,
       })
     );
     navigate("/cart");
