@@ -448,6 +448,10 @@
     "daysAgo_plural": "{{count}} days ago",
     "daysLeft": "{{count}} day left",
     "daysLeft_plural": "{{count}} days left",
+    "filterYear": "Year",
+    "filterMonth": "Month",
+    "filterActive": "Showing orders from {{month}} {{year}}",
+    "itemsLabel": "Items",
     "status": {
       "pending": "Pending",
       "processing": "Processing",

@@ -465,6 +465,10 @@
     "daysAgo_plural": "vor {{count}} Tagen",
     "daysLeft": "{{count}} Tag verbleibend",
     "daysLeft_plural": "{{count}} Tage verbleibend",
+    "filterYear": "Jahr",
+    "filterMonth": "Monat",
+    "filterActive": "Bestellungen aus {{month}} {{year}}",
+    "itemsLabel": "Artikel",
     "status": {
       "pending": "Ausstehend",
       "processing": "In Bearbeitung",
