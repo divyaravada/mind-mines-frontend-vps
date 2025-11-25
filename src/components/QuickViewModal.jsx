@@ -54,11 +54,11 @@ export default function QuickViewModal({
     >
       <div
         className="
-          relative w-full md:max-w-5xl
+          relative w-full md:max-w-4xl
           bg-white dark:bg-neutral-900
           rounded-t-2xl md:rounded-2xl
           shadow-xl overflow-hidden
-          max-h-[90vh] md:max-h-[80vh]
+          max-h-[80vh] md:max-h-[70vh]
         "
         onClick={(e) => e.stopPropagation()}
       >
@@ -105,7 +105,7 @@ export default function QuickViewModal({
             </div>
 
             {/* Price block */}
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-3 mt-1 dark:text-backnewsdark">
               {hasDiscount ? (
                 <>
                   <span className="text-lg md:text-xl font-semibold">
