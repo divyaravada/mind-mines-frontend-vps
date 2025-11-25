@@ -372,6 +372,14 @@ export default function Checkout() {
   }, [form, t, validatePhone]);
 
   const saveAddress = async () => {
+    // ✅ run validation first
+    const ok = validateAddress();
+    if (!ok) {
+      // Optional: small message at top; field errors are already shown
+      // alert(t("checkout.fillFirst", "Please fill in all required address fields."));
+      return;
+    }
+
     setSavingAddr(true);
     try {
       const payload = buildAddressPayload(form, addressIdRef);
