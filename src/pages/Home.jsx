@@ -13,13 +13,13 @@ export default function Home() {
   return (
     <main>
       <HomeCarousel />
-      <Suspense fallback={null}>
-        <TopSellers />
-        <CollectionRow />
-        <HomeTrustSection />
-        <FreeDelivery />
-        <AboutUsRow />
-      </Suspense>
+
+      <TopSellers />
+      <CollectionRow />
+      <HomeTrustSection />
+      <FreeDelivery />
+      <AboutUsRow />
+
       <HandmadeGuarantee />
       <FeatureStrip />
     </main>
