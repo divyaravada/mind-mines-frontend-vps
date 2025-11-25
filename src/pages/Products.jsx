@@ -129,7 +129,6 @@ export default function ProductsPage() {
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
-
   const materialsKey = useMemo(() => materials.join(","), [materials]);
   const colorsKey = useMemo(() => colors.join(","), [colors]);
 
@@ -157,6 +156,9 @@ export default function ProductsPage() {
     const unitPrice = Number.isFinite(priceFromTile)
       ? priceFromTile
       : resolveProductPrice(p);
+
+    const stockNum = Number(p?.stock ?? p?.quantity ?? 0);
+
     dispatch(
       addItem({
         id: p.id,
