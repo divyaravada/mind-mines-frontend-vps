@@ -10,7 +10,7 @@ import {
 } from "../features/orders/ordersApi";
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
-const FALLBACK_RETURN_WINDOW = 1;
+const FALLBACK_RETURN_WINDOW = 15;
 
 function toNumeric(value) {
   if (typeof value === "number" && Number.isFinite(value)) {

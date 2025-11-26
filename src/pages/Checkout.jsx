@@ -1257,7 +1257,7 @@ export default function Checkout() {
               </div>
             )}
 
-            {/* giropay */}
+            {/* giropay
             <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
               <input
                 type="radio"
@@ -1315,7 +1315,7 @@ export default function Checkout() {
                   />
                 )}
               </div>
-            )}
+            )} */}
 
             {/* === Card (Stripe) === */}
             <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
