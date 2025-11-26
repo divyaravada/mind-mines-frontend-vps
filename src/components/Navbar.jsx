@@ -9,9 +9,10 @@ import {
   FileText,
   X,
   Menu,
+  ChevronDown,
 } from "lucide-react";
-import DarkLogo from "../assets/BlackLogo.jpg"; // dark bg version (transparent recommended)
-import LightLogo from "../assets/OrangeLogo.jpg"; // light bg version (transparent recommended)
+import DarkLogo from "../assets/BlackLogo.jpg";
+import LightLogo from "../assets/OrangeLogo.jpg";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -32,14 +33,12 @@ export default function Navbar() {
   const darkMode = useSelector((s) => s.ui.darkMode);
   const mobileMenu = useSelector((s) => s.ui.mobileMenuOpen);
 
-  // Consider these routes as "auth pages" where we always show Login in navbar
   const isAuthFlow =
     pathname.startsWith("/users/login") ||
     pathname.startsWith("/users/register") ||
     pathname.startsWith("/reset-password") ||
     pathname.startsWith("/verify-email");
 
-  // Logged in only if we have a user AND we are not on auth flow pages
   const isLoggedIn = Boolean(user) && !isAuthFlow;
 
   useEffect(() => {
@@ -47,7 +46,6 @@ export default function Navbar() {
   }, [darkMode]);
 
   useEffect(() => {
-    // lock background scroll when mobile menu is open
     if (mobileMenu) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
@@ -72,120 +70,213 @@ export default function Navbar() {
     return pathname === to || pathname.startsWith(`${to}/`);
   };
 
+  const shopActive =
+    pathname.startsWith("/decorative-products") ||
+    pathname.startsWith("/natural-stone");
+
   const navLinks = isLoggedIn
     ? [
-        { to: "/", label: t("navbar.home") },
-        { to: "/about", label: t("navbar.about") },
-        { to: "/decorative-products", label: t("navbar.decorativeProducts") },
-        { to: "/natural-stone", label: t("navbar.naturalStone") },
-        { to: "/account", label: t("navbar.myAccount") },
+        { key: "home", to: "/", label: t("navbar.home") },
+        { key: "about", to: "/about", label: t("navbar.about") },
+        { key: "account", to: "/account", label: t("navbar.myAccount") },
         {
+          key: "cart",
           to: "/cart",
           label: t("navbar.cart"),
           icon: <ShoppingCart className="w-5 h-5 mr-1" />,
         },
-        { label: t("navbar.logout"), isButton: true, onClick: handleLogout },
+        {
+          key: "logout",
+          label: t("navbar.logout"),
+          isButton: true,
+          onClick: handleLogout,
+        },
       ]
     : [
-        { to: "/", label: t("navbar.home") },
-        { to: "/about", label: t("navbar.about") },
-        { to: "/decorative-products", label: t("navbar.decorativeProducts") },
-        { to: "/natural-stone", label: t("navbar.naturalStone") },
+        { key: "home", to: "/", label: t("navbar.home") },
+        { key: "about", to: "/about", label: t("navbar.about") },
         {
+          key: "cart",
           to: "/cart",
           label: t("navbar.cart"),
           icon: <ShoppingCart className="w-5 h-5 mr-1" />,
         },
-        { to: "/users/login", label: t("navbar.login"), isButton: true },
+        {
+          key: "login",
+          to: "/users/login",
+          label: t("navbar.login"),
+          isButton: true,
+        },
       ];
 
-  const baseLink = "flex items-center transition-colors duration-200";
+  const baseLink =
+    "flex items-center whitespace-nowrap text-sm lg:text-base transition-colors duration-200";
   const linkLight = "text-backnewswhite hover:text-backnewsdark";
   const linkDark = "dark:text-backnewsdark dark:hover:text-backnewswhite";
   const activeLight = "text-backnewsdark";
   const activeDark = "dark:text-white";
 
   return (
-    <nav className="bg-marblewhite dark:bg-marbleblack border-b border-black/5 dark:border-white/5 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-4 md:px-8">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-2">
-          <img
-            src={LightLogo}
-            alt="MindMines"
-            className="h-20 w-auto block dark:hidden"
-          />
-          <img
-            src={DarkLogo}
-            alt="MindMines"
-            className="h-20 w-auto hidden dark:block"
-          />
-        </Link>
+    <>
+      {/* NAVBAR */}
+      <nav className="bg-marblewhite/95 dark:bg-marbleblack/95 border-b border-black/5 dark:border-white/5 sticky top-0 z-40 backdrop-blur">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-4 md:px-8">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src={LightLogo}
+              alt="MindMines"
+              className="h-20 w-auto block dark:hidden"
+            />
+            <img
+              src={DarkLogo}
+              alt="MindMines"
+              className="h-20 w-auto hidden dark:block"
+            />
+          </Link>
 
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-5">
-          {navLinks.map((link, i) =>
-            link.isButton ? (
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-4 lg:gap-6">
+            {/* Left nav links (Home, About) */}
+            {navLinks
+              .filter((l) => l.key === "home" || l.key === "about")
+              .map((link) =>
+                link.isButton ? (
+                  <button
+                    key={link.key}
+                    onClick={link.onClick || handleLogin}
+                    className={`${baseLink} ${linkLight} ${linkDark}`}
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.key}
+                    to={link.to ?? "#"}
+                    className={`${baseLink} ${
+                      isActive(link.to)
+                        ? `${activeLight} ${activeDark} font-semibold`
+                        : `${linkLight} ${linkDark}`
+                    }`}
+                  >
+                    {link.icon}
+                    {link.label}
+                  </Link>
+                )
+              )}
+
+            {/* SHOP DROPDOWN (Decor + Stone) */}
+            <div className="relative group">
               <button
-                key={i}
-                onClick={link.onClick || handleLogin}
-                className={`${baseLink} ${linkLight} ${linkDark}`}
-              >
-                {link.label}
-              </button>
-            ) : (
-              <Link
-                key={i}
-                to={link.to ?? "#"}
-                className={`${baseLink} ${
-                  isActive(link.to)
+                className={`${baseLink} px-2 ${
+                  shopActive
                     ? `${activeLight} ${activeDark} font-semibold`
                     : `${linkLight} ${linkDark}`
                 }`}
               >
-                {link.icon}
-                {link.label}
-              </Link>
-            )
-          )}
+                <span>{t("navbar.shop")}</span>
+                <ChevronDown className="w-4 h-4 ml-1 transition-transform group-hover:rotate-180" />
+              </button>
 
-          {/* Search */}
-          <div className="relative">
-            {/* Ensure your ProductSearch uses bg/placeholder that adapts: */}
-            {/* light: bg-slate-100 text-[#333] | dark: bg-darkgray text-lightgreen */}
-            <ProductSearch t={t} />
+              <div
+                className="invisible opacity-0 group-hover:visible group-hover:opacity-100
+                         transition-all duration-200
+                         absolute left-0 mt-3 min-w-[230px]
+                         bg-marblewhite/95 dark:bg-marbleblack/95
+                         rounded-xl shadow-xl border border-black/5 dark:border-white/10
+                         overflow-hidden"
+              >
+                <Link
+                  to="/decorative-products"
+                  className={`flex items-start px-4 py-3 text-sm lg:text-base whitespace-nowrap
+                            ${
+                              pathname.startsWith("/decorative-products")
+                                ? "bg-black/5 dark:bg-white/10 font-semibold"
+                                : "hover:bg-black/5 dark:hover:bg-white/10"
+                            }
+                            ${linkLight} ${linkDark}`}
+                >
+                  {t("navbar.decorativeProducts")}
+                </Link>
+                <Link
+                  to="/natural-stone"
+                  className={`flex items-start px-4 py-3 text-sm lg:text-base whitespace-nowrap
+                            ${
+                              pathname.startsWith("/natural-stone")
+                                ? "bg-black/5 dark:bg-white/10 font-semibold"
+                                : "hover:bg-black/5 dark:hover:bg-white/10"
+                            }
+                            ${linkLight} ${linkDark}`}
+                >
+                  {t("navbar.naturalStone")}
+                </Link>
+              </div>
+            </div>
+
+            {/* Right nav links (Account / Login, Cart, Logout) */}
+            {navLinks
+              .filter((l) => l.key !== "home" && l.key !== "about")
+              .map((link) =>
+                link.isButton ? (
+                  <button
+                    key={link.key}
+                    onClick={link.onClick || handleLogin}
+                    className={`${baseLink} ${linkLight} ${linkDark}`}
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.key}
+                    to={link.to ?? "#"}
+                    className={`${baseLink} ${
+                      isActive(link.to)
+                        ? `${activeLight} ${activeDark} font-semibold`
+                        : `${linkLight} ${linkDark}`
+                    }`}
+                  >
+                    {link.icon}
+                    {link.label}
+                  </Link>
+                )
+              )}
+
+            {/* Search */}
+            <div className="relative max-w-xs xl:max-w-sm">
+              <ProductSearch t={t} />
+            </div>
+
+            {/* Language */}
+            <LangSwitcher />
+
+            {/* Dark mode */}
+            <button
+              onClick={() => dispatch(toggleDarkMode())}
+              className="ml-2 rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
+              aria-label={t("navbar.toggleDarkMode")}
+            >
+              {darkMode ? (
+                <Sun className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
+              ) : (
+                <Moon className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
+              )}
+            </button>
           </div>
 
-          {/* Language */}
-          <LangSwitcher />
-
-          {/* Dark mode */}
+          {/* Mobile hamburger */}
           <button
-            onClick={() => dispatch(toggleDarkMode())}
-            className="ml-2 rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
-            aria-label={t("navbar.toggleDarkMode")}
+            className="md:hidden px-4 py-2 text-backnewswhite dark:text-backnewsdark"
+            aria-label={t("navbar.openMenu")}
+            onClick={() => dispatch(setMobileMenuOpen(true))}
           >
-            {darkMode ? (
-              <Sun className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
-            ) : (
-              <Moon className="w-5 h-5 text-backnewswhite dark:text-backnewsdark" />
-            )}
+            <Menu className="w-12 h-12" />
           </button>
         </div>
+      </nav>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden px-4 py-2 text-backnewswhite dark:text-backnewsdark"
-          aria-label={t("navbar.openMenu")}
-          onClick={() => dispatch(setMobileMenuOpen(true))}
-        >
-          <Menu className="w-12 h-12" />
-        </button>
-      </div>
-
-      {/* MOBILE PANEL */}
+      {/* MOBILE PANEL – rendered OUTSIDE the nav, full-screen overlay */}
       {mobileMenu && (
-        <div className="md:hidden fixed inset-0 z-40">
+        <div className="fixed inset-0 z-[999] md:hidden">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => dispatch(setMobileMenuOpen(false))}
@@ -196,7 +287,7 @@ export default function Navbar() {
             className="absolute right-0 top-0 h-full w-80 max-w-[90vw]
                  bg-marblewhite dark:bg-marbleblack
                  text-backnewswhite dark:text-backnewsdark
-                 shadow-lg translate-x-0 transition-transform
+                 shadow-2xl translate-x-0 transition-transform
                  flex flex-col"
           >
             {/* Sticky header */}
@@ -237,6 +328,11 @@ export default function Navbar() {
                 >
                   {t("navbar.about")}
                 </Link>
+
+                {/* Shop section on mobile */}
+                <div className="mt-2 mb-1 text-xs font-semibold uppercase tracking-wide text-backnewswhite/70 dark:text-backnewsdark/70">
+                  {t("navbar.shop")}
+                </div>
                 <Link
                   to="/decorative-products"
                   onClick={() => dispatch(setMobileMenuOpen(false))}
@@ -380,7 +476,7 @@ export default function Navbar() {
           </aside>
         </div>
       )}
-    </nav>
+    </>
   );
 }
 
@@ -412,7 +508,7 @@ function LangSwitcher() {
                 dispatch(setLanguage(opt.code));
                 dispatch(setLangMenuOpen(false));
               }}
-              className={`block w-full px-4 py-2 text-left hover:bg-black/5 dark:hover:bg-white/10 ${
+              className={`block w-full px-4 py-2 text-left whitespace-nowrap hover:bg-black/5 dark:hover:bg:white/10 ${
                 current === opt.code ? "font-bold" : ""
               }`}
             >
@@ -432,7 +528,7 @@ function LangButtons({ compact = false }) {
   const { setLanguage } = require("../features/i18n/i18nSlice");
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap">
       {[
         { code: "en", label: compact ? t("languages.short.en") : t("english") },
         { code: "de", label: compact ? t("languages.short.de") : t("german") },
@@ -440,7 +536,7 @@ function LangButtons({ compact = false }) {
         <button
           key={opt.code}
           onClick={() => dispatch(setLanguage(opt.code))}
-          className={`px-3 py-2 rounded border border-black/10 dark:border-white/10 ${
+          className={`px-3 py-2 rounded border border-black/10 dark:border-white/10 whitespace-nowrap text-sm lg:text-base ${
             current === opt.code
               ? "bg-marbleblack text-white dark:bg-marblewhite dark:text-marbleblack"
               : "hover:bg-black/5 dark:hover:bg-white/10"

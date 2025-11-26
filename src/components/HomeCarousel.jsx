@@ -121,7 +121,7 @@ export default function HomeCarousel() {
       </div>
 
       {/* Pagination Dots */}
-      <div className="absolute left-1/2 bottom-6 -translate-x-1/2 flex gap-2 z-20">
+      <div className="absolute left-1/2 bottom-1 -translate-x-1/2 flex gap-2 z-20">
         {categories.map((_, idx) => (
           <button
             key={idx}
