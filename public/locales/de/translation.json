@@ -2,8 +2,8 @@
   "navbar": {
     "home": "Startseite",
     "about": "Über uns",
-    "decorativeProducts": "Decorative Products",
-    "naturalStone": "Natural Stone",
+    "decorativeProducts": "Dekorative Kollektion",
+    "naturalStone": "Naturstein Kollektion",
     "contact": "Kontakt",
     "cart": "Warenkorb",
     "searchPlaceholder": "Nach Produkten suchen...",
@@ -149,7 +149,7 @@
       "materialLine3": "Imprägnierung & Pflegeberatung"
     },
     "topsellers": {
-      "title": "Bestseller",
+      "title": "Aktuelle Trends",
       "seeAll": "Alle ansehen",
       "addToCart": "In den Warenkorb",
       "added": "Hinzugefügt!",

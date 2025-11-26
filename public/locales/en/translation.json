@@ -2,8 +2,8 @@
   "navbar": {
     "home": "Home",
     "about": "About Us",
-    "decorativeProducts": "Decorative Products",
-    "naturalStone": "Natural Stone",
+    "decorativeProducts": "Decorative Collection",
+    "naturalStone": "Naturstein Kollektion",
     "contact": "Contact",
     "cart": "Cart",
     "language": "Language",
@@ -122,7 +122,7 @@
       "materialLine3": "Sealing & care guidance"
     },
     "topsellers": {
-      "title": "Top-Selling Products",
+      "title": "Trending Now",
       "seeAll": "See all",
       "addToCart": "Add to cart",
       "added": "Added!",
