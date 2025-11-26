@@ -781,7 +781,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
           <div className="mt-4 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
             <button
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:border-gray-700"
+              className="w-full sm:w-auto px-4 py-2 rounded border border-gray-300 hover:bg-gray-50 dark:hover:text-backnewsdark dark:border-gray-700"
             >
               {t("common.close")}
             </button>
