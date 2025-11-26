@@ -519,7 +519,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 rounded px-2 py-1 text-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="shrink-0 rounded px-2 py-1 text-lg text-gray-500 dark:hover:text-backnewsdark hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label={t("common.close")}
           >
             &times;
