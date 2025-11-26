@@ -5,7 +5,7 @@ import aboutUs from "../assets/aboutUs.jpg";
 import ContactSection from "../components/ContactForm";
 import TrustBadges from "../components/TrustBadges";
 import marbleCrafting from "../assets/MindminesVideo.mp4";
-import marbleSculpting from "../assets/MindminesAbout.jpg";
+import marbleSculpting from "../assets/MindminesAboutvideoImage.jpg";
 
 // TODO: replace these with your real images / video URLs
 
