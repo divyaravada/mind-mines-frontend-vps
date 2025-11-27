@@ -1291,6 +1291,7 @@
     }
   },
   "productDetail": {
+    "stockInfo": "Warenbestand",
     "addToCart": "In den Warenkorb",
     "quantity": "Menge",
     "tabs": {

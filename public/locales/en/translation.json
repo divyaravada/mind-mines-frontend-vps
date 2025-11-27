@@ -1282,6 +1282,7 @@
     }
   },
   "productDetail": {
+    "stockInfo": "Stock",
     "addToCart": "Add to cart",
     "quantity": "Qty",
     "tabs": {
