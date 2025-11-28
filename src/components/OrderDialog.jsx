@@ -327,7 +327,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
   // Real status from backend
   const baseStatus = order?.status || "";
 
-  // When user has requested cancellation, show synthetic status "cancel_request"
+  // Which base statuses can be overlaid by synthetic statuses
   const cancellableBaseStatuses = [
     "pending",
     "processing",
@@ -335,10 +335,14 @@ export default function OrderDialog({ orderId, open, onClose }) {
     "shipped",
     "delivered",
   ];
+  const returnableBaseStatuses = "delivered";
 
+  // Display status with synthetic values for UI
   const effectiveStatus =
     cancelRequested && cancellableBaseStatuses.includes(baseStatus)
       ? "cancel_request"
+      : returnRequested && returnableBaseStatuses.includes(baseStatus)
+      ? "return_request"
       : baseStatus;
 
   // Logic uses the real backend status
@@ -538,6 +542,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
         return "bg-yellow-100 text-yellow-700";
       case "cancel_request":
         return "bg-orange-100 text-orange-700";
+      case "return_request":
+        return "bg-purple-100 text-purple-700";
       case "cancelled":
       case "failed":
       case "refunded":
@@ -558,7 +564,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
   const showCancelBtn = !!order && (isBeforePaid || cancelRequested);
   const cancelDisabled = !isBeforePaid || cancelRequested;
 
-  // Return button visibility is same as before, but now also considers returnRequested
+  // Return button visibility
   const showReturnBtn = !!order && (apiReturnFlag || isDelivered);
 
   return (

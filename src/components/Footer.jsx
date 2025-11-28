@@ -9,7 +9,8 @@ import mastercard from "../assets/master.png";
 import sepa from "../assets/sepa.png";
 import klarna from "../assets/klarna.png";
 import dhl from "../assets/dhl.png";
-import dpd from "../assets/dpd.png";
+import dpdLight from "../assets/dpd.png";
+import dpdDark from "../assets/dpd-dark.png";
 import hermes from "../assets/hermes.png";
 import { useTranslation } from "react-i18next";
 import NewsletterSection from "./NewsletterForm";
@@ -147,7 +148,12 @@ export default function Footer() {
             {t("footer.shipping")}
           </span>
           <img src={dhl} alt="DHL" className="h-6" />
-          <img src={dpd} alt="DPD" className="h-6" />
+          <img src={dpdLight} alt="DPD" className="h-6 dark:hidden" />
+          <img
+            src={dpdDark}
+            alt="DPD"
+            className="h-6 hidden dark:inline-block"
+          />
 
           <img src={hermes} alt="Hermes" className="h-6" />
         </div>

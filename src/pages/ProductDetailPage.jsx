@@ -485,7 +485,7 @@ export default function ProductDetailPage() {
             </div>
 
             <p>
-              <strong>{t("stock")}:</strong>{" "}
+              <strong>{t("productDetail.stockInfo")}:</strong>{" "}
               {stockNum > 0
                 ? stockNum
                 : t("productDetail.outOfStockShort", "Out of stock")}
