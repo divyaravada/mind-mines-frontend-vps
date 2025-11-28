@@ -274,24 +274,6 @@ export default function OrderDialog({ orderId, open, onClose }) {
   const orderCurrency = order?.currency || order?.currency_code || "EUR";
 
   const createdAtLabel = order ? formatDateTime(order.created_at, locale) : "";
-  const deliveredAt =
-    order && order.status === "delivered"
-      ? parseDateLoose(order.delivered_at) ||
-        parseDateLoose(order.shipped_at) ||
-        parseDateLoose(order.created_at)
-      : parseDateLoose(order?.delivered_at);
-  const ageDays = deliveredAt
-    ? Math.floor((Date.now() - deliveredAt.getTime()) / MS_IN_DAY)
-    : null;
-
-  const isDelivered = order?.status === "delivered";
-  const isPaidOrLater =
-    order?.status === "paid" ||
-    order?.status === "shipped" ||
-    order?.status === "delivered" ||
-    order?.payment_status === "paid";
-  const isBeforePaid =
-    order?.status === "pending" || order?.status === "processing";
 
   const subtotalValue = order?.subtotal ?? 0;
   const shippingFeeValue = order?.shipping_price ?? order?.shipping_fee ?? 0;
@@ -327,7 +309,7 @@ export default function OrderDialog({ orderId, open, onClose }) {
   const returnDeadline = order ? parseDateLoose(order.return_deadline) : null;
   const apiReturnFlag = typeof order?.is_returnable === "boolean";
 
-  // Backend flags (use whatever field names you expose on the API)
+  // Backend flags
   const hasCancelRequestFromApi = !!(
     order?.has_cancel_request ||
     order?.cancel_requested ||
@@ -341,6 +323,43 @@ export default function OrderDialog({ orderId, open, onClose }) {
 
   const cancelRequested = hasCancelRequestFromApi || localCancelRequested;
   const returnRequested = hasReturnRequestFromApi || localReturnRequested;
+
+  // Real status from backend
+  const baseStatus = order?.status || "";
+
+  // When user has requested cancellation, show synthetic status "cancel_request"
+  const cancellableBaseStatuses = [
+    "pending",
+    "processing",
+    "paid",
+    "shipped",
+    "delivered",
+  ];
+
+  const effectiveStatus =
+    cancelRequested && cancellableBaseStatuses.includes(baseStatus)
+      ? "cancel_request"
+      : baseStatus;
+
+  // Logic uses the real backend status
+  const isDelivered = baseStatus === "delivered";
+  const isPaidOrLater =
+    baseStatus === "paid" ||
+    baseStatus === "shipped" ||
+    baseStatus === "delivered" ||
+    order?.payment_status === "paid";
+  const isBeforePaid = baseStatus === "pending" || baseStatus === "processing";
+
+  const deliveredAt =
+    order && isDelivered
+      ? parseDateLoose(order.delivered_at) ||
+        parseDateLoose(order.shipped_at) ||
+        parseDateLoose(order.created_at)
+      : parseDateLoose(order?.delivered_at);
+
+  const ageDays = deliveredAt
+    ? Math.floor((Date.now() - deliveredAt.getTime()) / MS_IN_DAY)
+    : null;
 
   const derivedReturnEligible = apiReturnFlag
     ? !!order?.is_returnable
@@ -517,6 +536,8 @@ export default function OrderDialog({ orderId, open, onClose }) {
       case "processing":
       case "pending":
         return "bg-yellow-100 text-yellow-700";
+      case "cancel_request":
+        return "bg-orange-100 text-orange-700";
       case "cancelled":
       case "failed":
       case "refunded":
@@ -601,10 +622,10 @@ export default function OrderDialog({ orderId, open, onClose }) {
                   <div className="flex items-center gap-3 flex-wrap">
                     <span
                       className={`text-xs sm:text-sm font-medium px-2 py-1 rounded ${statusClass(
-                        order.status
+                        effectiveStatus
                       )}`}
                     >
-                      {statusLabel(order.status)}
+                      {statusLabel(effectiveStatus)}
                     </span>
                     {trackingCarrier && (
                       <span className="text-xs text-gray-500">
