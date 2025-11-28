@@ -7,7 +7,7 @@ const PHONE = "+491704658188";
 const WHATSAPP = "+491704658188";
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP.replace(/\D/g, "")}`;
 const PHONE_LINK = `tel:${PHONE}`;
-const SUPPORT_EMAIL = "service@mindmines.eu";
+const SUPPORT_EMAIL = "info@mindmines.eu";
 
 export default function ContactSection() {
   const { t } = useTranslation();
