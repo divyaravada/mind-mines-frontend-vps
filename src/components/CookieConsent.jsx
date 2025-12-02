@@ -103,7 +103,7 @@ export default function CookieConsent() {
               className="px-4 py-2 rounded-md bg-backnewswhite text-white hover:opacity-90"
               onClick={onAcceptAll}
             >
-              {t("acceptAll")}
+              {t("cookies.acceptAll")}
             </button>
             <button
               className="px-4 py-2 rounded-md border border-black/10 dark:border-white/10
@@ -111,7 +111,7 @@ export default function CookieConsent() {
                          dark:text-backnewsdark dark:hover:text-backnewswhite"
               onClick={onRejectAll}
             >
-              {t("rejectAll")}
+              {t("cookies.rejectAll")}
             </button>
             <button
               className="px-4 py-2 rounded-md border border-black/10 dark:border-white/10
@@ -119,14 +119,14 @@ export default function CookieConsent() {
                          dark:text-backnewsdark dark:hover:text-backnewswhite"
               onClick={onSave}
             >
-              {t("save")}
+              {t("cookies.save")}
             </button>
             <button
               className="px-4 py-2 rounded-md border border-black/10 dark:border-white/10 opacity-70 text-backnewswhite hover:text-backnewsdark
                          dark:text-backnewsdark dark:hover:text-backnewswhite"
               onClick={() => dispatch(closeManager())}
             >
-              {t("close") || "Close"}
+              {t("cookies.close") || "Close"}
             </button>
           </div>
         </div>

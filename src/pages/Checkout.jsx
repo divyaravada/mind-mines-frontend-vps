@@ -41,6 +41,46 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 const inputCls =
   "w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition";
 
+const EUROPE_COUNTRIES = [
+  "AT",
+  "BE",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
+  "NO",
+  "IS",
+  "LI",
+  "CH",
+  "GB",
+];
+
+function isEuropeanCountry(code) {
+  const c = (code || "").toUpperCase();
+  return EUROPE_COUNTRIES.includes(c);
+}
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
@@ -291,6 +331,8 @@ export default function Checkout() {
     () => fmtEUR((payTotal || 0) / klarnaInstallments, locale),
     [payTotal, locale]
   );
+
+  const installmentsEnabled = payTotal >= 50;
   const subtotalLabel =
     itemsCount === 1
       ? t("checkout.subtotal_one", { count: itemsCount })
@@ -374,12 +416,7 @@ export default function Checkout() {
   const saveAddress = async () => {
     // 🛑 If not logged in, don't call address API
     if (!isAuth) {
-      alert(
-        t(
-          "checkout.saveAddressLogin",
-          "Please log in or create an account to save this address."
-        )
-      );
+      alert(t("checkout.saveAddressLogin"));
       return;
     }
 
@@ -393,12 +430,25 @@ export default function Checkout() {
     setSavingAddr(true);
     try {
       // always create a NEW address/contact
-      const payload = buildAddressPayload(form, null);
-      const res = await createAddress(payload).unwrap();
+      const payload = buildAddressPayload(form, addressIdRef.current);
 
-      // remember the last created address id for shipping/order creation
-      addressIdRef.current = res?.id ?? null;
+      let res;
+      if (addressIdRef.current) {
+        // UPDATE existing address
+        // ⚠️ adjust shape { id, ...payload } vs { id, body: payload } to match your RTK query
+        res = await updateAddress({
+          id: addressIdRef.current,
+          ...payload,
+        }).unwrap();
+      } else {
+        // CREATE new address
+        res = await createAddress(payload).unwrap();
+      }
 
+      // remember the id (in case it was created)
+      if (res?.id) {
+        addressIdRef.current = res.id;
+      }
       setAddrSaved(true);
       setTimeout(() => setAddrSaved(false), 1800);
     } catch (e) {
@@ -517,33 +567,36 @@ export default function Checkout() {
   // handle country + DE-only restriction
   const handleCountryChange = (e) => {
     const newCode = normalizeCountry(e.target.value);
-    const isDEOnly =
-      payment === "sepa_debit" ||
-      payment === "bank" ||
-      (typeof payment === "string" && payment.startsWith("sepa_installments"));
-
-    if (isDEOnly && newCode !== "DE") {
-      alert(
-        t(
-          "checkout.deOnly",
-          "SEPA / Bank Transfer is only available in Germany (DE)."
-        )
-      );
-      setForm((prev) => ({ ...prev, country: "DE" }));
-      return;
-    }
     setForm((prev) => ({ ...prev, country: newCode }));
   };
 
   const countryCode = normalizeCountry(form.country);
-  const deOnlyActive =
-    payment === "sepa_debit" ||
-    (typeof payment === "string" && payment.startsWith("sepa_installments"));
+  const isEuropean = isEuropeanCountry(countryCode);
+
   useEffect(() => {
-    if (deOnlyActive && countryCode !== "DE") {
-      setForm((prev) => ({ ...prev, country: "DE" }));
+    if (
+      !isEuropean &&
+      typeof payment === "string" &&
+      payment.startsWith("sepa")
+    ) {
+      setPaymentSafe("");
+      setSepaMonths(null);
     }
-  }, [countryCode, deOnlyActive]);
+  }, [isEuropean, payment, setPaymentSafe]);
+
+  useEffect(() => {
+    if (!installmentsEnabled) {
+      setCardMonths(null);
+      setSepaMonths(null);
+      if (
+        typeof payment === "string" &&
+        (payment.startsWith("card_installments") ||
+          payment.startsWith("sepa_installments"))
+      ) {
+        setPaymentSafe("");
+      }
+    }
+  }, [installmentsEnabled, payment, setPaymentSafe]);
 
   // === NEW: Create a local order for Stripe card ===
   const ensureStripeOrder = useCallback(
@@ -745,6 +798,7 @@ export default function Checkout() {
                 key={`card-${m}`}
                 type="button"
                 onClick={() => {
+                  if (!installmentsEnabled) return;
                   setCardMonths((prev) => {
                     const same = prev === m;
                     const next = same ? null : m;
@@ -765,20 +819,39 @@ export default function Checkout() {
         </div>
       </div>
 
-      {cardMonths && (
-        <StripeCardInstallments
-          active={payment === `card_installments_${cardMonths}`}
-          setActive={() => setPaymentSafe(`card_installments_${cardMonths}`)}
-          months={cardMonths}
-          form={form}
-          items={items}
-          couponCode={couponCode}
-          paymentMethodId={savedCardPaymentMethodId}
-          setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-          onSuccess={async (id) => {
-            await onSuccessfulOrder(id);
-          }}
-        />
+      {!installmentsEnabled && (
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {t(
+            "checkout.installmentsMinTotal",
+            "Installment payments are available from an order value of 50 €."
+          )}
+        </p>
+      )}
+
+      {cardMonths && installmentsEnabled && (
+        <>
+          <StripeCardInstallments
+            active={payment === `card_installments_${cardMonths}`}
+            setActive={() => setPaymentSafe(`card_installments_${cardMonths}`)}
+            months={cardMonths}
+            form={form}
+            items={items}
+            couponCode={couponCode}
+            paymentMethodId={savedCardPaymentMethodId}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={async (id) => {
+              await onSuccessfulOrder(id);
+            }}
+          />{" "}
+          {/* Transaction details text */}
+          <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+            {t("checkout.installmentSchedule", {
+              total: fmtEUR(payTotal, locale),
+              months: cardMonths,
+              per: fmtEUR((payTotal || 0) / cardMonths, locale),
+            })}
+          </div>
+        </>
       )}
     </div>
   );
@@ -820,21 +893,30 @@ export default function Checkout() {
         </div>
       </div>
 
-      {sepaMonths && (
-        <StripeSepaInstallments
-          active={payment === `sepa_installments_${sepaMonths}`}
-          setActive={() => setPaymentSafe(`sepa_installments_${sepaMonths}`)}
-          months={sepaMonths}
-          form={form}
-          items={items}
-          couponCode={couponCode}
-          paymentMethodId={savedSepaPaymentMethodId}
-          countryCode={normalizeCountry(form.country)}
-          setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-          onSuccess={async (id) => {
-            await onSuccessfulOrder(id);
-          }}
-        />
+      {sepaMonths && installmentsEnabled && (
+        <>
+          <StripeSepaInstallments
+            active={payment === `sepa_installments_${sepaMonths}`}
+            setActive={() => setPaymentSafe(`sepa_installments_${sepaMonths}`)}
+            months={sepaMonths}
+            form={form}
+            items={items}
+            couponCode={couponCode}
+            paymentMethodId={savedSepaPaymentMethodId}
+            countryCode={normalizeCountry(form.country)}
+            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            onSuccess={async (id) => {
+              await onSuccessfulOrder(id);
+            }}
+          />
+          <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+            {t("checkout.installmentSchedule", {
+              total: fmtEUR(payTotal, locale),
+              months: sepaMonths,
+              per: fmtEUR((payTotal || 0) / sepaMonths, locale),
+            })}
+          </div>
+        </>
       )}
     </div>
   );
@@ -1199,7 +1281,9 @@ export default function Checkout() {
                 name="payment"
                 value="klarna_installments"
                 checked={payment === "klarna_installments"}
-                onChange={() => setPaymentSafe("klarna_installments")}
+                onChange={() =>
+                  installmentsEnabled && setPaymentSafe("klarna_installments")
+                }
               />
               <span className="flex-1">
                 {t("checkout.klarnaInstallmentsLabel", {
@@ -1211,7 +1295,14 @@ export default function Checkout() {
                 {t("checkout.processorStripeKlarna")}
               </span>
             </label>
-
+            {!installmentsEnabled && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {t(
+                  "checkout.installmentsMinTotal",
+                  "Installment payments are available from an order value of 50 €."
+                )}
+              </p>
+            )}
             {payment === "klarna_installments" && (
               <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
                 {!localOrderIdRef.current ? (
@@ -1254,6 +1345,15 @@ export default function Checkout() {
                     onError={(m) => alert(m)}
                   />
                 )}
+
+                {/* Klarna installment transaction details */}
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                  {t("checkout.installmentSchedule", {
+                    total: fmtEUR(payTotal, locale),
+                    months: klarnaInstallments,
+                    per: klarnaPerPayment,
+                  })}
+                </div>
               </div>
             )}
 
@@ -1366,23 +1466,39 @@ export default function Checkout() {
             {renderPayPalSection()}
 
             {/* SEPA (one-shot + installments) */}
-            <StripeSepa
-              active={payment === "sepa_debit"}
-              setActive={(val) => setPaymentSafe(val)}
-              form={form}
-              items={items}
-              couponCode={couponCode}
-              total={payTotal}
-              customerEmail={form.email}
-              setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-              onSuccess={async (id) => {
-                await onSuccessfulOrder(id || localOrderIdRef.current);
-              }}
-            />
+            {isEuropean ? (
+              <StripeSepa
+                active={payment === "sepa_debit"}
+                setActive={(val) => setPaymentSafe(val)}
+                form={form}
+                items={items}
+                couponCode={couponCode}
+                total={payTotal}
+                customerEmail={form.email}
+                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                onSuccess={async (id) => {
+                  await onSuccessfulOrder(id || localOrderIdRef.current);
+                }}
+              />
+            ) : (
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                {t(
+                  "checkout.sepaEuropeOnly",
+                  "SEPA direct debit is only available for European billing addresses."
+                )}
+              </p>
+            )}
 
-            {/* SEPA installments (DE only) */}
-            {renderSepaInstallmentsBlock()}
-
+            {/* SEPA installments (Europe only) */}
+            {isEuropean && installmentsEnabled && renderSepaInstallmentsBlock()}
+            {isEuropean && !installmentsEnabled && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {t(
+                  "checkout.installmentsMinTotal",
+                  "Installment payments are available from an order value of 50 €."
+                )}
+              </p>
+            )}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
               <Badge
                 icon={<ShieldCheck className="w-4 h-4" />}
