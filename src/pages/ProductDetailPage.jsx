@@ -1,6 +1,7 @@
+// src/pages/ProductDetailPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Carousel } from "react-responsive-carousel";
@@ -33,6 +34,7 @@ import {
   useGetWishlistQuery,
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
@@ -65,6 +67,20 @@ export default function ProductDetailPage() {
     [product, wlIds]
   );
 
+  // ---------- MARKETING TRACKING ----------
+  const [trackEvent] = useTrackEventMutation();
+  const track = useCallback(
+    (payload) => {
+      try {
+        trackEvent(payload);
+      } catch {
+        /* ignore tracking errors */
+      }
+    },
+    [trackEvent]
+  );
+  // ---------------------------------------
+
   const toggleWishlist = async () => {
     if (!product) return;
     if (!isLoggedIn) {
@@ -72,9 +88,22 @@ export default function ProductDetailPage() {
       return;
     }
     try {
-      if (wished) await removeWish(product.id).unwrap();
-      else await addWish(product.id).unwrap();
-    } catch {}
+      if (wished) {
+        await removeWish(product.id).unwrap();
+        track({
+          event_type: "wishlist_remove",
+          product_id: product.id,
+        });
+      } else {
+        await addWish(product.id).unwrap();
+        track({
+          event_type: "wishlist_add",
+          product_id: product.id,
+        });
+      }
+    } catch {
+      /* ignore UI errors here */
+    }
   };
 
   const [openDemand, setOpenDemand] = useState(false);
@@ -162,7 +191,7 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  // SEO
+  // SEO + derived fields
   const currentOrigin =
     typeof window !== "undefined"
       ? window.location.origin
@@ -182,6 +211,7 @@ export default function ProductDetailPage() {
     : [];
   const image =
     mediaImgs[0] || product.image || `${currentOrigin}/og-default.jpg`;
+
   const priceNumber = resolveProductPrice(product);
   const baseGross = resolveBaseGross(product);
   const discounted =
@@ -192,6 +222,21 @@ export default function ProductDetailPage() {
   // 🔹 Unified stock number: use product.stock or product.quantity
   const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
   const isOut = stockNum <= 0;
+
+  // 🔹 Track detail view when product loaded
+  useEffect(() => {
+    if (!product) return;
+    const price = resolveProductPrice(product);
+    const stock = Number(product?.stock ?? product?.quantity ?? 0);
+    track({
+      event_type: "product_detail_view",
+      product_id: product.id,
+      category: product.category,
+      price,
+      stock,
+      key: product.key || null,
+    });
+  }, [product, track]);
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -267,7 +312,7 @@ export default function ProductDetailPage() {
     setQty(next);
   };
 
-  // 🔹 Enforce stock when adding to cart
+  // 🔹 Enforce stock when adding to cart + track add_to_cart
   const handleAddToCart = () => {
     if (isOut || stockNum <= 0) {
       alert(
@@ -291,6 +336,16 @@ export default function ProductDetailPage() {
     }
 
     const unit = resolveProductPrice(product);
+
+    // 👇 tracking event
+    track({
+      event_type: "add_to_cart",
+      product_id: product.id,
+      category: product.category,
+      quantity: qty,
+      value: unit * qty,
+    });
+
     dispatch(
       addItem({
         id: product.id,
@@ -318,6 +373,13 @@ export default function ProductDetailPage() {
     setRevRating(5);
     setRevMessage("");
     if (fileRef.current) fileRef.current.value = "";
+
+    // 👇 track new review
+    track({
+      event_type: "review_create",
+      product_id: product.id,
+      rating: revRating,
+    });
   };
 
   const rawDelivery = t("productDetail.policy.delivery_content", {
@@ -459,7 +521,7 @@ export default function ProductDetailPage() {
               <strong>{t("weight")}:</strong> {product.weight} kg
             </div>
 
-            {/* 🔹 Quantity with stock-aware clamp */}
+            {/* Quantity with stock-aware clamp */}
             <div className="flex items-center gap-2">
               <label htmlFor="qty" className="font-medium">
                 {t("productDetail.quantity")}:
@@ -501,7 +563,13 @@ export default function ProductDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => setOpenDemand(true)}
+                    onClick={() => {
+                      setOpenDemand(true);
+                      track({
+                        event_type: "on_demand_open",
+                        product_id: product.id,
+                      });
+                    }}
                     className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack"
                   >
                     {t("product.orderOnDemandCta", "Order on demand")}
@@ -522,7 +590,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* 🔹 Add to cart respects stock */}
+            {/* Add to cart respects stock */}
             <button
               onClick={handleAddToCart}
               disabled={isOut}
@@ -696,6 +764,12 @@ export default function ProductDetailPage() {
           productId={product.id}
           onSubmit={async (payload) => {
             await createDemand(payload).unwrap();
+            // 👇 track on-demand request
+            track({
+              event_type: "on_demand_request",
+              product_id: product.id,
+              quantity: payload.quantity,
+            });
             setOpenDemand(false);
           }}
         />

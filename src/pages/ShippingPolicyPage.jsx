@@ -1,12 +1,23 @@
 // src/pages/ShippingPolicyPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function ShippingPolicyPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [isMobileTOCOpen, setIsMobileTOCOpen] = useState(false);
+  const [trackEvent] = useTrackEventMutation();
+
+  useEffect(() => {
+    try {
+      trackEvent({
+        event_type: "page_view_shipping_policy",
+        path: "/shipping-policy", // adjust if route differs
+      });
+    } catch {}
+  }, [trackEvent]);
 
   const sections = [
     {

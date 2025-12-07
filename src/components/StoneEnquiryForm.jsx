@@ -3,6 +3,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 import { useSendStoneEnquiryMutation } from "../features/stones/stonesApi";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function StoneEnquiryForm({
   isAuthenticated,
@@ -19,10 +20,13 @@ export default function StoneEnquiryForm({
   const [sendEnquiry, { isLoading, isSuccess, isError, error }] =
     useSendStoneEnquiryMutation();
 
+  const [trackEvent] = useTrackEventMutation();
+
   const submit = async (e) => {
     e.preventDefault();
+    const finalStoneType = presetStoneType || stoneType;
     const body = {
-      stone_type: presetStoneType || stoneType,
+      stone_type: finalStoneType,
       name,
       message,
       ...(isAuthenticated ? {} : { email }),
@@ -34,6 +38,17 @@ export default function StoneEnquiryForm({
       setMessage("");
       if (!presetStoneType) setStoneType("");
       onSuccess?.();
+
+      // 🔹 Track successful enquiry
+      try {
+        trackEvent({
+          event_type: "stone_enquiry_submit",
+          stone_type: finalStoneType,
+          is_authenticated: isAuthenticated,
+        });
+      } catch {
+        /* ignore tracking failures */
+      }
     } catch {
       /* handled by isError + error display */
     }

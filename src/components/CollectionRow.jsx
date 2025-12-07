@@ -10,22 +10,22 @@ const collection = [
   {
     key: "mobileHolder",
     image: mobileHolder,
-    link: "/decorative-products/category/office",
+    link: "/decorative-products/category/office-supplies",
   },
   {
     key: "multipurpose",
     image: bathSoap,
-    link: "/decorative-products/category/bathroom",
+    link: "/decorative-products/category/bathroom-accessories",
   },
   {
     key: "kitchenBowl",
     image: kitchenBowl,
-    link: "/decorative-products/category/kitchen",
+    link: "/decorative-products/category/kitchen-serveware",
   },
   {
     key: "tray",
     image: marbleTray,
-    link: "/decorative-products/category/storage",
+    link: "/decorative-products/category/storage-organization",
   },
 ];
 

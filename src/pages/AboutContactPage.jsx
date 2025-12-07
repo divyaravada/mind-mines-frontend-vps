@@ -20,7 +20,7 @@ export default function AboutContactPage() {
   return (
     <main className="bg-marblewhite dark:bg-marbleblack min-h-screen py-10">
       {/* HERO SECTION */}
-      <div className="w-full mx-auto flex flex-col md:flex-col items-center gap-10 px-6 pb-16 max-w-6xl">
+      <div className="w-full mx-auto flex flex-col md:flex-row items-center gap-10 px-6 pb-16 max-w-6xl">
         <div className="w-full md:w-1/2">
           <img
             src={aboutUs}
@@ -50,7 +50,7 @@ export default function AboutContactPage() {
 
       {/* VIDEO SECTION (above TrustBadges) */}
       <section className="w-full mx-auto flex flex-col md:flex-col items-center gap-4 px-6 pb-16 max-w-6xl">
-        <h2 className="text-3xl font-extrabold  text-backnewswhite dark:text-backnewsdark">
+        <h2 className="text-3xl font-extrabold text-backnewswhite dark:text-backnewsdark">
           {t("about.galleryHeading")}
         </h2>
 

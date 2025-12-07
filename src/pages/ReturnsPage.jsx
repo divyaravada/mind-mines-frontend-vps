@@ -1,12 +1,23 @@
 // src/pages/ReturnsPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function ReturnsPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
+  const [trackEvent] = useTrackEventMutation();
+
+  useEffect(() => {
+    try {
+      trackEvent({
+        event_type: "page_view_returns_policy",
+        path: "/returns", // or "/return-policy" etc. based on your route
+      });
+    } catch {}
+  }, [trackEvent]);
 
   const sections = [
     {

@@ -1,4 +1,5 @@
 import { api } from "../../services/apiSlice";
+import { getBaseTrackingFields } from "../../lib/session";
 
 export const productsApi = api.injectEndpoints({
   endpoints: (b) => ({
@@ -69,7 +70,7 @@ export const productsApi = api.injectEndpoints({
       query: ({ product, email }) => ({
         url: "stock-alerts/",
         method: "POST",
-        body: { product, email },
+        body: { product, email, ...getBaseTrackingFields() },
       }),
     }),
 
@@ -77,7 +78,7 @@ export const productsApi = api.injectEndpoints({
       query: (payload) => ({
         url: "on-demand/",
         method: "POST",
-        body: payload,
+        body: { ...payload, ...getBaseTrackingFields() },
       }),
     }),
   }),

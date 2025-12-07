@@ -1,12 +1,23 @@
 // src/pages/ImprintPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function ImprintPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
+  const [trackEvent] = useTrackEventMutation();
+
+  useEffect(() => {
+    try {
+      trackEvent({
+        event_type: "page_view_imprint",
+        path: "/imprint", // e.g. /impressum if you use German route
+      });
+    } catch {}
+  }, [trackEvent]);
 
   const sections = [
     {

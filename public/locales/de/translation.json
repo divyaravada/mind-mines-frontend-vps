@@ -562,7 +562,7 @@
     "close": "Schließen",
     "categories": {
       "essential": "Essenziell (immer aktiv)",
-      "analytics": "Analyse",
+      "analytics": "Analytik",
       "marketing": "Marketing"
     },
     "learnMore": "Mehr erfahren"
@@ -1386,10 +1386,12 @@
     "error": "Produkte konnten nicht geladen werden.",
     "noResults": "Keine Produkte gefunden.",
     "meta": {
+      "title": "Produkte | MindMines",
       "categoryTitle": "{{category}} | MindMines",
       "allTitle": "Alle Produkte | MindMines",
       "categoryDescription": "{{category}} bei MindMines entdecken.",
-      "defaultDescription": "Produkte bei MindMines entdecken."
+      "defaultDescription": "Produkte bei MindMines entdecken.",
+      "description": "Entdecken Sie unsere hochwertigen {{category}} aus Naturstein. Perfekt für Ihr Zuhause oder Büro."
     }
   },
   "forgotPassword": {

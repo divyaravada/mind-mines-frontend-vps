@@ -1,12 +1,27 @@
 // src/pages/TermsPage.jsx
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function TermsPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [tocOpen, setTocOpen] = useState(false);
+
+  const [trackEvent] = useTrackEventMutation();
+
+  // 🔹 Track page view
+  useEffect(() => {
+    try {
+      trackEvent({
+        event_type: "page_view_terms",
+        path: "/terms", // change if your actual route is different
+      });
+    } catch {
+      /* ignore tracking errors */
+    }
+  }, [trackEvent]);
 
   const sections = [
     {

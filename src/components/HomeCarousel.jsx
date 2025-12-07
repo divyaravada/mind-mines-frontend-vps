@@ -28,19 +28,27 @@ export default function HomeCarousel() {
 
   useEffect(() => {
     if (!slider?.current) return;
+    if (typeof window === "undefined") return;
 
     // Disable autoplay on small screens
     if (window.innerWidth < 768) return;
+
     if (timer.current) clearInterval(timer.current);
     timer.current = setInterval(() => slider.current?.next(), 4000);
-    return () => timer.current && clearInterval(timer.current);
+
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
   }, [slider]);
 
   const pauseAutoplay = () => timer.current && clearInterval(timer.current);
   const resumeAutoplay = () => {
-    if (slider?.current) {
-      timer.current = setInterval(() => slider.current?.next(), 4000);
-    }
+    if (!slider?.current) return;
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < 768) return;
+
+    if (timer.current) clearInterval(timer.current);
+    timer.current = setInterval(() => slider.current?.next(), 4000);
   };
 
   if (!categories.length) {

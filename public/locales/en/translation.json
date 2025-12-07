@@ -1358,10 +1358,12 @@
     "error": "Error loading products.",
     "noResults": "No products found.",
     "meta": {
+      "title": "MindMines – Marble & Stone Decor",
       "categoryTitle": "{{category}} | MindMines",
       "allTitle": "All products | MindMines",
       "categoryDescription": "Browse {{category}} at MindMines.",
-      "defaultDescription": "Browse products at MindMines."
+      "defaultDescription": "Browse products at MindMines.",
+      "description": "Browse {{category}} at MindMines."
     }
   },
   "forgotPassword": {

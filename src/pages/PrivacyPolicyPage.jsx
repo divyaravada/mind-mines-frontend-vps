@@ -1,5 +1,6 @@
 // src/pages/PrivacyPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 
@@ -7,6 +8,16 @@ export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileSection, setMobileSection] = useState("intro");
+  const [trackEvent] = useTrackEventMutation();
+
+  useEffect(() => {
+    try {
+      trackEvent({
+        event_type: "page_view_privacy",
+        path: "/privacy-policy", // adjust to your real path
+      });
+    } catch {}
+  }, [trackEvent]);
 
   const sections = [
     {

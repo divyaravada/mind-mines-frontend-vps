@@ -17,6 +17,7 @@ import {
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
 import QuickViewModal from "../components/QuickViewModal";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 const MATERIALS = [
   { value: "marble", label: "products.filters.material.marble" },
@@ -41,7 +42,19 @@ export default function ProductsPage() {
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [trackEvent] = useTrackEventMutation();
 
+  const track = useCallback(
+    (payload) => {
+      try {
+        // Fire and forget; we don't care about the response here
+        trackEvent(payload);
+      } catch {
+        /* ignore tracking errors */
+      }
+    },
+    [trackEvent]
+  );
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
   const [page, setPage] = useState(1);
@@ -132,6 +145,24 @@ export default function ProductsPage() {
   const materialsKey = useMemo(() => materials.join(","), [materials]);
   const colorsKey = useMemo(() => colors.join(","), [colors]);
 
+  // Track product list impressions when data/filters/page change
+  useEffect(() => {
+    if (!products || products.length === 0) return;
+
+    track({
+      event_type: "product_list_view",
+      extra: {
+        category: categoryId || null,
+        page,
+        materials,
+        colors,
+        price_min: priceRange.min,
+        price_max: priceRange.max,
+        count: products.length,
+      },
+    });
+  }, [products, categoryId, page, materials, colors, priceRange, track]);
+
   useEffect(() => {
     setPage(1);
   }, [categoryId, materialsKey, colorsKey, priceRange]);
@@ -142,9 +173,21 @@ export default function ProductsPage() {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
         toast.info(t("wishlist.removedToast"));
+
+        // 👇 track remove
+        track({
+          event_type: "wishlist_remove",
+          product_id: id,
+        });
       } else {
         await addWish(id).unwrap();
         toast.success(t("wishlist.addedToast"));
+
+        // 👇 track add
+        track({
+          event_type: "wishlist_add",
+          product_id: id,
+        });
       }
     } catch {
       toast.error(t("wishlist.actionFailed"));
@@ -159,6 +202,14 @@ export default function ProductsPage() {
 
     const stockNum = Number(p?.stock ?? p?.quantity ?? 0);
 
+    // 👇 track add_to_cart
+    track({
+      event_type: "add_to_cart",
+      product_id: p.id,
+      value: unitPrice,
+      quantity: 1,
+    });
+
     dispatch(
       addItem({
         id: p.id,
@@ -169,6 +220,14 @@ export default function ProductsPage() {
       })
     );
     navigate("/cart");
+  };
+
+  const handleQuickView = (p) => {
+    setQuickViewProduct(p);
+    track({
+      event_type: "product_quick_view",
+      product_id: p.id,
+    });
   };
 
   return (
@@ -365,7 +424,7 @@ export default function ProductsPage() {
                   wished={wlIds.has(p.id)}
                   onToggleWishlist={toggleWishlist}
                   onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
-                  onQuickView={() => setQuickViewProduct(p)}
+                  onQuickView={() => handleQuickView(p)}
                 />
               ))}
             </div>

@@ -125,6 +125,20 @@ export default function ContactSection() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Honeypot field (hidden from users) */}
+            <div className="hidden">
+              <label>
+                Do not fill this field:
+                <input
+                  type="text"
+                  name="hp"
+                  value={form.hp}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+              </label>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
                 <label className="block font-semibold mb-2 text-gray-900 dark:text-gray-100">

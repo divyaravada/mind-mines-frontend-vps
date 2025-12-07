@@ -1,10 +1,16 @@
 // src/components/StoneGallery.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
-export default function StoneGallery({ images = [], stoneType = "Stone" }) {
+export default function StoneGallery({
+  images = [],
+  stoneType = "Stone",
+  stoneId,
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [bgPos, setBgPos] = useState("center");
+  const [trackEvent] = useTrackEventMutation();
 
   const active = images[activeIndex] ?? "";
   const { t } = useTranslation();
@@ -17,6 +23,19 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
     setBgPos(`${x}% ${y}%`);
   };
 
+  const handleThumbClick = (i) => {
+    setActiveIndex(i);
+    try {
+      trackEvent({
+        event_type: "stone_gallery_image_click",
+        stone_id: stoneId ?? null,
+        index: i,
+      });
+    } catch {
+      /* ignore tracking failures */
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
       {/* Thumbnails */}
@@ -25,7 +44,7 @@ export default function StoneGallery({ images = [], stoneType = "Stone" }) {
           <img
             key={i}
             src={img}
-            onClick={() => setActiveIndex(i)}
+            onClick={() => handleThumbClick(i)}
             className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer border transition
             ${
               i === activeIndex

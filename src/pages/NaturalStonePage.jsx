@@ -1,11 +1,13 @@
 // src/pages/NaturalStonePage.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
+import { Helmet } from "react-helmet-async";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>
@@ -22,6 +24,19 @@ export default function NaturalStonesPage() {
 
   const { data: stones = [], isFetching } = useGetNaturalStonesQuery();
   const [selectedStoneId, setSelectedStoneId] = useState(null);
+
+  const [trackEvent] = useTrackEventMutation();
+  const track = useCallback(
+    (payload) => {
+      try {
+        trackEvent(payload);
+      } catch {
+        /* ignore tracking failures */
+      }
+    },
+    [trackEvent]
+  );
+
   const sectionLabels = useMemo(
     () => ({
       description: t("naturalStone.sections.description"),
@@ -44,6 +59,19 @@ export default function NaturalStonesPage() {
     }
   }, [stones, selectedStoneId]);
 
+  // 🔹 Track natural stone page views once stones are loaded
+  useEffect(() => {
+    if (!stones || !stones.length) return;
+    const types = Array.from(
+      new Set(stones.map((s) => s.type).filter(Boolean))
+    );
+    track({
+      event_type: "natural_stone_page_view",
+      stone_count: stones.length,
+      types,
+    });
+  }, [stones, track]);
+
   const renderText = (stone, field, langCode /* "en"|"de" */) => {
     if (!stone) return null;
     const key = `${field}_${langCode}`;
@@ -59,20 +87,65 @@ export default function NaturalStonesPage() {
         return (
           <div key={i} className="mb-1">
             <p className="font-semibold">{title.trim()}:</p>
-            <p className="text-gray-700">{rest.join(":").trim()}</p>
+            <p className="text-gray-700 dark:text-gray-300">
+              {rest.join(":").trim()}
+            </p>
           </div>
         );
       }
       return (
-        <p key={i} className="text-gray-700 mb-2">
+        <p key={i} className="text-gray-700 dark:text-gray-300 mb-2">
           {line}
         </p>
       );
     });
   };
 
+  // 🔹 SEO helpers
+  const currentOrigin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://mindmines.eu";
+
+  const pageTitle = t(
+    "naturalStone.meta.title",
+    "Natural Stone, Marble & Granite – MindMines"
+  );
+  const pageDesc = t(
+    "naturalStone.meta.description",
+    "Explore premium marble, granite, travertine and other natural stones for countertops, flooring, bathrooms and custom projects."
+  );
+  const canonUrl = `${currentOrigin}/natural-stone`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: currentOrigin },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: lang === "de" ? "Naturstein" : "Natural Stone",
+        item: canonUrl,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <link rel="canonical" href={canonUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDesc} />
+        <meta property="og:url" content={canonUrl} />
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>
+      </Helmet>
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Horizontal selector */}
         <div className="w-full overflow-x-auto">
@@ -89,7 +162,14 @@ export default function NaturalStonesPage() {
                 return (
                   <button
                     key={stone.id}
-                    onClick={() => setSelectedStoneId(stone.id)}
+                    onClick={() => {
+                      setSelectedStoneId(stone.id);
+                      track({
+                        event_type: "stone_type_select",
+                        stone_id: stone.id,
+                        type: stone.type,
+                      });
+                    }}
                     className={`snap-start flex flex-col items-center min-w-[100px] transition transform hover:scale-105 rounded-xl border px-4 py-3
                       bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5
                       ${
@@ -146,6 +226,7 @@ export default function NaturalStonesPage() {
                         ...(selectedStone.images || []).map((img) => img.image),
                       ]}
                       stoneType={typeLabel}
+                      stoneId={selectedStone.id}
                     />
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400">
