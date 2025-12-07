@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /wishlist
+Disallow: /orders
+Disallow: /admin/
+
+Allow: /
+
+Sitemap: https://mindmines.eu/sitemap.xml
