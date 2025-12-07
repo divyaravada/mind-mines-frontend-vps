@@ -151,7 +151,7 @@ export default function ProductsPage() {
 
     track({
       event_type: "page_view",
-      session_id,
+      session_id: undefined,
       url_path: "/decorative-products",
       extra: {
         category: categoryId || null,
