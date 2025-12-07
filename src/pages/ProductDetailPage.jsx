@@ -92,12 +92,14 @@ export default function ProductDetailPage() {
         await removeWish(product.id).unwrap();
         track({
           event_type: "wishlist_remove",
+          extra: { action: "remove" },
           product_id: product.id,
         });
       } else {
         await addWish(product.id).unwrap();
         track({
           event_type: "wishlist_add",
+          extra: { action: "add" },
           product_id: product.id,
         });
       }
@@ -182,7 +184,7 @@ export default function ProductDetailPage() {
     const price = resolveProductPrice(product);
     const stock = Number(product?.stock ?? product?.quantity ?? 0);
     track({
-      event_type: "product_detail_view",
+      event_type: "product_view",
       product_id: product.id,
       category: product.category,
       price,

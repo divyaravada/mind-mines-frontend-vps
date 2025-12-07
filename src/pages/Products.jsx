@@ -150,7 +150,9 @@ export default function ProductsPage() {
     if (!products || products.length === 0) return;
 
     track({
-      event_type: "product_list_view",
+      event_type: "page_view",
+      session_id,
+      url_path: "/decorative-products",
       extra: {
         category: categoryId || null,
         page,
@@ -159,6 +161,7 @@ export default function ProductsPage() {
         price_min: priceRange.min,
         price_max: priceRange.max,
         count: products.length,
+        _original_event_type: "product_list_view",
       },
     });
   }, [products, categoryId, page, materials, colors, priceRange, track]);
