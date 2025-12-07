@@ -176,6 +176,22 @@ export default function ProductDetailPage() {
     return isNaN(n) ? 0 : n;
   };
 
+  // 🔹 Track detail view when product loaded
+  useEffect(() => {
+    if (!product) return;
+    const price = resolveProductPrice(product);
+    const stock = Number(product?.stock ?? product?.quantity ?? 0);
+    track({
+      event_type: "product_detail_view",
+      product_id: product.id,
+      category: product.category,
+      price,
+      stock,
+      key: product.key || null,
+    });
+  }, [product, track]);
+
+  // Reset qty on product change
   useEffect(() => setQty(1), [id]);
 
   if (isLoading)
@@ -222,21 +238,6 @@ export default function ProductDetailPage() {
   // 🔹 Unified stock number: use product.stock or product.quantity
   const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
   const isOut = stockNum <= 0;
-
-  // 🔹 Track detail view when product loaded
-  useEffect(() => {
-    if (!product) return;
-    const price = resolveProductPrice(product);
-    const stock = Number(product?.stock ?? product?.quantity ?? 0);
-    track({
-      event_type: "product_detail_view",
-      product_id: product.id,
-      category: product.category,
-      price,
-      stock,
-      key: product.key || null,
-    });
-  }, [product, track]);
 
   const productJsonLd = {
     "@context": "https://schema.org",

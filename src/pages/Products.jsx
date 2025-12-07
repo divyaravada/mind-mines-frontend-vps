@@ -1,7 +1,7 @@
 import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
