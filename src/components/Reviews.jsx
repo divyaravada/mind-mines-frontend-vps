@@ -244,6 +244,9 @@ export default function Reviews() {
                     src={rv.image}
                     alt=""
                     className="mt-2 w-40 rounded border border-gray-200 dark:border-neutral-700"
+                    fetchPriority="high"
+                    loading="lazy"
+                    decoding="async"
                   />
                 ) : null}
               </>

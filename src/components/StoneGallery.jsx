@@ -51,6 +51,9 @@ export default function StoneGallery({
                 ? "border-backnewswhite ring-2 ring-backnewswhite/40"
                 : "border-gray-300 dark:border-gray-600"
             }`}
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
             alt=""
           />
         ))}
@@ -72,6 +75,9 @@ export default function StoneGallery({
             src={active}
             alt="Stone"
             className="w-full h-full object-contain opacity-0"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 

@@ -50,6 +50,7 @@ export function CollectionRow() {
                   src={item.image}
                   alt={t(`home.collection.${item.key}`)}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fetchPriority="high"
                   loading="lazy"
                   decoding="async"
                 />

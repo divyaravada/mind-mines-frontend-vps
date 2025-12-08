@@ -72,6 +72,7 @@ export default function ProductTile({
             src={image}
             alt={title}
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+            fetchPriority="high"
             loading="lazy"
             decoding="async"
             onError={(e) => (e.currentTarget.style.display = "none")}

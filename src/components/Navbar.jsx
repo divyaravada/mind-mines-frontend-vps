@@ -127,11 +127,17 @@ export default function Navbar() {
               src={LightLogo}
               alt="MindMines"
               className="h-20 w-auto block dark:hidden"
+              fetchPriority="high"
+              loading="lazy"
+              decoding="async"
             />
             <img
               src={DarkLogo}
               alt="MindMines"
               className="h-20 w-auto hidden dark:block"
+              fetchPriority="high"
+              loading="lazy"
+              decoding="async"
             />
           </Link>
 

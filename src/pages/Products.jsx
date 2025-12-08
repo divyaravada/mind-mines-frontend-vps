@@ -384,6 +384,9 @@ export default function ProductsPage() {
                     src={cat.image}
                     alt={t(cat.label)}
                     className="w-8 h-8 rounded-full"
+                    fetchPriority="high"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <span className="text-sm font-medium">{t(cat.label)}</span>
                 </button>

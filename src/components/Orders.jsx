@@ -370,6 +370,9 @@ export default function Orders() {
                       src={primaryMeta.image}
                       alt={primaryMeta.title}
                       className="w-20 h-20 object-cover rounded"
+                      fetchPriority="high"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                       }}

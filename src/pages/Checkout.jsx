@@ -1537,6 +1537,9 @@ export default function Checkout() {
                         src={it.image}
                         alt={it.name}
                         className="w-16 h-16 object-cover rounded"
+                        fetchPriority="high"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                         {it.qty}

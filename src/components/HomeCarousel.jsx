@@ -87,6 +87,7 @@ export default function HomeCarousel() {
               alt={t(`home.categories.${cat.id}.heading`, cat.id)}
               className="absolute inset-0 w-full h-full object-cover opacity-80"
               loading={idx === 0 ? "eager" : "lazy"}
+              fetchPriority="high"
               decoding="async"
             />
             <div className="relative z-10 p-6 md:p-12 max-w-3xl">

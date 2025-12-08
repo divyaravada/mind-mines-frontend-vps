@@ -184,6 +184,9 @@ export default function NaturalStonesPage() {
                           src={stone.image}
                           alt={label}
                           className="w-full h-full object-cover"
+                          fetchPriority="high"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-xs text-gray-500">

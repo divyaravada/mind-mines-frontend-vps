@@ -80,6 +80,9 @@ export default function QuickViewModal({
               <img
                 src={gallery[0]}
                 alt={title}
+                fetchPriority="high"
+                loading="lazy"
+                decoding="async"
                 className="
                   w-full
                   max-h-[260px] sm:max-h-[320px] md:max-h-[70vh]

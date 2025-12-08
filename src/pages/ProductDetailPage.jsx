@@ -449,6 +449,9 @@ export default function ProductDetailPage() {
                           <img
                             src={m.image}
                             alt={`${productTitle(product, lang)} – ${i + 1}`}
+                            fetchPriority="high"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                       )
@@ -458,6 +461,9 @@ export default function ProductDetailPage() {
                         <img
                           src={product.image}
                           alt={productTitle(product, lang)}
+                          fetchPriority="high"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>,
                     ]}
@@ -747,6 +753,9 @@ export default function ProductDetailPage() {
                     src={p.image}
                     alt={productTitle(p, lang)}
                     className="w-full h-40 object-cover rounded-lg mb-2"
+                    fetchPriority="high"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="font-semibold truncate">
                     {productTitle(p, lang)}

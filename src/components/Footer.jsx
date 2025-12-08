@@ -38,11 +38,17 @@ export default function Footer() {
             src={LightLogo}
             alt="MindMines"
             className="h-24 w-auto block dark:hidden"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
           <img
             src={DarkLogo}
             alt="MindMines"
             className="h-24 w-auto hidden dark:block"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -136,26 +142,85 @@ export default function Footer() {
           <span className="text-sm md:text-base text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.secure")}
           </span>
-          <img src={paypal} alt="PayPal" className="h-8 md:h-10" />
-          <img src={klarna} alt="PayPal" className="h-8 md:h-10" />
-          <img src={sepa} alt="PayPal" className="h-8 md:h-10" />
-          <img src={visa} alt="PayPal" className="h-8 md:h-10" />
-          <img src={mastercard} alt="PayPal" className="h-8 md:h-10" />
+          <img
+            src={paypal}
+            alt="PayPal"
+            className="h-8 md:h-10"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            src={klarna}
+            alt="PayPal"
+            className="h-8 md:h-10"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            src={sepa}
+            alt="PayPal"
+            className="h-8 md:h-10"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            src={visa}
+            alt="PayPal"
+            className="h-8 md:h-10"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            src={mastercard}
+            alt="PayPal"
+            className="h-8 md:h-10"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-backnewswhite dark:text-backnewsdark font-bold">
             {t("footer.shipping")}
           </span>
-          <img src={dhl} alt="DHL" className="h-6" />
-          <img src={dpdLight} alt="DPD" className="h-6 dark:hidden" />
+          <img
+            src={dhl}
+            alt="DHL"
+            className="h-6"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            src={dpdLight}
+            alt="DPD"
+            className="h-6 dark:hidden"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
           <img
             src={dpdDark}
             alt="DPD"
             className="h-6 hidden dark:inline-block"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
 
-          <img src={hermes} alt="Hermes" className="h-6" />
+          <img
+            src={hermes}
+            alt="Hermes"
+            className="h-6"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       </div>
 

@@ -152,6 +152,9 @@ export default function PromoBanner() {
                       src={p.image_url}
                       alt=""
                       className="h-6 w-6 object-contain rounded shrink-0"
+                      fetchPriority="high"
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                   <span

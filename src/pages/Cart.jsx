@@ -239,6 +239,9 @@ export default function CartPage() {
                   src={item.image}
                   alt={item.name}
                   className="w-28 h-28 object-cover rounded"
+                  fetchPriority="high"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-3">

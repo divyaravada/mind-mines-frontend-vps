@@ -96,6 +96,9 @@ export default function Profile() {
                 src={imgSrc}
                 alt=""
                 className="w-16 h-16 rounded-full object-cover"
+                fetchPriority="high"
+                loading="lazy"
+                decoding="async"
               />
               <div>
                 <div className="text-lg font-semibold">

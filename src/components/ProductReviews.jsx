@@ -83,6 +83,9 @@ export default function ProductReviews({ productId }) {
                   onError={(e) => (e.currentTarget.src = avatar)}
                   alt={t("productReviews.authorAvatarAlt")}
                   className="w-10 h-10 rounded-full object-cover"
+                  fetchPriority="high"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
@@ -183,6 +186,9 @@ export default function ProductReviews({ productId }) {
                           src={rv.image}
                           alt=""
                           className="mt-2 w-40 rounded"
+                          fetchPriority="high"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : null}
                     </>

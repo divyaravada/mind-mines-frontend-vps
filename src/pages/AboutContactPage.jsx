@@ -25,6 +25,9 @@ export default function AboutContactPage() {
             src={aboutUs}
             alt={t("about.imageAlt")}
             className="w-full h-[340px] md:h-[410px] rounded-3xl object-cover shadow-lg"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -67,6 +70,9 @@ export default function AboutContactPage() {
             src={VIDEO_POSTER}
             alt={t("about.videoAlt")}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fetchPriority="high"
+            loading="lazy"
+            decoding="async"
           />
 
           {/* dark gradient overlay */}

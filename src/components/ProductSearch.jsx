@@ -160,6 +160,9 @@ export default function ProductSearch({ t }) {
                       src={p.image}
                       alt=""
                       className="w-8 h-8 object-cover rounded"
+                      fetchPriority="high"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-8 h-8 bg-gray-100 rounded" />

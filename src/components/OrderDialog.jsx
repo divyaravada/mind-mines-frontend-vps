@@ -701,6 +701,9 @@ export default function OrderDialog({ orderId, open, onClose }) {
                             src={line.image}
                             alt={line.title}
                             className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded"
+                            fetchPriority="high"
+                            loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
                             }}
