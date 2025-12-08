@@ -55,7 +55,7 @@ export default function CartPage() {
       : Array.isArray(wl?.results)
       ? wl.results
       : [];
-    return list.map((w) => Number(w.product));
+    return new Set(list.map((w) => Number(w.product)));
   }, [wl]);
 
   const [addW] = useAddToWishlistMutation();
@@ -64,7 +64,7 @@ export default function CartPage() {
   // 🔹 Ensure Redux qty never exceeds stock
   useEffect(() => {
     items.forEach((it) => {
-      const stockNum = Number(it.stock); // ✅ cast
+      const stockNum = Number(it.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       const current = it.qty || 1;
@@ -101,7 +101,7 @@ export default function CartPage() {
           ? Number(it.price)
           : Number(it.priceRange ?? 0);
 
-      const stockNum = Number(it.stock); // ✅
+      const stockNum = Number(it.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       let qty = it.qty || 1;
@@ -121,12 +121,12 @@ export default function CartPage() {
         weight: it.weight || "",
         dimensions: it.dimensions || "",
         category: it.category || "",
-        stock: Number.isFinite(stockNum) ? stockNum : undefined, // ✅
+        stock: Number.isFinite(stockNum) ? stockNum : undefined,
       };
     });
     const body = { cart_token, currency: "EUR", items: itemsPayload };
     syncNow(body);
-  }, [items, loggedIn, syncNow]);
+  }, [items, syncNow]);
 
   // Subtotal uses clamped qty as well
   const subtotal = useMemo(() => {
@@ -136,7 +136,7 @@ export default function CartPage() {
           ? Number(item.price)
           : Number(item.priceRange ?? 0);
 
-      const stockNum = Number(item.stock); // ✅
+      const stockNum = Number(item.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       let qty = item.qty || 1;
@@ -157,7 +157,7 @@ export default function CartPage() {
     async (productId) => {
       if (!loggedIn) return;
       try {
-        if (wishlistIds.includes(productId)) {
+        if (wishlistIds.has(productId)) {
           await remW(productId).unwrap();
         } else {
           await addW(productId).unwrap();
@@ -210,14 +210,14 @@ export default function CartPage() {
 
         <div className="space-y-4">
           {items.map((item) => {
-            const inWishlist = wishlistIds.includes(item.id);
+            const inWishlist = wishlistIds.has(item.id);
 
             const unitPrice =
               item.price && Number(item.price) > 0
                 ? Number(item.price)
                 : Number(item.priceRange ?? 0);
 
-            const stockNum = Number(item.stock); // ✅
+            const stockNum = Number(item.stock);
             const maxQty =
               Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
             let effectiveQty = item.qty || 1;
@@ -233,7 +233,7 @@ export default function CartPage() {
             return (
               <div
                 key={item.id}
-                className="bg-marblewhite dark:text-backnewsdark dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800"
+                className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
               >
                 <img
                   src={item.image}
@@ -245,22 +245,21 @@ export default function CartPage() {
                     <div>
                       <h3 className="font-semibold text-lg">{item.name}</h3>
                       {item.category && (
-                        <div className="text-sm text-gray-500 dark:text-backnewsdark capitalize">
+                        <div className="text-sm text-gray-500 dark:text-gray-300 capitalize">
                           {item.category}
                         </div>
                       )}
                       <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                       </div>
-                      {Number.isFinite(stockNum) &&
-                        stockNum > 0 && ( // ✅
-                          <div className="text-xs text-gray-500 mt-1">
-                            {t("cart.stockInfo", {
-                              stock: stockNum,
-                              defaultValue: "Max. {{stock}} piece(s) available",
-                            })}
-                          </div>
-                        )}
+                      {Number.isFinite(stockNum) && stockNum > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {t("cart.stockInfo", {
+                            stock: stockNum,
+                            defaultValue: "Max. {{stock}} piece(s) available",
+                          })}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => dispatch(removeItem(item.id))}
@@ -378,7 +377,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-sm text-gray-500 dark:text-backnewsdark">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {t("cart.total")}
                       </div>
                       <div className="text-lg font-semibold">
@@ -408,7 +407,7 @@ export default function CartPage() {
 
       {/* RIGHT */}
       <aside className="lg:col-span-1">
-        <div className="bg-marblewhite dark:bg-neutral-900 dark:text-backnewsdark rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800">
+        <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100">
           <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
           <div className="space-y-3 text-sm">
             <Row label={t("cart.subtotal")} value={fmtEUR(subtotal, locale)} />

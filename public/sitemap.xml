@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Home -->
+  <url>
+    <loc>https://mindmines.eu/</loc>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Categories -->
+  <url>
+    <loc>https://mindmines.eu/decorative-products</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://mindmines.eu/natural-stone</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- About page -->
+  <url>
+    <loc>https://mindmines.eu/about</loc>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Sample Product URLs -->
+  <url>
+    <loc>https://mindmines.eu/products/14</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/13</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/12</loc>
+    <priority>0.7</priority>
+  </url>
+<url>
+    <loc>https://mindmines.eu/products/11</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/10</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/9</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/8</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/7</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/2</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mindmines.eu/products/1</loc>
+    <priority>0.7</priority>
+  </url>
+</urlset>

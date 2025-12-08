@@ -11,7 +11,6 @@ import marbleSculpting from "../assets/MindminesAboutvideoImage.jpg";
 
 export default function AboutContactPage() {
   const { t } = useTranslation();
-  const [activeItem, setActiveItem] = useState(null);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   const VIDEO_SRC = marbleCrafting;
@@ -20,7 +19,7 @@ export default function AboutContactPage() {
   return (
     <main className="bg-marblewhite dark:bg-marbleblack min-h-screen py-10">
       {/* HERO SECTION */}
-      <div className="w-full mx-auto flex flex-col md:flex-row items-center gap-10 px-6 pb-16 max-w-6xl">
+      <div className="w-full mx-auto flex flex-col md:flex-col items-center gap-10 px-6 pb-16 max-w-6xl">
         <div className="w-full md:w-1/2">
           <img
             src={aboutUs}
@@ -125,38 +124,6 @@ export default function AboutContactPage() {
 
       {/* CONTACT FORM */}
       <ContactSection />
-
-      {/* LIGHTBOX OVERLAY */}
-      {activeItem && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
-          <div className="relative w-full max-w-4xl mx-4">
-            <button
-              type="button"
-              onClick={() => setActiveItem(null)}
-              className="absolute -top-10 right-0 md:-top-12 md:-right-2 text-white text-2xl font-bold px-2 py-1 rounded-full hover:bg-white/10"
-              aria-label={t("common.close")}
-            >
-              ×
-            </button>
-
-            {activeItem.type === "video" ? (
-              <div className="aspect-video bg-black rounded-2xl overflow-hidden">
-                <video
-                  src={activeItem.src}
-                  controls
-                  className="w-full h-full"
-                />
-              </div>
-            ) : (
-              <img
-                src={activeItem.src}
-                alt={activeItem.alt}
-                className="w-full max-h-[80vh] object-contain rounded-2xl bg-black"
-              />
-            )}
-          </div>
-        </div>
-      )}
     </main>
   );
 }
