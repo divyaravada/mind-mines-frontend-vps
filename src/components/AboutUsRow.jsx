@@ -1,5 +1,5 @@
 // src/components/AboutUsRow.jsx
-import aboutUs from "../assets/aboutUs.jpg";
+import aboutUs from "../assets/aboutUs.webp";
 import { useTranslation } from "react-i18next";
 
 export function AboutUsRow() {

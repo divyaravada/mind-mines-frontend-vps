@@ -1,8 +1,8 @@
 // src/components/Footer.jsx
 import { Link } from "react-router-dom";
 import { Globe } from "lucide-react";
-import DarkLogo from "../assets/BlackLogo.jpg";
-import LightLogo from "../assets/OrangeLogo.jpg";
+import DarkLogo from "../assets/BlackLogo.webp";
+import LightLogo from "../assets/OrangeLogo.webp";
 import paypal from "../assets/paypal.svg";
 import visa from "../assets/visa.png";
 import mastercard from "../assets/master.png";

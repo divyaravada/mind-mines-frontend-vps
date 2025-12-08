@@ -1,8 +1,8 @@
 // src/components/CollectionRow.jsx
-import mobileHolder from "../assets/mobileHolder.jpg";
-import bathSoap from "../assets/mackeUpHolder.jpg";
-import kitchenBowl from "../assets/kitchenBowl.jpg";
-import marbleTray from "../assets/marbleTray.jpg";
+import mobileHolder from "../assets/mobileHolder.webp";
+import bathSoap from "../assets/mackeUpHolder.webp";
+import kitchenBowl from "../assets/kitchenBowl.webp";
+import marbleTray from "../assets/marbleTray.webp";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 

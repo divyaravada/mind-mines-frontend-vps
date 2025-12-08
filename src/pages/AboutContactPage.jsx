@@ -1,11 +1,11 @@
 // src/pages/AboutContactPage.jsx
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import aboutUs from "../assets/aboutUs.jpg";
+import aboutUs from "../assets/aboutUs.webp";
 import ContactSection from "../components/ContactForm";
 import TrustBadges from "../components/TrustBadges";
 import marbleCrafting from "../assets/MindminesVideo.mp4";
-import marbleSculpting from "../assets/MindminesAboutvideoImage.jpg";
+import marbleSculpting from "../assets/MindminesAboutvideoImage.webp";
 
 // TODO: replace these with your real images / video URLs
 
