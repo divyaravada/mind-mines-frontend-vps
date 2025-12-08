@@ -128,12 +128,16 @@ export default function Navbar() {
               alt="MindMines"
               className="h-20 w-auto block dark:hidden"
               fetchPriority="high"
+              width={96} // or 120
+              height={96}
               loading="lazy"
               decoding="async"
             />
             <img
               src={DarkLogo}
               alt="MindMines"
+              width={96} // or 120
+              height={96}
               className="h-20 w-auto hidden dark:block"
               fetchPriority="high"
               loading="lazy"

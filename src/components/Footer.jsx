@@ -39,6 +39,8 @@ export default function Footer() {
             alt="MindMines"
             className="h-24 w-auto block dark:hidden"
             fetchPriority="high"
+            width={96} // or 120
+            height={96}
             loading="lazy"
             decoding="async"
           />
@@ -47,6 +49,8 @@ export default function Footer() {
             alt="MindMines"
             className="h-24 w-auto hidden dark:block"
             fetchPriority="high"
+            width={96} // or 120
+            height={96}
             loading="lazy"
             decoding="async"
           />
