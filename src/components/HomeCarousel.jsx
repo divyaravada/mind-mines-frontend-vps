@@ -82,14 +82,26 @@ export default function HomeCarousel() {
             aria-roledescription="slide"
             aria-label={`${idx + 1} / ${categories.length}`}
           >
-            <img
-              src={cat.image}
-              alt={t(`home.categories.${cat.id}.heading`, cat.id)}
-              className="absolute inset-0 w-full h-full object-cover opacity-80"
-              loading={idx === 0 ? "eager" : "lazy"}
-              fetchPriority="high"
-              decoding="async"
-            />
+            <picture>
+              <source
+                srcSet={`/static/media/${cat.id}-1600.webp`}
+                media="(min-width: 1024px)"
+                type="image/webp"
+              />
+              <source
+                srcSet={`/static/media/${cat.id}-1000.webp`}
+                media="(min-width: 600px)"
+                type="image/webp"
+              />
+              <img
+                src={`/static/media/${cat.id}-600.webp`}
+                alt={t(`home.categories.${cat.id}.heading`, cat.id)}
+                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                loading={idx === 0 ? "eager" : "lazy"}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
             <div className="relative z-10 p-6 md:p-12 max-w-3xl">
               <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow mb-2">
                 {t(`home.categories.${cat.id}.heading`, cat.id)}

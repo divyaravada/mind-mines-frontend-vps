@@ -147,6 +147,8 @@ export default function Footer() {
             alt="PayPal"
             className="h-8 md:h-10"
             fetchPriority="high"
+            width="44"
+            height="24"
             loading="lazy"
             decoding="async"
           />
@@ -155,6 +157,8 @@ export default function Footer() {
             alt="PayPal"
             className="h-8 md:h-10"
             fetchPriority="high"
+            width="44"
+            height="24"
             loading="lazy"
             decoding="async"
           />
@@ -163,12 +167,16 @@ export default function Footer() {
             alt="PayPal"
             className="h-8 md:h-10"
             fetchPriority="high"
+            width="44"
+            height="24"
             loading="lazy"
             decoding="async"
           />
           <img
             src={visa}
             alt="PayPal"
+            width="44"
+            height="24"
             className="h-8 md:h-10"
             fetchPriority="high"
             loading="lazy"
@@ -177,6 +185,8 @@ export default function Footer() {
           <img
             src={mastercard}
             alt="PayPal"
+            width="44"
+            height="24"
             className="h-8 md:h-10"
             fetchPriority="high"
             loading="lazy"
@@ -192,6 +202,8 @@ export default function Footer() {
             src={dhl}
             alt="DHL"
             className="h-6"
+            width="44"
+            height="24"
             fetchPriority="high"
             loading="lazy"
             decoding="async"
@@ -199,6 +211,8 @@ export default function Footer() {
           <img
             src={dpdLight}
             alt="DPD"
+            width="44"
+            height="24"
             className="h-6 dark:hidden"
             fetchPriority="high"
             loading="lazy"
@@ -207,6 +221,8 @@ export default function Footer() {
           <img
             src={dpdDark}
             alt="DPD"
+            width="44"
+            height="24"
             className="h-6 hidden dark:inline-block"
             fetchPriority="high"
             loading="lazy"
@@ -216,6 +232,8 @@ export default function Footer() {
           <img
             src={hermes}
             alt="Hermes"
+            width="44"
+            height="24"
             className="h-6"
             fetchPriority="high"
             loading="lazy"
