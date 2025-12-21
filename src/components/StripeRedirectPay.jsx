@@ -1,5 +1,5 @@
 // src/components/StripeRedirectPay.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Elements,
@@ -10,11 +10,17 @@ import {
 import { stripePromise } from "../lib/stripe";
 import { useStripeCreateRedirectIntentMutation } from "../features/payments/paymentsApi";
 
+function getIsDark() {
+  if (typeof document === "undefined") return false;
+  return document.documentElement.classList.contains("dark");
+}
+
 function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
   const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [confirming, setConfirming] = useState(false);
+
   const label =
     method === "klarna"
       ? t("checkout.redirect.klarna")
@@ -25,13 +31,17 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
   const onPay = async () => {
     if (!stripe || !elements) return;
     setConfirming(true);
+
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: { return_url: returnUrl },
     });
+
     setConfirming(false);
-    if (error)
+
+    if (error) {
       return onError?.(error.message || t("checkout.redirect.paymentFailed"));
+    }
     onSuccess?.(orderId);
   };
 
@@ -45,16 +55,17 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
         type="button"
         onClick={onPay}
         disabled={!stripe || !elements || confirming}
-        className="w-full px-4 py-3 rounded-lg font-semibold
-                   bg-backnewswhite text-marblewhite
-                   hover:opacity-90 disabled:opacity-50"
+        className="w-full px-4 py-3 rounded-lg font-semibold bg-black text-white hover:opacity-90
+                   focus:outline-none focus:ring-2 focus:ring-black/30
+                   disabled:opacity-50"
+        aria-label={t("checkout.redirect.payWith", { method: label })}
       >
         {confirming
           ? t("checkout.redirect.redirecting")
           : t("checkout.redirect.payWith", { method: label })}
       </button>
 
-      <p className="text-xs text-gray-600 dark:text-gray-300">
+      <p className="text-xs text-gray-700 dark:text-gray-200">
         {t("checkout.redirect.note", { brand: label })}
       </p>
     </div>
@@ -83,6 +94,7 @@ export default function StripeRedirectPay({
   useEffect(() => {
     if (!method) return;
     let mounted = true;
+
     (async () => {
       try {
         setClientSecret("");
@@ -90,6 +102,7 @@ export default function StripeRedirectPay({
         const payload = orderIdRef.current
           ? { ...base, order_id: orderIdRef.current }
           : { ...base, ...(orderPayload || {}) };
+
         const res = await createPI(payload).unwrap();
         if (!mounted) return;
 
@@ -104,29 +117,36 @@ export default function StripeRedirectPay({
         );
       }
     })();
+
     return () => {
       mounted = false;
     };
-  }, [method, orderPayload, createPI, onError]);
+  }, [method, orderPayload, createPI, onError, t]);
+
+  const returnUrl = useMemo(
+    () => `${window.location.origin}/checkout/return`,
+    []
+  );
+
+  const appearance = useMemo(() => {
+    const isDark = getIsDark();
+    return {
+      theme: "stripe",
+      variables: {
+        colorPrimary: "#000000",
+        colorText: isDark ? "#e5e7eb" : "#1f2937",
+        colorBackground: isDark ? "#17160f" : "#ffffff",
+      },
+    };
+  }, []);
 
   if (isLoading || !clientSecret) {
     return (
-      <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-marbleblack">
+      <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-marbleblack">
         {t("checkout.redirect.preparing")}
       </div>
     );
   }
-
-  const returnUrl = `${window.location.origin}/checkout/return`;
-  const isDark = document.documentElement.classList.contains("dark");
-  const appearance = {
-    theme: "stripe",
-    variables: {
-      colorPrimary: "#d78822",
-      colorText: isDark ? "#e5e7eb" : "#1f2937",
-      colorBackground: isDark ? "#17160f" : "#f8fcfe",
-    },
-  };
 
   return (
     <Elements

@@ -1,5 +1,5 @@
-﻿//src/components/StripeSepa.jsx
-import React, { useEffect, useState } from "react";
+﻿// src/components/StripeSepa.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Elements,
@@ -21,6 +21,11 @@ const pickErr = (e, fb) =>
   (typeof e === "string" ? e : "") ||
   fb;
 
+function getIsDark() {
+  if (typeof document === "undefined") return false;
+  return document.documentElement.classList.contains("dark");
+}
+
 function SepaInner({ orderId, onSuccess }) {
   const { t } = useTranslation();
   const stripe = useStripe();
@@ -33,24 +38,29 @@ function SepaInner({ orderId, onSuccess }) {
     if (!stripe || !elements) return;
     setLoading(true);
     setErr("");
+
     try {
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
       });
+
       if (error) {
         setErr(error.message || t("checkout.sepa.paymentFailed"));
         setLoading(false);
         return;
       }
+
       const status = paymentIntent?.status || "processing";
       await postConfirm({
         order_id: orderId,
         payment_intent_status: status,
       }).unwrap();
+
       onSuccess?.(orderId);
     } catch {
       setErr(t("checkout.sepa.paymentError"));
+    } finally {
       setLoading(false);
     }
   };
@@ -60,15 +70,18 @@ function SepaInner({ orderId, onSuccess }) {
       <PaymentElement />
       {err && <div className="text-sm text-red-600">{err}</div>}
       <button
+        type="button"
         disabled={!stripe || !elements || loading}
         onClick={handleConfirm}
         className="w-full py-3 rounded-lg font-semibold text-sm
                    bg-backnewswhite text-marblewhite hover:opacity-90
+                   focus:outline-none focus:ring-2 focus:ring-backnewswhite/40
                    disabled:opacity-60"
+        aria-label={t("checkout.sepa.authorize")}
       >
         {loading ? t("checkout.sepa.processing") : t("checkout.sepa.authorize")}
       </button>
-      <p className="text-xs text-gray-600 dark:text-gray-300">
+      <p className="text-xs text-gray-700 dark:text-gray-200">
         {t("checkout.sepa.notice")}
       </p>
     </div>
@@ -96,10 +109,12 @@ export default function StripeSepa({
   useEffect(() => {
     let cancelled = false;
     if (!active) return;
+
     if (Number(total) <= 0) {
       setInitErr(t("checkout.sepa.cartZero"));
       return;
     }
+
     (async () => {
       setLoadingInit(true);
       setInitErr("");
@@ -111,10 +126,13 @@ export default function StripeSepa({
           couponCode,
           payment_method: "sepa_debit",
         });
+
         const res = await createSepaIntent(payload).unwrap();
         const cs = res?.clientSecret || res?.client_secret || "";
         const oid = res?.order_id || null;
+
         if (!cs || !oid) throw new Error(t("checkout.sepa.initFailed"));
+
         if (!cancelled) {
           setClientSecret(cs);
           setOrderId(oid);
@@ -126,6 +144,7 @@ export default function StripeSepa({
         if (!cancelled) setLoadingInit(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -141,15 +160,17 @@ export default function StripeSepa({
     t,
   ]);
 
-  const isDark = document.documentElement.classList.contains("dark");
-  const appearance = {
-    theme: "stripe",
-    variables: {
-      colorPrimary: "#d78822",
-      colorText: isDark ? "#e5e7eb" : "#1f2937",
-      colorBackground: isDark ? "#17160f" : "#f8fcfe",
-    },
-  };
+  const appearance = useMemo(() => {
+    const isDark = getIsDark();
+    return {
+      theme: "stripe",
+      variables: {
+        colorPrimary: "#d78822",
+        colorText: isDark ? "#e5e7eb" : "#1f2937",
+        colorBackground: isDark ? "#17160f" : "#f8fcfe",
+      },
+    };
+  }, []);
 
   if (!active) {
     return (
@@ -160,6 +181,7 @@ export default function StripeSepa({
           value="sepa_debit"
           checked={false}
           onChange={() => setActive?.("sepa_debit")}
+          aria-label={t("checkout.sepa.radioLabel")}
         />
         <span className="flex-1">{t("checkout.sepa.radioLabel")}</span>
       </label>
@@ -175,12 +197,13 @@ export default function StripeSepa({
           value="sepa_debit"
           checked
           onChange={() => setActive?.("sepa_debit")}
+          aria-label={t("checkout.sepa.radioLabel")}
         />
         <span className="flex-1">{t("checkout.sepa.radioLabel")}</span>
       </label>
 
       {loadingInit && (
-        <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-marbleblack">
+        <div className="border rounded-lg p-3 mt-2 text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-marbleblack">
           {t("checkout.sepa.preparing")}
         </div>
       )}

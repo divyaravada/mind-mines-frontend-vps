@@ -4,14 +4,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { Helmet } from "react-helmet-async";
+
+import { useTranslation } from "react-i18next";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+
 import {
   selectCartItems,
   selectCartCount,
   clearCart,
 } from "../features/cart/cartSlice";
-
-import { useTranslation } from "react-i18next";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 import StripeSepa from "../components/StripeSepa";
 import StripeSepaInstallments from "../components/StripeSepaInstallments";
@@ -82,6 +83,23 @@ function isEuropeanCountry(code) {
   return EUROPE_COUNTRIES.includes(c);
 }
 
+// small debounce helper
+function useDebouncedFn(fn, delay = 250) {
+  const timer = useRef(null);
+  const fnRef = useRef(fn);
+  useEffect(() => {
+    fnRef.current = fn;
+  }, [fn]);
+
+  return useCallback(
+    (...args) => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => fnRef.current(...args), delay);
+    },
+    [delay]
+  );
+}
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
@@ -91,7 +109,7 @@ export default function Checkout() {
 
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
-  // compute subtotal here so it respects priceRange when price is 0
+
   const subtotal = useMemo(
     () =>
       items.reduce((sum, it) => {
@@ -104,6 +122,7 @@ export default function Checkout() {
       }, 0),
     [items]
   );
+
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
@@ -115,6 +134,7 @@ export default function Checkout() {
     undefined,
     { skip: !isAuth }
   );
+
   const addrList = useMemo(() => {
     if (Array.isArray(addrListRaw)) return addrListRaw;
     if (Array.isArray(addrListRaw?.results)) return addrListRaw.results;
@@ -126,7 +146,6 @@ export default function Checkout() {
   const [updateAddress] = useUpdateAddressMutation();
   const [createOrder, { isLoading: creatingOrder }] = useCreateOrderMutation();
 
-  // Address/delivery form
   const [form, setForm] = useState({
     email: "",
     country: "DE",
@@ -139,17 +158,14 @@ export default function Checkout() {
     telephone: "",
   });
 
-  // address form errors
   const [addrErrors, setAddrErrors] = useState({});
   const [cityOptions, setCityOptions] = useState([]);
   const [cityLoading, setCityLoading] = useState(false);
 
-  // coupon state
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState(null);
   const [couponErr, setCouponErr] = useState("");
 
-  // single guard flag for redirects related to cart clearing
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
   const localOrderIdRef = useRef(null);
@@ -192,14 +208,11 @@ export default function Checkout() {
     }
   }, [addrList, addrLoading, isAuth, acct?.email]);
 
-  // also prefill email if we get account later
   useEffect(() => {
-    if (acct?.email) {
-      setForm((p) => ({ ...p, email: p.email || acct.email }));
-    }
+    if (acct?.email) setForm((p) => ({ ...p, email: p.email || acct.email }));
   }, [acct?.email]);
 
-  // redirect away if cart is empty (single guard)
+  // redirect away if cart is empty
   useEffect(() => {
     if (skipCartGuardRef.current || items.length > 0) return;
     try {
@@ -215,10 +228,8 @@ export default function Checkout() {
     return () => clearTimeout(id);
   }, [items.length, navigate]);
 
-  // shipping flat (0 for now)
   const shippingFee = 0;
 
-  // backend items snapshot
   const backendItems = useMemo(
     () =>
       items.map((c) => ({
@@ -228,7 +239,6 @@ export default function Checkout() {
     [items]
   );
 
-  // coupon preview apply
   const applyCoupon = async () => {
     setCouponErr("");
     setCouponInfo(null);
@@ -246,16 +256,15 @@ export default function Checkout() {
 
   const autoAppliedRef = useRef(false);
 
-  // A) If we’re already on checkout when user clicks the promo banner
   useEffect(() => {
     const handler = async (ev) => {
       if (autoAppliedRef.current) return;
       const incoming = String(ev?.detail?.code || "").toUpperCase();
       if (!incoming) return;
       autoAppliedRef.current = true;
-      // put into input immediately
+
       setCouponCode(incoming);
-      // wait until items are ready, then preview+apply
+
       const tryApply = async () => {
         if (backendItems.length === 0) return false;
         try {
@@ -269,15 +278,15 @@ export default function Checkout() {
           return false;
         }
       };
-      // attempt now, and again on next tick if empty
+
       let applied = await tryApply();
       if (!applied) setTimeout(tryApply, 120);
     };
+
     window.addEventListener("mindmines:apply-coupon", handler);
     return () => window.removeEventListener("mindmines:apply-coupon", handler);
   }, [backendItems, previewCoupon]);
 
-  // B) On first mount, pick up the stored code (from PromoBanner navigation)
   useEffect(() => {
     if (autoAppliedRef.current) return;
     const stored = (
@@ -287,9 +296,9 @@ export default function Checkout() {
     ).toUpperCase();
     if (!stored) return;
     autoAppliedRef.current = true;
-    // show in input right away
+
     setCouponCode(stored);
-    // apply as soon as items exist
+
     const doApply = async () => {
       if (backendItems.length === 0) return false;
       try {
@@ -303,6 +312,7 @@ export default function Checkout() {
         return false;
       }
     };
+
     (async () => {
       let ok = await doApply();
       if (!ok) {
@@ -310,11 +320,10 @@ export default function Checkout() {
           ok = await doApply();
           if (ok) clearInterval(id);
         }, 120);
-        setTimeout(() => clearInterval(id), 3000); // stop trying after ~3s
+        setTimeout(() => clearInterval(id), 3000);
       }
       sessionStorage.removeItem("coupon_auto_once");
     })();
-    // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -327,6 +336,7 @@ export default function Checkout() {
     const ttotal = subtotal + shippingFee - discount;
     return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, discount]);
+
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
     () => fmtEUR((payTotal || 0) / klarnaInstallments, locale),
@@ -339,7 +349,6 @@ export default function Checkout() {
       ? t("checkout.subtotal_one", { count: itemsCount })
       : t("checkout.subtotal_other", { count: itemsCount });
 
-  // address save
   const [savingAddr, setSavingAddr] = useState(false);
   const [addrSaved, setAddrSaved] = useState(false);
 
@@ -415,38 +424,28 @@ export default function Checkout() {
   }, [form, t, validatePhone]);
 
   const saveAddress = async () => {
-    // 🛑 If not logged in, don't call address API
     if (!isAuth) {
       alert(t("checkout.saveAddressLogin"));
       return;
     }
 
-    // ✅ Validate fields and show inline errors
     const ok = validateAddress();
-    if (!ok) {
-      // field-level errors already shown under each input
-      return;
-    }
+    if (!ok) return;
 
     setSavingAddr(true);
     try {
-      // always create a NEW address/contact
       const payload = buildAddressPayload(form, addressIdRef.current);
 
       let res;
       if (addressIdRef.current) {
-        // UPDATE existing address
-        // ⚠️ adjust shape { id, ...payload } vs { id, body: payload } to match your RTK query
         res = await updateAddress({
           id: addressIdRef.current,
           ...payload,
         }).unwrap();
       } else {
-        // CREATE new address
         res = await createAddress(payload).unwrap();
       }
 
-      // remember the id (in case it was created)
       if (res?.id) {
         addressIdRef.current = res.id;
       }
@@ -464,7 +463,7 @@ export default function Checkout() {
     }
   };
 
-  const handlePostalBlur = async () => {
+  const doPostalLookup = useCallback(async () => {
     const postal = (form.postalCode || "").trim();
     if (!postal) return;
 
@@ -480,9 +479,14 @@ export default function Checkout() {
     } finally {
       setCityLoading(false);
     }
+  }, [form.country, form.postalCode, form.city]);
+
+  const debouncedPostalLookup = useDebouncedFn(doPostalLookup, 250);
+
+  const handlePostalBlur = () => {
+    debouncedPostalLookup();
   };
 
-  // wipe cart after success
   const wipeCart = useCallback(() => {
     skipCartGuardRef.current = true;
     dispatch(clearCart());
@@ -512,7 +516,7 @@ export default function Checkout() {
             email: guestEmail,
           })
         );
-      } catch (err) {
+      } catch {
         try {
           const fallbackNumber = String(orderId);
           sessionStorage.setItem(
@@ -530,9 +534,7 @@ export default function Checkout() {
               email: guestEmail,
             })
           );
-        } catch {
-          // ignore storage failures
-        }
+        } catch {}
       }
     },
     [isAuth, form.email]
@@ -551,7 +553,6 @@ export default function Checkout() {
     [navigate, persistGuestInfo, wipeCart]
   );
 
-  // payment UI state
   const [payment, setPayment] = useState("");
   const setPaymentSafe = useCallback((next) => setPayment(next), []);
   const [cardMonths, setCardMonths] = useState(null);
@@ -560,12 +561,11 @@ export default function Checkout() {
   const [savedCardPaymentMethodId] = useState(null);
   const [savedSepaPaymentMethodId] = useState(null);
 
-  // minimal address check now uses full validation
-  const hasMinimalAddress = useCallback(() => {
-    return validateAddress();
-  }, [validateAddress]);
+  const hasMinimalAddress = useCallback(
+    () => validateAddress(),
+    [validateAddress]
+  );
 
-  // handle country + DE-only restriction
   const handleCountryChange = (e) => {
     const newCode = normalizeCountry(e.target.value);
     setForm((prev) => ({ ...prev, country: newCode }));
@@ -599,7 +599,6 @@ export default function Checkout() {
     }
   }, [installmentsEnabled, payment, setPaymentSafe]);
 
-  // === NEW: Create a local order for Stripe card ===
   const ensureStripeOrder = useCallback(
     async (pm) => {
       if (localOrderIdRef.current) return localOrderIdRef.current;
@@ -611,10 +610,10 @@ export default function Checkout() {
         alert(t("checkout.emptyCart"));
         return null;
       }
+
       let installments_months = null;
       let pmToSave = pm;
 
-      // card installments: e.g. "card_installments_3"
       if (pm && pm.startsWith("card_installments_")) {
         installments_months = Number(pm.split("_").pop());
         pmToSave = "card_installments";
@@ -625,7 +624,6 @@ export default function Checkout() {
         pm === "klarna_installments" ||
         pm === "giropay"
       ) {
-        // keep as-is
         pmToSave = pm;
       }
 
@@ -650,7 +648,6 @@ export default function Checkout() {
           },
         }).unwrap();
 
-        // Expecting { id, number, ... }
         localOrderIdRef.current = res?.id;
         return res?.id || null;
       } catch (e) {
@@ -680,10 +677,8 @@ export default function Checkout() {
     const qCoupon = (params.get("coupon") || "").trim();
     if (!qCoupon) return;
 
-    // set the field immediately
     setCouponCode(qCoupon.toUpperCase());
 
-    // try preview/apply right away
     (async () => {
       try {
         const r = await previewCoupon({
@@ -691,20 +686,19 @@ export default function Checkout() {
           items: backendItems,
         }).unwrap();
         if (r?.ok) setCouponInfo(r);
-      } catch {
-        /* ignore */
-      }
+      } catch {}
     })();
 
-    // focus and scroll into view
-    const el = document.getElementById("coupon-input");
-    if (el) {
-      el.focus();
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    // reduce forced reflow: schedule focus/scroll
+    requestAnimationFrame(() => {
+      const el = document.getElementById("coupon-input");
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
   }, [location.search, backendItems, previewCoupon]);
 
-  // PayPal block
   const renderPayPalSection = () => (
     <PayPalScriptProvider
       options={{
@@ -714,6 +708,8 @@ export default function Checkout() {
         components: "buttons",
         locale: i18n.language === "de" ? "de_DE" : "en_US",
       }}
+      // ✅ key improvement: defer PayPal script until needed
+      deferLoading={payment !== "paypal"}
     >
       <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
         <input
@@ -722,6 +718,7 @@ export default function Checkout() {
           value="paypal"
           checked={payment === "paypal"}
           onChange={() => setPaymentSafe("paypal")}
+          aria-label="PayPal"
         />
         <span className="flex-1">PayPal / PayPal Pay Later</span>
         <span className="text-xs font-semibold text-[#003087]">PayPal</span>
@@ -762,7 +759,6 @@ export default function Checkout() {
                 },
               }).unwrap();
 
-              // backend should return both: { id: <paypal_id>, order_id: <local_order_id> }
               localOrderIdRef.current = res?.order_id;
               return res?.id;
             }}
@@ -784,14 +780,13 @@ export default function Checkout() {
     </PayPalScriptProvider>
   );
 
-  // Card installments toggle + component
   const renderCardInstallmentsBlock = () => (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded px-2 py-1">
+        <div className="text-sm text-blue-800 bg-blue-50 border border-blue-100 rounded px-2 py-1">
           {t("checkout.card0")}
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-700 dark:text-gray-200">
           {t("checkout.chooseTerm")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
@@ -809,9 +804,10 @@ export default function Checkout() {
                 }}
                 className={`px-2 py-1 rounded border text-sm ${
                   cardMonths === m
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "hover:bg-gray-50 dark:hover:bg:white/5 dark:border-neutral-700"
+                    ? "bg-blue-700 text-white border-blue-700"
+                    : "hover:bg-gray-50 dark:hover:bg-white/5 dark:border-neutral-700"
                 }`}
+                aria-label={`${m} ${t("checkout.months")}`}
               >
                 {m} {t("checkout.months")}
               </button>
@@ -821,7 +817,7 @@ export default function Checkout() {
       </div>
 
       {!installmentsEnabled && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
           {t(
             "checkout.installmentsMinTotal",
             "Installment payments are available from an order value of 50 €."
@@ -843,9 +839,8 @@ export default function Checkout() {
             onSuccess={async (id) => {
               await onSuccessfulOrder(id);
             }}
-          />{" "}
-          {/* Transaction details text */}
-          <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+          />
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-200">
             {t("checkout.installmentSchedule", {
               total: fmtEUR(payTotal, locale),
               months: cardMonths,
@@ -857,14 +852,13 @@ export default function Checkout() {
     </div>
   );
 
-  // SEPA installments (DE only)
   const renderSepaInstallmentsBlock = () => (
     <div className="mt-3">
-      <div className="flex items-center justify_between mb-2">
-        <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm text-green-800 bg-green-50 border border-green-100 rounded px-2 py-1">
           {t("checkout.sepa0")}
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-700 dark:text-gray-200">
           {t("checkout.term")}
           <span className="ml-2 inline-flex gap-2">
             {[3, 6, 9].map((m) => (
@@ -883,9 +877,10 @@ export default function Checkout() {
                 }}
                 className={`px-2 py-1 rounded border text-sm ${
                   sepaMonths === m
-                    ? "bg-pink-600 text-white border-pink-600"
+                    ? "bg-pink-700 text-white border-pink-700"
                     : "hover:bg-gray-50 dark:hover:bg-white/5 dark:border-neutral-700"
                 }`}
+                aria-label={`${m} ${t("checkout.months_de")}`}
               >
                 {m} {t("checkout.months_de")}
               </button>
@@ -910,7 +905,7 @@ export default function Checkout() {
               await onSuccessfulOrder(id);
             }}
           />
-          <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-200">
             {t("checkout.installmentSchedule", {
               total: fmtEUR(payTotal, locale),
               months: sepaMonths,
@@ -925,21 +920,27 @@ export default function Checkout() {
   const onChange = (e) =>
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  // ---- RENDER ----
   return (
     <>
       <Helmet>
         <meta name="robots" content="noindex,nofollow" />
         <meta name="googlebot" content="noindex,nofollow" />
+        <title>Checkout | MindMines</title>
       </Helmet>
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-white">
+
+      {/* ✅ main landmark */}
+      <main className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-white">
         <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Contact + Address */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-              <h2 className="text-lg font-semibold mb-2">
+            <section
+              className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6"
+              aria-label="Contact and delivery address"
+            >
+              <h1 className="text-xl font-semibold mb-2">
                 {t("checkout.contact")}
-              </h2>
+              </h1>
+
               <input
                 name="email"
                 type="email"
@@ -947,6 +948,7 @@ export default function Checkout() {
                 value={form.email}
                 onChange={onChange}
                 className={`${inputCls} mb-1`}
+                aria-label={t("checkout.emailPlaceholder")}
               />
               {addrErrors.email && (
                 <p className="text-xs text-red-600 mb-3">{addrErrors.email}</p>
@@ -955,16 +957,16 @@ export default function Checkout() {
               <h2 className="text-lg font-semibold mb-2">
                 {t("checkout.delivery")}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">
                 {t("checkout.deliveryNote")}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {/* Country */}
                 <div className="md:col-span-2">
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.country")}
                   </label>
+
                   {(() => {
                     const groups = t("countryGroups", { returnObjects: true });
                     const grouped = t("countries", { returnObjects: true });
@@ -988,12 +990,14 @@ export default function Checkout() {
                               FR: "France",
                               NL: "Netherlands",
                             };
+
                       return (
                         <select
                           name="country"
                           value={form.country}
                           onChange={handleCountryChange}
                           className={inputCls}
+                          aria-label={t("checkout.country")}
                         >
                           {Object.entries(fallback).map(([code, label]) => (
                             <option key={code} value={code}>
@@ -1010,6 +1014,7 @@ export default function Checkout() {
                         value={form.country}
                         onChange={handleCountryChange}
                         className={inputCls}
+                        aria-label={t("checkout.country")}
                       >
                         {Object.entries(grouped).map(
                           ([groupKey, countryMap]) => (
@@ -1032,9 +1037,8 @@ export default function Checkout() {
                   })()}
                 </div>
 
-                {/* Full Name */}
                 <div className="md:col-span-2">
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.fullName")}
                   </label>
                   <input
@@ -1043,6 +1047,7 @@ export default function Checkout() {
                     onChange={onChange}
                     className={inputCls}
                     aria-required="true"
+                    aria-label={t("checkout.fullName")}
                     required
                   />
                   {addrErrors.fullName && (
@@ -1052,9 +1057,8 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* Street */}
                 <div className="md:col-span-2">
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.streetAddress")}
                   </label>
                   <input
@@ -1063,6 +1067,7 @@ export default function Checkout() {
                     onChange={onChange}
                     className={inputCls}
                     aria-required="true"
+                    aria-label={t("checkout.streetAddress")}
                     required
                   />
                   {addrErrors.street && (
@@ -1072,9 +1077,8 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* House number */}
                 <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.houseNumber")}
                   </label>
                   <input
@@ -1083,6 +1087,7 @@ export default function Checkout() {
                     onChange={onChange}
                     className={inputCls}
                     aria-required="true"
+                    aria-label={t("checkout.houseNumber")}
                     required
                   />
                   {addrErrors.houseNumber && (
@@ -1092,9 +1097,8 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* Apartment */}
                 <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.apartment")}
                   </label>
                   <input
@@ -1102,12 +1106,12 @@ export default function Checkout() {
                     value={form.apartment}
                     onChange={onChange}
                     className={inputCls}
+                    aria-label={t("checkout.apartment")}
                   />
                 </div>
 
-                {/* Postal code */}
                 <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.postalCode")}
                   </label>
                   <input
@@ -1117,6 +1121,7 @@ export default function Checkout() {
                     onBlur={handlePostalBlur}
                     className={inputCls}
                     aria-required="true"
+                    aria-label={t("checkout.postalCode")}
                     required
                   />
                   {addrErrors.postalCode && (
@@ -1125,15 +1130,14 @@ export default function Checkout() {
                     </p>
                   )}
                   {cityLoading && (
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
                       {t("checkout.lookupCity", "Looking up city…")}
                     </p>
                   )}
                 </div>
 
-                {/* City */}
                 <div>
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.city")}
                   </label>
                   <input
@@ -1143,6 +1147,7 @@ export default function Checkout() {
                     list="checkout-city-options"
                     className={inputCls}
                     aria-required="true"
+                    aria-label={t("checkout.city")}
                     required
                   />
                   <datalist id="checkout-city-options">
@@ -1157,9 +1162,8 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* Telephone */}
                 <div className="md:col-span-2">
-                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                  <label className="text-sm text-gray-700 dark:text-gray-200">
                     {t("checkout.telephone")}
                   </label>
                   <input
@@ -1167,6 +1171,7 @@ export default function Checkout() {
                     value={form.telephone}
                     onChange={onChange}
                     className={inputCls}
+                    aria-label={t("checkout.telephone")}
                   />
                   {addrErrors.telephone && (
                     <p className="mt-1 text-xs text-red-600">
@@ -1181,21 +1186,25 @@ export default function Checkout() {
                   onClick={saveAddress}
                   disabled={savingAddr}
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
+                  aria-label={t("checkout.saveAddress")}
                 >
                   {savingAddr
                     ? t("checkout.saving")
                     : t("checkout.saveAddress")}
                 </button>
                 {addrSaved && (
-                  <span className="text-green-600 self-center">
+                  <span className="text-green-700 self-center">
                     {t("checkout.saved")} ✓
                   </span>
                 )}
               </div>
-            </div>
+            </section>
 
             {/* Shipping */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+            <section
+              className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6"
+              aria-label="Shipping"
+            >
               <h2 className="text-lg font-semibold mb-3">
                 {t("checkout.shipment")}
               </h2>
@@ -1207,19 +1216,22 @@ export default function Checkout() {
                     : fmtEUR(shippingFee, locale)}
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* Payment */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+            <section
+              className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6"
+              aria-label="Payment"
+            >
               <h2 className="text-lg font-semibold mb-2">
                 {t("checkout.payment")}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">
                 {t("checkout.paymentNote")}
               </p>
 
               {!payment && (
-                <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
+                <div className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
                   {t(
                     "checkout.choosePayment",
                     "Please choose a payment method to continue."
@@ -1227,7 +1239,6 @@ export default function Checkout() {
                 </div>
               )}
 
-              {/*  Klarna / Giropay  */}
               {/* Klarna single */}
               <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
                 <input
@@ -1236,6 +1247,7 @@ export default function Checkout() {
                   value="klarna_single"
                   checked={payment === "klarna_single"}
                   onChange={() => setPaymentSafe("klarna_single")}
+                  aria-label={t("checkout.klarnaSingleLabel")}
                 />
                 <span className="flex-1">
                   {t("checkout.klarnaSingleLabel")}
@@ -1253,6 +1265,7 @@ export default function Checkout() {
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
                       disabled={creatingOrder}
                       onClick={() => ensureStripeOrder("klarna_single")}
+                      aria-label={t("checkout.continueKlarnaNow")}
                     >
                       {creatingOrder
                         ? t("checkout.initializing")
@@ -1303,6 +1316,7 @@ export default function Checkout() {
                   onChange={() =>
                     installmentsEnabled && setPaymentSafe("klarna_installments")
                   }
+                  aria-label={t("checkout.klarnaInstallmentsLabel")}
                 />
                 <span className="flex-1">
                   {t("checkout.klarnaInstallmentsLabel", {
@@ -1314,14 +1328,16 @@ export default function Checkout() {
                   {t("checkout.processorStripeKlarna")}
                 </span>
               </label>
+
               {!installmentsEnabled && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.installmentsMinTotal",
                     "Installment payments are available from an order value of 50 €."
                   )}
                 </p>
               )}
+
               {payment === "klarna_installments" && (
                 <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
                   {!localOrderIdRef.current ? (
@@ -1330,6 +1346,7 @@ export default function Checkout() {
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
                       disabled={creatingOrder}
                       onClick={() => ensureStripeOrder("klarna_installments")}
+                      aria-label={t("checkout.continueKlarnaInst")}
                     >
                       {creatingOrder
                         ? t("checkout.initializing")
@@ -1368,8 +1385,7 @@ export default function Checkout() {
                     />
                   )}
 
-                  {/* Klarna installment transaction details */}
-                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                  <div className="mt-2 text-xs text-gray-700 dark:text-gray-200">
                     {t("checkout.installmentSchedule", {
                       total: fmtEUR(payTotal, locale),
                       months: klarnaInstallments,
@@ -1379,67 +1395,7 @@ export default function Checkout() {
                 </div>
               )}
 
-              {/* giropay
-            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
-              <input
-                type="radio"
-                name="payment"
-                value="giropay"
-                checked={payment === "giropay"}
-                onChange={() => setPaymentSafe("giropay")}
-              />
-              <span className="flex-1">{t("checkout.giropayLabel")}</span>
-              <span className="text-xs font-semibold">
-                {t("checkout.processorStripe")}
-              </span>
-            </label>
-
-            {payment === "giropay" && (
-              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                {!localOrderIdRef.current ? (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                    disabled={creatingOrder}
-                    onClick={() => ensureStripeOrder("giropay")}
-                  >
-                    {creatingOrder
-                      ? t("checkout.initializing")
-                      : t("checkout.continueGiropay")}
-                  </button>
-                ) : (
-                  <StripeRedirectPay
-                    orderId={localOrderIdRef.current}
-                    method="giropay"
-                    orderPayload={{
-                      email: form.email.trim(),
-                      payment_method: "giropay",
-                      coupon_code: (couponCode || "").trim(),
-                      items: backendItems,
-                      shipping: {
-                        first_name:
-                          form.fullName.split(" ")[0] || form.fullName,
-                        last_name: form.fullName.split(" ").slice(1).join(" "),
-                        line1: `${form.street} ${form.houseNumber}`.trim(),
-                        line2: form.apartment || "",
-                        postal_code: form.postalCode,
-                        city: form.city,
-                        country: normalizeCountry(form.country),
-                        phone: form.telephone || "",
-                        street_name: form.street || "",
-                        house_number: form.houseNumber || "",
-                      },
-                    }}
-                    onSuccess={async () =>
-                      await onSuccessfulOrder(localOrderIdRef.current)
-                    }
-                    onError={(m) => alert(m)}
-                  />
-                )}
-              </div>
-            )} */}
-
-              {/* === Card (Stripe) === */}
+              {/* Card (Stripe) */}
               <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
                 <input
                   type="radio"
@@ -1447,6 +1403,7 @@ export default function Checkout() {
                   value="card"
                   checked={payment === "card"}
                   onChange={() => setPaymentSafe("card")}
+                  aria-label={t("checkout.card")}
                 />
                 <span className="flex-1">{t("checkout.card")}</span>
                 <span className="text-xs font-semibold">
@@ -1462,6 +1419,7 @@ export default function Checkout() {
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
                       disabled={creatingOrder}
                       onClick={() => ensureStripeOrder("card")}
+                      aria-label={t("checkout.continueCard")}
                     >
                       {creatingOrder
                         ? t("checkout.initializing")
@@ -1484,10 +1442,10 @@ export default function Checkout() {
               {/* Card installments */}
               {renderCardInstallmentsBlock()}
 
-              {/* PayPal / PayPal Pay Later */}
+              {/* PayPal (lazy) */}
               {renderPayPalSection()}
 
-              {/* SEPA (one-shot + installments) */}
+              {/* SEPA */}
               {isEuropean ? (
                 <StripeSepa
                   active={payment === "sepa_debit"}
@@ -1503,7 +1461,7 @@ export default function Checkout() {
                   }}
                 />
               ) : (
-                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-3 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.sepaEuropeOnly",
                     "SEPA direct debit is only available for European billing addresses."
@@ -1511,19 +1469,20 @@ export default function Checkout() {
                 </p>
               )}
 
-              {/* SEPA installments (Europe only) */}
+              {/* SEPA installments */}
               {isEuropean &&
                 installmentsEnabled &&
                 renderSepaInstallmentsBlock()}
               {isEuropean && !installmentsEnabled && (
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.installmentsMinTotal",
                     "Installment payments are available from an order value of 50 €."
                   )}
                 </p>
               )}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-800 dark:text-gray-200">
                 <Badge
                   icon={<ShieldCheck className="w-4 h-4" />}
                   text={t("checkout.badgeSecure")}
@@ -1537,11 +1496,11 @@ export default function Checkout() {
                   text={t("checkout.badgeDelivery")}
                 />
               </div>
-            </div>
+            </section>
           </div>
 
           {/* RIGHT Summary */}
-          <aside className="lg:col-span-1">
+          <aside className="lg:col-span-1" aria-label="Order summary">
             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
               <h2 className="text-xl font-semibold mb-4">
                 {t("checkout.overview")}
@@ -1557,15 +1516,20 @@ export default function Checkout() {
                   return (
                     <div key={it.id} className="flex items-center gap-3">
                       <div className="relative">
+                        {/* ✅ fix CLS/aspect ratio: width/height + aspect-square, remove fetchPriority */}
                         <img
                           src={it.image}
                           alt={it.name}
-                          className="w-16 h-16 object-cover rounded"
-                          fetchPriority="high"
+                          className="w-16 h-16 aspect-square object-cover rounded"
+                          width="64"
+                          height="64"
                           loading="lazy"
                           decoding="async"
                         />
-                        <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                        <span
+                          className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center"
+                          aria-label={`${t("cart.quantity")}: ${it.qty}`}
+                        >
                           {it.qty}
                         </span>
                       </div>
@@ -1592,16 +1556,19 @@ export default function Checkout() {
                     onChange={(e) =>
                       setCouponCode((e.target.value || "").toUpperCase())
                     }
+                    aria-label={t("checkout.couponPlaceholder")}
                   />
                   <button
                     onClick={applyCoupon}
                     className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+                    aria-label={t("checkout.apply")}
                   >
                     {t("checkout.apply")}
                   </button>
                 </div>
+
                 {couponErr && (
-                  <div className="text-red-600 text-sm">{couponErr}</div>
+                  <div className="text-red-700 text-sm">{couponErr}</div>
                 )}
                 {couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
@@ -1635,7 +1602,7 @@ export default function Checkout() {
                   {fmtEUR(payTotal, locale)}
                 </div>
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                 {t("checkout.inclTax")}
               </div>
 
@@ -1648,7 +1615,7 @@ export default function Checkout() {
             </div>
           </aside>
         </div>
-      </div>
+      </main>
     </>
   );
 }
@@ -1656,7 +1623,7 @@ export default function Checkout() {
 function Row({ label, value }) {
   return (
     <div className="flex items-center justify-between text-sm mt-1">
-      <div className="text-gray-600 dark:text-gray-300">{label}</div>
+      <div className="text-gray-700 dark:text-gray-200">{label}</div>
       <div className="font-semibold">{value}</div>
     </div>
   );
@@ -1665,7 +1632,10 @@ function Row({ label, value }) {
 function Badge({ icon, text }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-md bg-backnewswhite/10 dark:bg-backnewswhite/15">
+      <div
+        className="p-1.5 rounded-md bg-backnewswhite/10 dark:bg-backnewswhite/15"
+        aria-hidden="true"
+      >
         {icon}
       </div>
       <span className="text-gray-800 dark:text-gray-200">{text}</span>

@@ -44,6 +44,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
       onError?.(result.error.message || t("checkout.stripe.paymentFailed"));
       return;
     }
+
     if (result.paymentIntent?.status === "succeeded") {
       onSuccess?.(orderId);
     } else {
@@ -59,9 +60,12 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
 
       <button
         type="button"
-        className="px-4 py-2 rounded-md bg-backnewswhite text-white font-semibold hover:brightness-95 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-backnewswhite"
+        className="px-4 py-2 rounded-md bg-backnewswhite text-white font-semibold hover:brightness-95
+                   focus:outline-none focus:ring-2 focus:ring-backnewswhite/40
+                   disabled:opacity-50"
         disabled={isLoading || busy || !stripe || !elements || !clientSecret}
         onClick={pay}
+        aria-label={t("checkout.stripe.payCard")}
       >
         {busy ? t("checkout.stripe.processing") : t("checkout.stripe.payCard")}
       </button>

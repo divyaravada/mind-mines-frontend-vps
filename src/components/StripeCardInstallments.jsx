@@ -18,6 +18,7 @@ import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
 const stripePromise = loadStripe(
   process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
+
 const pickErr = (e, fb) =>
   e?.data?.detail ||
   e?.data?.error ||
@@ -48,6 +49,7 @@ function SaveCardStep({ email, onSaved, onError }) {
     if (!stripe || !elements || !cs) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
+
     setSaving(true);
     try {
       const { error, setupIntent } = await stripe.confirmCardSetup(cs, {
@@ -56,8 +58,10 @@ function SaveCardStep({ email, onSaved, onError }) {
           billing_details: { email: email || undefined },
         },
       });
+
       if (error)
         throw new Error(error.message || t("checkout.installments.saveFailed"));
+
       const pm = setupIntent?.payment_method;
       if (!pm) throw new Error(t("checkout.installments.noPaymentMethod"));
       onSaved?.(pm);
@@ -72,9 +76,13 @@ function SaveCardStep({ email, onSaved, onError }) {
     <div className="space-y-2">
       {!cs ? (
         <button
-          className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
+          type="button"
+          className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95
+                     focus:outline-none focus:ring-2 focus:ring-backnewsdark/40
+                     disabled:opacity-60"
           onClick={initSI}
           disabled={isLoading}
+          aria-label={t("checkout.installments.addCard")}
         >
           {isLoading
             ? t("checkout.installments.preparing")
@@ -86,9 +94,13 @@ function SaveCardStep({ email, onSaved, onError }) {
             <CardElement options={{ hidePostalCode: true }} />
           </div>
           <button
-            className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
+            type="button"
+            className="px-3 py-2 rounded-md bg-backnewsdark text-white text-sm font-semibold hover:brightness-95
+                       focus:outline-none focus:ring-2 focus:ring-backnewsdark/40
+                       disabled:opacity-60"
             onClick={saveCard}
             disabled={saving}
+            aria-label={t("checkout.installments.saveCard")}
           >
             {saving
               ? t("checkout.installments.saving")
@@ -96,7 +108,8 @@ function SaveCardStep({ email, onSaved, onError }) {
           </button>
         </>
       )}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+
+      <p className="text-xs text-gray-700 dark:text-gray-200">
         {t("checkout.installments.storeHint")}
       </p>
     </div>
@@ -118,6 +131,7 @@ export default function StripeCardInstallments({
   const [errorMsg, setErrorMsg] = useState("");
   const [localPM, setLocalPM] = useState(paymentMethodId || null);
   const [serverSchedule, setServerSchedule] = useState(null);
+
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
     [months]
@@ -135,14 +149,17 @@ export default function StripeCardInstallments({
         installments_months: monthsSafe,
         extra: { months: monthsSafe, payment_method_id: pmId },
       });
+
       const res = await createPlan(payload).unwrap();
       const orderId = res?.order_id ?? res?.data?.order_id ?? null;
       if (!orderId) throw new Error(t("checkout.installments.orderMissing"));
+
       setServerSchedule({
         months: res?.months,
         amounts: res?.amounts,
         dates: res?.dates,
       });
+
       setLocalOrderId?.(orderId);
       onSuccess?.(orderId);
     } catch (e) {
@@ -153,7 +170,7 @@ export default function StripeCardInstallments({
   if (!active) {
     return (
       <div className="border rounded-md p-3 mt-4 bg-marblewhite dark:bg-marbleblack border-gray-200 dark:border-gray-700">
-        <div className="text-sm text-gray-700 dark:text-gray-300">
+        <div className="text-sm text-gray-700 dark:text-gray-200">
           {t("checkout.installments.inactive", { months: monthsSafe })}
         </div>
       </div>
@@ -165,9 +182,11 @@ export default function StripeCardInstallments({
       <div className="text-sm text-gray-800 dark:text-gray-200">
         {t("checkout.installments.confirm", { months: monthsSafe })}
       </div>
+
       {errorMsg && (
         <div className="text-sm text-red-600 dark:text-red-400">{errorMsg}</div>
       )}
+
       {serverSchedule && (
         <InstallmentsSchedulePreview
           months={serverSchedule.months}
@@ -175,6 +194,7 @@ export default function StripeCardInstallments({
           serverSchedule={serverSchedule}
         />
       )}
+
       <Elements
         stripe={stripePromise}
         options={{ appearance: { theme: "stripe" }, locale: "de" }}
@@ -188,21 +208,27 @@ export default function StripeCardInstallments({
         ) : (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <button
+              type="button"
               disabled={isLoading}
               onClick={() => startPlan(localPM)}
-              className="px-4 py-2 rounded-md bg-backnewswhite text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60"
+              className="px-4 py-2 rounded-md bg-backnewswhite text-white text-sm font-semibold hover:brightness-95
+                         focus:outline-none focus:ring-2 focus:ring-backnewswhite/40
+                         disabled:opacity-60"
+              aria-label={t("checkout.installments.start")}
             >
               {isLoading
                 ? t("checkout.installments.starting")
                 : t("checkout.installments.start")}
             </button>
+
             <button
               type="button"
-              className="text-xs underline text-gray-700 dark:text-gray-300"
+              className="text-xs underline text-gray-700 dark:text-gray-200"
               onClick={() => {
                 setLocalPM(null);
                 setServerSchedule(null);
               }}
+              aria-label={t("checkout.installments.useDifferent")}
             >
               {t("checkout.installments.useDifferent")}
             </button>
