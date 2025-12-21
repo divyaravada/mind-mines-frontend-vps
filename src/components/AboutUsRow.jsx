@@ -13,9 +13,8 @@ export function AboutUsRow() {
             src={aboutUs}
             alt={t("home.aboutUs.alt", "About Us")}
             className="absolute inset-0 w-full h-full object-contain md:object-cover transition-transform duration-300 md:hover:scale-105"
+            loading="eager"
             fetchPriority="high"
-            loading="lazy"
-            decoding="async"
           />
         </figure>
 

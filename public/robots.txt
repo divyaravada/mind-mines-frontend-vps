@@ -1,20 +1,11 @@
 User-agent: *
-Disallow: /account/
-Disallow: /account/profile
-Disallow: /account/addresses
-Disallow: /account/wishlist
-Disallow: /account/orders
-Disallow: /account/reviews
-Disallow: /cart
-Disallow: /checkout
-Disallow: /checkout/success
-Disallow: /checkout/return
-Disallow: /users/login
-Disallow: /logout
-Disallow: /guest-order
-Disallow: /unsubscribe/
 
 
 Allow: /
+
+# Block only things you truly never want crawled
+Disallow: /api/
+Disallow: /admin/
+Disallow: /media/private/
 
 Sitemap: https://mindmines.eu/sitemap.xml
