@@ -31,53 +31,20 @@ export function setGtagConsent({ analytics = false, marketing = false } = {}) {
 
 /** Load GTM without inline JS (better for CSP) */
 export function injectGTM(gtmId) {
-  try {
-    if (!gtmId || typeof document === "undefined") return;
+  if (!gtmId || typeof document === "undefined") return;
+  if (document.getElementById("mm-gtm-script")) return;
 
-    // Already present?
-    if (document.getElementById(GTM_SCRIPT_ID)) return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ mm_consent_boot: Date.now() });
 
-    bootDataLayer();
-
-    const s = document.createElement("script");
-    s.id = GTM_SCRIPT_ID;
-    s.async = true;
-    s.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(
-      gtmId
-    )}`;
-    s.referrerPolicy = "origin";
-
-    // Insert safely even if there is no <script> tag yet
-    const firstScript = document.getElementsByTagName("script")[0];
-    if (firstScript && firstScript.parentNode) {
-      firstScript.parentNode.insertBefore(s, firstScript);
-    } else {
-      document.head.appendChild(s);
-    }
-
-    // (Optional) Add a GTM noscript iframe equivalent dynamically
-    // Not required for SPA, but helps parity with GTM default install.
-    if (!document.getElementById(GTM_IFRAME_MARK)) {
-      const iframe = document.createElement("iframe");
-      iframe.id = GTM_IFRAME_MARK;
-      iframe.src = `https://www.googletagmanager.com/ns.html?id=${encodeURIComponent(
-        gtmId
-      )}`;
-      iframe.height = "0";
-      iframe.width = "0";
-      iframe.style.display = "none";
-      iframe.style.visibility = "hidden";
-      document.body.appendChild(iframe);
-    }
-
-    // Inform your own logic
-    const dl = ensureDataLayer();
-    dl && dl.push({ event: "mm_gtm_loaded", mm_gtm_loaded_at: Date.now() });
-  } catch {
-    /* no-op */
-  }
+  const s = document.createElement("script");
+  s.id = "mm-gtm-script";
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(
+    gtmId
+  )}`;
+  document.head.appendChild(s);
 }
-
 /** Best-effort removal (cookies may require a reload to fully stop tracking) */
 export function removeGTM() {
   try {
