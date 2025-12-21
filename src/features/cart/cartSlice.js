@@ -1,3 +1,4 @@
+// src/features/cart/cartSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const LS_KEY = "cart_v1";
@@ -11,10 +12,24 @@ const load = () => {
     return [];
   }
 };
+
+// ✅ throttle + idle save
+let saveTimer = null;
 const save = (items) => {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(items));
-  } catch {}
+  const write = () => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(items));
+    } catch {}
+  };
+
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(write, { timeout: 1000 });
+    } else {
+      write();
+    }
+  }, 200);
 };
 
 const initialState = { items: load() };
@@ -27,6 +42,7 @@ const cartSlice = createSlice({
       const { id, title, name, price, image, ...rest } = action.payload || {};
       const itemTitle = title || name || "";
       const p = Number(price) || 0;
+
       const found = state.items.find((i) => i.id === id);
       if (found) {
         found.qty = Math.max(1, Number(found.qty || 1) + 1);

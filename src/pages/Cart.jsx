@@ -1,6 +1,6 @@
 // src/pages/Cart.jsx
 import { useMemo, useCallback, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
   selectCartItems,
@@ -31,12 +31,34 @@ import { useTranslation } from "react-i18next";
 import { fmtEUR } from "../lib/money";
 import { Helmet } from "react-helmet-async";
 
-function useDebounce(fn, ms = 500) {
-  const t = useRef();
-  return (...args) => {
-    if (t.current) window.clearTimeout(t.current);
-    t.current = window.setTimeout(() => fn(...args), ms);
-  };
+/**
+ * Stable debounced callback (doesn't change identity each render)
+ * and doesn't capture stale fn.
+ */
+function useDebouncedCallback(fn, ms = 500) {
+  const fnRef = useRef(fn);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    fnRef.current = fn;
+  }, [fn]);
+
+  const debounced = useCallback(
+    (...args) => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => fnRef.current(...args), ms);
+    },
+    [ms]
+  );
+
+  // cleanup
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  return debounced;
 }
 
 export default function CartPage() {
@@ -45,11 +67,12 @@ export default function CartPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const items = useSelector(selectCartItems);
+  const items = useSelector(selectCartItems, shallowEqual);
   const count = useSelector(selectCartCount);
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
+
   const wishlistIds = useMemo(() => {
     const list = Array.isArray(wl)
       ? wl
@@ -64,29 +87,27 @@ export default function CartPage() {
 
   // 🔹 Ensure Redux qty never exceeds stock
   useEffect(() => {
-    items.forEach((it) => {
+    for (const it of items) {
       const stockNum = Number(it.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       const current = it.qty || 1;
 
-      if (maxQty === null) {
-        if (current < 1) {
-          dispatch(updateQty({ id: it.id, qty: 1 }));
-        }
-        return;
-      }
+      const clamped =
+        maxQty === null
+          ? Math.max(1, current)
+          : Math.min(Math.max(1, current), maxQty);
 
-      const clamped = Math.min(Math.max(1, current), maxQty);
       if (clamped !== current) {
         dispatch(updateQty({ id: it.id, qty: clamped }));
       }
-    });
+    }
   }, [items, dispatch]);
 
   // Backend sync
   const [saveCart] = useSaveCartMutation();
-  const syncNow = useDebounce(async (payload) => {
+
+  const syncNow = useDebouncedCallback(async (payload) => {
     try {
       await saveCart(payload).unwrap();
     } catch {
@@ -94,8 +115,10 @@ export default function CartPage() {
     }
   }, 500);
 
-  useEffect(() => {
+  // Build payload once (memo) so effect doesn't re-run unnecessarily
+  const cartBody = useMemo(() => {
     const cart_token = getCartToken();
+
     const itemsPayload = items.map((it) => {
       const unitPrice =
         it.price && Number(it.price) > 0
@@ -105,12 +128,10 @@ export default function CartPage() {
       const stockNum = Number(it.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
+
       let qty = it.qty || 1;
-      if (maxQty !== null) {
-        qty = Math.min(Math.max(1, qty), maxQty);
-      } else {
-        qty = Math.max(1, qty);
-      }
+      qty =
+        maxQty === null ? Math.max(1, qty) : Math.min(Math.max(1, qty), maxQty);
 
       return {
         product: it.id,
@@ -125,9 +146,13 @@ export default function CartPage() {
         stock: Number.isFinite(stockNum) ? stockNum : undefined,
       };
     });
-    const body = { cart_token, currency: "EUR", items: itemsPayload };
-    syncNow(body);
-  }, [items, syncNow]);
+
+    return { cart_token, currency: "EUR", items: itemsPayload };
+  }, [items]);
+
+  useEffect(() => {
+    syncNow(cartBody);
+  }, [cartBody, syncNow]);
 
   // Subtotal uses clamped qty as well
   const subtotal = useMemo(() => {
@@ -141,12 +166,8 @@ export default function CartPage() {
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
       let qty = item.qty || 1;
-      if (maxQty !== null) {
-        qty = Math.min(Math.max(1, qty), maxQty);
-      } else {
-        qty = Math.max(1, qty);
-      }
-
+      qty =
+        maxQty === null ? Math.max(1, qty) : Math.min(Math.max(1, qty), maxQty);
       return sum + unitPrice * qty;
     }, 0);
   }, [items]);
@@ -172,7 +193,12 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-5xl mx-auto py-12 px-4 text-gray-900 dark:text-gray-100">
+      <main className="max-w-5xl mx-auto py-12 px-4 text-gray-900 dark:text-gray-100">
+        <Helmet>
+          <meta name="robots" content="noindex,nofollow" />
+          <meta name="googlebot" content="noindex,nofollow" />
+          <title>Cart | MindMines</title>
+        </Helmet>
         <h1 className="text-2xl font-bold mb-4 text-backnewswhite dark:text-backnewsdark">
           {t("cart.title", { count: 0 })}
         </h1>
@@ -187,7 +213,7 @@ export default function CartPage() {
             {t("cart.continue")}
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -196,18 +222,21 @@ export default function CartPage() {
       <Helmet>
         <meta name="robots" content="noindex,nofollow" />
         <meta name="googlebot" content="noindex,nofollow" />
+        <title>Cart | MindMines</title>
       </Helmet>
-      <div className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 text-gray-900 dark:text-gray-100">
+      {/* ✅ main landmark fixes “Document does not have a main landmark” */}
+      <main className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 text-gray-900 dark:text-gray-100">
         {/* LEFT */}
-        <div className="lg:col-span-2">
+        <section className="lg:col-span-2" aria-label="Cart items">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-backnewswhite dark:text-backnewsdark">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t("cart.title_one")} ({count}{" "}
               {count === 1 ? t("cart.item") : t("cart.items")})
             </h1>
+
             <button
               onClick={() => dispatch(clearCart())}
-              className="text-red-600 hover:underline flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
+              className="text-red-700 hover:underline flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
             >
               <Trash2 className="w-4 h-4" />
               {t("cart.clear")}
@@ -226,43 +255,46 @@ export default function CartPage() {
               const stockNum = Number(item.stock);
               const maxQty =
                 Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
+
               let effectiveQty = item.qty || 1;
-              if (maxQty !== null) {
-                effectiveQty = Math.min(Math.max(1, effectiveQty), maxQty);
-              } else {
-                effectiveQty = Math.max(1, effectiveQty);
-              }
+              effectiveQty =
+                maxQty === null
+                  ? Math.max(1, effectiveQty)
+                  : Math.min(Math.max(1, effectiveQty), maxQty);
 
               const lineTotal = unitPrice * effectiveQty;
               const disablePlus = maxQty !== null && effectiveQty >= maxQty;
 
               return (
-                <div
+                <article
                   key={item.id}
-                  className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
+                  className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 flex gap-4 border border-gray-200 dark:border-gray-800"
                 >
+                  {/* ✅ reduce layout shift: width/height + aspect square */}
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-28 h-28 object-cover rounded"
-                    fetchPriority="high"
+                    className="w-28 h-28 aspect-square object-cover rounded"
+                    width="112"
+                    height="112"
                     loading="lazy"
                     decoding="async"
                   />
+
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
+                        <h2 className="font-semibold text-lg">{item.name}</h2>
                         {item.category && (
-                          <div className="text-sm text-gray-500 dark:text-gray-300 capitalize">
+                          <div className="text-sm text-gray-600 dark:text-gray-200 capitalize">
                             {item.category}
                           </div>
                         )}
-                        <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        <div className="text-sm text-gray-700 dark:text-gray-200 mt-1">
                           {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                         </div>
                         {Number.isFinite(stockNum) && stockNum > 0 && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-700 dark:text-gray-200 mt-1">
                             {t("cart.stockInfo", {
                               stock: stockNum,
                               defaultValue: "Max. {{stock}} piece(s) available",
@@ -270,16 +302,18 @@ export default function CartPage() {
                           </div>
                         )}
                       </div>
+
                       <button
                         onClick={() => dispatch(removeItem(item.id))}
-                        className="text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
+                        className="text-red-600 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
                         title={t("cart.remove")}
+                        aria-label={t("cart.remove")}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-700 dark:text-gray-200">
                       {item.dimensions && (
                         <div>
                           <span className="font-medium">
@@ -330,6 +364,7 @@ export default function CartPage() {
                           >
                             <Minus className="w-4 h-4" />
                           </button>
+
                           <input
                             type="number"
                             min={1}
@@ -338,19 +373,14 @@ export default function CartPage() {
                             onChange={(e) => {
                               const raw = Number(e.target.value || 1);
                               let next = Math.max(1, raw);
-                              if (maxQty !== null) {
+                              if (maxQty !== null)
                                 next = Math.min(next, maxQty);
-                              }
-                              dispatch(
-                                updateQty({
-                                  id: item.id,
-                                  qty: next,
-                                })
-                              );
+                              dispatch(updateQty({ id: item.id, qty: next }));
                             }}
                             className="w-12 text-center outline-none p-1 bg-transparent"
                             aria-label={t("cart.quantity")}
                           />
+
                           <button
                             className="px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-r disabled:opacity-40 disabled:cursor-not-allowed"
                             onClick={() =>
@@ -372,11 +402,11 @@ export default function CartPage() {
 
                         <button
                           className={`rounded p-2 ${
-                            inWishlist ? "text-red-500" : "text-gray-400"
+                            inWishlist ? "text-red-600" : "text-gray-500"
                           } ${
                             !loggedIn
                               ? "opacity-50 cursor-not-allowed"
-                              : "focus:outline-none focus:ring-2 focus:ring-backnewswhite/40"
+                              : "focus:outline-none focus:ring-2 focus:ring-black/20"
                           }`}
                           onClick={() => toggleWishlist(item.id)}
                           title={t("cart.wishlist")}
@@ -392,7 +422,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="text-right">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-gray-700 dark:text-gray-200">
                           {t("cart.total")}
                         </div>
                         <div className="text-lg font-semibold">
@@ -401,13 +431,13 @@ export default function CartPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
 
           <div className="mt-6 bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+            <div className="text-sm text-gray-700 dark:text-gray-200 mb-3">
               {t("cart.weAccept")}
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -418,12 +448,13 @@ export default function CartPage() {
               <BrandBadge label="SEPA" />
             </div>
           </div>
-        </div>
+        </section>
 
         {/* RIGHT */}
-        <aside className="lg:col-span-1">
-          <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100">
+        <aside className="lg:col-span-1" aria-label="Order summary">
+          <div className="bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-6 sticky top-24 border border-gray-200 dark:border-gray-800">
             <h2 className="text-xl font-semibold mb-4">{t("cart.summary")}</h2>
+
             <div className="space-y-3 text-sm">
               <Row
                 label={t("cart.subtotal")}
@@ -444,19 +475,19 @@ export default function CartPage() {
                   <span className="font-semibold">{fmtEUR(total, locale)}</span>
                 }
               />
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-xs text-gray-700 dark:text-gray-200 mt-1">
                 {t("cart.inclTax")}
               </div>
             </div>
 
             <button
               onClick={() => navigate("/checkout")}
-              className="mt-5 w-full inline-flex items-center justify-center py-3 rounded-xl bg-backnewswhite text-white font-semibold hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-backnewswhite/50"
+              className="mt-5 w-full inline-flex items-center justify-center py-3 rounded-xl bg-black text-white font-semibold hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-black/30"
             >
               {t("cart.checkout")}
             </button>
 
-            <div className="mt-6 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+            <div className="mt-6 space-y-3 text-sm text-gray-800 dark:text-gray-200">
               <Badge
                 icon={<ShieldCheck className="w-4 h-4" />}
                 text={t("cart.badgeSecure")}
@@ -472,7 +503,7 @@ export default function CartPage() {
             </div>
           </div>
         </aside>
-      </div>
+      </main>
     </>
   );
 }
