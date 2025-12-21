@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useGetOrdersQuery } from "../features/orders/ordersApi";
 import OrderDialog from "./OrderDialog";
 import { toAbsoluteUrl } from "../utils/urls";
+import { Helmet } from "react-helmet-async";
 
 export default function Orders() {
   const { t, i18n } = useTranslation();
@@ -252,174 +253,184 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 text-gray-900 dark:text-gray-100">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-        <div>
-          <h2 className="text-2xl font-light text-backnewswhite dark:text-backnewsdark">
-            {t("order.yourOrders")}
-          </h2>
-          <p className="text-xs text-gray-500">
-            {t("order.count", { count: orders.length })}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/account"
-            className="text-sm hover:underline text-gray-700 dark:text-gray-200"
-          >
-            {t("backtoAccount")}
-          </Link>
-        </div>
-      </div>
-
-      {/* Year / Month filters */}
-      {orders.length > 0 && (
-        <div className="mb-6 space-y-3">
-          {/* Years */}
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
+      </Helmet>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 text-gray-900 dark:text-gray-100">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <div>
-            <div className="text-xs font-semibold uppercase text-gray-500 mb-1">
-              {t("order.filterYear", "Year")}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {years.map((year) => (
-                <button
-                  key={year}
-                  type="button"
-                  onClick={() => {
-                    setSelectedYear(year);
-                    const months = Object.keys(grouped[year])
-                      .map((m) => Number(m))
-                      .sort((a, b) => b - a);
-                    setSelectedMonth(months[0] || null);
-                  }}
-                  className={`px-3 py-1 rounded-full border text-sm ${
-                    selectedYear === year
-                      ? "bg-backnewswhite text-white border-backnewswhite"
-                      : "bg-white dark:bg-marbleblack border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
+            <h2 className="text-2xl font-light text-backnewswhite dark:text-backnewsdark">
+              {t("order.yourOrders")}
+            </h2>
+            <p className="text-xs text-gray-500">
+              {t("order.count", { count: orders.length })}
+            </p>
           </div>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/account"
+              className="text-sm hover:underline text-gray-700 dark:text-gray-200"
+            >
+              {t("backtoAccount")}
+            </Link>
+          </div>
+        </div>
 
-          {/* Months for selected year */}
-          {selectedYear && monthsForYear.length > 0 && (
+        {/* Year / Month filters */}
+        {orders.length > 0 && (
+          <div className="mb-6 space-y-3">
+            {/* Years */}
             <div>
               <div className="text-xs font-semibold uppercase text-gray-500 mb-1">
-                {t("order.filterMonth", "Month")}{" "}
-                <span className="text-[10px] text-gray-400 ml-1">
-                  ({selectedYear})
-                </span>
+                {t("order.filterYear", "Year")}
               </div>
               <div className="flex flex-wrap gap-2">
-                {monthsForYear.map((m) => (
+                {years.map((year) => (
                   <button
-                    key={`${selectedYear}-${m}`}
+                    key={year}
                     type="button"
-                    onClick={() => setSelectedMonth(m)}
-                    className={`px-3 py-1 rounded-full border text-xs sm:text-sm ${
-                      selectedMonth === m
+                    onClick={() => {
+                      setSelectedYear(year);
+                      const months = Object.keys(grouped[year])
+                        .map((m) => Number(m))
+                        .sort((a, b) => b - a);
+                      setSelectedMonth(months[0] || null);
+                    }}
+                    className={`px-3 py-1 rounded-full border text-sm ${
+                      selectedYear === year
                         ? "bg-backnewswhite text-white border-backnewswhite"
                         : "bg-white dark:bg-marbleblack border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
                     }`}
                   >
-                    {monthLabel(m)}
+                    {year}
                   </button>
                 ))}
               </div>
             </div>
-          )}
 
-          {/* Small info text */}
-          {selectedYear && selectedMonth && (
-            <p className="text-xs text-gray-500">
-              {t("order.filterActive", {
-                year: selectedYear,
-                month: monthLabel(selectedMonth),
-              })}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Orders list */}
-      {isFetching ? (
-        <div className="text-gray-500">{t("common.loading")}</div>
-      ) : filteredOrders.length === 0 ? (
-        <div className="text-gray-400">{t("order.none")}</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredOrders.map((o) => {
-            const primaryMeta = resolveItemMeta(o, o.items?.[0] || {});
-            const itemCount = o.items?.length || 0;
-            return (
-              <button
-                key={o.id}
-                onClick={() => {
-                  setSelectedId(o.id);
-                  setOpen(true);
-                }}
-                className="bg-marblewhite dark:bg-marbleblack text-left p-4 rounded shadow hover:shadow-md transition"
-              >
-                <div className="flex gap-3">
-                  {primaryMeta.image ? (
-                    <img
-                      src={primaryMeta.image}
-                      alt={primaryMeta.title}
-                      className="w-20 h-20 object-cover rounded"
-                      fetchPriority="high"
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
-                      aria-hidden="true"
+            {/* Months for selected year */}
+            {selectedYear && monthsForYear.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold uppercase text-gray-500 mb-1">
+                  {t("order.filterMonth", "Month")}{" "}
+                  <span className="text-[10px] text-gray-400 ml-1">
+                    ({selectedYear})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {monthsForYear.map((m) => (
+                    <button
+                      key={`${selectedYear}-${m}`}
+                      type="button"
+                      onClick={() => setSelectedMonth(m)}
+                      className={`px-3 py-1 rounded-full border text-xs sm:text-sm ${
+                        selectedMonth === m
+                          ? "bg-backnewswhite text-white border-backnewswhite"
+                          : "bg-white dark:bg-marbleblack border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      }`}
                     >
-                      {primaryMeta.initial || "?"}
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="font-semibold leading-tight line-clamp-2">
-                        {primaryMeta.title}
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded whitespace-nowrap ${statusClass(
-                          o.status
-                        )}`}
+                      {monthLabel(m)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Small info text */}
+            {selectedYear && selectedMonth && (
+              <p className="text-xs text-gray-500">
+                {t("order.filterActive", {
+                  year: selectedYear,
+                  month: monthLabel(selectedMonth),
+                })}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Orders list */}
+        {isFetching ? (
+          <div className="text-gray-500">{t("common.loading")}</div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-gray-400">{t("order.none")}</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredOrders.map((o) => {
+              const primaryMeta = resolveItemMeta(o, o.items?.[0] || {});
+              const itemCount = o.items?.length || 0;
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => {
+                    setSelectedId(o.id);
+                    setOpen(true);
+                  }}
+                  className="bg-marblewhite dark:bg-marbleblack text-left p-4 rounded shadow hover:shadow-md transition"
+                >
+                  <div className="flex gap-3">
+                    {primaryMeta.image ? (
+                      <img
+                        src={primaryMeta.image}
+                        alt={primaryMeta.title}
+                        className="w-20 h-20 object-cover rounded"
+                        fetchPriority="high"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="w-20 h-20 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"
+                        aria-hidden="true"
                       >
-                        {statusLabel(o.status)}
-                      </span>
-                    </div>
+                        {primaryMeta.initial || "?"}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-semibold leading-tight line-clamp-2">
+                          {primaryMeta.title}
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded whitespace-nowrap ${statusClass(
+                            o.status
+                          )}`}
+                        >
+                          {statusLabel(o.status)}
+                        </span>
+                      </div>
 
-                    <div className="text-sm text-gray-500">
-                      {fmtDateTime(o.created_at)}
-                    </div>
+                      <div className="text-sm text-gray-500">
+                        {fmtDateTime(o.created_at)}
+                      </div>
 
-                    <div className="text-sm">
-                      {t("order.total")}: {fmtMoney(o.total_price)}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {getItemsCountLabel(itemCount)}
+                      <div className="text-sm">
+                        {t("order.total")}: {fmtMoney(o.total_price)}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {getItemsCountLabel(itemCount)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-      {open && selectedId !== null && (
-        <OrderDialog orderId={selectedId} open onClose={() => setOpen(false)} />
-      )}
-    </div>
+        {open && selectedId !== null && (
+          <OrderDialog
+            orderId={selectedId}
+            open
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </div>
+    </>
   );
 }

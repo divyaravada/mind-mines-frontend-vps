@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
+import { Helmet } from "react-helmet-async";
 import {
   selectCartItems,
   selectCartCount,
@@ -926,62 +927,83 @@ export default function Checkout() {
 
   // ---- RENDER ----
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-white ">
-      <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Contact + Address */}
-          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-            <h2 className="text-lg font-semibold mb-2">
-              {t("checkout.contact")}
-            </h2>
-            <input
-              name="email"
-              type="email"
-              placeholder={t("checkout.emailPlaceholder")}
-              value={form.email}
-              onChange={onChange}
-              className={`${inputCls} mb-1`}
-            />
-            {addrErrors.email && (
-              <p className="text-xs text-red-600 mb-3">{addrErrors.email}</p>
-            )}
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
+      </Helmet>
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack  dark:text-white">
+        <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Contact + Address */}
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+              <h2 className="text-lg font-semibold mb-2">
+                {t("checkout.contact")}
+              </h2>
+              <input
+                name="email"
+                type="email"
+                placeholder={t("checkout.emailPlaceholder")}
+                value={form.email}
+                onChange={onChange}
+                className={`${inputCls} mb-1`}
+              />
+              {addrErrors.email && (
+                <p className="text-xs text-red-600 mb-3">{addrErrors.email}</p>
+              )}
 
-            <h2 className="text-lg font-semibold mb-2">
-              {t("checkout.delivery")}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {t("checkout.deliveryNote")}
-            </p>
+              <h2 className="text-lg font-semibold mb-2">
+                {t("checkout.delivery")}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {t("checkout.deliveryNote")}
+              </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Country */}
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.country")}
-                </label>
-                {(() => {
-                  const groups = t("countryGroups", { returnObjects: true });
-                  const grouped = t("countries", { returnObjects: true });
-                  const isGrouped =
-                    grouped &&
-                    typeof grouped === "object" &&
-                    !Array.isArray(grouped) &&
-                    Object.values(grouped).every(
-                      (v) => v && typeof v === "object"
-                    );
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Country */}
+                <div className="md:col-span-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.country")}
+                  </label>
+                  {(() => {
+                    const groups = t("countryGroups", { returnObjects: true });
+                    const grouped = t("countries", { returnObjects: true });
+                    const isGrouped =
+                      grouped &&
+                      typeof grouped === "object" &&
+                      !Array.isArray(grouped) &&
+                      Object.values(grouped).every(
+                        (v) => v && typeof v === "object"
+                      );
 
-                  if (!isGrouped) {
-                    const fallback =
-                      grouped && typeof grouped === "object"
-                        ? grouped
-                        : {
-                            DE: "Germany",
-                            AT: "Austria",
-                            CH: "Switzerland",
-                            IT: "Italy",
-                            FR: "France",
-                            NL: "Netherlands",
-                          };
+                    if (!isGrouped) {
+                      const fallback =
+                        grouped && typeof grouped === "object"
+                          ? grouped
+                          : {
+                              DE: "Germany",
+                              AT: "Austria",
+                              CH: "Switzerland",
+                              IT: "Italy",
+                              FR: "France",
+                              NL: "Netherlands",
+                            };
+                      return (
+                        <select
+                          name="country"
+                          value={form.country}
+                          onChange={handleCountryChange}
+                          className={inputCls}
+                        >
+                          {Object.entries(fallback).map(([code, label]) => (
+                            <option key={code} value={code}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    }
+
                     return (
                       <select
                         name="country"
@@ -989,375 +1011,375 @@ export default function Checkout() {
                         onChange={handleCountryChange}
                         className={inputCls}
                       >
-                        {Object.entries(fallback).map(([code, label]) => (
-                          <option key={code} value={code}>
-                            {label}
-                          </option>
-                        ))}
+                        {Object.entries(grouped).map(
+                          ([groupKey, countryMap]) => (
+                            <optgroup
+                              key={groupKey}
+                              label={(groups && groups[groupKey]) || groupKey}
+                            >
+                              {Object.entries(countryMap).map(
+                                ([code, label]) => (
+                                  <option key={code} value={code}>
+                                    {label}
+                                  </option>
+                                )
+                              )}
+                            </optgroup>
+                          )
+                        )}
                       </select>
                     );
-                  }
+                  })()}
+                </div>
 
-                  return (
-                    <select
-                      name="country"
-                      value={form.country}
-                      onChange={handleCountryChange}
-                      className={inputCls}
-                    >
-                      {Object.entries(grouped).map(([groupKey, countryMap]) => (
-                        <optgroup
-                          key={groupKey}
-                          label={(groups && groups[groupKey]) || groupKey}
-                        >
-                          {Object.entries(countryMap).map(([code, label]) => (
-                            <option key={code} value={code}>
-                              {label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  );
-                })()}
-              </div>
-
-              {/* Full Name */}
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.fullName")}
-                </label>
-                <input
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={onChange}
-                  className={inputCls}
-                  aria-required="true"
-                  required
-                />
-                {addrErrors.fullName && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {addrErrors.fullName}
-                  </p>
-                )}
-              </div>
-
-              {/* Street */}
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.streetAddress")}
-                </label>
-                <input
-                  name="street"
-                  value={form.street}
-                  onChange={onChange}
-                  className={inputCls}
-                  aria-required="true"
-                  required
-                />
-                {addrErrors.street && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {addrErrors.street}
-                  </p>
-                )}
-              </div>
-
-              {/* House number */}
-              <div>
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.houseNumber")}
-                </label>
-                <input
-                  name="houseNumber"
-                  value={form.houseNumber}
-                  onChange={onChange}
-                  className={inputCls}
-                  aria-required="true"
-                  required
-                />
-                {addrErrors.houseNumber && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {addrErrors.houseNumber}
-                  </p>
-                )}
-              </div>
-
-              {/* Apartment */}
-              <div>
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.apartment")}
-                </label>
-                <input
-                  name="apartment"
-                  value={form.apartment}
-                  onChange={onChange}
-                  className={inputCls}
-                />
-              </div>
-
-              {/* Postal code */}
-              <div>
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.postalCode")}
-                </label>
-                <input
-                  name="postalCode"
-                  value={form.postalCode}
-                  onChange={onChange}
-                  onBlur={handlePostalBlur}
-                  className={inputCls}
-                  aria-required="true"
-                  required
-                />
-                {addrErrors.postalCode && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {addrErrors.postalCode}
-                  </p>
-                )}
-                {cityLoading && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    {t("checkout.lookupCity", "Looking up city…")}
-                  </p>
-                )}
-              </div>
-
-              {/* City */}
-              <div>
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.city")}
-                </label>
-                <input
-                  name="city"
-                  value={form.city}
-                  onChange={onChange}
-                  list="checkout-city-options"
-                  className={inputCls}
-                  aria-required="true"
-                  required
-                />
-                <datalist id="checkout-city-options">
-                  {cityOptions.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
-                {addrErrors.city && (
-                  <p className="mt-1 text-xs text-red-600">{addrErrors.city}</p>
-                )}
-              </div>
-
-              {/* Telephone */}
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("checkout.telephone")}
-                </label>
-                <input
-                  name="telephone"
-                  value={form.telephone}
-                  onChange={onChange}
-                  className={inputCls}
-                />
-                {addrErrors.telephone && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {addrErrors.telephone}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={saveAddress}
-                disabled={savingAddr}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
-              >
-                {savingAddr ? t("checkout.saving") : t("checkout.saveAddress")}
-              </button>
-              {addrSaved && (
-                <span className="text-green-600 self-center">
-                  {t("checkout.saved")} ✓
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Shipping */}
-          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-            <h2 className="text-lg font-semibold mb-3">
-              {t("checkout.shipment")}
-            </h2>
-            <div className="flex items-center justify-between border rounded-lg p-3 dark:border-neutral-700">
-              <div className="text-sm">{t("checkout.standardShipping")}</div>
-              <div className="text-sm font-semibold">
-                {shippingFee === 0
-                  ? t("checkout.free")
-                  : fmtEUR(shippingFee, locale)}
-              </div>
-            </div>
-          </div>
-
-          {/* Payment */}
-          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
-            <h2 className="text-lg font-semibold mb-2">
-              {t("checkout.payment")}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {t("checkout.paymentNote")}
-            </p>
-
-            {!payment && (
-              <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
-                {t(
-                  "checkout.choosePayment",
-                  "Please choose a payment method to continue."
-                )}
-              </div>
-            )}
-
-            {/*  Klarna / Giropay  */}
-            {/* Klarna single */}
-            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
-              <input
-                type="radio"
-                name="payment"
-                value="klarna_single"
-                checked={payment === "klarna_single"}
-                onChange={() => setPaymentSafe("klarna_single")}
-              />
-              <span className="flex-1">{t("checkout.klarnaSingleLabel")}</span>
-              <span className="text-xs font-semibold">
-                {t("checkout.processorStripeKlarna")}
-              </span>
-            </label>
-
-            {payment === "klarna_single" && (
-              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                {!localOrderIdRef.current ? (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                    disabled={creatingOrder}
-                    onClick={() => ensureStripeOrder("klarna_single")}
-                  >
-                    {creatingOrder
-                      ? t("checkout.initializing")
-                      : t("checkout.continueKlarnaNow")}
-                  </button>
-                ) : (
-                  <StripeRedirectPay
-                    orderId={localOrderIdRef.current}
-                    method="klarna"
-                    orderPayload={{
-                      email: form.email.trim(),
-                      payment_method: "klarna_single",
-                      coupon_code: (couponCode || "").trim(),
-                      items: backendItems,
-                      shipping: {
-                        first_name:
-                          form.fullName.split(" ")[0] || form.fullName,
-                        last_name: form.fullName.split(" ").slice(1).join(" "),
-                        line1: `${form.street} ${form.houseNumber}`.trim(),
-                        line2: form.apartment || "",
-                        postal_code: form.postalCode,
-                        city: form.city,
-                        country: normalizeCountry(form.country),
-                        phone: form.telephone || "",
-                        street_name: form.street || "",
-                        house_number: form.houseNumber || "",
-                      },
-                    }}
-                    onSuccess={async () =>
-                      await onSuccessfulOrder(localOrderIdRef.current)
-                    }
-                    onError={(m) => alert(m)}
+                {/* Full Name */}
+                <div className="md:col-span-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.fullName")}
+                  </label>
+                  <input
+                    name="fullName"
+                    value={form.fullName}
+                    onChange={onChange}
+                    className={inputCls}
+                    aria-required="true"
+                    required
                   />
-                )}
-              </div>
-            )}
+                  {addrErrors.fullName && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.fullName}
+                    </p>
+                  )}
+                </div>
 
-            {/* Klarna installments */}
-            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
-              <input
-                type="radio"
-                name="payment"
-                value="klarna_installments"
-                checked={payment === "klarna_installments"}
-                onChange={() =>
-                  installmentsEnabled && setPaymentSafe("klarna_installments")
-                }
-              />
-              <span className="flex-1">
-                {t("checkout.klarnaInstallmentsLabel", {
-                  count: klarnaInstallments,
-                  per: klarnaPerPayment,
-                })}
-              </span>
-              <span className="text-xs font-semibold">
-                {t("checkout.processorStripeKlarna")}
-              </span>
-            </label>
-            {!installmentsEnabled && (
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {t(
-                  "checkout.installmentsMinTotal",
-                  "Installment payments are available from an order value of 50 €."
-                )}
-              </p>
-            )}
-            {payment === "klarna_installments" && (
-              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                {!localOrderIdRef.current ? (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                    disabled={creatingOrder}
-                    onClick={() => ensureStripeOrder("klarna_installments")}
-                  >
-                    {creatingOrder
-                      ? t("checkout.initializing")
-                      : t("checkout.continueKlarnaInst")}
-                  </button>
-                ) : (
-                  <StripeRedirectPay
-                    orderId={localOrderIdRef.current}
-                    method="klarna"
-                    orderPayload={{
-                      email: form.email.trim(),
-                      payment_method: "klarna_installments",
-                      coupon_code: (couponCode || "").trim(),
-                      items: backendItems,
-                      shipping: {
-                        first_name:
-                          form.fullName.split(" ")[0] || form.fullName,
-                        last_name: form.fullName.split(" ").slice(1).join(" "),
-                        line1: `${form.street} ${form.houseNumber}`.trim(),
-                        line2: form.apartment || "",
-                        postal_code: form.postalCode,
-                        city: form.city,
-                        country: normalizeCountry(form.country),
-                        phone: form.telephone || "",
-                        street_name: form.street || "",
-                        house_number: form.houseNumber || "",
-                      },
-                    }}
-                    onSuccess={async () =>
-                      await onSuccessfulOrder(localOrderIdRef.current)
-                    }
-                    onError={(m) => alert(m)}
+                {/* Street */}
+                <div className="md:col-span-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.streetAddress")}
+                  </label>
+                  <input
+                    name="street"
+                    value={form.street}
+                    onChange={onChange}
+                    className={inputCls}
+                    aria-required="true"
+                    required
                   />
-                )}
+                  {addrErrors.street && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.street}
+                    </p>
+                  )}
+                </div>
 
-                {/* Klarna installment transaction details */}
-                <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                  {t("checkout.installmentSchedule", {
-                    total: fmtEUR(payTotal, locale),
-                    months: klarnaInstallments,
-                    per: klarnaPerPayment,
-                  })}
+                {/* House number */}
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.houseNumber")}
+                  </label>
+                  <input
+                    name="houseNumber"
+                    value={form.houseNumber}
+                    onChange={onChange}
+                    className={inputCls}
+                    aria-required="true"
+                    required
+                  />
+                  {addrErrors.houseNumber && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.houseNumber}
+                    </p>
+                  )}
+                </div>
+
+                {/* Apartment */}
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.apartment")}
+                  </label>
+                  <input
+                    name="apartment"
+                    value={form.apartment}
+                    onChange={onChange}
+                    className={inputCls}
+                  />
+                </div>
+
+                {/* Postal code */}
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.postalCode")}
+                  </label>
+                  <input
+                    name="postalCode"
+                    value={form.postalCode}
+                    onChange={onChange}
+                    onBlur={handlePostalBlur}
+                    className={inputCls}
+                    aria-required="true"
+                    required
+                  />
+                  {addrErrors.postalCode && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.postalCode}
+                    </p>
+                  )}
+                  {cityLoading && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t("checkout.lookupCity", "Looking up city…")}
+                    </p>
+                  )}
+                </div>
+
+                {/* City */}
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.city")}
+                  </label>
+                  <input
+                    name="city"
+                    value={form.city}
+                    onChange={onChange}
+                    list="checkout-city-options"
+                    className={inputCls}
+                    aria-required="true"
+                    required
+                  />
+                  <datalist id="checkout-city-options">
+                    {cityOptions.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                  {addrErrors.city && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.city}
+                    </p>
+                  )}
+                </div>
+
+                {/* Telephone */}
+                <div className="md:col-span-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("checkout.telephone")}
+                  </label>
+                  <input
+                    name="telephone"
+                    value={form.telephone}
+                    onChange={onChange}
+                    className={inputCls}
+                  />
+                  {addrErrors.telephone && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {addrErrors.telephone}
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* giropay
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={saveAddress}
+                  disabled={savingAddr}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
+                >
+                  {savingAddr
+                    ? t("checkout.saving")
+                    : t("checkout.saveAddress")}
+                </button>
+                {addrSaved && (
+                  <span className="text-green-600 self-center">
+                    {t("checkout.saved")} ✓
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Shipping */}
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+              <h2 className="text-lg font-semibold mb-3">
+                {t("checkout.shipment")}
+              </h2>
+              <div className="flex items-center justify-between border rounded-lg p-3 dark:border-neutral-700">
+                <div className="text-sm">{t("checkout.standardShipping")}</div>
+                <div className="text-sm font-semibold">
+                  {shippingFee === 0
+                    ? t("checkout.free")
+                    : fmtEUR(shippingFee, locale)}
+                </div>
+              </div>
+            </div>
+
+            {/* Payment */}
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6">
+              <h2 className="text-lg font-semibold mb-2">
+                {t("checkout.payment")}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {t("checkout.paymentNote")}
+              </p>
+
+              {!payment && (
+                <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
+                  {t(
+                    "checkout.choosePayment",
+                    "Please choose a payment method to continue."
+                  )}
+                </div>
+              )}
+
+              {/*  Klarna / Giropay  */}
+              {/* Klarna single */}
+              <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="klarna_single"
+                  checked={payment === "klarna_single"}
+                  onChange={() => setPaymentSafe("klarna_single")}
+                />
+                <span className="flex-1">
+                  {t("checkout.klarnaSingleLabel")}
+                </span>
+                <span className="text-xs font-semibold">
+                  {t("checkout.processorStripeKlarna")}
+                </span>
+              </label>
+
+              {payment === "klarna_single" && (
+                <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                  {!localOrderIdRef.current ? (
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                      disabled={creatingOrder}
+                      onClick={() => ensureStripeOrder("klarna_single")}
+                    >
+                      {creatingOrder
+                        ? t("checkout.initializing")
+                        : t("checkout.continueKlarnaNow")}
+                    </button>
+                  ) : (
+                    <StripeRedirectPay
+                      orderId={localOrderIdRef.current}
+                      method="klarna"
+                      orderPayload={{
+                        email: form.email.trim(),
+                        payment_method: "klarna_single",
+                        coupon_code: (couponCode || "").trim(),
+                        items: backendItems,
+                        shipping: {
+                          first_name:
+                            form.fullName.split(" ")[0] || form.fullName,
+                          last_name: form.fullName
+                            .split(" ")
+                            .slice(1)
+                            .join(" "),
+                          line1: `${form.street} ${form.houseNumber}`.trim(),
+                          line2: form.apartment || "",
+                          postal_code: form.postalCode,
+                          city: form.city,
+                          country: normalizeCountry(form.country),
+                          phone: form.telephone || "",
+                          street_name: form.street || "",
+                          house_number: form.houseNumber || "",
+                        },
+                      }}
+                      onSuccess={async () =>
+                        await onSuccessfulOrder(localOrderIdRef.current)
+                      }
+                      onError={(m) => alert(m)}
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Klarna installments */}
+              <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="klarna_installments"
+                  checked={payment === "klarna_installments"}
+                  onChange={() =>
+                    installmentsEnabled && setPaymentSafe("klarna_installments")
+                  }
+                />
+                <span className="flex-1">
+                  {t("checkout.klarnaInstallmentsLabel", {
+                    count: klarnaInstallments,
+                    per: klarnaPerPayment,
+                  })}
+                </span>
+                <span className="text-xs font-semibold">
+                  {t("checkout.processorStripeKlarna")}
+                </span>
+              </label>
+              {!installmentsEnabled && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {t(
+                    "checkout.installmentsMinTotal",
+                    "Installment payments are available from an order value of 50 €."
+                  )}
+                </p>
+              )}
+              {payment === "klarna_installments" && (
+                <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                  {!localOrderIdRef.current ? (
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                      disabled={creatingOrder}
+                      onClick={() => ensureStripeOrder("klarna_installments")}
+                    >
+                      {creatingOrder
+                        ? t("checkout.initializing")
+                        : t("checkout.continueKlarnaInst")}
+                    </button>
+                  ) : (
+                    <StripeRedirectPay
+                      orderId={localOrderIdRef.current}
+                      method="klarna"
+                      orderPayload={{
+                        email: form.email.trim(),
+                        payment_method: "klarna_installments",
+                        coupon_code: (couponCode || "").trim(),
+                        items: backendItems,
+                        shipping: {
+                          first_name:
+                            form.fullName.split(" ")[0] || form.fullName,
+                          last_name: form.fullName
+                            .split(" ")
+                            .slice(1)
+                            .join(" "),
+                          line1: `${form.street} ${form.houseNumber}`.trim(),
+                          line2: form.apartment || "",
+                          postal_code: form.postalCode,
+                          city: form.city,
+                          country: normalizeCountry(form.country),
+                          phone: form.telephone || "",
+                          street_name: form.street || "",
+                          house_number: form.houseNumber || "",
+                        },
+                      }}
+                      onSuccess={async () =>
+                        await onSuccessfulOrder(localOrderIdRef.current)
+                      }
+                      onError={(m) => alert(m)}
+                    />
+                  )}
+
+                  {/* Klarna installment transaction details */}
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                    {t("checkout.installmentSchedule", {
+                      total: fmtEUR(payTotal, locale),
+                      months: klarnaInstallments,
+                      per: klarnaPerPayment,
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* giropay
             <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer mt-3 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
               <input
                 type="radio"
@@ -1417,214 +1439,217 @@ export default function Checkout() {
               </div>
             )} */}
 
-            {/* === Card (Stripe) === */}
-            <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
-              <input
-                type="radio"
-                name="payment"
-                value="card"
-                checked={payment === "card"}
-                onChange={() => setPaymentSafe("card")}
-              />
-              <span className="flex-1">{t("checkout.card")}</span>
-              <span className="text-xs font-semibold">
-                {t("checkout.processorStripe")}
-              </span>
-            </label>
-
-            {payment === "card" && (
-              <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                {!localOrderIdRef.current ? (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                    disabled={creatingOrder}
-                    onClick={() => ensureStripeOrder("card")}
-                  >
-                    {creatingOrder
-                      ? t("checkout.initializing")
-                      : t("checkout.continueCard")}
-                  </button>
-                ) : (
-                  <StripeProvider>
-                    <StripeCard
-                      orderId={localOrderIdRef.current}
-                      onSuccess={async () => {
-                        await onSuccessfulOrder(localOrderIdRef.current);
-                      }}
-                      onError={(m) => alert(m)}
-                    />
-                  </StripeProvider>
-                )}
-              </div>
-            )}
-
-            {/* Card installments */}
-            {renderCardInstallmentsBlock()}
-
-            {/* PayPal / PayPal Pay Later */}
-            {renderPayPalSection()}
-
-            {/* SEPA (one-shot + installments) */}
-            {isEuropean ? (
-              <StripeSepa
-                active={payment === "sepa_debit"}
-                setActive={(val) => setPaymentSafe(val)}
-                form={form}
-                items={items}
-                couponCode={couponCode}
-                total={payTotal}
-                customerEmail={form.email}
-                setLocalOrderId={(id) => (localOrderIdRef.current = id)}
-                onSuccess={async (id) => {
-                  await onSuccessfulOrder(id || localOrderIdRef.current);
-                }}
-              />
-            ) : (
-              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                {t(
-                  "checkout.sepaEuropeOnly",
-                  "SEPA direct debit is only available for European billing addresses."
-                )}
-              </p>
-            )}
-
-            {/* SEPA installments (Europe only) */}
-            {isEuropean && installmentsEnabled && renderSepaInstallmentsBlock()}
-            {isEuropean && !installmentsEnabled && (
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                {t(
-                  "checkout.installmentsMinTotal",
-                  "Installment payments are available from an order value of 50 €."
-                )}
-              </p>
-            )}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
-              <Badge
-                icon={<ShieldCheck className="w-4 h-4" />}
-                text={t("checkout.badgeSecure")}
-              />
-              <Badge
-                icon={<RotateCcw className="w-4 h-4" />}
-                text={t("checkout.badgeReturn")}
-              />
-              <Badge
-                icon={<Truck className="w-4 h-4" />}
-                text={t("checkout.badgeDelivery")}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT Summary */}
-        <aside className="lg:col-span-1">
-          <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
-            <h2 className="text-xl font-semibold mb-4">
-              {t("checkout.overview")}
-            </h2>
-
-            <div className="space-y-4">
-              {items.map((it) => {
-                const unitPrice =
-                  it.price && Number(it.price) > 0
-                    ? Number(it.price)
-                    : Number(it.priceRange ?? 0);
-
-                return (
-                  <div key={it.id} className="flex items-center gap-3">
-                    <div className="relative">
-                      <img
-                        src={it.image}
-                        alt={it.name}
-                        className="w-16 h-16 object-cover rounded"
-                        fetchPriority="high"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                        {it.qty}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{it.name}</div>
-                    </div>
-                    <div className="font-medium text-sm">
-                      {fmtEUR(unitPrice * it.qty, locale)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <hr className="my-4" />
-
-            <div className="mt-3 border dark:border-neutral-700 rounded-lg p-3 space-y-2">
-              <div className="flex gap-2">
+              {/* === Card (Stripe) === */}
+              <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.03] dark:border-neutral-700 focus-within:ring-2 focus-within:ring-backnewswhite/80 transition">
                 <input
-                  id="coupon-input"
-                  className={`${inputCls} flex-1`}
-                  placeholder={t("checkout.couponPlaceholder")}
-                  value={couponCode}
-                  onChange={(e) =>
-                    setCouponCode((e.target.value || "").toUpperCase())
-                  }
+                  type="radio"
+                  name="payment"
+                  value="card"
+                  checked={payment === "card"}
+                  onChange={() => setPaymentSafe("card")}
                 />
-                <button
-                  onClick={applyCoupon}
-                  className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
-                >
-                  {t("checkout.apply")}
-                </button>
-              </div>
-              {couponErr && (
-                <div className="text-red-600 text-sm">{couponErr}</div>
-              )}
-              {couponInfo?.ok && (
-                <div className="text-green-700 dark:text-green-500 text-sm">
-                  {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                  <span>-{fmtEUR(discount, locale)}</span>
+                <span className="flex-1">{t("checkout.card")}</span>
+                <span className="text-xs font-semibold">
+                  {t("checkout.processorStripe")}
+                </span>
+              </label>
+
+              {payment === "card" && (
+                <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
+                  {!localOrderIdRef.current ? (
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
+                      disabled={creatingOrder}
+                      onClick={() => ensureStripeOrder("card")}
+                    >
+                      {creatingOrder
+                        ? t("checkout.initializing")
+                        : t("checkout.continueCard")}
+                    </button>
+                  ) : (
+                    <StripeProvider>
+                      <StripeCard
+                        orderId={localOrderIdRef.current}
+                        onSuccess={async () => {
+                          await onSuccessfulOrder(localOrderIdRef.current);
+                        }}
+                        onError={(m) => alert(m)}
+                      />
+                    </StripeProvider>
+                  )}
                 </div>
               )}
-            </div>
 
-            {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
-              <Row
-                label={t("checkout.couponLine", { code: couponInfo.code })}
-                value={`-${fmtEUR(discount, locale)}`}
-              />
-            )}
+              {/* Card installments */}
+              {renderCardInstallmentsBlock()}
 
-            <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
-            <Row
-              label={t("checkout.shipmentShort")}
-              value={
-                shippingFee === 0
-                  ? t("checkout.free")
-                  : fmtEUR(shippingFee, locale)
-              }
-            />
-            <div className="flex items-center justify-between mt-2">
-              <div className="text-base font-semibold">
-                {t("checkout.inTotal")}
+              {/* PayPal / PayPal Pay Later */}
+              {renderPayPalSection()}
+
+              {/* SEPA (one-shot + installments) */}
+              {isEuropean ? (
+                <StripeSepa
+                  active={payment === "sepa_debit"}
+                  setActive={(val) => setPaymentSafe(val)}
+                  form={form}
+                  items={items}
+                  couponCode={couponCode}
+                  total={payTotal}
+                  customerEmail={form.email}
+                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                  onSuccess={async (id) => {
+                    await onSuccessfulOrder(id || localOrderIdRef.current);
+                  }}
+                />
+              ) : (
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  {t(
+                    "checkout.sepaEuropeOnly",
+                    "SEPA direct debit is only available for European billing addresses."
+                  )}
+                </p>
+              )}
+
+              {/* SEPA installments (Europe only) */}
+              {isEuropean &&
+                installmentsEnabled &&
+                renderSepaInstallmentsBlock()}
+              {isEuropean && !installmentsEnabled && (
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  {t(
+                    "checkout.installmentsMinTotal",
+                    "Installment payments are available from an order value of 50 €."
+                  )}
+                </p>
+              )}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-300">
+                <Badge
+                  icon={<ShieldCheck className="w-4 h-4" />}
+                  text={t("checkout.badgeSecure")}
+                />
+                <Badge
+                  icon={<RotateCcw className="w-4 h-4" />}
+                  text={t("checkout.badgeReturn")}
+                />
+                <Badge
+                  icon={<Truck className="w-4 h-4" />}
+                  text={t("checkout.badgeDelivery")}
+                />
               </div>
-              <div className="text-base font-semibold">
-                {fmtEUR(payTotal, locale)}
-              </div>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {t("checkout.inclTax")}
-            </div>
-
-            <Link
-              to="/cart"
-              className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
-            >
-              {t("checkout.backToCart")}
-            </Link>
           </div>
-        </aside>
+
+          {/* RIGHT Summary */}
+          <aside className="lg:col-span-1">
+            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
+              <h2 className="text-xl font-semibold mb-4">
+                {t("checkout.overview")}
+              </h2>
+
+              <div className="space-y-4">
+                {items.map((it) => {
+                  const unitPrice =
+                    it.price && Number(it.price) > 0
+                      ? Number(it.price)
+                      : Number(it.priceRange ?? 0);
+
+                  return (
+                    <div key={it.id} className="flex items-center gap-3">
+                      <div className="relative">
+                        <img
+                          src={it.image}
+                          alt={it.name}
+                          className="w-16 h-16 object-cover rounded"
+                          fetchPriority="high"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                          {it.qty}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{it.name}</div>
+                      </div>
+                      <div className="font-medium text-sm">
+                        {fmtEUR(unitPrice * it.qty, locale)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <hr className="my-4" />
+
+              <div className="mt-3 border dark:border-neutral-700 rounded-lg p-3 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    id="coupon-input"
+                    className={`${inputCls} flex-1`}
+                    placeholder={t("checkout.couponPlaceholder")}
+                    value={couponCode}
+                    onChange={(e) =>
+                      setCouponCode((e.target.value || "").toUpperCase())
+                    }
+                  />
+                  <button
+                    onClick={applyCoupon}
+                    className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition"
+                  >
+                    {t("checkout.apply")}
+                  </button>
+                </div>
+                {couponErr && (
+                  <div className="text-red-600 text-sm">{couponErr}</div>
+                )}
+                {couponInfo?.ok && (
+                  <div className="text-green-700 dark:text-green-500 text-sm">
+                    {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
+                    <span>-{fmtEUR(discount, locale)}</span>
+                  </div>
+                )}
+              </div>
+
+              {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
+                <Row
+                  label={t("checkout.couponLine", { code: couponInfo.code })}
+                  value={`-${fmtEUR(discount, locale)}`}
+                />
+              )}
+
+              <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
+              <Row
+                label={t("checkout.shipmentShort")}
+                value={
+                  shippingFee === 0
+                    ? t("checkout.free")
+                    : fmtEUR(shippingFee, locale)
+                }
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-base font-semibold">
+                  {t("checkout.inTotal")}
+                </div>
+                <div className="text-base font-semibold">
+                  {fmtEUR(payTotal, locale)}
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {t("checkout.inclTax")}
+              </div>
+
+              <Link
+                to="/cart"
+                className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
+              >
+                {t("checkout.backToCart")}
+              </Link>
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -6,6 +6,7 @@ import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import GoogleLoginButton from "../components/GoogleLoginButton";
 import { useLoginMutation } from "../features/auth/authApi";
+import { Helmet } from "react-helmet-async";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -57,149 +58,155 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-      <div className="min-h-[75vh] flex flex-col justify-center px-2">
-        <ForgotPasswordModal
-          open={resetOpen}
-          onClose={() => setResetOpen(false)}
-        />
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
+      </Helmet>
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+        <div className="min-h-[75vh] flex flex-col justify-center px-2">
+          <ForgotPasswordModal
+            open={resetOpen}
+            onClose={() => setResetOpen(false)}
+          />
 
-        <div className="max-w-4xl mx-auto w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-8">
-            {/* Login */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
-              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
-                {t("auth.loginTitle")}
-              </h2>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                {t("auth.loginSub")}
-              </p>
+          <div className="max-w-4xl mx-auto w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-8">
+              {/* Login */}
+              <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
+                <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
+                  {t("auth.loginTitle")}
+                </h2>
+                <p className="mb-6 text-gray-700 dark:text-gray-300">
+                  {t("auth.loginSub")}
+                </p>
 
-              {/* error message */}
-              {loginError && (
-                <div className="mb-4 text-sm text-red-600">{loginError}</div>
-              )}
+                {/* error message */}
+                {loginError && (
+                  <div className="mb-4 text-sm text-red-600">{loginError}</div>
+                )}
 
-              {mode === "login" ? (
-                <form className="space-y-5" onSubmit={handleLogin}>
-                  <input
-                    className={inputCls}
-                    type="email"
-                    placeholder={t("auth.email")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="username"
-                    required
-                  />
-
-                  <div className="relative">
+                {mode === "login" ? (
+                  <form className="space-y-5" onSubmit={handleLogin}>
                     <input
                       className={inputCls}
-                      type={showPass ? "text" : "password"}
-                      placeholder={t("auth.password")}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      autoComplete="current-password"
+                      type="email"
+                      placeholder={t("auth.email")}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="username"
                       required
                     />
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 underline"
-                      onClick={() => setShowPass((v) => !v)}
-                      aria-label={
-                        showPass
+
+                    <div className="relative">
+                      <input
+                        className={inputCls}
+                        type={showPass ? "text" : "password"}
+                        placeholder={t("auth.password")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 underline"
+                        onClick={() => setShowPass((v) => !v)}
+                        aria-label={
+                          showPass
+                            ? t("auth.hidePassword")
+                            : t("auth.showPassword")
+                        }
+                      >
+                        {showPass
                           ? t("auth.hidePassword")
-                          : t("auth.showPassword")
-                      }
-                    >
-                      {showPass
-                        ? t("auth.hidePassword")
-                        : t("auth.showPassword")}
-                    </button>
-                  </div>
+                          : t("auth.showPassword")}
+                      </button>
+                    </div>
 
-                  <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        className="text-backnewswhite dark:text-backnewsdark underline text-sm"
+                        onClick={() => setResetOpen(true)}
+                      >
+                        {t("auth.forgot")}
+                      </button>
+                    </div>
+
                     <button
-                      type="button"
-                      className="text-backnewswhite dark:text-backnewsdark underline text-sm"
-                      onClick={() => setResetOpen(true)}
+                      className="w-full py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition disabled:opacity-60"
+                      type="submit"
+                      disabled={!email || !password || isLoading}
                     >
-                      {t("auth.forgot")}
+                      {t("auth.login")}
                     </button>
-                  </div>
 
+                    <div className="flex flex-col items-center mt-4 gap-2">
+                      <div className="text-gray-500">{t("auth.or")}</div>
+                      <GoogleLoginButton successRedirect={nextPath} />
+                    </div>
+                  </form>
+                ) : (
                   <button
-                    className="w-full py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition disabled:opacity-60"
-                    type="submit"
-                    disabled={!email || !password || isLoading}
+                    className="w-full py-3 rounded-lg border border-marbleblack dark:border-neutral-700 text-marbleblack dark:text-white font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition"
+                    onClick={() => setMode("login")}
                   >
                     {t("auth.login")}
                   </button>
+                )}
+              </div>
 
-                  <div className="flex flex-col items-center mt-4 gap-2">
-                    <div className="text-gray-500">{t("auth.or")}</div>
-                    <GoogleLoginButton successRedirect={nextPath} />
-                  </div>
-                </form>
-              ) : (
-                <button
-                  className="w-full py-3 rounded-lg border border-marbleblack dark:border-neutral-700 text-marbleblack dark:text-white font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition"
-                  onClick={() => setMode("login")}
-                >
-                  {t("auth.login")}
-                </button>
-              )}
+              {/* Register */}
+              <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
+                <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
+                  {t("auth.registerTitle")}
+                </h2>
+                <p className="mb-6 text-gray-700 dark:text-gray-300">
+                  {t("auth.registerSub")}
+                </p>
+
+                {mode === "register" ? (
+                  <RegisterForm />
+                ) : (
+                  <button
+                    className="w-full py-3 rounded-lg border border-marbleblack dark:border-neutral-700 text-marbleblack dark:text-white font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition"
+                    onClick={() => setMode("register")}
+                  >
+                    {t("auth.register")}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Register */}
-            <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
-              <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
-                {t("auth.registerTitle")}
-              </h2>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                {t("auth.registerSub")}
-              </p>
-
-              {mode === "register" ? (
-                <RegisterForm />
-              ) : (
-                <button
-                  className="w-full py-3 rounded-lg border border-marbleblack dark:border-neutral-700 text-marbleblack dark:text-white font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition"
-                  onClick={() => setMode("register")}
-                >
-                  {t("auth.register")}
-                </button>
-              )}
+            {/* mode toggle */}
+            <div className="flex justify-center gap-8 mt-2 py-6 text-gray-500">
+              <button
+                className={`underline underline-offset-2 ${
+                  mode === "login"
+                    ? "text-marbleblack dark:text-white font-bold"
+                    : ""
+                }`}
+                onClick={() => setMode("login")}
+              >
+                {t("auth.login")}
+              </button>
+              <span>/</span>
+              <button
+                className={`underline underline-offset-2 ${
+                  mode === "register"
+                    ? "text-marbleblack dark:text-white font-bold"
+                    : ""
+                }`}
+                onClick={() => setMode("register")}
+              >
+                {t("auth.register")}
+              </button>
             </div>
-          </div>
-
-          {/* mode toggle */}
-          <div className="flex justify-center gap-8 mt-2 py-6 text-gray-500">
-            <button
-              className={`underline underline-offset-2 ${
-                mode === "login"
-                  ? "text-marbleblack dark:text-white font-bold"
-                  : ""
-              }`}
-              onClick={() => setMode("login")}
-            >
-              {t("auth.login")}
-            </button>
-            <span>/</span>
-            <button
-              className={`underline underline-offset-2 ${
-                mode === "register"
-                  ? "text-marbleblack dark:text-white font-bold"
-                  : ""
-              }`}
-              onClick={() => setMode("register")}
-            >
-              {t("auth.register")}
-            </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

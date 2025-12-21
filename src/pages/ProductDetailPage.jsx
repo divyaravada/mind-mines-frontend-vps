@@ -2,7 +2,7 @@
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -41,6 +41,8 @@ export default function ProductDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { pathname } = useLocation();
+  const canonical = `https://mindmines.eu${pathname}`;
 
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
@@ -408,7 +410,7 @@ export default function ProductDetailPage() {
         <Helmet>
           <title>{title}</title>
           <meta name="description" content={description} />
-          <link rel="canonical" href={url} />
+          <link rel="canonical" href={canonical} />
           <meta property="og:type" content="product" />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />

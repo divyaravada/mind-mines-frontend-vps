@@ -2,7 +2,7 @@ import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
 import { useListProductsQuery } from "../features/products/productsApi";
@@ -39,6 +39,8 @@ const BASE_PATH = "/decorative-products";
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
+  const { pathname } = useLocation();
+  const canonical = `https://mindmines.eu${pathname}`;
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -249,7 +251,7 @@ export default function ProductsPage() {
         <Helmet>
           <title>{pageTitle}</title>
           <meta name="description" content={pageDesc} />
-          <link rel="canonical" href={canonUrl} />
+          <link rel="canonical" href={canonical} />
           {page > 1 && (
             <link
               rel="prev"

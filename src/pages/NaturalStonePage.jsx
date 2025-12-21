@@ -8,6 +8,7 @@ import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { useLocation } from "react-router-dom";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>
@@ -21,6 +22,8 @@ export default function NaturalStonesPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { pathname } = useLocation();
+  const canonical = `https://mindmines.eu${pathname}`;
 
   const { data: stones = [], isFetching } = useGetNaturalStonesQuery();
   const [selectedStoneId, setSelectedStoneId] = useState(null);
@@ -136,11 +139,11 @@ export default function NaturalStonesPage() {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
-        <link rel="canonical" href={canonUrl} />
+        <link rel="canonical" href={canonical} />
         <meta property="og:type" content="website" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={canonUrl} />
+        <meta property="og:url" content={canonical} />
         <script type="application/ld+json">
           {JSON.stringify(breadcrumbJsonLd)}
         </script>

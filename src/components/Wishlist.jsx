@@ -12,6 +12,7 @@ import {
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { fmtEUR, resolveProductPrice } from "../lib/money";
+import { Helmet } from "react-helmet-async";
 
 export default function AccountWishlist() {
   const { i18n, t } = useTranslation();
@@ -155,81 +156,87 @@ export default function AccountWishlist() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-light text-backnewswhite dark:text-backnewsdark">
-            {t("wishlist.title", "Your Wishlist")}
-          </h1>
-          <span className="text-sm text-gray-600 dark:text-gray-300 block mt-1">
-            {t("wishlist.count", { count: list.length })}
-          </span>
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
+      </Helmet>
+      <div className="max-w-6xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-light text-backnewswhite dark:text-backnewsdark">
+              {t("wishlist.title", "Your Wishlist")}
+            </h1>
+            <span className="text-sm text-gray-600 dark:text-gray-300 block mt-1">
+              {t("wishlist.count", { count: list.length })}
+            </span>
+          </div>
+
+          <Link
+            to="/account"
+            className="text-sm underline underline-offset-4 md:ml-auto text-backnewswhite dark:text-backnewsdark"
+          >
+            <h6 className="text-xl font-light">
+              {t("backtoAccount", "Back to Account")}
+            </h6>
+          </Link>
         </div>
 
-        <Link
-          to="/account"
-          className="text-sm underline underline-offset-4 md:ml-auto text-backnewswhite dark:text-backnewsdark"
-        >
-          <h6 className="text-xl font-light">
-            {t("backtoAccount", "Back to Account")}
-          </h6>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {list.map(({ w, p }) => {
-          const title = p[`title_${lang}`] || p.title_en || "";
-          return (
-            <div
-              key={w.id}
-              className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-marblewhite dark:bg-neutral-900 shadow-sm relative"
-            >
-              <button
-                className="absolute top-2 right-2 text-red-500 text-xl focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
-                onClick={async () => {
-                  try {
-                    await removeWishlist(p.id).unwrap();
-                    toast.info(
-                      t("wishlist.removedToast", "Removed from wishlist")
-                    );
-                  } catch {
-                    toast.error(
-                      t(
-                        "wishlist.removeFailed",
-                        "Couldn't remove from wishlist."
-                      )
-                    );
-                  }
-                }}
-                aria-label={t("wishlist.removeAria", "Remove from wishlist")}
-                title={t("wishlist.remove", "Remove")}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {list.map(({ w, p }) => {
+            const title = p[`title_${lang}`] || p.title_en || "";
+            return (
+              <div
+                key={w.id}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-marblewhite dark:bg-neutral-900 shadow-sm relative"
               >
-                ✕
-              </button>
+                <button
+                  className="absolute top-2 right-2 text-red-500 text-xl focus:outline-none focus:ring-2 focus:ring-red-300/50 rounded"
+                  onClick={async () => {
+                    try {
+                      await removeWishlist(p.id).unwrap();
+                      toast.info(
+                        t("wishlist.removedToast", "Removed from wishlist")
+                      );
+                    } catch {
+                      toast.error(
+                        t(
+                          "wishlist.removeFailed",
+                          "Couldn't remove from wishlist."
+                        )
+                      );
+                    }
+                  }}
+                  aria-label={t("wishlist.removeAria", "Remove from wishlist")}
+                  title={t("wishlist.remove", "Remove")}
+                >
+                  ✕
+                </button>
 
-              {p.image && (
-                <img
-                  src={p.image}
-                  alt={title}
-                  className="w-full h-44 object-cover rounded mb-3 cursor-pointer"
-                  fetchPriority="high"
-                  loading="lazy"
-                  decoding="async"
-                  onClick={() => navigate(`/products/${p.id}`)}
-                  onError={(e) => (e.currentTarget.style.display = "none")}
-                />
-              )}
+                {p.image && (
+                  <img
+                    src={p.image}
+                    alt={title}
+                    className="w-full h-44 object-cover rounded mb-3 cursor-pointer"
+                    fetchPriority="high"
+                    loading="lazy"
+                    decoding="async"
+                    onClick={() => navigate(`/products/${p.id}`)}
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                )}
 
-              <h3 className="font-semibold text-sm line-clamp-2">{title}</h3>
+                <h3 className="font-semibold text-sm line-clamp-2">{title}</h3>
 
-              <div className="text-gray-700 dark:text-gray-300 text-sm mt-1">
-                {t("wishlist.price", "Price")}:{" "}
-                {fmtEUR(resolveProductPrice(p), locale)}
+                <div className="text-gray-700 dark:text-gray-300 text-sm mt-1">
+                  {t("wishlist.price", "Price")}:{" "}
+                  {fmtEUR(resolveProductPrice(p), locale)}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
