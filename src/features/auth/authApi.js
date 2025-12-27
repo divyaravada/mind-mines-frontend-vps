@@ -6,7 +6,7 @@ export const authApi = api.injectEndpoints({
     // ✅ NEW: Step 1 (email+password -> OTP email)
     loginStart: build.mutation({
       query: ({ email, password }) => ({
-        url: "auth/login/start/",
+        url: "users/login/start/",
         method: "POST",
         body: { email, password },
       }),
@@ -16,7 +16,7 @@ export const authApi = api.injectEndpoints({
     // ✅ NEW: Step 2 (OTP -> returns {access, refresh})
     loginVerify: build.mutation({
       query: ({ otp_id, code }) => ({
-        url: "auth/login/verify/",
+        url: "users/login/verify/",
         method: "POST",
         body: { otp_id, code },
       }),
