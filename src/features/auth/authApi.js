@@ -3,18 +3,31 @@ import { setCredentials, logout } from "./authSlice";
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
-    login: build.mutation({
+    // ✅ NEW: Step 1 (email+password -> OTP email)
+    loginStart: build.mutation({
       query: ({ email, password }) => ({
-        url: "token/",
+        url: "auth/login/start/",
         method: "POST",
         body: { email, password },
       }),
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      invalidatesTags: ["Auth", "Account"],
+    }),
+
+    // ✅ NEW: Step 2 (OTP -> returns {access, refresh})
+    loginVerify: build.mutation({
+      query: ({ otp_id, code }) => ({
+        url: "auth/login/verify/",
+        method: "POST",
+        body: { otp_id, code },
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled; // { access, refresh }
-          dispatch(
-            setCredentials({ access: data.access, refresh: data.refresh })
-          );
+          const { data } = await queryFulfilled; // { access, refresh, user }
+          if (data?.access && data?.refresh) {
+            dispatch(
+              setCredentials({ access: data.access, refresh: data.refresh })
+            );
+          }
         } catch {
           /* ignore */
         }
@@ -22,6 +35,7 @@ export const authApi = api.injectEndpoints({
       invalidatesTags: ["Auth", "Account"],
     }),
 
+    // ✅ KEEP register/google/reset/resend etc unchanged
     register: build.mutation({
       query: (body) => ({
         url: "users/register/",
@@ -90,7 +104,8 @@ export const authApi = api.injectEndpoints({
 });
 
 export const {
-  useLoginMutation,
+  useLoginStartMutation,
+  useLoginVerifyMutation,
   useRegisterMutation,
   useGoogleAuthMutation,
   useRequestPasswordResetMutation,
