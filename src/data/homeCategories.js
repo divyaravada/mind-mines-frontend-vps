@@ -1,11 +1,11 @@
 // src/data/homeCategories.ts
-import marbleTray from "../assets/marbleTray.webp";
-import kitchen from "../assets/kitchen.webp";
-import homeDecor from "../assets/homeDecor.webp";
+import marbleTray from "../assets/marbleTray.jpeg";
+import kitchen from "../assets/kitchen.jpeg";
+import homeDecor from "../assets/homeDecor.jpeg";
 import office from "../assets/office.webp";
-import sculpture from "../assets/sculpture.webp";
-import bathroom from "../assets/bathroom.webp";
-import naturalStone from "../assets/naturalStone.webp";
+import sculpture from "../assets/sculpture.jpeg";
+import bathroom from "../assets/bathroom.jpeg";
+import naturalStone from "../assets/naturalStone.jpeg";
 
 export const homeCategories = [
   {
