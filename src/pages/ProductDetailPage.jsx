@@ -2,7 +2,7 @@
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -37,22 +37,53 @@ import {
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { slugify } from "../lib/slug";
 
+function extractNumericId(param) {
+  // supports: "14" OR "some-slug-14"
+  const s = String(param || "").trim();
+  const m = s.match(/(\d+)\s*$/); // last digits at end
+  return m ? m[1] : "";
+}
+
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
-  const { id, slug } = useParams();
+  const { id: idParam = "" } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { pathname } = useLocation();
-  const correctSlug = product ? slugify(productTitle(product, lang)) : "";
-  const canonical = product
-    ? `https://mindmines.eu/products/${correctSlug}-${product.id}`
-    : `https://mindmines.eu/products/${id}`;
 
-  const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
+  const locale = i18n.language || "en";
 
-  const { data: product, isLoading } = useGetProductQuery(id);
+  // ✅ IMPORTANT: always call API with numeric id
+  const numericId = useMemo(() => extractNumericId(idParam), [idParam]);
 
+  const { data: product, isLoading } = useGetProductQuery(numericId, {
+    skip: !numericId,
+  });
+
+  // --------- SEO helpers ----------
+  const correctSlug = useMemo(() => {
+    if (!product) return "";
+    return slugify(productTitle(product, lang));
+  }, [product, lang]);
+
+  const canonical = useMemo(() => {
+    if (!product)
+      return `https://mindmines.eu/products/${numericId || idParam}`;
+    return `https://mindmines.eu/products/${correctSlug}-${product.id}`;
+  }, [product, correctSlug, numericId, idParam]);
+
+  // ✅ redirect both cases:
+  // /products/14 -> /products/slug-14
+  // /products/wrong-slug-14 -> /products/correct-slug-14
+  useEffect(() => {
+    if (!product) return;
+    const expectedPath = `/products/${correctSlug}-${product.id}`;
+    if (window.location.pathname !== expectedPath) {
+      navigate(expectedPath, { replace: true });
+    }
+  }, [product, correctSlug, navigate]);
+
+  // --------- auth/wishlist ----------
   const isLoggedIn = useSelector(selectIsAuthenticated);
   const userEmail = useSelector((s) => s?.auth?.user?.email);
 
@@ -85,7 +116,6 @@ export default function ProductDetailPage() {
     },
     [trackEvent]
   );
-  // ---------------------------------------
 
   const toggleWishlist = async () => {
     if (!product) return;
@@ -96,28 +126,22 @@ export default function ProductDetailPage() {
     try {
       if (wished) {
         await removeWish(product.id).unwrap();
-        track({
-          event_type: "wishlist_remove",
-          extra: { action: "remove" },
-          product_id: product.id,
-        });
+        track({ event_type: "wishlist_remove", product_id: product.id });
       } else {
         await addWish(product.id).unwrap();
-        track({
-          event_type: "wishlist_add",
-          extra: { action: "add" },
-          product_id: product.id,
-        });
+        track({ event_type: "wishlist_add", product_id: product.id });
       }
     } catch {
-      /* ignore UI errors here */
+      /* ignore */
     }
   };
 
+  // ---------- on demand ----------
   const [openDemand, setOpenDemand] = useState(false);
   const [createDemand, { isSuccess: sentOk, error: sendErr }] =
     useCreateOnDemandRequestMutation();
 
+  // ---------- suggestions ----------
   const suggestSeed = product
     ? product.title_en || product.title_de || String(product.id)
     : "";
@@ -158,22 +182,20 @@ export default function ProductDetailPage() {
         return true;
       }
     );
-
     if (!merged.length) return [];
+    const selfId = String(product?.id || numericId);
+    return merged.filter((p) => String(p.id) !== selfId).slice(0, 8);
+  }, [suggested, relatedByCategory, product, numericId]);
 
-    const selfId = String(id);
-    const filtered = merged.filter((p) => String(p.id) !== selfId);
-    const base = filtered.length ? filtered : merged;
-
-    return base.slice(0, 8);
-  }, [suggested, relatedByCategory, id]);
-
+  // ---------- reviews ----------
   const [createReview] = useCreateProductReviewMutation();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("details");
   const [revRating, setRevRating] = useState(5);
   const [revMessage, setRevMessage] = useState("");
   const fileRef = useRef(null);
+
+  useEffect(() => setQty(1), [numericId]);
 
   const toNumber = (v) => {
     if (typeof v === "number") return v;
@@ -184,7 +206,7 @@ export default function ProductDetailPage() {
     return isNaN(n) ? 0 : n;
   };
 
-  // 🔹 Track detail view when product loaded
+  // track view
   useEffect(() => {
     if (!product) return;
     const price = resolveProductPrice(product);
@@ -199,20 +221,8 @@ export default function ProductDetailPage() {
     });
   }, [product, track]);
 
-  useEffect(() => {
-    if (!product) return;
-
-    const correctSlug = slugify(productTitle(product, lang));
-    const expectedPath = `/products/${correctSlug}-${product.id}`;
-
-    if (window.location.pathname !== expectedPath) {
-      navigate(expectedPath, { replace: true });
-    }
-  }, [product, lang, navigate]);
-
-  // Reset qty on product change
-  useEffect(() => setQty(1), [id]);
-
+  // ---------- loading / error ----------
+  if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
   if (isLoading)
     return (
       <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
@@ -226,13 +236,14 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  // SEO + derived fields
+  // ---------- SEO derived ----------
   const currentOrigin =
     typeof window !== "undefined"
       ? window.location.origin
       : "https://mindmines.eu";
-  const url = `${currentOrigin}/products/${product.id}/`;
+
   const title = `${productTitle(product, lang)} | MindMines`;
+
   const description =
     product[`short_description1_${lang}`] ||
     product[`short_description2_${lang}`] ||
@@ -244,6 +255,7 @@ export default function ProductDetailPage() {
         .filter((m) => m && m.media_type !== "video" && m.image)
         .map((m) => m.image)
     : [];
+
   const image =
     mediaImgs[0] || product.image || `${currentOrigin}/og-default.jpg`;
 
@@ -254,7 +266,6 @@ export default function ProductDetailPage() {
       ? product.is_discounted
       : hasDiscountCalc(product);
 
-  // 🔹 Unified stock number: use product.stock or product.quantity
   const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
   const isOut = stockNum <= 0;
 
@@ -268,24 +279,15 @@ export default function ProductDetailPage() {
     brand: { "@type": "Brand", name: "MindMines" },
     offers: {
       "@type": "Offer",
-      url,
+      url: canonical,
       priceCurrency: "EUR",
-      price: priceNumber.toFixed(2),
+      price: Number(priceNumber || 0).toFixed(2),
       availability:
         stockNum > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
     },
-    ...(product.average_rating
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: String(product.average_rating),
-            reviewCount: String(product.reviews_count || 0),
-          },
-        }
-      : {}),
   };
 
   const breadcrumbJsonLd = {
@@ -299,65 +301,36 @@ export default function ProductDetailPage() {
         name: "Products",
         item: `${currentOrigin}/products/`,
       },
-      ...(product.category
-        ? [
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: t("categories." + product.category + ".heading"),
-              item: `${currentOrigin}/decorative-products/category/${product.category}/`,
-            },
-          ]
-        : []),
       {
         "@type": "ListItem",
-        position: 4,
+        position: 3,
         name: productTitle(product, lang),
-        item: url,
+        item: canonical,
       },
     ],
   };
 
-  // 🔹 Clamp quantity to stock
+  // qty clamp
   const handleQtyChange = (e) => {
     const raw = Number(e.target.value);
-    if (Number.isNaN(raw)) {
-      setQty(1);
-      return;
-    }
+    if (Number.isNaN(raw)) return setQty(1);
     let next = Math.max(1, raw);
-    if (stockNum > 0) {
-      next = Math.min(next, stockNum);
-    }
+    if (stockNum > 0) next = Math.min(next, stockNum);
     setQty(next);
   };
 
-  // 🔹 Enforce stock when adding to cart + track add_to_cart
   const handleAddToCart = () => {
-    if (isOut || stockNum <= 0) {
-      alert(
-        t("productDetail.outOfStock", {
-          defaultValue: "This product is currently out of stock.",
-        })
-      );
+    if (isOut) {
+      alert(t("productDetail.outOfStock", { defaultValue: "Out of stock." }));
       return;
     }
-
     if (qty > stockNum) {
-      alert(
-        t("productDetail.notEnoughStock", {
-          stock: stockNum,
-          defaultValue:
-            "Only {{stock}} item(s) in stock. Please reduce the quantity.",
-        })
-      );
       setQty(stockNum);
       return;
     }
 
     const unit = resolveProductPrice(product);
 
-    // 👇 tracking event
     track({
       event_type: "add_to_cart",
       product_id: product.id,
@@ -389,12 +362,10 @@ export default function ProductDetailPage() {
     fd.append("message", revMessage || "");
     if (fileRef.current?.files?.[0])
       fd.append("image", fileRef.current.files[0]);
-    await createReview({ id, form: fd }).unwrap();
+    await createReview({ id: numericId, form: fd }).unwrap();
     setRevRating(5);
     setRevMessage("");
     if (fileRef.current) fileRef.current.value = "";
-
-    // 👇 track new review
     track({
       event_type: "review_create",
       product_id: product.id,
@@ -405,17 +376,12 @@ export default function ProductDetailPage() {
   const rawDelivery = t("productDetail.policy.delivery_content", {
     returnObjects: true,
   });
-
   const rawReturns = t("productDetail.policy.returns_content", {
     returnObjects: true,
   });
 
-  const toArray = (v) => {
-    if (Array.isArray(v)) return v;
-    if (typeof v === "string") return [v];
-    return [];
-  };
-
+  const toArray = (v) =>
+    Array.isArray(v) ? v : typeof v === "string" ? [v] : [];
   const deliveryLines = toArray(rawDelivery);
   const returnsLines = toArray(rawReturns);
 
