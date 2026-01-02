@@ -35,14 +35,17 @@ import {
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { slugify } from "../lib/slug";
 
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
-  const { id = "" } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  const canonical = `https://mindmines.eu${pathname}`;
+  const canonical = `https://mindmines.eu/products/${slugify(
+    productTitle(product, lang)
+  )}-${product.id}`;
 
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
@@ -194,6 +197,17 @@ export default function ProductDetailPage() {
       key: product.key || null,
     });
   }, [product, track]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const correctSlug = slugify(productTitle(product, lang));
+    const expected = `/products/${correctSlug}-${product.id}`;
+
+    if (window.location.pathname !== expected) {
+      navigate(expected, { replace: true });
+    }
+  }, [product, lang, navigate]);
 
   // Reset qty on product change
   useEffect(() => setQty(1), [id]);
@@ -748,7 +762,10 @@ export default function ProductDetailPage() {
               {recommend.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => navigate(`/products/${p.id}`)}
+                  onClick={() => {
+                    const slug = slugify(productTitle(p, lang));
+                    navigate(`/products/${slug}-${p.id}`);
+                  }}
                   className="bg-white dark:text-backnewsdark dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
                 >
                   <img

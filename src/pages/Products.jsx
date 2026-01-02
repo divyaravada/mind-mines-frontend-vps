@@ -251,6 +251,20 @@ export default function ProductsPage() {
         <Helmet>
           <title>{pageTitle}</title>
           <meta name="description" content={pageDesc} />
+          <meta property="og:title" content={pageTitle} />
+          <meta property="og:description" content={pageDesc} />
+          <meta property="og:url" content={canonical} />
+          <meta
+            property="og:image"
+            content="https://mindmines.eu/static/media/BlackLogo.5bca70d1f51039db05b5.webp"
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={pageTitle} />
+          <meta name="twitter:description" content={pageDesc} />
+          <meta
+            name="twitter:image"
+            content="https://mindmines.eu/static/media/BlackLogo.5bca70d1f51039db05b5.webp"
+          />
           <link rel="canonical" href={canonical} />
           {page > 1 && (
             <link
