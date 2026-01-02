@@ -80,30 +80,39 @@ async function main() {
   );
 
   // Products (paginate)
-  let nextUrl = `${API}?page=1&page_size=100`;
-  const seen = new Set();
+  try {
+    let nextUrl = `${API}?page=1&page_size=100`;
+    const seen = new Set();
 
-  while (nextUrl) {
-    const data = await fetchJson(nextUrl);
+    while (nextUrl) {
+      const data = await fetchJson(nextUrl);
 
-    const items = Array.isArray(data) ? data : data.results || data.items || [];
-    for (const p of items) {
-      if (!p?.id) continue;
+      const items = Array.isArray(data)
+        ? data
+        : data.results || data.items || [];
+      for (const p of items) {
+        if (!p?.id) continue;
 
-      const title = p.title_en || p.title_de || p.name || `product-${p.id}`;
-      const slug = slugify(title);
-      const loc = `${SITE}/products/${slug}-${p.id}`;
+        const title = p.title_en || p.title_de || p.name || `product-${p.id}`;
+        const slug = slugify(title);
+        const loc = `${SITE}/products/${slug}-${p.id}`;
 
-      if (seen.has(loc)) continue;
-      seen.add(loc);
+        if (seen.has(loc)) continue;
+        seen.add(loc);
 
-      urls.push(
-        urlXml(loc, { changefreq: "weekly", priority: "0.7", lastmod: today })
-      );
+        urls.push(
+          urlXml(loc, { changefreq: "weekly", priority: "0.7", lastmod: today })
+        );
+      }
+
+      nextUrl = data?.next || null;
+      if (nextUrl && nextUrl.startsWith("/")) nextUrl = `${SITE}${nextUrl}`;
     }
-
-    nextUrl = data?.next || null;
-    if (nextUrl && nextUrl.startsWith("/")) nextUrl = `${SITE}${nextUrl}`;
+  } catch (e) {
+    console.error(
+      "⚠️ Products API failed, generating sitemap without product URLs."
+    );
+    console.error(String(e).slice(0, 500));
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
