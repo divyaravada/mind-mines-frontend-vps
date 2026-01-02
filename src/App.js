@@ -98,6 +98,7 @@ export default function App() {
               element={<Products />}
             />
             <Route path="/products/:slug-:id" element={<ProductDetailPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route path="/natural-stone" element={<NaturalStonePage />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />

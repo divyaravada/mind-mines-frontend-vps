@@ -43,9 +43,10 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  const canonical = `https://mindmines.eu/products/${slugify(
-    productTitle(product, lang)
-  )}-${product.id}`;
+  const correctSlug = product ? slugify(productTitle(product, lang)) : "";
+  const canonical = product
+    ? `https://mindmines.eu/products/${correctSlug}-${product.id}`
+    : `https://mindmines.eu/products/${id}`;
 
   const locale = i18n.language || "en";
   const lang = i18n.language.startsWith("de") ? "de" : "en";
@@ -202,10 +203,10 @@ export default function ProductDetailPage() {
     if (!product) return;
 
     const correctSlug = slugify(productTitle(product, lang));
-    const expected = `/products/${correctSlug}-${product.id}`;
+    const expectedPath = `/products/${correctSlug}-${product.id}`;
 
-    if (window.location.pathname !== expected) {
-      navigate(expected, { replace: true });
+    if (window.location.pathname !== expectedPath) {
+      navigate(expectedPath, { replace: true });
     }
   }, [product, lang, navigate]);
 
@@ -428,12 +429,14 @@ export default function ProductDetailPage() {
           <meta property="og:type" content="product" />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
-          <meta property="og:url" content={url} />
+          <meta property="og:url" content={canonical} />
           <meta property="og:image" content={image} />
+
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={title} />
           <meta name="twitter:description" content={description} />
           <meta name="twitter:image" content={image} />
+
           <script type="application/ld+json">
             {JSON.stringify(productJsonLd)}
           </script>

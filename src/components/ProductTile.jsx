@@ -7,6 +7,7 @@ import {
   resolveBaseGross,
   hasDiscount as hasDiscountCalc,
 } from "../lib/money";
+import { slugify } from "../lib/slug";
 
 export default function ProductTile({
   product,
@@ -57,7 +58,8 @@ export default function ProductTile({
 
   // 👉 Global click: go to product details
   const goToDetail = () => {
-    navigate(`/products/${product.slug}-${product.id}`);
+    const slug = slugify(title);
+    navigate(`/products/${slug}-${product.id}`);
   };
 
   return (
