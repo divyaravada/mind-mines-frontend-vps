@@ -1,13 +1,9 @@
-// scripts/generate-sitemap.mjs
+// src/scripts/generate-sitemap.mjs
 import fs from "fs";
 import path from "path";
 
 const SITE = "https://mindmines.eu";
-
-// ✅ change this to your real list endpoint
-// examples: "https://mindmines.eu/api/products/" or "/api/products/"
-const API = "https://mindmines.eu/api/products/";
-
+const API = "https://mindmines.eu/api/products/list/"; // ✅ FIXED
 const OUT = path.join(process.cwd(), "public", "sitemap.xml");
 
 function slugify(text = "") {
@@ -21,9 +17,26 @@ function slugify(text = "") {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`Fetch failed ${res.status} for ${url}`);
-  return res.json();
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      // some servers behave better with user-agent
+      "User-Agent": "MindMinesSitemapBot/1.0",
+    },
+  });
+
+  const text = await res.text(); // ✅ read body even on error
+  if (!res.ok) {
+    throw new Error(
+      `Fetch failed ${res.status} for ${url}\n${text.slice(0, 500)}`
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Non-JSON response for ${url}\n${text.slice(0, 500)}`);
+  }
 }
 
 function urlXml(loc, { changefreq, priority, lastmod } = {}) {
@@ -77,11 +90,8 @@ async function main() {
     for (const p of items) {
       if (!p?.id) continue;
 
-      // ✅ choose title for slug
       const title = p.title_en || p.title_de || p.name || `product-${p.id}`;
       const slug = slugify(title);
-
-      // ✅ NEW SEO URL: /products/:slug-:id
       const loc = `${SITE}/products/${slug}-${p.id}`;
 
       if (seen.has(loc)) continue;
@@ -92,7 +102,6 @@ async function main() {
       );
     }
 
-    // DRF pagination usually gives "next"
     nextUrl = data?.next || null;
     if (nextUrl && nextUrl.startsWith("/")) nextUrl = `${SITE}${nextUrl}`;
   }
