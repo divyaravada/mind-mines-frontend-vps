@@ -40,11 +40,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-<<<<<<< HEAD
     "postbuild": "node scripts/generate-sitemap.mjs",
-=======
-    "postbuild": "node scripts/generate-sitemap.mjs"
->>>>>>> 4d7b902 (Update package.json (scripts / deps))
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
