@@ -57,7 +57,7 @@ export default function ProductTile({
 
   // 👉 Global click: go to product details
   const goToDetail = () => {
-    navigate(`/products/${product.id}`);
+    navigate(`/products/${product.slug}-${product.id}`);
   };
 
   return (
