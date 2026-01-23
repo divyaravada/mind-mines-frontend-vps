@@ -33,7 +33,7 @@ const COLORS = [
   { value: "brown", label: "products.filters.color.brown" },
   { value: "green", label: "products.filters.color.green" },
 ];
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 60;
 const BASE_PATH = "/decorative-products";
 
 export default function ProductsPage() {
@@ -55,7 +55,7 @@ export default function ProductsPage() {
         /* ignore tracking errors */
       }
     },
-    [trackEvent]
+    [trackEvent],
   );
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
@@ -222,7 +222,7 @@ export default function ProductsPage() {
         priceRange: unitPrice,
         image: p.image,
         stock: Number.isFinite(stockNum) ? stockNum : 0,
-      })
+      }),
     );
     navigate("/cart");
   };
@@ -311,7 +311,7 @@ export default function ProductsPage() {
                     setMaterials((prev) =>
                       prev.includes(m.value)
                         ? prev.filter((v) => v !== m.value)
-                        : [...prev, m.value]
+                        : [...prev, m.value],
                     )
                   }
                 />
@@ -334,7 +334,7 @@ export default function ProductsPage() {
                     setColors((prev) =>
                       prev.includes(c.value)
                         ? prev.filter((v) => v !== c.value)
-                        : [...prev, c.value]
+                        : [...prev, c.value],
                     )
                   }
                 />
