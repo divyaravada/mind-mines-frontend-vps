@@ -101,7 +101,7 @@ export default function ProductDetailPage() {
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
   const wished = useMemo(
     () => (product ? wlIds.has(Number(product.id)) : false),
-    [product, wlIds]
+    [product, wlIds],
   );
 
   // ---------- MARKETING TRACKING ----------
@@ -114,7 +114,7 @@ export default function ProductDetailPage() {
         /* ignore tracking errors */
       }
     },
-    [trackEvent]
+    [trackEvent],
   );
 
   const toggleWishlist = async () => {
@@ -154,21 +154,21 @@ export default function ProductDetailPage() {
     if (!suggestData) return [];
     return Array.isArray(suggestData)
       ? suggestData
-      : suggestData?.results ?? [];
+      : (suggestData?.results ?? []);
   }, [suggestData]);
 
   const { data: relatedResp } = useListProductsQuery(
     product?.category
       ? { category: product.category, page_size: 12 }
       : undefined,
-    { skip: !product?.category }
+    { skip: !product?.category },
   );
 
   const relatedByCategory = useMemo(() => {
     if (!relatedResp) return [];
     return Array.isArray(relatedResp)
       ? relatedResp
-      : relatedResp?.results ?? [];
+      : (relatedResp?.results ?? []);
   }, [relatedResp]);
 
   const recommend = useMemo(() => {
@@ -180,7 +180,7 @@ export default function ProductDetailPage() {
         if (seen.has(pid)) return false;
         seen.add(pid);
         return true;
-      }
+      },
     );
     if (!merged.length) return [];
     const selfId = String(product?.id || numericId);
@@ -351,7 +351,7 @@ export default function ProductDetailPage() {
         weight: product.weight,
         color: product.color,
         stock: Number.isFinite(stockNum) ? stockNum : 0,
-      })
+      }),
     );
     navigate("/cart");
   };
@@ -435,11 +435,13 @@ export default function ProductDetailPage() {
                             src={m.image}
                             alt={`${productTitle(product, lang)} – ${i + 1}`}
                             fetchPriority="high"
+                            height={1200}
+                            width={800}
                             loading="lazy"
                             decoding="async"
                           />
                         </div>
-                      )
+                      ),
                     )
                   : [
                       <div key="default">
@@ -480,7 +482,7 @@ export default function ProductDetailPage() {
                 title={t("wishlist.addRemove", "Add / remove from wishlist")}
                 aria-label={t(
                   "wishlist.addRemove",
-                  "Add / remove from wishlist"
+                  "Add / remove from wishlist",
                 )}
               >
                 <Heart
@@ -615,8 +617,8 @@ export default function ProductDetailPage() {
                 {key === "details"
                   ? t("productDetail.tabs.details")
                   : key === "care"
-                  ? t("productDetail.tabs.care")
-                  : t("productDetail.tabs.policy")}
+                    ? t("productDetail.tabs.care")
+                    : t("productDetail.tabs.policy")}
               </button>
             ))}
           </div>
