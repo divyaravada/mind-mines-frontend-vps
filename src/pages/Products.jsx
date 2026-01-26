@@ -60,8 +60,7 @@ const PRICE_BUCKETS = [
   { label: "2000 - 5000", min: 2000, max: 5000 },
 ];
 
-// If you truly want "all products" in one page, keep this high.
-// 612 items is OK for listing, but if you add many more later, reduce to 60/100.
+// Fetch “all” products in one request (backend must allow it)
 const PAGE_SIZE = 1000;
 
 const BASE_PATH = "/decorative-products";
@@ -72,7 +71,7 @@ export default function ProductsPage() {
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const titleOrderingField = lang === "de" ? "title_de" : "title_en";
 
-  // ✅ Sort options must be based on real backend fields
+  // ✅ Sort options (price sort will be done CLIENT-SIDE to guarantee it works)
   const SORT_OPTIONS = useMemo(
     () => [
       { value: "", labelKey: "products.sort.featured", fallback: "Featured" },
@@ -146,8 +145,14 @@ export default function ProductsPage() {
     [appliedColors],
   );
 
-  // ✅ IMPORTANT FIX:
-  // some backends accept "page_size", others accept "pageSize" or "limit"
+  // ✅ IMPORTANT:
+  // price sorting is done CLIENT-SIDE because many APIs don’t expose ordering=price
+  const serverOrdering = useMemo(() => {
+    if (!appliedSort) return undefined;
+    if (appliedSort === "price" || appliedSort === "-price") return undefined;
+    return appliedSort;
+  }, [appliedSort]);
+
   const queryArgs = useMemo(
     () => ({
       page,
@@ -160,7 +165,7 @@ export default function ProductsPage() {
       color: appliedColors.join(",") || undefined,
       min_price: appliedPriceRange.min,
       max_price: appliedPriceRange.max,
-      ordering: appliedSort || undefined,
+      ordering: serverOrdering,
     }),
     [
       page,
@@ -168,7 +173,7 @@ export default function ProductsPage() {
       appliedMaterials,
       appliedColors,
       appliedPriceRange,
-      appliedSort,
+      serverOrdering,
     ],
   );
 
@@ -182,6 +187,27 @@ export default function ProductsPage() {
     return [];
   }, [data]);
 
+  // ✅ Client-side price sort (guaranteed to work)
+  const sortedProducts = useMemo(() => {
+    if (!products || products.length === 0) return products;
+
+    // only sort by price when selected
+    if (appliedSort !== "price" && appliedSort !== "-price") return products;
+
+    const dir = appliedSort === "price" ? 1 : -1;
+
+    const copy = [...products];
+    copy.sort((a, b) => {
+      const ap = Number(resolveProductPrice(a) ?? 0);
+      const bp = Number(resolveProductPrice(b) ?? 0);
+
+      // keep stable if equal
+      if (ap === bp) return Number(a?.id ?? 0) - Number(b?.id ?? 0);
+      return (ap - bp) * dir;
+    });
+    return copy;
+  }, [products, appliedSort]);
+
   const totalCount = useMemo(() => {
     if (!data) return 0;
     if (Array.isArray(data)) return data.length;
@@ -190,7 +216,6 @@ export default function ProductsPage() {
     return products.length;
   }, [data, products]);
 
-  // If backend is paginated, we compute pages. If you fetch all, totalPages will be 1.
   const totalPages = useMemo(() => {
     if (!data || Array.isArray(data)) return 1;
     const count = typeof data.count === "number" ? data.count : products.length;
@@ -252,7 +277,6 @@ export default function ProductsPage() {
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 
-  // Track list impressions
   useEffect(() => {
     if (!products || products.length === 0) return;
 
@@ -283,7 +307,6 @@ export default function ProductsPage() {
     track,
   ]);
 
-  // Reset page when applied filters/sort change
   useEffect(() => {
     setPage(1);
   }, [
@@ -341,7 +364,7 @@ export default function ProductsPage() {
     track({ event_type: "product_quick_view", product_id: p.id });
   };
 
-  // ✅ Apply / Reset (Filter drawer)
+  // Apply / Reset (Filter drawer)
   const applyFilters = () => {
     setAppliedMaterials(draftMaterials);
     setAppliedColors(draftColors);
@@ -616,7 +639,7 @@ export default function ProductsPage() {
               {isSortOpen && (
                 <div
                   className="absolute left-0 mt-2 w-72 rounded-xl border shadow-lg z-20
-                                bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
+                             bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
                 >
                   {SORT_OPTIONS.map((opt) => (
                     <button
@@ -660,13 +683,13 @@ export default function ProductsPage() {
           <div className="text-center text-red-500">
             {t("products.error", { defaultValue: "Something went wrong." })}
           </div>
-        ) : products.length === 0 ? (
+        ) : sortedProducts.length === 0 ? (
           <div className="text-center text-gray-400 dark:text-gray-400">
             {t("products.noResults", { defaultValue: "No results found." })}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((p) => (
+            {sortedProducts.map((p) => (
               <ProductTile
                 key={p.id}
                 product={p}
@@ -682,7 +705,7 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Pagination (will usually be 1 page now because PAGE_SIZE is big) */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-10 flex-wrap">
             {Array.from({ length: totalPages }).map((_, idx) => (
