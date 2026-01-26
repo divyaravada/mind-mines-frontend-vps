@@ -20,21 +20,61 @@ import QuickViewModal from "../components/QuickViewModal";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 const MATERIALS = [
-  { value: "marble", label: "products.filters.material.marble" },
   { value: "granite", label: "products.filters.material.granite" },
-  { value: "stone", label: "products.filters.material.stone" },
+  { value: "marble", label: "products.filters.material.marble" },
   { value: "onyx", label: "products.filters.material.onyx" },
+  // add these keys to your i18n if not present
+  { value: "marquina", label: "products.filters.material.marquina" },
+  { value: "travertine", label: "products.filters.material.travertine" },
   { value: "quartz", label: "products.filters.material.quartz" },
 ];
+
 const COLORS = [
-  { value: "white", label: "products.filters.color.white" },
+  // add these keys to your i18n if not present
+  { value: "beige", label: "products.filters.color.beige" },
+  { value: "beige_gold", label: "products.filters.color.beigeGold" },
   { value: "black", label: "products.filters.color.black" },
-  { value: "grey", label: "products.filters.color.grey" },
+  { value: "black_white", label: "products.filters.color.blackAndWhite" },
+  { value: "blue", label: "products.filters.color.blue" },
   { value: "brown", label: "products.filters.color.brown" },
+  { value: "burgundy", label: "products.filters.color.burgundy" },
+  { value: "cream", label: "products.filters.color.cream" },
+  { value: "gold", label: "products.filters.color.gold" },
+  { value: "gray", label: "products.filters.color.gray" },
   { value: "green", label: "products.filters.color.green" },
+  { value: "green_gold", label: "products.filters.color.greenGold" },
+  { value: "light_green", label: "products.filters.color.lightGreen" },
+  { value: "orange", label: "products.filters.color.orange" },
+  { value: "pink", label: "products.filters.color.pink" },
+  { value: "red", label: "products.filters.color.red" },
+  { value: "yellow", label: "products.filters.color.yellow" },
+  { value: "silver", label: "products.filters.color.silver" },
 ];
+
+const PRICE_BUCKETS = [
+  { label: "0 - 50", min: 0, max: 50 },
+  { label: "50 - 100", min: 50, max: 100 },
+  { label: "100 - 200", min: 100, max: 200 },
+  { label: "200 - 500", min: 200, max: 500 },
+  { label: "500 - 750", min: 500, max: 750 },
+  { label: "750 - 1000", min: 750, max: 1000 },
+  { label: "1000 - 2000", min: 1000, max: 2000 },
+  { label: "2000 - 5000", min: 2000, max: 5000 },
+];
+
+const SORT_OPTIONS = [
+  // NOTE: backend must support ordering param; if not, leave values empty or remove ordering below.
+  { value: "", labelKey: "products.sort.featured" },
+  { value: "-created", labelKey: "products.sort.newest" },
+  { value: "price", labelKey: "products.sort.priceLowHigh" },
+  { value: "-price", labelKey: "products.sort.priceHighLow" },
+  { value: "title", labelKey: "products.sort.nameAZ" },
+];
+
 const PAGE_SIZE = 60;
 const BASE_PATH = "/decorative-products";
+
+const DEFAULT_PRICE = { min: 0, max: 5000 };
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
@@ -49,7 +89,6 @@ export default function ProductsPage() {
   const track = useCallback(
     (payload) => {
       try {
-        // Fire and forget; we don't care about the response here
         trackEvent(payload);
       } catch {
         /* ignore tracking errors */
@@ -57,21 +96,45 @@ export default function ProductsPage() {
     },
     [trackEvent],
   );
+
   const isLoggedIn = useSelector(selectIsAuthenticated);
+  const dispatch = useDispatch();
 
   const [page, setPage] = useState(1);
-  const [materials, setMaterials] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
+
+  // ✅ Draft (UI) vs Applied (API)
+  const [draftMaterials, setDraftMaterials] = useState([]);
+  const [draftColors, setDraftColors] = useState([]);
+  const [draftPriceRange, setDraftPriceRange] = useState(DEFAULT_PRICE);
+  const [draftSort, setDraftSort] = useState("");
+
+  const [appliedMaterials, setAppliedMaterials] = useState([]);
+  const [appliedColors, setAppliedColors] = useState([]);
+  const [appliedPriceRange, setAppliedPriceRange] = useState(DEFAULT_PRICE);
+  const [appliedSort, setAppliedSort] = useState("");
+
+  // Top-bar UI
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+
+  const appliedMaterialsKey = useMemo(
+    () => appliedMaterials.join(","),
+    [appliedMaterials],
+  );
+  const appliedColorsKey = useMemo(
+    () => appliedColors.join(","),
+    [appliedColors],
+  );
 
   const { data, isFetching, isError } = useListProductsQuery({
     page,
     page_size: PAGE_SIZE,
     category: categoryId,
-    material: materials.join(",") || undefined,
-    color: colors.join(",") || undefined,
-    min_price: priceRange.min,
-    max_price: priceRange.max,
+    material: appliedMaterials.join(",") || undefined,
+    color: appliedColors.join(",") || undefined,
+    min_price: appliedPriceRange.min,
+    max_price: appliedPriceRange.max,
+    ordering: appliedSort || undefined,
   });
 
   const products = useMemo(() => {
@@ -93,10 +156,6 @@ export default function ProductsPage() {
     typeof window !== "undefined"
       ? window.location.origin
       : "https://mindmines.eu";
-  const listUrl = categoryId
-    ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${page}`
-    : `${currentOrigin}${BASE_PATH}?page=${page}`;
-  const canonUrl = listUrl;
 
   const categoryObj = homeCategories
     .filter((c) => String(c.link || "").startsWith(BASE_PATH))
@@ -105,6 +164,7 @@ export default function ProductsPage() {
   const pageTitle = categoryObj
     ? t("products.meta.categoryTitle", { category: t(categoryObj.label) })
     : t("products.meta.allTitle");
+
   const pageDesc = categoryObj
     ? t("products.meta.categoryDescription", { category: t(categoryObj.label) })
     : t("products.meta.defaultDescription");
@@ -141,13 +201,12 @@ export default function ProductsPage() {
     if (Array.isArray(wlRaw.results)) return wlRaw.results;
     return [];
   }, [wlRaw]);
+
   const wlIds = useMemo(() => new Set(wl.map((w) => Number(w.product))), [wl]);
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
-  const materialsKey = useMemo(() => materials.join(","), [materials]);
-  const colorsKey = useMemo(() => colors.join(","), [colors]);
 
-  // Track product list impressions when data/filters/page change
+  // Track list impressions when applied filters/page change
   useEffect(() => {
     if (!products || products.length === 0) return;
 
@@ -158,19 +217,36 @@ export default function ProductsPage() {
       extra: {
         category: categoryId || null,
         page,
-        materials,
-        colors,
-        price_min: priceRange.min,
-        price_max: priceRange.max,
+        materials: appliedMaterials,
+        colors: appliedColors,
+        price_min: appliedPriceRange.min,
+        price_max: appliedPriceRange.max,
+        sort: appliedSort || null,
         count: products.length,
         _original_event_type: "product_list_view",
       },
     });
-  }, [products, categoryId, page, materials, colors, priceRange, track]);
+  }, [
+    products,
+    categoryId,
+    page,
+    appliedMaterials,
+    appliedColors,
+    appliedPriceRange,
+    appliedSort,
+    track,
+  ]);
 
+  // Reset page when applied filters change (NOT draft)
   useEffect(() => {
     setPage(1);
-  }, [categoryId, materialsKey, colorsKey, priceRange]);
+  }, [
+    categoryId,
+    appliedMaterialsKey,
+    appliedColorsKey,
+    appliedPriceRange,
+    appliedSort,
+  ]);
 
   const toggleWishlist = async (id) => {
     if (!isLoggedIn) return toast.warning(t("wishlist.loginRequired"));
@@ -178,36 +254,23 @@ export default function ProductsPage() {
       if (wlIds.has(id)) {
         await removeWish(id).unwrap();
         toast.info(t("wishlist.removedToast"));
-
-        // 👇 track remove
-        track({
-          event_type: "wishlist_remove",
-          product_id: id,
-        });
+        track({ event_type: "wishlist_remove", product_id: id });
       } else {
         await addWish(id).unwrap();
         toast.success(t("wishlist.addedToast"));
-
-        // 👇 track add
-        track({
-          event_type: "wishlist_add",
-          product_id: id,
-        });
+        track({ event_type: "wishlist_add", product_id: id });
       }
     } catch {
       toast.error(t("wishlist.actionFailed"));
     }
   };
 
-  const dispatch = useDispatch();
   const onAddToCart = (p, priceFromTile) => {
     const unitPrice = Number.isFinite(priceFromTile)
       ? priceFromTile
       : resolveProductPrice(p);
-
     const stockNum = Number(p?.stock ?? p?.quantity ?? 0);
 
-    // 👇 track add_to_cart
     track({
       event_type: "add_to_cart",
       product_id: p.id,
@@ -218,7 +281,7 @@ export default function ProductsPage() {
     dispatch(
       addItem({
         id: p.id,
-        name: productTitle(p, lang), // ✅ cart expects 'name'
+        name: productTitle(p, lang),
         priceRange: unitPrice,
         image: p.image,
         stock: Number.isFinite(stockNum) ? stockNum : 0,
@@ -229,10 +292,52 @@ export default function ProductsPage() {
 
   const handleQuickView = (p) => {
     setQuickViewProduct(p);
+    track({ event_type: "product_quick_view", product_id: p.id });
+  };
+
+  // ✅ Apply / Reset actions
+  const applyFilters = () => {
+    setAppliedMaterials(draftMaterials);
+    setAppliedColors(draftColors);
+    setAppliedPriceRange(draftPriceRange);
+    setAppliedSort(draftSort);
+    setIsFilterOpen(false);
+    setIsSortOpen(false);
+
     track({
-      event_type: "product_quick_view",
-      product_id: p.id,
+      event_type: "filters_apply",
+      extra: {
+        category: categoryId || null,
+        materials: draftMaterials,
+        colors: draftColors,
+        price_min: draftPriceRange.min,
+        price_max: draftPriceRange.max,
+        sort: draftSort || null,
+      },
     });
+  };
+
+  const resetFilters = () => {
+    setDraftMaterials([]);
+    setDraftColors([]);
+    setDraftPriceRange(DEFAULT_PRICE);
+    setDraftSort("");
+
+    setAppliedMaterials([]);
+    setAppliedColors([]);
+    setAppliedPriceRange(DEFAULT_PRICE);
+    setAppliedSort("");
+
+    setIsFilterOpen(false);
+    setIsSortOpen(false);
+
+    track({ event_type: "filters_reset" });
+  };
+
+  const toggleDraftArrayValue = (setter) => (value) => {
+    setter((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
   };
 
   return (
@@ -247,6 +352,120 @@ export default function ProductsPage() {
         onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
         onClose={() => setQuickViewProduct(null)}
       />
+
+      {/* Mobile Filter Drawer */}
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsFilterOpen(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-white dark:bg-neutral-900 shadow-xl p-5 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold dark:text-white">
+                {t("products.filters.title", { defaultValue: "Filters" })}
+              </h3>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                className="px-3 py-1 rounded-lg border dark:border-neutral-700 dark:text-white"
+              >
+                {t("common.close", { defaultValue: "Close" })}
+              </button>
+            </div>
+
+            {/* Stone */}
+            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+              <h4 className="font-semibold mb-2 dark:text-white">
+                {t("products.filters.material.title")}
+              </h4>
+              {MATERIALS.map((m) => (
+                <label
+                  key={m.value}
+                  className="block mb-2 text-sm dark:text-gray-200"
+                >
+                  <input
+                    type="checkbox"
+                    className="mr-2 rounded border-gray-300 dark:border-neutral-700"
+                    checked={draftMaterials.includes(m.value)}
+                    onChange={() =>
+                      toggleDraftArrayValue(setDraftMaterials)(m.value)
+                    }
+                  />
+                  {t(m.label)}
+                </label>
+              ))}
+            </div>
+
+            {/* Color */}
+            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+              <h4 className="font-semibold mb-2 dark:text-white">
+                {t("products.filters.color.title")}
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {COLORS.map((c) => (
+                  <label key={c.value} className="text-sm dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="mr-2 rounded border-gray-300 dark:border-neutral-700"
+                      checked={draftColors.includes(c.value)}
+                      onChange={() =>
+                        toggleDraftArrayValue(setDraftColors)(c.value)
+                      }
+                    />
+                    {t(c.label)}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+              <h4 className="font-semibold mb-2 dark:text-white">
+                {t("products.filters.price")}
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                {PRICE_BUCKETS.map((r) => (
+                  <label
+                    key={r.label}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="price_filter_mobile"
+                      checked={
+                        draftPriceRange.min === r.min &&
+                        draftPriceRange.max === r.max
+                      }
+                      onChange={() =>
+                        setDraftPriceRange({ min: r.min, max: r.max })
+                      }
+                      className="accent-backnewswhite"
+                    />
+                    <span>{r.label} €</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Apply / Reset */}
+            <div className="flex gap-3">
+              <button
+                onClick={resetFilters}
+                className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100"
+              >
+                {t("common.reset", { defaultValue: "Reset" })}
+              </button>
+              <button
+                onClick={applyFilters}
+                className="flex-1 py-2 rounded-xl bg-backnewswhite text-white border border-backnewswhite"
+              >
+                {t("common.apply", { defaultValue: "Apply" })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container max-w-7xl mx-auto px-4 py-8 flex gap-6">
         <Helmet>
           <title>{pageTitle}</title>
@@ -266,30 +485,6 @@ export default function ProductsPage() {
             content="https://mindmines.eu/static/media/BlackLogo.5bca70d1f51039db05b5.webp"
           />
           <link rel="canonical" href={canonical} />
-          {page > 1 && (
-            <link
-              rel="prev"
-              href={
-                categoryId
-                  ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${
-                      page - 1
-                    }`
-                  : `${currentOrigin}${BASE_PATH}?page=${page - 1}`
-              }
-            />
-          )}
-          {page < totalPages && (
-            <link
-              rel="next"
-              href={
-                categoryId
-                  ? `${currentOrigin}${BASE_PATH}/category/${categoryId}?page=${
-                      page + 1
-                    }`
-                  : `${currentOrigin}${BASE_PATH}?page=${page + 1}`
-              }
-            />
-          )}
           <script type="application/ld+json">
             {JSON.stringify(breadcrumbJsonLd)}
           </script>
@@ -305,14 +500,10 @@ export default function ProductsPage() {
               <label key={m.value} className="block mb-1 text-sm">
                 <input
                   type="checkbox"
-                  className="mr-2 rounded border-gray-300 dark:border-neutral-700 text-backnewswhite focus:ring-backnewswhite/80"
-                  checked={materials.includes(m.value)}
+                  className="mr-2 rounded border-gray-300 dark:border-neutral-700"
+                  checked={draftMaterials.includes(m.value)}
                   onChange={() =>
-                    setMaterials((prev) =>
-                      prev.includes(m.value)
-                        ? prev.filter((v) => v !== m.value)
-                        : [...prev, m.value],
-                    )
+                    toggleDraftArrayValue(setDraftMaterials)(m.value)
                   }
                 />
                 {t(m.label)}
@@ -320,60 +511,68 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5  dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
+          <div className="mb-6 p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
             <h4 className="font-semibold mb-2">
               {t("products.filters.color.title")}
             </h4>
-            {COLORS.map((c) => (
-              <label key={c.value} className="block mb-1 text-sm">
-                <input
-                  type="checkbox"
-                  className="mr-2 rounded border-gray-300 dark:border-neutral-700 text-backnewswhite focus:ring-backnewswhite/80"
-                  checked={colors.includes(c.value)}
-                  onChange={() =>
-                    setColors((prev) =>
-                      prev.includes(c.value)
-                        ? prev.filter((v) => v !== c.value)
-                        : [...prev, c.value],
-                    )
-                  }
-                />
-                {t(c.label)}
-              </label>
-            ))}
+            <div className="grid grid-cols-2 gap-2">
+              {COLORS.map((c) => (
+                <label key={c.value} className="text-sm">
+                  <input
+                    type="checkbox"
+                    className="mr-2 rounded border-gray-300 dark:border-neutral-700"
+                    checked={draftColors.includes(c.value)}
+                    onChange={() =>
+                      toggleDraftArrayValue(setDraftColors)(c.value)
+                    }
+                  />
+                  {t(c.label)}
+                </label>
+              ))}
+            </div>
           </div>
 
-          <div className="p-4 rounded-xl shadow-sm ring-1 ring-black/5  dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
+          <div className="p-4 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-white dark:ring-white/5 bg-white dark:bg-neutral-900">
             <h4 className="font-semibold mb-2">
               {t("products.filters.price")}
             </h4>
 
-            {/* Price Options */}
             <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
-              {[
-                { label: "0 - 50", min: 0, max: 50 },
-                { label: "50 - 100", min: 50, max: 100 },
-                { label: "100 - 200", min: 100, max: 200 },
-                { label: "200 - 500", min: 200, max: 500 },
-                { label: "500 - 750", min: 500, max: 750 },
-                { label: "750 - 1000", min: 750, max: 1000 },
-              ].map((r) => (
+              {PRICE_BUCKETS.map((r) => (
                 <label
                   key={r.label}
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <input
                     type="radio"
-                    name="price_filter"
+                    name="price_filter_desktop"
                     checked={
-                      priceRange.min === r.min && priceRange.max === r.max
+                      draftPriceRange.min === r.min &&
+                      draftPriceRange.max === r.max
                     }
-                    onChange={() => setPriceRange({ min: r.min, max: r.max })}
+                    onChange={() =>
+                      setDraftPriceRange({ min: r.min, max: r.max })
+                    }
                     className="accent-backnewswhite"
                   />
                   <span>{r.label} €</span>
                 </label>
               ))}
+            </div>
+
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={resetFilters}
+                className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100"
+              >
+                {t("common.reset", { defaultValue: "Reset" })}
+              </button>
+              <button
+                onClick={applyFilters}
+                className="flex-1 py-2 rounded-xl bg-backnewswhite text-white border border-backnewswhite"
+              >
+                {t("common.apply", { defaultValue: "Apply" })}
+              </button>
             </div>
           </div>
         </aside>
@@ -381,7 +580,7 @@ export default function ProductsPage() {
         {/* Grid */}
         <main className="flex-1">
           {/* category chips */}
-          <div className="flex gap-3 justify-center mb-8 flex-wrap">
+          <div className="flex gap-3 justify-center mb-4 flex-wrap">
             {homeCategories
               .filter((cat) => String(cat.link || "").startsWith(BASE_PATH))
               .map((cat) => (
@@ -422,6 +621,74 @@ export default function ProductsPage() {
             </button>
           </div>
 
+          {/* ✅ New Top Filter Bar (Sort / Filter) */}
+          <div className="mb-8 flex items-center justify-between gap-3">
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsSortOpen((v) => !v);
+                  setIsFilterOpen(false);
+                }}
+                className="px-4 py-2 rounded-xl border shadow-sm bg-white dark:bg-neutral-900
+                           text-gray-900 dark:text-gray-100 border-gray-200 dark:border-neutral-700
+                           focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
+              >
+                {t("products.sort.title", { defaultValue: "Sort by" })} ▾
+              </button>
+
+              {isSortOpen && (
+                <div
+                  className="absolute left-0 mt-2 w-56 rounded-xl border shadow-lg z-20
+                                bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setDraftSort(opt.value);
+                        // apply immediately for sort to feel natural; or keep Apply-only:
+                        // applyFilters();
+                        setIsSortOpen(false);
+                        setAppliedSort(opt.value);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm transition
+                                  hover:bg-gray-50 dark:hover:bg-neutral-800
+                                  ${draftSort === opt.value ? "font-semibold" : ""}
+                                  text-gray-900 dark:text-gray-100`}
+                    >
+                      {t(opt.labelKey, { defaultValue: opt.labelKey })}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setIsFilterOpen(true);
+                setIsSortOpen(false);
+              }}
+              className="px-4 py-2 rounded-xl border shadow-sm bg-white dark:bg-neutral-900
+                         text-gray-900 dark:text-gray-100 border-gray-200 dark:border-neutral-700
+                         focus:outline-none focus:ring-2 focus:ring-backnewswhite/70 md:hidden"
+            >
+              {t("products.filters.title", { defaultValue: "Filter" })}
+            </button>
+
+            {/* On desktop, show quick summary text */}
+            <div className="hidden md:block text-sm text-gray-600 dark:text-gray-300">
+              {t("products.filters.applied", { defaultValue: "Applied:" })}{" "}
+              <span className="font-medium">
+                {appliedMaterials.length
+                  ? appliedMaterials.join(", ")
+                  : t("common.none", { defaultValue: "none" })}{" "}
+                | {appliedColors.length ? appliedColors.length : 0}{" "}
+                {t("products.filters.color.count", { defaultValue: "colors" })}{" "}
+                | {appliedPriceRange.min}-{appliedPriceRange.max}€
+              </span>
+            </div>
+          </div>
+
           {isFetching ? (
             <div className="text-center text-gray-500 dark:text-gray-300">
               {t("common.loading")}
@@ -435,7 +702,7 @@ export default function ProductsPage() {
               {t("products.noResults")}
             </div>
           ) : (
-            <div className="grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map((p) => (
                 <ProductTile
                   key={p.id}
@@ -453,7 +720,7 @@ export default function ProductsPage() {
           )}
 
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-10">
+            <div className="flex justify-center gap-2 mt-10 flex-wrap">
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <button
                   key={idx}
