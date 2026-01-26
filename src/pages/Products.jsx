@@ -60,37 +60,46 @@ const PRICE_BUCKETS = [
   { label: "2000 - 5000", min: 2000, max: 5000 },
 ];
 
-const SORT_OPTIONS = [
-  { value: "", labelKey: "products.sort.featured", fallback: "Featured" },
-  {
-    value: "title",
-    labelKey: "products.sort.nameAZ",
-    fallback: "Alphabetically, A-Z",
-  },
-  {
-    value: "-title",
-    labelKey: "products.sort.nameZA",
-    fallback: "Alphabetically, Z-A",
-  },
-  {
-    value: "price",
-    labelKey: "products.sort.priceLowHigh",
-    fallback: "Price, Low To High",
-  },
-  {
-    value: "-price",
-    labelKey: "products.sort.priceHighLow",
-    fallback: "Price, High To Low",
-  },
-];
+// If you truly want "all products" in one page, keep this high.
+// 612 items is OK for listing, but if you add many more later, reduce to 60/100.
+const PAGE_SIZE = 1000;
 
-const PAGE_SIZE = 60;
 const BASE_PATH = "/decorative-products";
 const DEFAULT_PRICE = { min: 0, max: 5000 };
 
 export default function ProductsPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
+  const titleOrderingField = lang === "de" ? "title_de" : "title_en";
+
+  // ✅ Sort options must be based on real backend fields
+  const SORT_OPTIONS = useMemo(
+    () => [
+      { value: "", labelKey: "products.sort.featured", fallback: "Featured" },
+      {
+        value: titleOrderingField,
+        labelKey: "products.sort.nameAZ",
+        fallback: "Alphabetically, A-Z",
+      },
+      {
+        value: `-${titleOrderingField}`,
+        labelKey: "products.sort.nameZA",
+        fallback: "Alphabetically, Z-A",
+      },
+      {
+        value: "price",
+        labelKey: "products.sort.priceLowHigh",
+        fallback: "Price, Low To High",
+      },
+      {
+        value: "-price",
+        labelKey: "products.sort.priceHighLow",
+        fallback: "Price, High To Low",
+      },
+    ],
+    [titleOrderingField],
+  );
+
   const { pathname } = useLocation();
   const canonical = `https://mindmines.eu${pathname}`;
   const { categoryId } = useParams();
@@ -137,16 +146,33 @@ export default function ProductsPage() {
     [appliedColors],
   );
 
-  const { data, isFetching, isError } = useListProductsQuery({
-    page,
-    page_size: PAGE_SIZE,
-    category: categoryId,
-    material: appliedMaterials.join(",") || undefined,
-    color: appliedColors.join(",") || undefined,
-    min_price: appliedPriceRange.min,
-    max_price: appliedPriceRange.max,
-    ordering: appliedSort || undefined,
-  });
+  // ✅ IMPORTANT FIX:
+  // some backends accept "page_size", others accept "pageSize" or "limit"
+  const queryArgs = useMemo(
+    () => ({
+      page,
+      page_size: PAGE_SIZE,
+      pageSize: PAGE_SIZE,
+      limit: PAGE_SIZE,
+
+      category: categoryId || undefined,
+      material: appliedMaterials.join(",") || undefined,
+      color: appliedColors.join(",") || undefined,
+      min_price: appliedPriceRange.min,
+      max_price: appliedPriceRange.max,
+      ordering: appliedSort || undefined,
+    }),
+    [
+      page,
+      categoryId,
+      appliedMaterials,
+      appliedColors,
+      appliedPriceRange,
+      appliedSort,
+    ],
+  );
+
+  const { data, isFetching, isError } = useListProductsQuery(queryArgs);
 
   const products = useMemo(() => {
     if (!data) return [];
@@ -164,6 +190,7 @@ export default function ProductsPage() {
     return products.length;
   }, [data, products]);
 
+  // If backend is paginated, we compute pages. If you fetch all, totalPages will be 1.
   const totalPages = useMemo(() => {
     if (!data || Array.isArray(data)) return 1;
     const count = typeof data.count === "number" ? data.count : products.length;
@@ -225,7 +252,7 @@ export default function ProductsPage() {
   const [addWish] = useAddToWishlistMutation();
   const [removeWish] = useRemoveFromWishlistMutation();
 
-  // Track list impressions when applied filters/page change
+  // Track list impressions
   useEffect(() => {
     if (!products || products.length === 0) return;
 
@@ -256,7 +283,7 @@ export default function ProductsPage() {
     track,
   ]);
 
-  // Reset page when applied filters change
+  // Reset page when applied filters/sort change
   useEffect(() => {
     setPage(1);
   }, [
@@ -314,7 +341,7 @@ export default function ProductsPage() {
     track({ event_type: "product_quick_view", product_id: p.id });
   };
 
-  // ✅ Apply / Reset actions (Filter drawer)
+  // ✅ Apply / Reset (Filter drawer)
   const applyFilters = () => {
     setAppliedMaterials(draftMaterials);
     setAppliedColors(draftColors);
@@ -359,11 +386,10 @@ export default function ProductsPage() {
     if (!found)
       return t("products.sort.featured", { defaultValue: "Featured" });
     return t(found.labelKey, { defaultValue: found.fallback });
-  }, [appliedSort, t]);
+  }, [appliedSort, t, SORT_OPTIONS]);
 
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-      {/* Quick View modal */}
       <QuickViewModal
         open={!!quickViewProduct}
         product={quickViewProduct}
@@ -374,7 +400,7 @@ export default function ProductsPage() {
         onClose={() => setQuickViewProduct(null)}
       />
 
-      {/* Mobile/Drawer Filter */}
+      {/* Filter Drawer */}
       {isFilterOpen && (
         <div className="fixed inset-0 z-50">
           <div
@@ -470,7 +496,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Apply / Reset */}
             <div className="flex gap-3">
               <button
                 onClick={resetFilters}
@@ -555,10 +580,9 @@ export default function ProductsPage() {
           </button>
         </div>
 
-        {/* ✅ Filter / Sort bar (like your screenshot) */}
+        {/* Filter / Sort bar */}
         <div className="mb-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            {/* Filter button */}
             <button
               onClick={() => {
                 setIsFilterOpen(true);
@@ -568,12 +592,10 @@ export default function ProductsPage() {
                          bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
                          border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
             >
-              {/* simple icon */}
               <span className="inline-block">⎇</span>
               {t("products.filters.title", { defaultValue: "Filter" })}
             </button>
 
-            {/* Sort dropdown */}
             <div className="relative">
               <button
                 onClick={() => {
@@ -594,7 +616,7 @@ export default function ProductsPage() {
               {isSortOpen && (
                 <div
                   className="absolute left-0 mt-2 w-72 rounded-xl border shadow-lg z-20
-                             bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
+                                bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
                 >
                   {SORT_OPTIONS.map((opt) => (
                     <button
@@ -602,7 +624,6 @@ export default function ProductsPage() {
                       onClick={() => {
                         setAppliedSort(opt.value);
                         setIsSortOpen(false);
-
                         track({
                           event_type: "sort_change",
                           extra: {
@@ -624,7 +645,6 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* Total items */}
           <div className="text-sm text-gray-600 dark:text-gray-300">
             <span className="font-medium">{totalCount}</span>{" "}
             {t("products.items", { defaultValue: "Items" })}
@@ -662,7 +682,7 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Pagination (kept at bottom as you asked) */}
+        {/* Pagination (will usually be 1 page now because PAGE_SIZE is big) */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-10 flex-wrap">
             {Array.from({ length: totalPages }).map((_, idx) => (
