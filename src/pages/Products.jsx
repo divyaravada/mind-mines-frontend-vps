@@ -62,7 +62,7 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [materials, setMaterials] = useState([]);
   const [colors, setColors] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
 
   const { data, isFetching, isError } = useListProductsQuery({
     page,
