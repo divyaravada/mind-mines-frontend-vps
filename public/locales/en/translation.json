@@ -50,6 +50,9 @@
     "cancel": "Cancel",
     "submit": "Submit",
     "noResults": "No results found.",
+    "apply": "Apply",
+    "reset": "Reset",
+    "none": "none",
     "processing": "Processing…"
   },
   "home": {
@@ -1349,28 +1352,52 @@
     }
   },
   "products": {
+    "items": "Items",
+    "error": "Something went wrong.",
+    "noResults": "No results found.",
     "filters": {
+      "title": "Filter",
+      "price": "Price",
       "material": {
-        "title": "Material",
-        "marble": "Marble",
+        "title": "Stone",
         "granite": "Granite",
-        "stone": "Stone",
+        "marble": "Marble",
         "onyx": "Onyx",
+        "marquina": "Marquina",
+        "travertine": "Travertine",
         "quartz": "Quartz"
       },
       "color": {
         "title": "Color",
-        "white": "White",
+        "beige": "Beige",
+        "beigeGold": "Beige / Gold",
         "black": "Black",
-        "grey": "Grey",
+        "blackAndWhite": "Black & White",
+        "blue": "Blue",
         "brown": "Brown",
-        "green": "Green"
-      },
-      "price": "Price",
-      "priceMin": "€0"
+        "burgundy": "Burgundy",
+        "cream": "Cream",
+        "gold": "Gold",
+        "gray": "Gray",
+        "green": "Green",
+        "greenGold": "Green / Gold",
+        "lightGreen": "Light Green",
+        "orange": "Orange",
+        "pink": "Pink",
+        "red": "Red",
+        "yellow": "Yellow",
+        "silver": "Silver"
+      }
     },
-    "error": "Error loading products.",
-    "noResults": "No products found.",
+    "sort": {
+      "title": "Sort By:",
+      "featured": "Featured",
+      "nameAZ": "Alphabetically, A-Z",
+      "nameZA": "Alphabetically, Z-A",
+      "priceLowHigh": "Price, Low To High",
+      "priceHighLow": "Price, High To Low"
+    },
+
     "meta": {
       "title": "MindMines – Marble & Stone Decor",
       "categoryTitle": "{{category}} | MindMines",

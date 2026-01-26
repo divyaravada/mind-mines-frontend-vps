@@ -78,6 +78,9 @@
     "viewAllResults": "Alle Ergebnisse anzeigen",
     "cancel": "Abbrechen",
     "submit": "Senden",
+    "apply": "Anwenden",
+    "reset": "Zurücksetzen",
+    "none": "keine",
     "noResults": "Keine Treffer gefunden."
   },
   "home": {
@@ -1377,28 +1380,52 @@
     }
   },
   "products": {
+    "items": "Artikel",
+    "error": "Etwas ist schiefgelaufen.",
+    "noResults": "Keine Ergebnisse gefunden.",
     "filters": {
+      "title": "Filter",
+      "price": "Preis",
       "material": {
-        "title": "Material",
-        "marble": "Marmor",
+        "title": "Stein",
         "granite": "Granit",
-        "stone": "Stein",
+        "marble": "Marmor",
         "onyx": "Onyx",
+        "marquina": "Marquina",
+        "travertine": "Travertin",
         "quartz": "Quarz"
       },
       "color": {
         "title": "Farbe",
-        "white": "Weiß",
+        "beige": "Beige",
+        "beigeGold": "Beige / Gold",
         "black": "Schwarz",
-        "grey": "Grau",
+        "blackAndWhite": "Schwarz & Weiß",
+        "blue": "Blau",
         "brown": "Braun",
-        "green": "Grün"
-      },
-      "price": "Preis",
-      "priceMin": "0 €"
+        "burgundy": "Burgunder",
+        "cream": "Creme",
+        "gold": "Gold",
+        "gray": "Grau",
+        "green": "Grün",
+        "greenGold": "Grün / Gold",
+        "lightGreen": "Hellgrün",
+        "orange": "Orange",
+        "pink": "Rosa",
+        "red": "Rot",
+        "yellow": "Gelb",
+        "silver": "Silber"
+      }
     },
-    "error": "Produkte konnten nicht geladen werden.",
-    "noResults": "Keine Produkte gefunden.",
+    "sort": {
+      "title": "Sortieren nach:",
+      "featured": "Empfohlen",
+      "nameAZ": "Alphabetisch, A-Z",
+      "nameZA": "Alphabetisch, Z-A",
+      "priceLowHigh": "Preis, aufsteigend",
+      "priceHighLow": "Preis, absteigend"
+    },
+
     "meta": {
       "title": "Produkte | MindMines",
       "categoryTitle": "{{category}} | MindMines",
