@@ -38,7 +38,7 @@ export default function ProductTile({
   const stockVal = product?.stock ?? product?.quantity ?? 0;
   const stock = Number.isFinite(Number(stockVal)) ? Number(stockVal) : 0;
   const isOut = stock <= 0;
-  const isLow = !isOut && stock < 5;
+  const isLow = !isOut && stock < 2;
 
   const priceEl = hasDiscount ? (
     <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function ProductTile({
             </div>
           ) : isLow ? (
             <div className="text-xs font-semibold text-amber-600">
-              {t("product.lowStock", "Hurry — fewer than 5 left!")}
+              {t("product.lowStock", "Hurry — fewer than 2 left!")}
             </div>
           ) : null}
         </div>
