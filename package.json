@@ -28,6 +28,7 @@
     "react-i18next": "^15.7.3",
     "react-image-magnify": "^2.7.4",
     "react-markdown": "^10.1.0",
+    "react-medium-image-zoom": "^5.4.0",
     "react-player": "^3.3.3",
     "react-redux": "^9.2.0",
     "react-responsive-carousel": "^3.2.23",
