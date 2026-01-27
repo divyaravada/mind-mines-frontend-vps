@@ -39,15 +39,24 @@ export const hasDiscount = (p) => {
   return base > 0 && cur > 0 && cur < base;
 };
 
-export const fmtEUR = (n, locale = "en") => {
+export const fmtEUR = (n, locale = "de-DE") => {
+  const x = Number.isFinite(n) ? n : toNumberEUR(n);
+
+  // integer euros (drop cents)
+  const euros = Math.trunc(x);
+
   try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
+    // format like 1.186 (de-DE uses dot thousands)
+    const formatted = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+    }).format(euros);
+
+    return `${formatted}€`; // ✅ no space before €
   } catch {
-    const x = Number.isFinite(n) ? n : 0;
-    return `${x.toFixed(2)} €`;
+    // fallback: 1186 -> "1.186€"
+    const formatted = String(euros).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${formatted}€`;
   }
 };
 
