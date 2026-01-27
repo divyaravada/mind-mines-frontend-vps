@@ -1,4 +1,5 @@
 // src/pages/ProductDetailPage.jsx
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
@@ -459,82 +460,143 @@ export default function ProductDetailPage() {
           </script>
         </Helmet>
 
-        {/* ✅ FULLSCREEN LIGHTBOX MODAL (100% screen) */}
-        {isLightboxOpen && (
-          <div className="fixed inset-0 z-[9999] bg-black">
-            {/* TOP BAR */}
-            <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3">
-              <div className="text-white/80 text-sm truncate">
-                {productTitle(product, lang)}
+        {/* ✅ FULLSCREEN LIGHTBOX MODAL (Portal to body = true fullscreen) */}
+        {isLightboxOpen &&
+          createPortal(
+            <div className="fixed inset-0 z-[99999] bg-black">
+              {/* CSS overrides to force fullscreen + dots visibility */}
+              <style>{`
+        .mm-fullscreen-carousel,
+        .mm-fullscreen-carousel .carousel,
+        .mm-fullscreen-carousel .carousel-root,
+        .mm-fullscreen-carousel .slider-wrapper,
+        .mm-fullscreen-carousel .slider,
+        .mm-fullscreen-carousel .slide {
+          height: 100vh !important;
+          width: 100vw !important;
+        }
+
+        .mm-fullscreen-carousel .slider-wrapper {
+          touch-action: pan-y; /* keep vertical scroll prevention stable */
+        }
+
+        .mm-fullscreen-carousel .slide {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          background: #000 !important;
+        }
+
+        /* Dots ALWAYS visible */
+        .mm-fullscreen-carousel .control-dots {
+          position: absolute !important;
+          bottom: 18px !important;
+          left: 0 !important;
+          right: 0 !important;
+          z-index: 999999 !important;
+          display: flex !important;
+          justify-content: center !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+      `}</style>
+
+              {/* TOP BAR */}
+              <div className="absolute top-0 left-0 right-0 z-[100000] flex items-center justify-between px-4 py-3">
+                <div className="text-white/80 text-sm truncate pr-2">
+                  {productTitle(product, lang)}
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setZoomed((z) => !z)}
+                    className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
+                    aria-label="Toggle zoom"
+                    title="Toggle zoom"
+                  >
+                    {zoomed ? "−" : "+"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={closeLightbox}
+                    className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
+                    aria-label="Close"
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setZoomed((z) => !z)}
-                  className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                >
-                  {zoomed ? "−" : "+"}
-                </button>
-
-                <button
-                  onClick={closeLightbox}
-                  className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {/* FULLSCREEN CAROUSEL */}
-            <Carousel
-              selectedItem={lightboxIndex}
-              onChange={(idx) => {
-                setLightboxIndex(idx);
-                setZoomed(false);
-              }}
-              showThumbs={false}
-              showStatus={false}
-              showIndicators
-              infiniteLoop
-              swipeable={!zoomed}
-              emulateTouch={!zoomed}
-              useKeyboardArrows
-              className="fullscreen-carousel"
-              renderIndicator={(onClick, isSelected, index) => (
-                <span
-                  key={index}
-                  onClick={onClick}
-                  className={`inline-block w-2.5 h-2.5 mx-1 rounded-full cursor-pointer
-            ${isSelected ? "bg-white" : "bg-white/40"}`}
-                />
-              )}
-            >
-              {modalMedia.map((m, i) =>
-                m.media_type === "video" && m.video ? (
-                  <div key={i}>
-                    <div className="w-full max-w-5xl px-4">
-                      <ReactPlayer src={m.video} controls width="100%" />
-                    </div>
-                  </div>
-                ) : (
-                  <div key={i}>
-                    <img
-                      src={m.image}
-                      alt={`${productTitle(product, lang)} – ${i + 1}`}
-                      draggable={false}
-                      onClick={() => setZoomed((z) => !z)}
-                      className="max-h-full max-w-full object-contain select-none cursor-zoom-in"
-                      style={{
-                        transform: zoomed ? "scale(2.3)" : "scale(1)",
-                        transition: "transform 220ms ease",
-                      }}
+              {/* FULLSCREEN CAROUSEL */}
+              <div className="h-screen w-screen pt-12">
+                <Carousel
+                  selectedItem={lightboxIndex}
+                  onChange={(idx) => {
+                    setLightboxIndex(idx);
+                    setZoomed(false);
+                  }}
+                  showThumbs={false}
+                  showStatus={false}
+                  showIndicators
+                  infiniteLoop
+                  useKeyboardArrows
+                  swipeable={!zoomed}
+                  emulateTouch={!zoomed}
+                  preventMovementUntilSwipeScrollTolerance
+                  swipeScrollTolerance={6}
+                  className="mm-fullscreen-carousel"
+                  renderIndicator={(onClick, isSelected, index) => (
+                    <span
+                      key={index}
+                      onClick={onClick}
+                      role="button"
+                      tabIndex={0}
+                      className={`inline-block w-2.5 h-2.5 mx-1 rounded-full cursor-pointer ${
+                        isSelected ? "bg-white" : "bg-white/40"
+                      }`}
+                      aria-label={`Slide ${index + 1}`}
+                      title={`Slide ${index + 1}`}
                     />
-                  </div>
-                ),
-              )}
-            </Carousel>
-          </div>
-        )}
+                  )}
+                >
+                  {modalMedia.map((m, i) =>
+                    m.media_type === "video" && m.video ? (
+                      <div
+                        key={i}
+                        className="h-full w-full flex items-center justify-center"
+                      >
+                        <div className="w-full max-w-5xl px-4">
+                          <ReactPlayer src={m.video} controls width="100%" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        key={i}
+                        className="h-full w-full flex items-center justify-center"
+                      >
+                        <img
+                          src={m.image}
+                          alt={`${productTitle(product, lang)} – ${i + 1}`}
+                          draggable={false}
+                          onClick={() => setZoomed((z) => !z)} // ✅ tap toggle zoom
+                          className="max-h-[100vh] max-w-[100vw] object-contain select-none"
+                          style={{
+                            transform: zoomed ? "scale(2.3)" : "scale(1)",
+                            transition: "transform 220ms ease",
+                            transformOrigin: "center",
+                          }}
+                        />
+                      </div>
+                    ),
+                  )}
+                </Carousel>
+              </div>
+            </div>,
+            document.body,
+          )}
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* MEDIA */}
