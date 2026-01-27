@@ -38,9 +38,8 @@ import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { slugify } from "../lib/slug";
 
 function extractNumericId(param) {
-  // supports: "14" OR "some-slug-14"
   const s = String(param || "").trim();
-  const m = s.match(/(\d+)\s*$/); // last digits at end
+  const m = s.match(/(\d+)\s*$/);
   return m ? m[1] : "";
 }
 
@@ -53,12 +52,37 @@ export default function ProductDetailPage() {
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const locale = i18n.language || "en";
 
-  // ✅ IMPORTANT: always call API with numeric id
   const numericId = useMemo(() => extractNumericId(idParam), [idParam]);
 
   const { data: product, isLoading } = useGetProductQuery(numericId, {
     skip: !numericId,
   });
+
+  // ✅ Lightbox state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [zoom, setZoom] = useState(1);
+
+  const openLightbox = useCallback((idx) => {
+    setLightboxIndex(Number(idx || 0));
+    setZoom(1);
+    setIsLightboxOpen(true);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false);
+    setZoom(1);
+  }, []);
+
+  // ESC to close
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isLightboxOpen, closeLightbox]);
 
   // --------- SEO helpers ----------
   const correctSlug = useMemo(() => {
@@ -72,9 +96,6 @@ export default function ProductDetailPage() {
     return `https://mindmines.eu/products/${correctSlug}-${product.id}`;
   }, [product, correctSlug, numericId, idParam]);
 
-  // ✅ redirect both cases:
-  // /products/14 -> /products/slug-14
-  // /products/wrong-slug-14 -> /products/correct-slug-14
   useEffect(() => {
     if (!product) return;
     const expectedPath = `/products/${correctSlug}-${product.id}`;
@@ -397,12 +418,10 @@ export default function ProductDetailPage() {
           <meta property="og:description" content={description} />
           <meta property="og:url" content={canonical} />
           <meta property="og:image" content={image} />
-
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={title} />
           <meta name="twitter:description" content={description} />
           <meta name="twitter:image" content={image} />
-
           <script type="application/ld+json">
             {JSON.stringify(productJsonLd)}
           </script>
@@ -410,6 +429,135 @@ export default function ProductDetailPage() {
             {JSON.stringify(breadcrumbJsonLd)}
           </script>
         </Helmet>
+
+        {/* ✅ LIGHTBOX */}
+        {isLightboxOpen && (
+          <div className="fixed inset-0 z-[999]">
+            <div
+              className="absolute inset-0 bg-black/70"
+              onClick={closeLightbox}
+            />
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div
+                className="relative w-[92vw] max-w-6xl h-[80vh] bg-white dark:bg-neutral-950 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Top controls */}
+                <div className="absolute top-3 right-3 z-20 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setZoom((z) => Math.max(1, Number((z - 0.25).toFixed(2))))
+                    }
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Zoom out"
+                    title="Zoom out"
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setZoom((z) => Math.min(4, Number((z + 0.25).toFixed(2))))
+                    }
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Zoom in"
+                    title="Zoom in"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoom(1)}
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Reset zoom"
+                    title="Reset zoom"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeLightbox}
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Close"
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Carousel */}
+                <div className="h-full">
+                  <Carousel
+                    selectedItem={lightboxIndex}
+                    onChange={(idx) => {
+                      setLightboxIndex(idx);
+                      setZoom(1); // reset zoom when changing slide
+                    }}
+                    showThumbs={false}
+                    showStatus={false}
+                    infiniteLoop
+                    useKeyboardArrows
+                    swipeable
+                    emulateTouch
+                    className="h-full"
+                  >
+                    {product.media?.length
+                      ? product.media.map((m, i) =>
+                          m.media_type === "video" && m.video ? (
+                            <div
+                              key={i}
+                              className="h-[80vh] flex items-center justify-center bg-black"
+                            >
+                              <div className="w-full max-w-4xl px-3">
+                                <ReactPlayer
+                                  src={m.video}
+                                  controls
+                                  width="100%"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              key={i}
+                              className="h-[80vh] bg-black flex items-center justify-center"
+                            >
+                              <img
+                                src={m.image}
+                                alt={`${productTitle(product, lang)} – ${i + 1}`}
+                                className="max-h-[80vh] max-w-full object-contain select-none"
+                                style={{
+                                  transform: `scale(${zoom})`,
+                                  transformOrigin: "center",
+                                }}
+                                draggable={false}
+                              />
+                            </div>
+                          ),
+                        )
+                      : [
+                          <div
+                            key="default"
+                            className="h-[80vh] bg-black flex items-center justify-center"
+                          >
+                            <img
+                              src={product.image}
+                              alt={productTitle(product, lang)}
+                              className="max-h-[80vh] max-w-full object-contain select-none"
+                              style={{
+                                transform: `scale(${zoom})`,
+                                transformOrigin: "center",
+                              }}
+                              draggable={false}
+                            />
+                          </div>,
+                        ]}
+                  </Carousel>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* MEDIA */}
@@ -439,6 +587,8 @@ export default function ProductDetailPage() {
                             width={800}
                             loading="lazy"
                             decoding="async"
+                            className="cursor-zoom-in"
+                            onClick={() => openLightbox(i)} // ✅ open lightbox
                           />
                         </div>
                       ),
@@ -451,6 +601,8 @@ export default function ProductDetailPage() {
                           fetchPriority="high"
                           loading="lazy"
                           decoding="async"
+                          className="cursor-zoom-in"
+                          onClick={() => openLightbox(0)} // ✅ open lightbox
                         />
                       </div>,
                     ]}
@@ -607,11 +759,11 @@ export default function ProductDetailPage() {
               <button
                 key={key}
                 className={`py-2 px-4 font-semibold text-left whitespace-nowrap transition rounded-lg sm:rounded-none sm:-mb-px
-          ${
-            activeTab === key
-              ? "bg-backnewswhite/10 text-backnewswhite sm:bg-transparent sm:border-b-2 sm:border-backnewswhite"
-              : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
-          }`}
+                  ${
+                    activeTab === key
+                      ? "bg-backnewswhite/10 text-backnewswhite sm:bg-transparent sm:border-b-2 sm:border-backnewswhite"
+                      : "text-gray-600 dark:text-gray-300 hover:text-backnewswhite"
+                  }`}
                 onClick={() => setActiveTab(key)}
               >
                 {key === "details"
@@ -766,7 +918,6 @@ export default function ProductDetailPage() {
           productId={product.id}
           onSubmit={async (payload) => {
             await createDemand(payload).unwrap();
-            // 👇 track on-demand request
             track({
               event_type: "on_demand_request",
               product_id: product.id,
