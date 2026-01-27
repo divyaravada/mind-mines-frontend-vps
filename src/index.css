@@ -9,3 +9,23 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* FORCE react-responsive-carousel fullscreen behavior */
+.fullscreen-carousel,
+.fullscreen-carousel .carousel,
+.fullscreen-carousel .slider-wrapper,
+.fullscreen-carousel .slider,
+.fullscreen-carousel .slide {
+  height: 100vh !important;
+}
+
+.fullscreen-carousel .control-dots {
+  bottom: 18px !important;
+  z-index: 50 !important;
+}
+
+.fullscreen-carousel .slide {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: black;
+}

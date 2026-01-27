@@ -461,9 +461,9 @@ export default function ProductDetailPage() {
 
         {/* ✅ FULLSCREEN LIGHTBOX MODAL (100% screen) */}
         {isLightboxOpen && (
-          <div className="fixed inset-0 z-[9999] w-screen h-screen bg-black">
+          <div className="fixed inset-0 z-[9999] bg-black">
             {/* TOP BAR */}
-            <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3">
+            <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3">
               <div className="text-white/80 text-sm truncate">
                 {productTitle(product, lang)}
               </div>
@@ -471,20 +471,21 @@ export default function ProductDetailPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setZoomed((z) => !z)}
-                  className="px-3 py-2 rounded-lg bg-white/10 text-white"
+                  className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
                 >
                   {zoomed ? "−" : "+"}
                 </button>
+
                 <button
                   onClick={closeLightbox}
-                  className="px-3 py-2 rounded-lg bg-white/10 text-white"
+                  className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            {/* CAROUSEL */}
+            {/* FULLSCREEN CAROUSEL */}
             <Carousel
               selectedItem={lightboxIndex}
               onChange={(idx) => {
@@ -495,10 +496,10 @@ export default function ProductDetailPage() {
               showStatus={false}
               showIndicators
               infiniteLoop
-              swipeable={!zoomed} // ✅ disable swipe when zoomed
+              swipeable={!zoomed}
               emulateTouch={!zoomed}
               useKeyboardArrows
-              className="h-screen"
+              className="fullscreen-carousel"
               renderIndicator={(onClick, isSelected, index) => (
                 <span
                   key={index}
@@ -510,42 +511,28 @@ export default function ProductDetailPage() {
             >
               {modalMedia.map((m, i) =>
                 m.media_type === "video" && m.video ? (
-                  <div
-                    key={i}
-                    className="h-screen w-screen flex items-center justify-center"
-                  >
+                  <div key={i}>
                     <div className="w-full max-w-5xl px-4">
                       <ReactPlayer src={m.video} controls width="100%" />
                     </div>
                   </div>
                 ) : (
-                  <div
-                    key={i}
-                    className="h-screen w-screen flex items-center justify-center"
-                  >
+                  <div key={i}>
                     <img
                       src={m.image}
                       alt={`${productTitle(product, lang)} – ${i + 1}`}
                       draggable={false}
                       onClick={() => setZoomed((z) => !z)}
-                      className="max-h-full max-w-full object-contain select-none"
+                      className="max-h-full max-w-full object-contain select-none cursor-zoom-in"
                       style={{
-                        transform: zoomed ? "scale(2.2)" : "scale(1)",
-                        transition: "transform 200ms ease",
+                        transform: zoomed ? "scale(2.3)" : "scale(1)",
+                        transition: "transform 220ms ease",
                       }}
                     />
                   </div>
                 ),
               )}
             </Carousel>
-
-            {/* DOTS POSITION FIX */}
-            <style>{`
-      .carousel .control-dots {
-        bottom: 16px !important;
-        z-index: 40;
-      }
-    `}</style>
           </div>
         )}
 
