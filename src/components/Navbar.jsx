@@ -11,8 +11,8 @@ import {
   Menu,
   ChevronDown,
 } from "lucide-react";
-import DarkLogo from "../assets/BlackLogo.webp";
-import LightLogo from "../assets/OrangeLogo.webp";
+import DarkLogo from "../assets/BlackLogo.png";
+import LightLogo from "../assets/OrangeLogo.png";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -172,7 +172,7 @@ export default function Navbar() {
                     {link.icon}
                     {link.label}
                   </Link>
-                )
+                ),
               )}
 
             {/* SHOP DROPDOWN (Decor + Stone) */}
@@ -248,7 +248,7 @@ export default function Navbar() {
                     {link.icon}
                     {link.label}
                   </Link>
-                )
+                ),
               )}
 
             {/* Search */}

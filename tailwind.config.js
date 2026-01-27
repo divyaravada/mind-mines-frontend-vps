@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        marblewhite: "#f8fcfe",
+        marblewhite: "#ffffff",
         marbleblack: "#17160f",
         backnewswhite: "#d78822", // brand orange
         backnewsdark: "#134800", // brand green
