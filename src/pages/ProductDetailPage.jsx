@@ -6,9 +6,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import Zoom from "react-medium-image-zoom";
-import "react-medium-image-zoom/dist/styles.css";
-
 import { productTitle } from "../lib/i18n";
 import { useDispatch, useSelector } from "react-redux";
 import { addItem } from "../features/cart/cartSlice";
@@ -60,6 +57,32 @@ export default function ProductDetailPage() {
   const { data: product, isLoading } = useGetProductQuery(numericId, {
     skip: !numericId,
   });
+
+  // ✅ Lightbox state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [zoom, setZoom] = useState(1);
+
+  const openLightbox = useCallback((idx) => {
+    setLightboxIndex(Number(idx || 0));
+    setZoom(1);
+    setIsLightboxOpen(true);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false);
+    setZoom(1);
+  }, []);
+
+  // ESC to close
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isLightboxOpen, closeLightbox]);
 
   // --------- SEO helpers ----------
   const correctSlug = useMemo(() => {
@@ -203,6 +226,36 @@ export default function ProductDetailPage() {
     const n = parseFloat(s);
     return isNaN(n) ? 0 : n;
   };
+
+  // track view
+  useEffect(() => {
+    if (!product) return;
+    const price = resolveProductPrice(product);
+    const stock = Number(product?.stock ?? product?.quantity ?? 0);
+    track({
+      event_type: "product_view",
+      product_id: product.id,
+      category: product.category,
+      price,
+      stock,
+      key: product.key || null,
+    });
+  }, [product, track]);
+
+  // ---------- loading / error ----------
+  if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
+  if (isLoading)
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.loading")}
+      </div>
+    );
+  if (!product)
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.notFound")}
+      </div>
+    );
 
   // ---------- SEO derived ----------
   const currentOrigin =
@@ -353,57 +406,6 @@ export default function ProductDetailPage() {
   const deliveryLines = toArray(rawDelivery);
   const returnsLines = toArray(rawReturns);
 
-  // track view
-  useEffect(() => {
-    if (!product) return;
-    const price = resolveProductPrice(product);
-    const stock = Number(product?.stock ?? product?.quantity ?? 0);
-    track({
-      event_type: "product_view",
-      product_id: product.id,
-      category: product.category,
-      price,
-      stock,
-      key: product.key || null,
-    });
-  }, [product, track]);
-
-  // ✅ Media modal state
-  const [mediaOpen, setMediaOpen] = useState(false);
-  const [mediaIndex, setMediaIndex] = useState(0);
-
-  const openMedia = useCallback((idx) => {
-    setMediaIndex(Number(idx) || 0);
-    setMediaOpen(true);
-  }, []);
-
-  const closeMedia = useCallback(() => setMediaOpen(false), []);
-
-  // close on ESC
-  useEffect(() => {
-    if (!mediaOpen) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") closeMedia();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [mediaOpen, closeMedia]);
-
-  // ---------- loading / error ----------
-  if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
-  if (isLoading)
-    return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
-        {t("common.loading")}
-      </div>
-    );
-  if (!product)
-    return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
-        {t("common.notFound")}
-      </div>
-    );
-
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
@@ -428,88 +430,130 @@ export default function ProductDetailPage() {
           </script>
         </Helmet>
 
-        {/* ✅ Media Modal (80% screen) */}
-        {mediaOpen && (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center"
-            role="dialog"
-            aria-modal="true"
-          >
+        {/* ✅ LIGHTBOX */}
+        {isLightboxOpen && (
+          <div className="fixed inset-0 z-[999]">
             <div
               className="absolute inset-0 bg-black/70"
-              onClick={closeMedia}
+              onClick={closeLightbox}
             />
-            <div className="relative w-[90vw] h-[80vh] max-w-6xl bg-white dark:bg-neutral-900 rounded-2xl shadow-xl overflow-hidden ring-1 ring-black/10 dark:ring-white/10">
-              <div className="absolute top-3 right-3 z-10">
-                <button
-                  onClick={closeMedia}
-                  className="px-3 py-1.5 rounded-lg bg-white/90 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-neutral-700 shadow-sm"
-                >
-                  {t("common.close", { defaultValue: "Close" })}
-                </button>
-              </div>
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div
+                className="relative w-[92vw] max-w-6xl h-[80vh] bg-white dark:bg-neutral-950 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Top controls */}
+                <div className="absolute top-3 right-3 z-20 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setZoom((z) => Math.max(1, Number((z - 0.25).toFixed(2))))
+                    }
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Zoom out"
+                    title="Zoom out"
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setZoom((z) => Math.min(4, Number((z + 0.25).toFixed(2))))
+                    }
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Zoom in"
+                    title="Zoom in"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoom(1)}
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Reset zoom"
+                    title="Reset zoom"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeLightbox}
+                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
+                    aria-label="Close"
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-              {/* Carousel */}
-              <div className="h-full">
-                <Carousel
-                  selectedItem={mediaIndex}
-                  onChange={(idx) => setMediaIndex(idx)}
-                  showThumbs
-                  showStatus={false}
-                  infiniteLoop
-                  useKeyboardArrows
-                  swipeable
-                  emulateTouch
-                  className="h-full"
-                >
-                  {product.media?.length
-                    ? product.media.map((m, i) =>
-                        m.media_type === "video" && m.video ? (
-                          <div
-                            key={i}
-                            className="h-[70vh] flex items-center justify-center bg-black"
-                          >
-                            <ReactPlayer
-                              url={m.video}
-                              controls
-                              width="100%"
-                              height="100%"
-                            />
-                          </div>
-                        ) : (
-                          <div
-                            key={i}
-                            className="h-[70vh] flex items-center justify-center bg-black"
-                          >
-                            <Zoom>
+                {/* Carousel */}
+                <div className="h-full">
+                  <Carousel
+                    selectedItem={lightboxIndex}
+                    onChange={(idx) => {
+                      setLightboxIndex(idx);
+                      setZoom(1); // reset zoom when changing slide
+                    }}
+                    showThumbs={false}
+                    showStatus={false}
+                    infiniteLoop
+                    useKeyboardArrows
+                    swipeable
+                    emulateTouch
+                    className="h-full"
+                  >
+                    {product.media?.length
+                      ? product.media.map((m, i) =>
+                          m.media_type === "video" && m.video ? (
+                            <div
+                              key={i}
+                              className="h-[80vh] flex items-center justify-center bg-black"
+                            >
+                              <div className="w-full max-w-4xl px-3">
+                                <ReactPlayer
+                                  src={m.video}
+                                  controls
+                                  width="100%"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              key={i}
+                              className="h-[80vh] bg-black flex items-center justify-center"
+                            >
                               <img
                                 src={m.image}
                                 alt={`${productTitle(product, lang)} – ${i + 1}`}
-                                className="max-h-[70vh] w-auto object-contain"
-                                loading="lazy"
-                                decoding="async"
+                                className="max-h-[80vh] max-w-full object-contain select-none"
+                                style={{
+                                  transform: `scale(${zoom})`,
+                                  transformOrigin: "center",
+                                }}
+                                draggable={false}
                               />
-                            </Zoom>
-                          </div>
-                        ),
-                      )
-                    : [
-                        <div
-                          key="default"
-                          className="h-[70vh] flex items-center justify-center bg-black"
-                        >
-                          <Zoom>
+                            </div>
+                          ),
+                        )
+                      : [
+                          <div
+                            key="default"
+                            className="h-[80vh] bg-black flex items-center justify-center"
+                          >
                             <img
                               src={product.image}
                               alt={productTitle(product, lang)}
-                              className="max-h-[70vh] w-auto object-contain"
-                              loading="lazy"
-                              decoding="async"
+                              className="max-h-[80vh] max-w-full object-contain select-none"
+                              style={{
+                                transform: `scale(${zoom})`,
+                                transformOrigin: "center",
+                              }}
+                              draggable={false}
                             />
-                          </Zoom>
-                        </div>,
-                      ]}
-                </Carousel>
+                          </div>,
+                        ]}
+                  </Carousel>
+                </div>
               </div>
             </div>
           </div>
@@ -544,7 +588,7 @@ export default function ProductDetailPage() {
                             loading="lazy"
                             decoding="async"
                             className="cursor-zoom-in"
-                            onClick={() => openMedia(i)}
+                            onClick={() => openLightbox(i)} // ✅ open lightbox
                           />
                         </div>
                       ),
@@ -558,16 +602,11 @@ export default function ProductDetailPage() {
                           loading="lazy"
                           decoding="async"
                           className="cursor-zoom-in"
-                          onClick={() => openMedia(0)}
+                          onClick={() => openLightbox(0)} // ✅ open lightbox
                         />
                       </div>,
                     ]}
               </Carousel>
-              <div className="mt-2 text-xs text-gray-500 dark:text-gray-300 text-center">
-                {t("productDetail.tapToZoom", {
-                  defaultValue: "Tap image to open, swipe left/right, zoom in.",
-                })}
-              </div>
             </div>
           </div>
 
@@ -699,6 +738,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
+            {/* Add to cart respects stock */}
             <button
               onClick={handleAddToCart}
               disabled={isOut}
@@ -713,6 +753,7 @@ export default function ProductDetailPage() {
 
         {/* TABS */}
         <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
+          {/* TAB HEADERS */}
           <div className="flex flex-col sm:flex-row sm:overflow-x-auto no-scrollbar gap-2 sm:border-b dark:sm:border-neutral-800">
             {["details", "care", "policy"].map((key) => (
               <button
@@ -734,6 +775,7 @@ export default function ProductDetailPage() {
             ))}
           </div>
 
+          {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
             {activeTab === "details" && (
               <>
@@ -852,16 +894,10 @@ export default function ProductDetailPage() {
                   <img
                     src={p.image}
                     alt={productTitle(p, lang)}
-                    className="w-full h-40 object-cover rounded-lg mb-2 cursor-zoom-in"
+                    className="w-full h-40 object-cover rounded-lg mb-2"
                     fetchPriority="high"
                     loading="lazy"
                     decoding="async"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      // open modal starting at 0 (only main img here)
-                      openMedia(0);
-                    }}
                   />
                   <div className="font-semibold truncate">
                     {productTitle(p, lang)}
