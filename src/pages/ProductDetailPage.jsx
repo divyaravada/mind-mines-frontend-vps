@@ -204,36 +204,6 @@ export default function ProductDetailPage() {
     return isNaN(n) ? 0 : n;
   };
 
-  // track view
-  useEffect(() => {
-    if (!product) return;
-    const price = resolveProductPrice(product);
-    const stock = Number(product?.stock ?? product?.quantity ?? 0);
-    track({
-      event_type: "product_view",
-      product_id: product.id,
-      category: product.category,
-      price,
-      stock,
-      key: product.key || null,
-    });
-  }, [product, track]);
-
-  // ---------- loading / error ----------
-  if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
-  if (isLoading)
-    return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
-        {t("common.loading")}
-      </div>
-    );
-  if (!product)
-    return (
-      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
-        {t("common.notFound")}
-      </div>
-    );
-
   // ---------- SEO derived ----------
   const currentOrigin =
     typeof window !== "undefined"
@@ -383,16 +353,31 @@ export default function ProductDetailPage() {
   const deliveryLines = toArray(rawDelivery);
   const returnsLines = toArray(rawReturns);
 
+  // track view
+  useEffect(() => {
+    if (!product) return;
+    const price = resolveProductPrice(product);
+    const stock = Number(product?.stock ?? product?.quantity ?? 0);
+    track({
+      event_type: "product_view",
+      product_id: product.id,
+      category: product.category,
+      price,
+      stock,
+      key: product.key || null,
+    });
+  }, [product, track]);
+
   // ✅ Media modal state
   const [mediaOpen, setMediaOpen] = useState(false);
   const [mediaIndex, setMediaIndex] = useState(0);
 
-  const openMedia = (idx) => {
+  const openMedia = useCallback((idx) => {
     setMediaIndex(Number(idx) || 0);
     setMediaOpen(true);
-  };
+  }, []);
 
-  const closeMedia = () => setMediaOpen(false);
+  const closeMedia = useCallback(() => setMediaOpen(false), []);
 
   // close on ESC
   useEffect(() => {
@@ -402,7 +387,22 @@ export default function ProductDetailPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [mediaOpen]);
+  }, [mediaOpen, closeMedia]);
+
+  // ---------- loading / error ----------
+  if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
+  if (isLoading)
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.loading")}
+      </div>
+    );
+  if (!product)
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack flex items-center justify-center">
+        {t("common.notFound")}
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
