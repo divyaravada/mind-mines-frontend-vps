@@ -11,7 +11,7 @@ import {
   Menu,
   ChevronDown,
 } from "lucide-react";
-import DarkLogo from "../assets/BlackLogo.png";
+import DarkLogo from "../assets/OrangeLogo.png";
 import LightLogo from "../assets/OrangeLogo.png";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
