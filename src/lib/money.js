@@ -14,7 +14,7 @@ export const getBaseGross = (p) =>
     p?.price_gross ??
       p?.vat_price ?? // legacy
       p?.price ?? // legacy (might be net on some APIs)
-      0
+      0,
   );
 // Candidate sale/final gross (incl. VAT)
 export const resolveProductPrice = (p) =>
@@ -25,7 +25,8 @@ export const resolveProductPrice = (p) =>
       p?.vat_price ?? // legacy
       p?.final_price ?? // legacy
       p?.price ?? // legacy (sometimes net)
-      0
+      p?.price_gross_display ?? // some APIs
+      0,
   );
 
 // Original/base gross used for strike-through
