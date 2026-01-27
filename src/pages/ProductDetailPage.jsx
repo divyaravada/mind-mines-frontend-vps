@@ -58,27 +58,39 @@ export default function ProductDetailPage() {
     skip: !numericId,
   });
 
-  // ✅ Lightbox state
+  // ✅ Lightbox state (FULLSCREEN)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [zoom, setZoom] = useState(1);
+  const [zoomed, setZoomed] = useState(false);
 
   const openLightbox = useCallback((idx) => {
     setLightboxIndex(Number(idx || 0));
-    setZoom(1);
+    setZoomed(false);
     setIsLightboxOpen(true);
   }, []);
 
   const closeLightbox = useCallback(() => {
     setIsLightboxOpen(false);
-    setZoom(1);
+    setZoomed(false);
   }, []);
+
+  // Lock body scroll when modal open
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isLightboxOpen]);
 
   // ESC to close
   useEffect(() => {
     if (!isLightboxOpen) return;
     const onKey = (e) => {
       if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") setZoomed(false);
+      if (e.key === "ArrowRight") setZoomed(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -215,6 +227,14 @@ export default function ProductDetailPage() {
   const [revRating, setRevRating] = useState(5);
   const [revMessage, setRevMessage] = useState("");
   const fileRef = useRef(null);
+
+  // Build modal media list once (includes fallback)
+  const modalMedia = useMemo(() => {
+    if (!product) return [];
+    if (Array.isArray(product.media) && product.media.length)
+      return product.media;
+    return product.image ? [{ media_type: "image", image: product.image }] : [];
+  }, [product]);
 
   useEffect(() => setQty(1), [numericId]);
 
@@ -430,131 +450,106 @@ export default function ProductDetailPage() {
           </script>
         </Helmet>
 
-        {/* ✅ LIGHTBOX */}
+        {/* ✅ FULLSCREEN LIGHTBOX MODAL (100% screen) */}
         {isLightboxOpen && (
-          <div className="fixed inset-0 z-[999]">
-            <div
-              className="absolute inset-0 bg-black/70"
-              onClick={closeLightbox}
-            />
-            <div className="absolute inset-0 flex items-center justify-center p-4">
-              <div
-                className="relative w-[92vw] max-w-6xl h-[80vh] bg-white dark:bg-neutral-950 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Top controls */}
-                <div className="absolute top-3 right-3 z-20 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setZoom((z) => Math.max(1, Number((z - 0.25).toFixed(2))))
-                    }
-                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
-                    aria-label="Zoom out"
-                    title="Zoom out"
-                  >
-                    −
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setZoom((z) => Math.min(4, Number((z + 0.25).toFixed(2))))
-                    }
-                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
-                    aria-label="Zoom in"
-                    title="Zoom in"
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoom(1)}
-                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
-                    aria-label="Reset zoom"
-                    title="Reset zoom"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeLightbox}
-                    className="px-3 py-2 rounded-lg bg-black/70 text-white text-sm hover:bg-black/80"
-                    aria-label="Close"
-                    title="Close"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Carousel */}
-                <div className="h-full">
-                  <Carousel
-                    selectedItem={lightboxIndex}
-                    onChange={(idx) => {
-                      setLightboxIndex(idx);
-                      setZoom(1); // reset zoom when changing slide
-                    }}
-                    showThumbs={false}
-                    showStatus={false}
-                    infiniteLoop
-                    useKeyboardArrows
-                    swipeable
-                    emulateTouch
-                    className="h-full"
-                  >
-                    {product.media?.length
-                      ? product.media.map((m, i) =>
-                          m.media_type === "video" && m.video ? (
-                            <div
-                              key={i}
-                              className="h-[80vh] flex items-center justify-center bg-black"
-                            >
-                              <div className="w-full max-w-4xl px-3">
-                                <ReactPlayer
-                                  src={m.video}
-                                  controls
-                                  width="100%"
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div
-                              key={i}
-                              className="h-[80vh] bg-black flex items-center justify-center"
-                            >
-                              <img
-                                src={m.image}
-                                alt={`${productTitle(product, lang)} – ${i + 1}`}
-                                className="max-h-[80vh] max-w-full object-contain select-none"
-                                style={{
-                                  transform: `scale(${zoom})`,
-                                  transformOrigin: "center",
-                                }}
-                                draggable={false}
-                              />
-                            </div>
-                          ),
-                        )
-                      : [
-                          <div
-                            key="default"
-                            className="h-[80vh] bg-black flex items-center justify-center"
-                          >
-                            <img
-                              src={product.image}
-                              alt={productTitle(product, lang)}
-                              className="max-h-[80vh] max-w-full object-contain select-none"
-                              style={{
-                                transform: `scale(${zoom})`,
-                                transformOrigin: "center",
-                              }}
-                              draggable={false}
-                            />
-                          </div>,
-                        ]}
-                  </Carousel>
-                </div>
+          <div className="fixed inset-0 z-[9999] w-screen h-screen bg-black">
+            {/* Top bar */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3">
+              <div className="text-white/80 text-sm truncate pr-3">
+                {productTitle(product, lang)}
               </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setZoomed((z) => !z)}
+                  className="px-3 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/15"
+                  aria-label="Toggle zoom"
+                  title="Toggle zoom"
+                >
+                  {zoomed ? "−" : "+"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={closeLightbox}
+                  className="px-3 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/15"
+                  aria-label="Close"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Carousel area (full height) */}
+            <div className="h-screen w-screen pt-12">
+              <Carousel
+                selectedItem={lightboxIndex}
+                onChange={(idx) => {
+                  setLightboxIndex(idx);
+                  setZoomed(false); // reset zoom when changing slide
+                }}
+                showThumbs={false}
+                showStatus={false}
+                infiniteLoop
+                useKeyboardArrows
+                swipeable
+                emulateTouch
+                showIndicators
+                stopOnHover={false}
+                className="h-full"
+                renderIndicator={(onClickHandler, isSelected, index, label) => {
+                  const base =
+                    "inline-block w-2.5 h-2.5 rounded-full mx-1 cursor-pointer transition";
+                  const cls = isSelected
+                    ? `${base} bg-white`
+                    : `${base} bg-white/40 hover:bg-white/70`;
+                  return (
+                    <span
+                      key={index}
+                      className={cls}
+                      onClick={onClickHandler}
+                      onKeyDown={onClickHandler}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${label} ${index + 1}`}
+                      title={`${label} ${index + 1}`}
+                    />
+                  );
+                }}
+              >
+                {modalMedia.map((m, i) =>
+                  m.media_type === "video" && m.video ? (
+                    <div
+                      key={i}
+                      className="h-[calc(100vh-48px)] w-screen flex items-center justify-center"
+                    >
+                      <div className="w-full max-w-5xl px-3">
+                        <ReactPlayer src={m.video} controls width="100%" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      key={i}
+                      className="h-[calc(100vh-48px)] w-screen flex items-center justify-center"
+                    >
+                      <img
+                        src={m.image}
+                        alt={`${productTitle(product, lang)} – ${i + 1}`}
+                        draggable={false}
+                        className="max-h-full max-w-full object-contain select-none cursor-zoom-in"
+                        style={{
+                          transform: zoomed ? "scale(2.2)" : "scale(1)",
+                          transformOrigin: "center",
+                          transition: "transform 180ms ease",
+                        }}
+                        onClick={() => setZoomed((z) => !z)} // ✅ one click zoom in/out
+                      />
+                    </div>
+                  ),
+                )}
+              </Carousel>
             </div>
           </div>
         )}
@@ -568,41 +563,59 @@ export default function ProductDetailPage() {
                 showStatus={false}
                 infiniteLoop
                 useKeyboardArrows
-                dynamicHeight
+                swipeable
+                emulateTouch
+                dynamicHeight={false} // ✅ keep stable height
                 className="rounded-lg"
               >
                 {product.media?.length
                   ? product.media.map((m, i) =>
                       m.media_type === "video" && m.video ? (
-                        <div key={i} className="aspect-square">
-                          <ReactPlayer src={m.video} controls width="100%" />
+                        <div
+                          key={i}
+                          className="aspect-square bg-black flex items-center justify-center"
+                        >
+                          <div className="w-full h-full">
+                            <ReactPlayer
+                              src={m.video}
+                              controls
+                              width="100%"
+                              height="100%"
+                            />
+                          </div>
                         </div>
                       ) : (
-                        <div key={i}>
+                        <div
+                          key={i}
+                          className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                        >
                           <img
                             src={m.image}
                             alt={`${productTitle(product, lang)} – ${i + 1}`}
                             fetchPriority="high"
                             height={1200}
-                            width={800}
+                            width={1200}
                             loading="lazy"
                             decoding="async"
-                            className="cursor-zoom-in"
-                            onClick={() => openLightbox(i)} // ✅ open lightbox
+                            className="w-full h-full object-contain cursor-zoom-in"
+                            onClick={() => openLightbox(i)} // ✅ open fullscreen modal
                           />
                         </div>
                       ),
                     )
                   : [
-                      <div key="default">
+                      <div
+                        key="default"
+                        className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                      >
                         <img
                           src={product.image}
                           alt={productTitle(product, lang)}
                           fetchPriority="high"
                           loading="lazy"
                           decoding="async"
-                          className="cursor-zoom-in"
-                          onClick={() => openLightbox(0)} // ✅ open lightbox
+                          className="w-full h-full object-contain cursor-zoom-in"
+                          onClick={() => openLightbox(0)}
                         />
                       </div>,
                     ]}
