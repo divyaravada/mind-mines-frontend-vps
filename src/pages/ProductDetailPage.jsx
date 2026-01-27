@@ -74,13 +74,22 @@ export default function ProductDetailPage() {
     setZoomed(false);
   }, []);
 
-  // Lock body scroll when modal open
+  // Lock body scroll when modal open (desktop + iOS)
   useEffect(() => {
     if (!isLightboxOpen) return;
-    const prev = document.body.style.overflow;
+
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, scrollY);
     };
   }, [isLightboxOpen]);
 
@@ -453,104 +462,90 @@ export default function ProductDetailPage() {
         {/* ✅ FULLSCREEN LIGHTBOX MODAL (100% screen) */}
         {isLightboxOpen && (
           <div className="fixed inset-0 z-[9999] w-screen h-screen bg-black">
-            {/* Top bar */}
-            <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3">
-              <div className="text-white/80 text-sm truncate pr-3">
+            {/* TOP BAR */}
+            <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3">
+              <div className="text-white/80 text-sm truncate">
                 {productTitle(product, lang)}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2">
                 <button
-                  type="button"
                   onClick={() => setZoomed((z) => !z)}
-                  className="px-3 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/15"
-                  aria-label="Toggle zoom"
-                  title="Toggle zoom"
+                  className="px-3 py-2 rounded-lg bg-white/10 text-white"
                 >
                   {zoomed ? "−" : "+"}
                 </button>
-
                 <button
-                  type="button"
                   onClick={closeLightbox}
-                  className="px-3 py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/15"
-                  aria-label="Close"
-                  title="Close"
+                  className="px-3 py-2 rounded-lg bg-white/10 text-white"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            {/* Carousel area (full height) */}
-            <div className="h-screen w-screen pt-12">
-              <Carousel
-                selectedItem={lightboxIndex}
-                onChange={(idx) => {
-                  setLightboxIndex(idx);
-                  setZoomed(false); // reset zoom when changing slide
-                }}
-                showThumbs={false}
-                showStatus={false}
-                infiniteLoop
-                useKeyboardArrows
-                swipeable
-                emulateTouch
-                showIndicators
-                stopOnHover={false}
-                className="h-full"
-                renderIndicator={(onClickHandler, isSelected, index, label) => {
-                  const base =
-                    "inline-block w-2.5 h-2.5 rounded-full mx-1 cursor-pointer transition";
-                  const cls = isSelected
-                    ? `${base} bg-white`
-                    : `${base} bg-white/40 hover:bg-white/70`;
-                  return (
-                    <span
-                      key={index}
-                      className={cls}
-                      onClick={onClickHandler}
-                      onKeyDown={onClickHandler}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${label} ${index + 1}`}
-                      title={`${label} ${index + 1}`}
+            {/* CAROUSEL */}
+            <Carousel
+              selectedItem={lightboxIndex}
+              onChange={(idx) => {
+                setLightboxIndex(idx);
+                setZoomed(false);
+              }}
+              showThumbs={false}
+              showStatus={false}
+              showIndicators
+              infiniteLoop
+              swipeable={!zoomed} // ✅ disable swipe when zoomed
+              emulateTouch={!zoomed}
+              useKeyboardArrows
+              className="h-screen"
+              renderIndicator={(onClick, isSelected, index) => (
+                <span
+                  key={index}
+                  onClick={onClick}
+                  className={`inline-block w-2.5 h-2.5 mx-1 rounded-full cursor-pointer
+            ${isSelected ? "bg-white" : "bg-white/40"}`}
+                />
+              )}
+            >
+              {modalMedia.map((m, i) =>
+                m.media_type === "video" && m.video ? (
+                  <div
+                    key={i}
+                    className="h-screen w-screen flex items-center justify-center"
+                  >
+                    <div className="w-full max-w-5xl px-4">
+                      <ReactPlayer src={m.video} controls width="100%" />
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className="h-screen w-screen flex items-center justify-center"
+                  >
+                    <img
+                      src={m.image}
+                      alt={`${productTitle(product, lang)} – ${i + 1}`}
+                      draggable={false}
+                      onClick={() => setZoomed((z) => !z)}
+                      className="max-h-full max-w-full object-contain select-none"
+                      style={{
+                        transform: zoomed ? "scale(2.2)" : "scale(1)",
+                        transition: "transform 200ms ease",
+                      }}
                     />
-                  );
-                }}
-              >
-                {modalMedia.map((m, i) =>
-                  m.media_type === "video" && m.video ? (
-                    <div
-                      key={i}
-                      className="h-[calc(100vh-48px)] w-screen flex items-center justify-center"
-                    >
-                      <div className="w-full max-w-5xl px-3">
-                        <ReactPlayer src={m.video} controls width="100%" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={i}
-                      className="h-[calc(100vh-48px)] w-screen flex items-center justify-center"
-                    >
-                      <img
-                        src={m.image}
-                        alt={`${productTitle(product, lang)} – ${i + 1}`}
-                        draggable={false}
-                        className="max-h-full max-w-full object-contain select-none cursor-zoom-in"
-                        style={{
-                          transform: zoomed ? "scale(2.2)" : "scale(1)",
-                          transformOrigin: "center",
-                          transition: "transform 180ms ease",
-                        }}
-                        onClick={() => setZoomed((z) => !z)} // ✅ one click zoom in/out
-                      />
-                    </div>
-                  ),
-                )}
-              </Carousel>
-            </div>
+                  </div>
+                ),
+              )}
+            </Carousel>
+
+            {/* DOTS POSITION FIX */}
+            <style>{`
+      .carousel .control-dots {
+        bottom: 16px !important;
+        z-index: 40;
+      }
+    `}</style>
           </div>
         )}
 
