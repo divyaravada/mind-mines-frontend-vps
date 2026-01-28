@@ -28,6 +28,7 @@ import ProductReviews from "../components/ProductReviews";
 import LowStockBanner from "../components/LowStockBanner";
 import OnDemandModal from "../components/OnDemandModal";
 import OutOfStockNotify from "../components/OutOfStockNotify";
+import LightboxModal from "../components/LightboxModal";
 import { Heart } from "lucide-react";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import {
@@ -64,10 +65,20 @@ export default function ProductDetailPage() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [zoomed, setZoomed] = useState(false);
 
-  const openLightbox = useCallback((idx) => {
-    console.log("OPEN LIGHTBOX", idx);
-    setLightboxIndex(Number(idx || 0));
-    setZoomed(false);
+  // sync state
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  // clicked image rect for animation
+  const [originRect, setOriginRect] = useState(null);
+
+  // keep refs for each slide wrapper to compute rect
+  const slideRefs = useRef([]);
+
+  const openLightbox = useCallback((i) => {
+    console.log("OPEN LIGHTBOX", i);
+    const el = slideRefs.current[i];
+    if (el) setOriginRect(el.getBoundingClientRect());
+    setLightboxIndex(i);
     setIsLightboxOpen(true);
   }, []);
 
@@ -600,6 +611,12 @@ export default function ProductDetailPage() {
                 }}
               >
                 <Carousel
+                  selectedItem={carouselIndex}
+                  onChange={(i) => {
+                    setCarouselIndex(i);
+                    // keep lightbox ready in sync if it’s open
+                    if (isLightboxOpen) setLightboxIndex(i);
+                  }}
                   showThumbs
                   showStatus={false}
                   infiniteLoop
@@ -624,7 +641,8 @@ export default function ProductDetailPage() {
                     ) : (
                       <div
                         key={i}
-                        className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                        ref={(node) => (slideRefs.current[i] = node)}
+                        className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center cursor-zoom-in"
                         role="button"
                         tabIndex={0}
                         onMouseDown={onSlideDown}
@@ -634,8 +652,7 @@ export default function ProductDetailPage() {
                         onTouchMove={onSlideMove}
                         onTouchEnd={() => onSlideUp(i)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ")
-                            openLightbox(i);
+                          if (e.key === "Enter" || e.key === " ") onSlideUp(i);
                         }}
                       >
                         <img
@@ -738,6 +755,21 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
+          <LightboxModal
+            open={isLightboxOpen}
+            images={modalMedia}
+            index={lightboxIndex}
+            originRect={originRect}
+            altPrefix={productTitle(product, lang)}
+            onIndexChange={(i) => {
+              setLightboxIndex(i);
+              setCarouselIndex(i); // ✅ sync thumbs ↔ fullscreen
+            }}
+            onClose={() => {
+              // ✅ close animation goes back to originRect
+              setIsLightboxOpen(false);
+            }}
+          />
           {/* INFO */}
           <div className="flex-1 flex flex-col gap-4 dark:text-backnewsdark">
             <div className="text-xs text-gray-500">
