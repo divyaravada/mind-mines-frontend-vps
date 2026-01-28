@@ -39,37 +39,39 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      const payload = action.payload || {};
-      const productId = Number(payload.productId ?? payload.id); // ✅ ensure productId always exists
+      const { id, title, name, price, image, ...rest } = action.payload || {};
+      const itemTitle = title || name || "";
+      const p = Number(price) || 0;
 
-      const itemTitle = payload.title || payload.name || "";
-      const p = Number(payload.price) || 0;
-
-      // ✅ use productId to find existing item
-      const found = state.items.find((i) => Number(i.productId) === productId);
-
+      const found = state.items.find((i) => i.id === id);
       if (found) {
         found.qty = Math.max(1, Number(found.qty || 1) + 1);
         found.name = itemTitle;
         found.title = itemTitle;
         found.price = p;
-        if (payload.image) found.image = payload.image;
-        Object.assign(found, payload);
+        if (image) found.image = image;
+        Object.assign(found, rest);
       } else {
         state.items.push({
-          // ✅ keep old id if you want, but store productId always
-          id: productId, // (keep to avoid breaking UI)
-          productId: productId, // ✅ important for backend/admin
+          id,
           name: itemTitle,
           title: itemTitle,
           price: p,
-          image: payload.image || "",
+          image: image || "",
           qty: 1,
-          ...payload,
+          ...rest,
         });
       }
       save(state.items);
     },
+
+    // ✅ ADD THIS (new)
+    setCartItems: (state, action) => {
+      const items = Array.isArray(action.payload) ? action.payload : [];
+      state.items = items;
+      save(state.items);
+    },
+
     removeItem: (state, action) => {
       state.items = state.items.filter((i) => i.id !== action.payload);
       save(state.items);
@@ -89,7 +91,9 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addItem, removeItem, setQty, clearCart } = cartSlice.actions;
+// ✅ export it here
+export const { addItem, removeItem, setQty, clearCart, setCartItems } =
+  cartSlice.actions;
 
 export const updateQty = cartSlice.actions.setQty;
 
