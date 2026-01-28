@@ -65,6 +65,7 @@ export default function ProductDetailPage() {
   const [zoomed, setZoomed] = useState(false);
 
   const openLightbox = useCallback((idx) => {
+    console.log("OPEN LIGHTBOX", idx);
     setLightboxIndex(Number(idx || 0));
     setZoomed(false);
     setIsLightboxOpen(true);
@@ -590,21 +591,16 @@ export default function ProductDetailPage() {
                 }}
               >
                 <Carousel
-                  selectedItem={lightboxIndex}
-                  onChange={(idx) => {
-                    setLightboxIndex(idx);
-                    setZoomed(false);
-                  }}
-                  showThumbs={false}
+                  showThumbs
                   showStatus={false}
-                  showIndicators
                   infiniteLoop
                   useKeyboardArrows
-                  swipeable={!zoomed}
-                  emulateTouch={!zoomed}
+                  swipeable
+                  emulateTouch
+                  dynamicHeight={false}
                   preventMovementUntilSwipeScrollTolerance
                   swipeScrollTolerance={8}
-                  stopOnHover={false}
+                  className="rounded-lg"
                 >
                   {modalMedia.map((m, i) =>
                     m.media_type === "video" && m.video ? (
