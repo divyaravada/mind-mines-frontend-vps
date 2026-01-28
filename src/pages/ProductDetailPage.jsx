@@ -59,7 +59,7 @@ export default function ProductDetailPage() {
     skip: !numericId,
   });
 
-  // ✅ Lightbox state (FULLSCREEN)
+  // ✅ Lightbox state
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -73,6 +73,31 @@ export default function ProductDetailPage() {
   const closeLightbox = useCallback(() => {
     setIsLightboxOpen(false);
     setZoomed(false);
+  }, []);
+
+  // ✅ Tap vs Swipe detection (MUST be declared before early returns)
+  const pointerRef = useRef({ down: false, x: 0, y: 0, moved: false });
+
+  const onImgPointerDown = useCallback((e) => {
+    const p = e.touches?.[0] ?? e;
+    pointerRef.current.down = true;
+    pointerRef.current.x = p.clientX ?? 0;
+    pointerRef.current.y = p.clientY ?? 0;
+    pointerRef.current.moved = false;
+  }, []);
+
+  const onImgPointerMove = useCallback((e) => {
+    if (!pointerRef.current.down) return;
+    const p = e.touches?.[0] ?? e;
+    const dx = Math.abs((p.clientX ?? 0) - pointerRef.current.x);
+    const dy = Math.abs((p.clientY ?? 0) - pointerRef.current.y);
+    if (dx > 8 || dy > 8) pointerRef.current.moved = true;
+  }, []);
+
+  const onImgPointerUp = useCallback(() => {
+    if (!pointerRef.current.down) return;
+    pointerRef.current.down = false;
+    if (!pointerRef.current.moved) setZoomed((z) => !z);
   }, []);
 
   // Lock body scroll when modal open (desktop + iOS)
@@ -154,7 +179,7 @@ export default function ProductDetailPage() {
       try {
         trackEvent(payload);
       } catch {
-        /* ignore tracking errors */
+        /* ignore */
       }
     },
     [trackEvent],
@@ -467,58 +492,44 @@ export default function ProductDetailPage() {
               className="fixed inset-0 z-[999999] bg-black"
               style={{
                 width: "100vw",
-                height: "100dvh", // ✅ real fullscreen on mobile
+                height: "100dvh",
+                overflow: "hidden",
                 overscrollBehavior: "none",
               }}
             >
-              {/* ✅ CSS overrides based on your inspected DOM */}
               <style>{`
-        /* Force true fullscreen */
-        .mm-fullscreen,
-        .mm-fullscreen .carousel-root,
-        .mm-fullscreen .carousel.carousel-slider,
-        .mm-fullscreen .slider-wrapper,
-        .mm-fullscreen .slider,
-        .mm-fullscreen .slide {
-          width: 100vw !important;
-          height: 100dvh !important;
-        }
+                .mm-fs,
+                .mm-fs .carousel-root,
+                .mm-fs .carousel.carousel-slider,
+                .mm-fs .slider-wrapper.axis-horizontal,
+                .mm-fs .slider,
+                .mm-fs .slide {
+                  width: 100vw !important;
+                  height: 100dvh !important;
+                }
+                .mm-fs .slide {
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  background: #000 !important;
+                }
+                .mm-fs .control-dots {
+                  position: fixed !important;
+                  left: 0 !important;
+                  right: 0 !important;
+                  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+                  z-index: 1000002 !important;
+                  display: flex !important;
+                  justify-content: center !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                }
+                .mm-fs .control-arrow { z-index: 1000002 !important; }
+                .mm-fs .slider-wrapper.axis-horizontal { touch-action: pan-x !important; }
+              `}</style>
 
-        /* Center slide contents */
-        .mm-fullscreen .slide {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          background: #000 !important;
-        }
-
-        /* Dots ALWAYS visible */
-        .mm-fullscreen .control-dots {
-          position: fixed !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: max(16px, env(safe-area-inset-bottom)) !important;
-          z-index: 1000000 !important;
-          display: flex !important;
-          justify-content: center !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* Keep arrows above everything */
-        .mm-fullscreen .control-arrow {
-          z-index: 1000000 !important;
-        }
-
-        /* Swipe behavior: allow horizontal swipes */
-        .mm-fullscreen .slider-wrapper.axis-horizontal {
-          touch-action: pan-x !important;
-        }
-      `}</style>
-
-              {/* TOP BAR (always visible) */}
               <div
-                className="fixed left-0 right-0 z-[1000001] flex items-center justify-between px-4 py-3"
+                className="fixed left-0 right-0 z-[1000003] flex items-center justify-between px-4 py-3"
                 style={{
                   top: 0,
                   paddingTop: "max(12px, env(safe-area-inset-top))",
@@ -527,33 +538,26 @@ export default function ProductDetailPage() {
                 <div className="text-white/80 text-sm truncate pr-2">
                   {productTitle(product, lang)}
                 </div>
-
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setZoomed((z) => !z)}
                     className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                    aria-label="Toggle zoom"
-                    title="Toggle zoom"
                   >
                     {zoomed ? "−" : "+"}
                   </button>
-
                   <button
                     type="button"
                     onClick={closeLightbox}
                     className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                    aria-label="Close"
-                    title="Close"
                   >
                     ✕
                   </button>
                 </div>
               </div>
 
-              {/* CONTENT AREA (below topbar) */}
               <div
-                className="mm-fullscreen"
+                className="mm-fs"
                 style={{
                   width: "100vw",
                   height: "100dvh",
@@ -567,52 +571,28 @@ export default function ProductDetailPage() {
                     setLightboxIndex(idx);
                     setZoomed(false);
                   }}
-                  showThumbs={false} // ✅ no thumbs in fullscreen
+                  showThumbs={false}
                   showStatus={false}
-                  showIndicators={true} // ✅ dots enabled
+                  showIndicators
                   infiniteLoop
                   useKeyboardArrows
-                  swipeable={!zoomed} // ✅ lock swipe when zoomed
+                  swipeable={!zoomed}
                   emulateTouch={!zoomed}
                   preventMovementUntilSwipeScrollTolerance
                   swipeScrollTolerance={8}
+                  stopOnHover={false}
                 >
-                  {modalMedia.map((m, i) => {
-                    // ✅ Tap-vs-swipe detection (prevents zoom toggling during swipe)
-                    let sx = 0;
-                    let sy = 0;
-
-                    const down = (e) => {
-                      const p = e.touches?.[0] || e;
-                      sx = p.clientX ?? 0;
-                      sy = p.clientY ?? 0;
-                    };
-
-                    const up = (e) => {
-                      const p = e.changedTouches?.[0] || e;
-                      const ex = p.clientX ?? 0;
-                      const ey = p.clientY ?? 0;
-                      const dx = Math.abs(ex - sx);
-                      const dy = Math.abs(ey - sy);
-
-                      // treat as tap only if almost no movement
-                      if (dx < 8 && dy < 8) setZoomed((z) => !z);
-                    };
-
-                    if (m.media_type === "video" && m.video) {
-                      return (
-                        <div
-                          key={i}
-                          className="w-full h-full flex items-center justify-center"
-                        >
-                          <div className="w-full max-w-5xl px-4">
-                            <ReactPlayer src={m.video} controls width="100%" />
-                          </div>
+                  {modalMedia.map((m, i) =>
+                    m.media_type === "video" && m.video ? (
+                      <div
+                        key={i}
+                        className="w-full h-full flex items-center justify-center"
+                      >
+                        <div className="w-full max-w-5xl px-4">
+                          <ReactPlayer src={m.video} controls width="100%" />
                         </div>
-                      );
-                    }
-
-                    return (
+                      </div>
+                    ) : (
                       <div
                         key={i}
                         className="w-full h-full flex items-center justify-center"
@@ -628,16 +608,18 @@ export default function ProductDetailPage() {
                             transform: zoomed ? "scale(2.2)" : "scale(1)",
                             transition: "transform 220ms ease",
                             transformOrigin: "center",
-                            cursor: "zoom-in",
+                            cursor: zoomed ? "zoom-out" : "zoom-in",
                           }}
-                          onTouchStart={down}
-                          onTouchEnd={up}
-                          onMouseDown={down}
-                          onMouseUp={up}
+                          onTouchStart={onImgPointerDown}
+                          onTouchMove={onImgPointerMove}
+                          onTouchEnd={onImgPointerUp}
+                          onMouseDown={onImgPointerDown}
+                          onMouseMove={onImgPointerMove}
+                          onMouseUp={onImgPointerUp}
                         />
                       </div>
-                    );
-                  })}
+                    ),
+                  )}
                 </Carousel>
               </div>
             </div>,
