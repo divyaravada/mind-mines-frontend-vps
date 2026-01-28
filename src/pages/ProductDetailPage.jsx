@@ -297,6 +297,30 @@ export default function ProductDetailPage() {
     });
   }, [product, track]);
 
+  // helper (put near other hooks)
+  const slideDownRef = useRef({ x: 0, y: 0, moved: false });
+
+  const onSlideDown = useCallback((e) => {
+    const p = e.touches?.[0] ?? e;
+    slideDownRef.current.x = p.clientX ?? 0;
+    slideDownRef.current.y = p.clientY ?? 0;
+    slideDownRef.current.moved = false;
+  }, []);
+
+  const onSlideMove = useCallback((e) => {
+    const p = e.touches?.[0] ?? e;
+    const dx = Math.abs((p.clientX ?? 0) - slideDownRef.current.x);
+    const dy = Math.abs((p.clientY ?? 0) - slideDownRef.current.y);
+    if (dx > 8 || dy > 8) slideDownRef.current.moved = true;
+  }, []);
+
+  const onSlideUp = useCallback(
+    (idx) => {
+      if (!slideDownRef.current.moved) openLightbox(idx);
+    },
+    [openLightbox],
+  );
+
   // ---------- loading / error ----------
   if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
   if (isLoading)
@@ -595,27 +619,30 @@ export default function ProductDetailPage() {
                     ) : (
                       <div
                         key={i}
-                        className="w-full h-full flex items-center justify-center"
+                        className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                        role="button"
+                        tabIndex={0}
+                        onMouseDown={onSlideDown}
+                        onMouseMove={onSlideMove}
+                        onMouseUp={() => onSlideUp(i)}
+                        onTouchStart={onSlideDown}
+                        onTouchMove={onSlideMove}
+                        onTouchEnd={() => onSlideUp(i)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            openLightbox(i);
+                        }}
                       >
                         <img
                           src={m.image}
                           alt={`${productTitle(product, lang)} – ${i + 1}`}
+                          fetchPriority="high"
+                          height={1200}
+                          width={1200}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-contain cursor-zoom-in select-none"
                           draggable={false}
-                          className="select-none object-contain"
-                          style={{
-                            maxWidth: "100%",
-                            maxHeight: "100%",
-                            transform: zoomed ? "scale(2.2)" : "scale(1)",
-                            transition: "transform 220ms ease",
-                            transformOrigin: "center",
-                            cursor: zoomed ? "zoom-out" : "zoom-in",
-                          }}
-                          onTouchStart={onImgPointerDown}
-                          onTouchMove={onImgPointerMove}
-                          onTouchEnd={onImgPointerUp}
-                          onMouseDown={onImgPointerDown}
-                          onMouseMove={onImgPointerMove}
-                          onMouseUp={onImgPointerUp}
                         />
                       </div>
                     ),
