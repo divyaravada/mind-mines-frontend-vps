@@ -301,23 +301,32 @@ export default function ProductDetailPage() {
   // helper (put near other hooks)
   const slideDownRef = useRef({ x: 0, y: 0, moved: false });
 
+  // 🔒 Detect real click vs swipe (carousel-safe)
+  const slidePointer = useRef({
+    x: 0,
+    y: 0,
+    moved: false,
+  });
+
   const onSlideDown = useCallback((e) => {
     const p = e.touches?.[0] ?? e;
-    slideDownRef.current.x = p.clientX ?? 0;
-    slideDownRef.current.y = p.clientY ?? 0;
-    slideDownRef.current.moved = false;
+    slidePointer.current.x = p.clientX;
+    slidePointer.current.y = p.clientY;
+    slidePointer.current.moved = false;
   }, []);
 
   const onSlideMove = useCallback((e) => {
     const p = e.touches?.[0] ?? e;
-    const dx = Math.abs((p.clientX ?? 0) - slideDownRef.current.x);
-    const dy = Math.abs((p.clientY ?? 0) - slideDownRef.current.y);
-    if (dx > 8 || dy > 8) slideDownRef.current.moved = true;
+    const dx = Math.abs(p.clientX - slidePointer.current.x);
+    const dy = Math.abs(p.clientY - slidePointer.current.y);
+    if (dx > 8 || dy > 8) slidePointer.current.moved = true;
   }, []);
 
   const onSlideUp = useCallback(
-    (idx) => {
-      if (!slideDownRef.current.moved) openLightbox(idx);
+    (index) => {
+      if (!slidePointer.current.moved) {
+        openLightbox(index); // ✅ THIS will fire
+      }
     },
     [openLightbox],
   );
@@ -657,11 +666,10 @@ export default function ProductDetailPage() {
                 showThumbs
                 showStatus={false}
                 infiniteLoop
-                useKeyboardArrows
                 swipeable
                 emulateTouch
-                dynamicHeight={false} // ✅ keep stable height
-                className="rounded-lg"
+                preventMovementUntilSwipeScrollTolerance
+                swipeScrollTolerance={8}
               >
                 {product.media?.length
                   ? product.media.map((m, i) =>
@@ -682,7 +690,19 @@ export default function ProductDetailPage() {
                       ) : (
                         <div
                           key={i}
-                          className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                          className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center cursor-zoom-in"
+                          role="button"
+                          tabIndex={0}
+                          onMouseDown={onSlideDown}
+                          onMouseMove={onSlideMove}
+                          onMouseUp={() => onSlideUp(i)}
+                          onTouchStart={onSlideDown}
+                          onTouchMove={onSlideMove}
+                          onTouchEnd={() => onSlideUp(i)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ")
+                              onSlideUp(i);
+                          }}
                         >
                           <img
                             src={m.image}
@@ -692,8 +712,8 @@ export default function ProductDetailPage() {
                             width={1200}
                             loading="lazy"
                             decoding="async"
-                            className="w-full h-full object-contain cursor-zoom-in"
-                            onClick={() => openLightbox(i)} // ✅ open fullscreen modal
+                            draggable={false}
+                            className="w-full h-full object-contain select-none pointer-events-none"
                           />
                         </div>
                       ),
