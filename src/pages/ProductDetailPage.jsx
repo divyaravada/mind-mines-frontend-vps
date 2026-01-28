@@ -460,24 +460,23 @@ export default function ProductDetailPage() {
           </script>
         </Helmet>
 
-        {/* ✅ FULLSCREEN LIGHTBOX MODAL (Portal + true fullscreen + safe-area + tap-vs-swipe) */}
+        {/* ✅ FULLSCREEN LIGHTBOX MODAL (Portal) */}
         {isLightboxOpen &&
           createPortal(
             <div
               className="fixed inset-0 z-[999999] bg-black"
               style={{
-                // real fullscreen on mobile browsers
-                height: "100dvh",
                 width: "100vw",
-                // prevents iOS rubber-band scroll behind overlay
+                height: "100dvh", // ✅ real fullscreen on mobile
                 overscrollBehavior: "none",
               }}
             >
+              {/* ✅ CSS overrides based on your inspected DOM */}
               <style>{`
-        /* Force the carousel to truly fill the viewport */
+        /* Force true fullscreen */
         .mm-fullscreen,
         .mm-fullscreen .carousel-root,
-        .mm-fullscreen .carousel,
+        .mm-fullscreen .carousel.carousel-slider,
         .mm-fullscreen .slider-wrapper,
         .mm-fullscreen .slider,
         .mm-fullscreen .slide {
@@ -485,7 +484,7 @@ export default function ProductDetailPage() {
           height: 100dvh !important;
         }
 
-        /* Keep slide content centered */
+        /* Center slide contents */
         .mm-fullscreen .slide {
           display: flex !important;
           align-items: center !important;
@@ -493,34 +492,37 @@ export default function ProductDetailPage() {
           background: #000 !important;
         }
 
-        /* IMPORTANT: allow horizontal swipe gestures */
-        .mm-fullscreen .slider-wrapper {
-          touch-action: pan-x !important;
-        }
-
-        /* Dots always visible + safe area */
+        /* Dots ALWAYS visible */
         .mm-fullscreen .control-dots {
-          position: absolute !important;
+          position: fixed !important;
           left: 0 !important;
           right: 0 !important;
           bottom: max(16px, env(safe-area-inset-bottom)) !important;
-          z-index: 9999999 !important;
+          z-index: 1000000 !important;
           display: flex !important;
           justify-content: center !important;
           margin: 0 !important;
           padding: 0 !important;
         }
 
-        /* Make arrows stay above content */
+        /* Keep arrows above everything */
         .mm-fullscreen .control-arrow {
-          z-index: 9999999 !important;
+          z-index: 1000000 !important;
+        }
+
+        /* Swipe behavior: allow horizontal swipes */
+        .mm-fullscreen .slider-wrapper.axis-horizontal {
+          touch-action: pan-x !important;
         }
       `}</style>
 
-              {/* Top bar (always accessible) */}
+              {/* TOP BAR (always visible) */}
               <div
-                className="absolute left-0 right-0 z-[1000000] flex items-center justify-between px-4 py-3"
-                style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}
+                className="fixed left-0 right-0 z-[1000001] flex items-center justify-between px-4 py-3"
+                style={{
+                  top: 0,
+                  paddingTop: "max(12px, env(safe-area-inset-top))",
+                }}
               >
                 <div className="text-white/80 text-sm truncate pr-2">
                   {productTitle(product, lang)}
@@ -549,12 +551,14 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Carousel area fills the screen (below topbar) */}
+              {/* CONTENT AREA (below topbar) */}
               <div
-                className="absolute inset-0"
+                className="mm-fullscreen"
                 style={{
+                  width: "100vw",
+                  height: "100dvh",
                   paddingTop:
-                    "calc(max(12px, env(safe-area-inset-top)) + 52px)",
+                    "calc(max(12px, env(safe-area-inset-top)) + 56px)",
                 }}
               >
                 <Carousel
@@ -563,53 +567,35 @@ export default function ProductDetailPage() {
                     setLightboxIndex(idx);
                     setZoomed(false);
                   }}
-                  showThumbs={false}
+                  showThumbs={false} // ✅ no thumbs in fullscreen
                   showStatus={false}
-                  showIndicators
+                  showIndicators={true} // ✅ dots enabled
                   infiniteLoop
                   useKeyboardArrows
-                  swipeable={!zoomed} // disable swipe when zoomed
+                  swipeable={!zoomed} // ✅ lock swipe when zoomed
                   emulateTouch={!zoomed}
-                  stopOnHover={false}
-                  className="mm-fullscreen"
-                  renderIndicator={(onClick, isSelected, index, label) => {
-                    const base =
-                      "inline-block w-2.5 h-2.5 rounded-full mx-1 cursor-pointer transition";
-                    const cls = isSelected
-                      ? `${base} bg-white`
-                      : `${base} bg-white/40 hover:bg-white/70`;
-                    return (
-                      <span
-                        key={index}
-                        className={cls}
-                        onClick={onClick}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`${label} ${index + 1}`}
-                        title={`${label} ${index + 1}`}
-                      />
-                    );
-                  }}
+                  preventMovementUntilSwipeScrollTolerance
+                  swipeScrollTolerance={8}
                 >
                   {modalMedia.map((m, i) => {
-                    // TAP vs SWIPE detection to avoid zoom toggling when user swipes
-                    let startX = 0;
-                    let startY = 0;
+                    // ✅ Tap-vs-swipe detection (prevents zoom toggling during swipe)
+                    let sx = 0;
+                    let sy = 0;
 
-                    const onPointerDown = (e) => {
+                    const down = (e) => {
                       const p = e.touches?.[0] || e;
-                      startX = p.clientX ?? 0;
-                      startY = p.clientY ?? 0;
+                      sx = p.clientX ?? 0;
+                      sy = p.clientY ?? 0;
                     };
 
-                    const onPointerUp = (e) => {
+                    const up = (e) => {
                       const p = e.changedTouches?.[0] || e;
-                      const endX = p.clientX ?? 0;
-                      const endY = p.clientY ?? 0;
-                      const dx = Math.abs(endX - startX);
-                      const dy = Math.abs(endY - startY);
+                      const ex = p.clientX ?? 0;
+                      const ey = p.clientY ?? 0;
+                      const dx = Math.abs(ex - sx);
+                      const dy = Math.abs(ey - sy);
 
-                      // ✅ only toggle zoom on true tap
+                      // treat as tap only if almost no movement
                       if (dx < 8 && dy < 8) setZoomed((z) => !z);
                     };
 
@@ -617,7 +603,7 @@ export default function ProductDetailPage() {
                       return (
                         <div
                           key={i}
-                          className="h-full w-full flex items-center justify-center"
+                          className="w-full h-full flex items-center justify-center"
                         >
                           <div className="w-full max-w-5xl px-4">
                             <ReactPlayer src={m.video} controls width="100%" />
@@ -629,25 +615,25 @@ export default function ProductDetailPage() {
                     return (
                       <div
                         key={i}
-                        className="h-full w-full flex items-center justify-center"
+                        className="w-full h-full flex items-center justify-center"
                       >
                         <img
                           src={m.image}
                           alt={`${productTitle(product, lang)} – ${i + 1}`}
                           draggable={false}
-                          className="object-contain select-none"
+                          className="select-none object-contain"
                           style={{
-                            maxHeight: "100%",
                             maxWidth: "100%",
-                            transform: zoomed ? "scale(2.3)" : "scale(1)",
+                            maxHeight: "100%",
+                            transform: zoomed ? "scale(2.2)" : "scale(1)",
                             transition: "transform 220ms ease",
                             transformOrigin: "center",
                             cursor: "zoom-in",
                           }}
-                          onTouchStart={onPointerDown}
-                          onTouchEnd={onPointerUp}
-                          onMouseDown={onPointerDown}
-                          onMouseUp={onPointerUp}
+                          onTouchStart={down}
+                          onTouchEnd={up}
+                          onMouseDown={down}
+                          onMouseUp={up}
                         />
                       </div>
                     );
