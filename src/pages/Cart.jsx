@@ -48,7 +48,7 @@ function useDebouncedCallback(fn, ms = 500) {
       if (timerRef.current) window.clearTimeout(timerRef.current);
       timerRef.current = window.setTimeout(() => fnRef.current(...args), ms);
     },
-    [ms]
+    [ms],
   );
 
   // cleanup
@@ -77,8 +77,8 @@ export default function CartPage() {
     const list = Array.isArray(wl)
       ? wl
       : Array.isArray(wl?.results)
-      ? wl.results
-      : [];
+        ? wl.results
+        : [];
     return new Set(list.map((w) => Number(w.product)));
   }, [wl]);
 
@@ -134,7 +134,7 @@ export default function CartPage() {
         maxQty === null ? Math.max(1, qty) : Math.min(Math.max(1, qty), maxQty);
 
       return {
-        product: it.id,
+        product: it.productId ?? it.id,
         name: it.name,
         image: it.image,
         price: unitPrice.toFixed(2),
@@ -188,7 +188,7 @@ export default function CartPage() {
         /* silent */
       }
     },
-    [loggedIn, wishlistIds, addW, remW]
+    [loggedIn, wishlistIds, addW, remW],
   );
 
   if (items.length === 0) {
@@ -356,7 +356,7 @@ export default function CartPage() {
                                 updateQty({
                                   id: item.id,
                                   qty: Math.max(1, effectiveQty - 1),
-                                })
+                                }),
                               )
                             }
                             aria-label={t("cart.decreaseQty")}
@@ -389,7 +389,7 @@ export default function CartPage() {
                                 updateQty({
                                   id: item.id,
                                   qty: effectiveQty + 1,
-                                })
+                                }),
                               )
                             }
                             disabled={disablePlus}

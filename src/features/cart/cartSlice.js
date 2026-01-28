@@ -39,27 +39,33 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      const { id, title, name, price, image, ...rest } = action.payload || {};
-      const itemTitle = title || name || "";
-      const p = Number(price) || 0;
+      const payload = action.payload || {};
+      const productId = Number(payload.productId ?? payload.id); // ✅ ensure productId always exists
 
-      const found = state.items.find((i) => i.id === id);
+      const itemTitle = payload.title || payload.name || "";
+      const p = Number(payload.price) || 0;
+
+      // ✅ use productId to find existing item
+      const found = state.items.find((i) => Number(i.productId) === productId);
+
       if (found) {
         found.qty = Math.max(1, Number(found.qty || 1) + 1);
         found.name = itemTitle;
         found.title = itemTitle;
         found.price = p;
-        if (image) found.image = image;
-        Object.assign(found, rest);
+        if (payload.image) found.image = payload.image;
+        Object.assign(found, payload);
       } else {
         state.items.push({
-          id,
+          // ✅ keep old id if you want, but store productId always
+          id: productId, // (keep to avoid breaking UI)
+          productId: productId, // ✅ important for backend/admin
           name: itemTitle,
           title: itemTitle,
           price: p,
-          image: image || "",
+          image: payload.image || "",
           qty: 1,
-          ...rest,
+          ...payload,
         });
       }
       save(state.items);
@@ -93,7 +99,7 @@ export const selectCartCount = (s) =>
 export const selectCartSubtotal = (s) =>
   (s.cart?.items || []).reduce(
     (sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 0),
-    0
+    0,
   );
 
 export default cartSlice.reducer;
