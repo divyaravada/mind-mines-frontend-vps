@@ -1,5 +1,4 @@
 // src/pages/ProductDetailPage.jsx
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
@@ -53,95 +52,58 @@ export default function ProductDetailPage() {
 
   const lang = i18n.language.startsWith("de") ? "de" : "en";
   const locale = i18n.language || "en";
-
   const numericId = useMemo(() => extractNumericId(idParam), [idParam]);
 
   const { data: product, isLoading } = useGetProductQuery(numericId, {
     skip: !numericId,
   });
 
-  // ✅ Lightbox state
+  // ✅ Lightbox state (single source of truth)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [zoomed, setZoomed] = useState(false);
 
-  // sync state
+  // ✅ Main carousel index (to sync with fullscreen)
   const [carouselIndex, setCarouselIndex] = useState(0);
 
-  // clicked image rect for animation
+  // ✅ clicked image rect for animation
   const [originRect, setOriginRect] = useState(null);
-
-  // keep refs for each slide wrapper to compute rect
   const slideRefs = useRef([]);
 
   const openLightbox = useCallback((i) => {
-    console.log("OPEN LIGHTBOX", i);
     const el = slideRefs.current[i];
     if (el) setOriginRect(el.getBoundingClientRect());
     setLightboxIndex(i);
+    setCarouselIndex(i);
     setIsLightboxOpen(true);
   }, []);
 
   const closeLightbox = useCallback(() => {
     setIsLightboxOpen(false);
-    setZoomed(false);
   }, []);
 
-  // ✅ Tap vs Swipe detection (MUST be declared before early returns)
-  const pointerRef = useRef({ down: false, x: 0, y: 0, moved: false });
+  // 🔒 Detect real click vs swipe (carousel-safe)
+  const slidePointer = useRef({ x: 0, y: 0, moved: false });
 
-  const onImgPointerDown = useCallback((e) => {
+  const onSlideDown = useCallback((e) => {
     const p = e.touches?.[0] ?? e;
-    pointerRef.current.down = true;
-    pointerRef.current.x = p.clientX ?? 0;
-    pointerRef.current.y = p.clientY ?? 0;
-    pointerRef.current.moved = false;
+    slidePointer.current.x = p.clientX;
+    slidePointer.current.y = p.clientY;
+    slidePointer.current.moved = false;
   }, []);
 
-  const onImgPointerMove = useCallback((e) => {
-    if (!pointerRef.current.down) return;
+  const onSlideMove = useCallback((e) => {
     const p = e.touches?.[0] ?? e;
-    const dx = Math.abs((p.clientX ?? 0) - pointerRef.current.x);
-    const dy = Math.abs((p.clientY ?? 0) - pointerRef.current.y);
-    if (dx > 8 || dy > 8) pointerRef.current.moved = true;
+    const dx = Math.abs(p.clientX - slidePointer.current.x);
+    const dy = Math.abs(p.clientY - slidePointer.current.y);
+    if (dx > 8 || dy > 8) slidePointer.current.moved = true;
   }, []);
 
-  const onImgPointerUp = useCallback(() => {
-    if (!pointerRef.current.down) return;
-    pointerRef.current.down = false;
-    if (!pointerRef.current.moved) setZoomed((z) => !z);
-  }, []);
-
-  // Lock body scroll when modal open (desktop + iOS)
-  useEffect(() => {
-    if (!isLightboxOpen) return;
-
-    const scrollY = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, [isLightboxOpen]);
-
-  // ESC to close
-  useEffect(() => {
-    if (!isLightboxOpen) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") setZoomed(false);
-      if (e.key === "ArrowRight") setZoomed(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [isLightboxOpen, closeLightbox]);
+  const onSlideUp = useCallback(
+    (index) => {
+      if (!slidePointer.current.moved) openLightbox(index);
+    },
+    [openLightbox],
+  );
 
   // --------- SEO helpers ----------
   const correctSlug = useMemo(() => {
@@ -275,7 +237,6 @@ export default function ProductDetailPage() {
   const [revMessage, setRevMessage] = useState("");
   const fileRef = useRef(null);
 
-  // Build modal media list once (includes fallback)
   const modalMedia = useMemo(() => {
     if (!product) return [];
     if (Array.isArray(product.media) && product.media.length)
@@ -294,7 +255,6 @@ export default function ProductDetailPage() {
     return isNaN(n) ? 0 : n;
   };
 
-  // track view
   useEffect(() => {
     if (!product) return;
     const price = resolveProductPrice(product);
@@ -308,39 +268,6 @@ export default function ProductDetailPage() {
       key: product.key || null,
     });
   }, [product, track]);
-
-  // helper (put near other hooks)
-  const slideDownRef = useRef({ x: 0, y: 0, moved: false });
-
-  // 🔒 Detect real click vs swipe (carousel-safe)
-  const slidePointer = useRef({
-    x: 0,
-    y: 0,
-    moved: false,
-  });
-
-  const onSlideDown = useCallback((e) => {
-    const p = e.touches?.[0] ?? e;
-    slidePointer.current.x = p.clientX;
-    slidePointer.current.y = p.clientY;
-    slidePointer.current.moved = false;
-  }, []);
-
-  const onSlideMove = useCallback((e) => {
-    const p = e.touches?.[0] ?? e;
-    const dx = Math.abs(p.clientX - slidePointer.current.x);
-    const dy = Math.abs(p.clientY - slidePointer.current.y);
-    if (dx > 8 || dy > 8) slidePointer.current.moved = true;
-  }, []);
-
-  const onSlideUp = useCallback(
-    (index) => {
-      if (!slidePointer.current.moved) {
-        openLightbox(index); // ✅ THIS will fire
-      }
-    },
-    [openLightbox],
-  );
 
   // ---------- loading / error ----------
   if (!numericId) return <div className="p-6">{t("common.notFound")}</div>;
@@ -357,7 +284,6 @@ export default function ProductDetailPage() {
       </div>
     );
 
-  // ---------- SEO derived ----------
   const currentOrigin =
     typeof window !== "undefined"
       ? window.location.origin
@@ -431,7 +357,6 @@ export default function ProductDetailPage() {
     ],
   };
 
-  // qty clamp
   const handleQtyChange = (e) => {
     const raw = Number(e.target.value);
     if (Number.isNaN(raw)) return setQty(1);
@@ -530,156 +455,13 @@ export default function ProductDetailPage() {
           </script>
         </Helmet>
 
-        {/* ✅ FULLSCREEN LIGHTBOX MODAL (Portal) */}
-        {isLightboxOpen &&
-          createPortal(
-            <div
-              className="fixed inset-0 z-[999999] bg-black"
-              style={{
-                width: "100vw",
-                height: "100dvh",
-                overflow: "hidden",
-                overscrollBehavior: "none",
-              }}
-            >
-              <style>{`
-                .mm-fs,
-                .mm-fs .carousel-root,
-                .mm-fs .carousel.carousel-slider,
-                .mm-fs .slider-wrapper.axis-horizontal,
-                .mm-fs .slider,
-                .mm-fs .slide {
-                  width: 100vw !important;
-                  height: 100dvh !important;
-                }
-                .mm-fs .slide {
-                  display: flex !important;
-                  align-items: center !important;
-                  justify-content: center !important;
-                  background: #000 !important;
-                }
-                .mm-fs .control-dots {
-                  position: fixed !important;
-                  left: 0 !important;
-                  right: 0 !important;
-                  bottom: max(16px, env(safe-area-inset-bottom)) !important;
-                  z-index: 1000002 !important;
-                  display: flex !important;
-                  justify-content: center !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                }
-                .mm-fs .control-arrow { z-index: 1000002 !important; }
-                .mm-fs .slider-wrapper.axis-horizontal { touch-action: pan-x !important; }
-              `}</style>
-
-              <div
-                className="fixed left-0 right-0 z-[1000003] flex items-center justify-between px-4 py-3"
-                style={{
-                  top: 0,
-                  paddingTop: "max(12px, env(safe-area-inset-top))",
-                }}
-              >
-                <div className="text-white/80 text-sm truncate pr-2">
-                  {productTitle(product, lang)}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setZoomed((z) => !z)}
-                    className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                  >
-                    {zoomed ? "−" : "+"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeLightbox}
-                    className="px-3 py-2 rounded-md bg-white/15 text-white text-lg"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              <div
-                className="mm-fs"
-                style={{
-                  width: "100vw",
-                  height: "100dvh",
-                  paddingTop:
-                    "calc(max(12px, env(safe-area-inset-top)) + 56px)",
-                }}
-              >
-                <Carousel
-                  selectedItem={carouselIndex}
-                  onChange={(i) => {
-                    setCarouselIndex(i);
-                    // keep lightbox ready in sync if it’s open
-                    if (isLightboxOpen) setLightboxIndex(i);
-                  }}
-                  showThumbs
-                  showStatus={false}
-                  infiniteLoop
-                  useKeyboardArrows
-                  swipeable
-                  emulateTouch
-                  dynamicHeight={false}
-                  preventMovementUntilSwipeScrollTolerance
-                  swipeScrollTolerance={8}
-                  className="rounded-lg"
-                >
-                  {modalMedia.map((m, i) =>
-                    m.media_type === "video" && m.video ? (
-                      <div
-                        key={i}
-                        className="w-full h-full flex items-center justify-center"
-                      >
-                        <div className="w-full max-w-5xl px-4">
-                          <ReactPlayer src={m.video} controls width="100%" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        key={i}
-                        ref={(node) => (slideRefs.current[i] = node)}
-                        className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center cursor-zoom-in"
-                        role="button"
-                        tabIndex={0}
-                        onMouseDown={onSlideDown}
-                        onMouseMove={onSlideMove}
-                        onMouseUp={() => onSlideUp(i)}
-                        onTouchStart={onSlideDown}
-                        onTouchMove={onSlideMove}
-                        onTouchEnd={() => onSlideUp(i)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") onSlideUp(i);
-                        }}
-                      >
-                        <img
-                          src={m.image}
-                          alt={`${productTitle(product, lang)} – ${i + 1}`}
-                          fetchPriority="high"
-                          height={1200}
-                          width={1200}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-contain cursor-zoom-in select-none"
-                          draggable={false}
-                        />
-                      </div>
-                    ),
-                  )}
-                </Carousel>
-              </div>
-            </div>,
-            document.body,
-          )}
-
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* MEDIA */}
           <div className="w-full lg:w-1/2">
             <div className="bg-white dark:bg-neutral-900 dark:text-backnewsdark rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-2">
               <Carousel
+                selectedItem={carouselIndex}
+                onChange={(i) => setCarouselIndex(i)}
                 showThumbs
                 showStatus={false}
                 infiniteLoop
@@ -707,6 +489,7 @@ export default function ProductDetailPage() {
                       ) : (
                         <div
                           key={i}
+                          ref={(node) => (slideRefs.current[i] = node)}
                           className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center cursor-zoom-in"
                           role="button"
                           tabIndex={0}
@@ -738,7 +521,11 @@ export default function ProductDetailPage() {
                   : [
                       <div
                         key="default"
+                        ref={(node) => (slideRefs.current[0] = node)}
                         className="aspect-square bg-white dark:bg-neutral-950 flex items-center justify-center"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openLightbox(0)}
                       >
                         <img
                           src={product.image}
@@ -747,7 +534,7 @@ export default function ProductDetailPage() {
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-contain cursor-zoom-in"
-                          onClick={() => openLightbox(0)}
+                          draggable={false}
                         />
                       </div>,
                     ]}
@@ -755,21 +542,20 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
+          {/* ✅ Single fullscreen lightbox only */}
           <LightboxModal
             open={isLightboxOpen}
-            images={modalMedia}
+            items={modalMedia}
             index={lightboxIndex}
             originRect={originRect}
-            altPrefix={productTitle(product, lang)}
+            title={productTitle(product, lang)}
             onIndexChange={(i) => {
               setLightboxIndex(i);
-              setCarouselIndex(i); // ✅ sync thumbs ↔ fullscreen
+              setCarouselIndex(i); // ✅ sync main ↔ fullscreen
             }}
-            onClose={() => {
-              // ✅ close animation goes back to originRect
-              setIsLightboxOpen(false);
-            }}
+            onClose={closeLightbox}
           />
+
           {/* INFO */}
           <div className="flex-1 flex flex-col gap-4 dark:text-backnewsdark">
             <div className="text-xs text-gray-500">
@@ -829,7 +615,6 @@ export default function ProductDetailPage() {
               <strong>{t("weight")}:</strong> {product.weight} kg
             </div>
 
-            {/* Quantity with stock-aware clamp */}
             <div className="flex items-center gap-2">
               <label htmlFor="qty" className="font-medium">
                 {t("productDetail.quantity")}:
@@ -898,7 +683,6 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Add to cart respects stock */}
             <button
               onClick={handleAddToCart}
               disabled={isOut}
@@ -913,7 +697,6 @@ export default function ProductDetailPage() {
 
         {/* TABS */}
         <div className="mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-4">
-          {/* TAB HEADERS */}
           <div className="flex flex-col sm:flex-row sm:overflow-x-auto no-scrollbar gap-2 sm:border-b dark:sm:border-neutral-800">
             {["details", "care", "policy"].map((key) => (
               <button
@@ -935,7 +718,6 @@ export default function ProductDetailPage() {
             ))}
           </div>
 
-          {/* TAB CONTENT */}
           <div className="mt-6 space-y-4 text-gray-800 dark:text-gray-200">
             {activeTab === "details" && (
               <>
@@ -1000,10 +782,8 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* REVIEWS */}
         <ProductReviews productId={product.id} />
 
-        {/* WRITE REVIEW */}
         <div className="p-4 rounded-xl bg-white dark:text-backnewsdark dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5 space-y-3">
           <div className="flex items-center gap-3">
             <label className="font-medium">{t("productReviews.title")}:</label>
@@ -1035,7 +815,6 @@ export default function ProductDetailPage() {
           </button>
         </div>
 
-        {/* Suggestions */}
         {recommend.length > 0 && (
           <section className="mt-12">
             <h2 className="text-2xl font-bold mb-4 dark:text-backnewsdark">
@@ -1055,7 +834,6 @@ export default function ProductDetailPage() {
                     src={p.image}
                     alt={productTitle(p, lang)}
                     className="w-full h-40 object-cover rounded-lg mb-2"
-                    fetchPriority="high"
                     loading="lazy"
                     decoding="async"
                   />
