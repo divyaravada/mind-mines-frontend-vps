@@ -39,21 +39,29 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      const { id, title, name, price, image, ...rest } = action.payload || {};
+      const payload = action.payload || {};
+      const productId = Number(payload.productId ?? payload.id);
+
+      const { title, name, price, image, ...rest } = payload;
       const itemTitle = title || name || "";
       const p = Number(price) || 0;
 
-      const found = state.items.find((i) => i.id === id);
+      const found = state.items.find(
+        (i) => Number(i.productId ?? i.id) === productId,
+      );
+
       if (found) {
         found.qty = Math.max(1, Number(found.qty || 1) + 1);
         found.name = itemTitle;
         found.title = itemTitle;
         found.price = p;
         if (image) found.image = image;
+        found.productId = productId;
         Object.assign(found, rest);
       } else {
         state.items.push({
-          id,
+          id: productId, // keep UI stable
+          productId: productId, // ✅ important
           name: itemTitle,
           title: itemTitle,
           price: p,

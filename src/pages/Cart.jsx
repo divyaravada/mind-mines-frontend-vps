@@ -14,7 +14,7 @@ import {
   useAddToWishlistMutation,
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
-import { useSaveCartMutation } from "../features/cart/cartApi";
+import { useGetCartQuery, useSaveCartMutation } from "../features/cart/cartApi";
 import { getCartToken } from "../lib/cartToken";
 
 import {
@@ -71,6 +71,10 @@ export default function CartPage() {
   const count = useSelector(selectCartCount);
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
+  // ✅ IMPORTANT: call getCart so onQueryStarted can merge server cart on refresh
+  const cart_token = useMemo(() => getCartToken(), []);
+  useGetCartQuery({ cart_token });
+
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
 
   const wishlistIds = useMemo(() => {
@@ -117,8 +121,6 @@ export default function CartPage() {
 
   // Build payload once (memo) so effect doesn't re-run unnecessarily
   const cartBody = useMemo(() => {
-    const cart_token = getCartToken();
-
     const itemsPayload = items.map((it) => {
       const unitPrice =
         it.price && Number(it.price) > 0
@@ -148,7 +150,7 @@ export default function CartPage() {
     });
 
     return { cart_token, currency: "EUR", items: itemsPayload };
-  }, [items]);
+  }, [items, cart_token]);
 
   useEffect(() => {
     syncNow(cartBody);

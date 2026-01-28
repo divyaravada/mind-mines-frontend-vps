@@ -1,17 +1,45 @@
+// src/features/cart/cartApi.js
 import { api } from "../../services/apiSlice";
 import { setCartItems } from "./cartSlice";
 import { getCartToken } from "../../lib/cartToken";
 
+function normalizeServerItems(serverItems) {
+  // Expecting server item like:
+  // { product: 12, qty: 2, name, image, price, color, weight, dimensions, category, stock }
+  // If backend returns less, we still return safe defaults.
+  return serverItems
+    .map((x) => {
+      const productId = Number(x.product ?? x.product_id ?? x.id);
+      if (!Number.isFinite(productId)) return null;
+
+      return {
+        id: productId, // UI uses id
+        productId: productId, // backend FK
+        name: x.name || "",
+        image: x.image || "",
+        price: Number(x.price) || 0,
+        priceRange: x.priceRange ?? undefined,
+        qty: Math.max(1, Number(x.qty) || 1),
+        color: x.color || "",
+        weight: x.weight || "",
+        dimensions: x.dimensions || "",
+        category: x.category || "",
+        stock: x.stock ?? undefined,
+      };
+    })
+    .filter(Boolean);
+}
+
 export const cartApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCart: build.query({
-      query: ({ cart_token } = {}) => ({
-        url: "/cart/",
-        params:
-          cart_token || getCartToken()
-            ? { cart_token: cart_token || getCartToken() }
-            : undefined,
-      }),
+      query: ({ cart_token } = {}) => {
+        const token = cart_token || getCartToken();
+        return {
+          url: "/cart/",
+          params: token ? { cart_token: token } : undefined,
+        };
+      },
       providesTags: ["Cart"],
 
       // ✅ IMPORTANT: Only overwrite local cart if server has items
@@ -29,7 +57,10 @@ export const cartApi = api.injectEndpoints({
                 : [];
 
           if (serverItems.length > 0) {
-            dispatch(setCartItems(serverItems));
+            const normalized = normalizeServerItems(serverItems);
+            if (normalized.length > 0) {
+              dispatch(setCartItems(normalized));
+            }
           } else {
             // ✅ do nothing: keep localStorage cart
           }
