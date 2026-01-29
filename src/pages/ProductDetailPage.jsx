@@ -44,6 +44,26 @@ function extractNumericId(param) {
   return m ? m[1] : "";
 }
 
+function getSessionIdSafe() {
+  if (typeof window === "undefined") return "";
+  const key = "mm_session_id";
+  try {
+    let id = window.localStorage.getItem(key);
+    if (!id) {
+      const hasUUID =
+        typeof window.crypto !== "undefined" &&
+        typeof window.crypto.randomUUID === "function";
+      id = hasUUID
+        ? window.crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      window.localStorage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return "";
+  }
+}
+
 export default function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const { id: idParam = "" } = useParams();
@@ -165,13 +185,31 @@ export default function ProductDetailPage() {
       alert(t("wishlist.loginRequired"));
       return;
     }
+
+    const session_id = getSessionIdSafe();
+    const url_path =
+      typeof window !== "undefined" ? window.location.pathname : "";
+
     try {
       if (wished) {
         await removeWish(product.id).unwrap();
-        track({ event_type: "wishlist_remove", product_id: product.id });
+
+        track({
+          event_type: "wishlist_remove",
+          product_id: product.id,
+          session_id,
+          url_path,
+          extra: { action: "remove" },
+        });
       } else {
         await addWish(product.id).unwrap();
-        track({ event_type: "wishlist_add", product_id: product.id });
+
+        track({
+          event_type: "wishlist_add",
+          product_id: product.id,
+          session_id,
+          url_path,
+        });
       }
     } catch {
       /* ignore */

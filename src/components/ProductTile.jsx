@@ -8,7 +8,28 @@ import {
   hasDiscount as hasDiscountCalc,
 } from "../lib/money";
 import { slugify } from "../lib/slug";
+import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
+function getSessionIdSafe() {
+  if (typeof window === "undefined") return "";
+  const key = "mm_session_id";
+  try {
+    let id = window.localStorage.getItem(key);
+    if (!id) {
+      const hasUUID =
+        typeof window.crypto !== "undefined" &&
+        typeof window.crypto.randomUUID === "function";
+      id = hasUUID
+        ? window.crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      window.localStorage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return "";
+  }
+}
+s;
 export default function ProductTile({
   product,
   title,
@@ -39,6 +60,14 @@ export default function ProductTile({
   const stock = Number.isFinite(Number(stockVal)) ? Number(stockVal) : 0;
   const isOut = stock <= 0;
   const isLow = !isOut && stock < 2;
+  const [trackEvent] = useTrackEventMutation();
+  const track = (payload) => {
+    try {
+      trackEvent(payload);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const priceEl = hasDiscount ? (
     <div className="flex items-center gap-2">
@@ -86,7 +115,24 @@ export default function ProductTile({
             aria-label={t("wishlist.buttonLabel")}
             onClick={(e) => {
               e.stopPropagation(); // don't navigate
+
+              // 1) do the real wishlist action (backend wishlist API)
               onToggleWishlist?.(product.id);
+
+              // 2) track event (analytics)
+              const session_id = getSessionIdSafe();
+              const url_path =
+                typeof window !== "undefined" ? window.location.pathname : "";
+
+              const event_type = wished ? "wishlist_remove" : "wishlist_add";
+
+              track({
+                event_type,
+                product_id: product.id,
+                session_id,
+                url_path,
+                extra: wished ? { action: "remove" } : {},
+              });
             }}
             className={`absolute top-3 right-3 p-2 rounded-full shadow ${
               wished
