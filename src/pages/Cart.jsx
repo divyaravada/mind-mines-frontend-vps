@@ -1,5 +1,5 @@
 // src/pages/Cart.jsx
-import { useMemo, useCallback, useEffect, useRef } from "react";
+import { useMemo, useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -70,6 +70,37 @@ export default function CartPage() {
   const items = useSelector(selectCartItems, shallowEqual);
   const count = useSelector(selectCartCount);
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
+
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+
+  const handleCheckoutClick = () => {
+    if (loggedIn) {
+      navigate("/checkout");
+    } else {
+      setShowCheckoutModal(true);
+    }
+  };
+
+  const continueAsGuest = () => {
+    setShowCheckoutModal(false);
+    navigate("/checkout");
+  };
+
+  const signupForDiscount = () => {
+    setShowCheckoutModal(false);
+
+    // 15% coupon code (change if you want)
+    const coupon = "WELCOME15";
+    const redirect = "/checkout";
+
+    // Your Login route is /users/login
+    // You can read these params in Login and apply coupon later (optional)
+    navigate(
+      `/users/login?next=${encodeURIComponent(redirect)}&coupon=${encodeURIComponent(
+        coupon,
+      )}`,
+    );
+  };
 
   // ✅ IMPORTANT: call getCart so onQueryStarted can merge server cart on refresh
   const cart_token = useMemo(() => getCartToken(), []);
@@ -483,7 +514,7 @@ export default function CartPage() {
             </div>
 
             <button
-              onClick={() => navigate("/checkout")}
+              onClick={handleCheckoutClick}
               className="mt-5 w-full inline-flex items-center justify-center py-3 rounded-xl bg-black text-white font-semibold hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-black/30"
             >
               {t("cart.checkout")}
@@ -506,6 +537,15 @@ export default function CartPage() {
           </div>
         </aside>
       </main>
+
+      {/* ✅ Checkout modal for guests */}
+      {showCheckoutModal && (
+        <CheckoutChoiceModal
+          onClose={() => setShowCheckoutModal(false)}
+          onGuest={continueAsGuest}
+          onSignup={signupForDiscount}
+        />
+      )}
     </>
   );
 }
@@ -532,6 +572,96 @@ function BrandBadge({ label }) {
   return (
     <div className="px-3 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-marblewhite dark:bg-neutral-800 shadow-sm text-xs font-semibold">
       {label}
+    </div>
+  );
+}
+
+function CheckoutChoiceModal({ onClose, onGuest, onSignup }) {
+  // close on ESC
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[9999]">
+      {/* backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* dialog */}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-neutral-900 shadow-2xl ring-1 ring-black/10 dark:ring-white/10 overflow-hidden">
+          {/* header */}
+          <div className="p-6 border-b border-gray-200 dark:border-neutral-800">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Continue to Checkout
+                </h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  Want a discount? Create a MindMines account and get a{" "}
+                  <span className="font-semibold text-backnewswhite">
+                    15% coupon
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20"
+                aria-label="Close"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* body */}
+          <div className="p-6 space-y-4">
+            <div className="rounded-xl bg-gray-50 dark:bg-neutral-800/60 p-4">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                Option 1 — Sign up & get 15% OFF
+              </div>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                You’ll get a coupon after signup and continue to checkout.
+              </div>
+              <button
+                onClick={onSignup}
+                className="mt-3 w-full inline-flex items-center justify-center rounded-xl bg-backnewswhite text-white font-semibold py-3 hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite/50"
+              >
+                Sign up & Continue (15% OFF)
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                Option 2 — Continue as Guest
+              </div>
+              <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                Checkout without creating an account.
+              </div>
+              <button
+                onClick={onGuest}
+                className="mt-3 w-full inline-flex items-center justify-center rounded-xl bg-black text-white font-semibold py-3 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-black/30"
+              >
+                Continue as Guest
+              </button>
+            </div>
+
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              You can always create an account later from “My Account”.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
