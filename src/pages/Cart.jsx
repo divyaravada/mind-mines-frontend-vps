@@ -89,17 +89,11 @@ export default function CartPage() {
   const signupForDiscount = () => {
     setShowCheckoutModal(false);
 
-    // 15% coupon code (change if you want)
-    const coupon = "WELCOME15";
     const redirect = "/checkout";
 
     // Your Login route is /users/login
     // You can read these params in Login and apply coupon later (optional)
-    navigate(
-      `/users/login?next=${encodeURIComponent(redirect)}&coupon=${encodeURIComponent(
-        coupon,
-      )}`,
-    );
+    navigate(`/users/login?next=${encodeURIComponent(redirect)}`);
   };
 
   // ✅ IMPORTANT: call getCart so onQueryStarted can merge server cart on refresh
