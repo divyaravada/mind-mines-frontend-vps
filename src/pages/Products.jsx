@@ -1,7 +1,7 @@
 import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { homeCategories } from "../data/homeCategories";
@@ -121,6 +121,7 @@ export default function ProductsPage() {
   const dispatch = useDispatch();
 
   const [page, setPage] = useState(1);
+  const shuffleSeedRef = useRef(Date.now());
 
   // ✅ Draft (UI) vs Applied (API)
   const [draftMaterials, setDraftMaterials] = useState([]);
@@ -135,6 +136,24 @@ export default function ProductsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [appliedSort, setAppliedSort] = useState("");
+
+  function seededRandom(seed) {
+    // deterministic pseudo-random generator
+    let t = seed + 0x6d2b79f5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  function stableShuffle(arr, seed = 1) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const r = seededRandom(seed + i);
+      const j = Math.floor(r * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
   const appliedMaterialsKey = useMemo(
     () => appliedMaterials.join(","),
@@ -207,6 +226,20 @@ export default function ProductsPage() {
     });
     return copy;
   }, [products, appliedSort]);
+
+  const displayProducts = useMemo(() => {
+    // If user selected a sort option, respect it (no random)
+    if (appliedSort) return sortedProducts;
+
+    // Featured (default) => show random but stable order
+    // Use current page + categoryId in seed so each page/category looks different
+    const seed =
+      Number(shuffleSeedRef.current) +
+      Number(page || 1) * 101 +
+      Number(categoryId || 0) * 1009;
+
+    return stableShuffle(sortedProducts, seed);
+  }, [sortedProducts, appliedSort, page, categoryId]);
 
   const totalCount = useMemo(() => {
     if (!data) return 0;
@@ -683,13 +716,13 @@ export default function ProductsPage() {
           <div className="text-center text-red-500">
             {t("products.error", { defaultValue: "Something went wrong." })}
           </div>
-        ) : sortedProducts.length === 0 ? (
+        ) : displayProducts.length === 0 ? (
           <div className="text-center text-gray-400 dark:text-gray-400">
             {t("products.noResults", { defaultValue: "No results found." })}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {sortedProducts.map((p) => (
+            {displayProducts.map((p) => (
               <ProductTile
                 key={p.id}
                 product={p}
