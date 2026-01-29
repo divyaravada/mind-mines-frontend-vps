@@ -29,7 +29,7 @@ function getSessionIdSafe() {
     return "";
   }
 }
-s;
+
 export default function ProductTile({
   product,
   title,
