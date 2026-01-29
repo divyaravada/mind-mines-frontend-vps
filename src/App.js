@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import RequireAuth from "./routes/RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
 import PromoBanner from "./components/PromoBanner";
+import GoogleAnalyticsTracker from "./components/GoogleAnalyticsTracker";
 
 // ✅ lazy pages
 const Home = lazy(() => import("./pages/Home"));
@@ -20,8 +21,8 @@ const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const CheckoutReturn = lazy(() => import("./pages/CheckoutReturn"));
 const GuestOrderLookup = lazy(() => import("./pages/GuestOrderLookup"));
 
-const EmailVerificationPage = lazy(() =>
-  import("./pages/EmailVerificationPage")
+const EmailVerificationPage = lazy(
+  () => import("./pages/EmailVerificationPage"),
 );
 const ResendVerification = lazy(() => import("./pages/ResendVerification"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -64,6 +65,7 @@ export default function App() {
 
   return (
     <div className="font-open-sans flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <GoogleAnalyticsTracker />
       <PromoBanner />
       <Navbar />
 
