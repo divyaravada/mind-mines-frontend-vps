@@ -1643,7 +1643,12 @@ export default function Checkout() {
                   value={`-${fmtEUR(discount, locale)}`}
                 />
               )}
-
+              <PriceBreakdown
+                items={items}
+                locale={locale}
+                t={t}
+                couponInfo={couponInfo}
+              />
               <Row
                 label={subtotalLabel}
                 value={fmtEUR(grossSubtotal, locale)}
@@ -1679,6 +1684,183 @@ export default function Checkout() {
         </div>
       </main>
     </>
+  );
+}
+
+function PriceBreakdown({ items, locale, t, couponInfo }) {
+  const couponKind = String(couponInfo?.kind || "").toLowerCase();
+  const couponPct =
+    couponInfo?.ok && couponKind === "percent"
+      ? Math.min(100, Math.max(0, Number(couponInfo?.value) || 0))
+      : 0;
+
+  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+  const computeUnitFinal = (gross, prodDisc, coupon) => {
+    const g = Number(gross) || 0;
+    const p = Math.min(100, Math.max(0, Number(prodDisc) || 0));
+    const c = Math.min(100, Math.max(0, Number(coupon) || 0));
+    const effectivePct = c > p ? c - p : p; // ✅ your rule
+    return round2(g * (1 - effectivePct / 100));
+  };
+
+  const rows = (items || []).map((it) => {
+    const qty = Number(it.qty || 1);
+    const fallbackUnit =
+      it.price && Number(it.price) > 0
+        ? Number(it.price)
+        : Number(it.priceRange ?? 0);
+
+    const gross = Number(it.price_gross) || fallbackUnit;
+    const prodDisc = Number(it.product_discount_percent || 0);
+
+    const extraCoupon = couponPct > prodDisc ? couponPct - prodDisc : 0;
+    const effectivePct = couponPct > prodDisc ? extraCoupon : prodDisc;
+
+    const unitFinal = computeUnitFinal(gross, prodDisc, couponPct);
+
+    return {
+      id: it.id ?? it.productId,
+      name: it.name,
+      qty,
+      gross,
+      prodDisc,
+      couponPct,
+      extraCoupon,
+      effectivePct,
+      unitFinal,
+      lineFinal: round2(unitFinal * qty),
+      lineGross: round2(gross * qty),
+    };
+  });
+
+  const grossTotal = round2(rows.reduce((s, r) => s + r.lineGross, 0));
+  const finalTotal = round2(rows.reduce((s, r) => s + r.lineFinal, 0));
+  const discountTotal = round2(Math.max(0, grossTotal - finalTotal));
+
+  return (
+    <div className="mt-4 rounded-xl border dark:border-neutral-700 p-4 bg-gray-50/70 dark:bg-neutral-900/40">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+            {t("checkout.priceBreakdown", "Price breakdown")}
+          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-300">
+            {t(
+              "checkout.priceBreakdownNote",
+              "Coupon is applied as extra discount over the product discount (not stacked).",
+            )}
+          </div>
+        </div>
+
+        {couponPct > 0 && (
+          <div className="text-xs font-semibold text-green-700 dark:text-green-500">
+            {t("checkout.coupon")} {couponInfo?.code}: {couponPct}%
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 space-y-3">
+        {rows.map((r) => (
+          <div
+            key={r.id}
+            className="rounded-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                  {r.name}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-300">
+                  {t("cart.quantity", "Qty")}: {r.qty}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {fmtEUR(r.lineFinal, locale)}
+                </div>
+                <div className="text-xs text-gray-500 line-through">
+                  {fmtEUR(r.lineGross, locale)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 space-y-1">
+              <div className="flex justify-between">
+                <span>{t("checkout.originalGross", "Original (gross)")}:</span>
+                <span>{fmtEUR(r.gross, locale)}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>
+                  {t("checkout.productDiscount", "Product discount")}:
+                </span>
+                <span>
+                  {r.prodDisc ? `${r.prodDisc}%` : t("common.none", "None")}
+                </span>
+              </div>
+
+              {couponPct > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>{t("checkout.couponDiscount", "Coupon")}:</span>
+                    <span>{couponPct}%</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>
+                      {t(
+                        "checkout.extraCoupon",
+                        "Extra coupon applied (coupon − product discount)",
+                      )}
+                      :
+                    </span>
+                    <span>{r.extraCoupon ? `${r.extraCoupon}%` : "0%"}</span>
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-between font-semibold">
+                <span>{t("checkout.finalUnitPrice", "Final unit price")}:</span>
+                <span>{fmtEUR(r.unitFinal, locale)}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>
+                  {t("checkout.appliedDiscount", "Applied discount")}:
+                </span>
+                <span>{r.effectivePct}%</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 border-t dark:border-neutral-700 pt-3 text-sm space-y-1">
+        <div className="flex justify-between">
+          <span className="text-gray-700 dark:text-gray-200">
+            {t("checkout.subtotalGross", "Subtotal (gross)")}
+          </span>
+          <span className="font-semibold">{fmtEUR(grossTotal, locale)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-700 dark:text-gray-200">
+            {t("checkout.totalDiscount", "Total discount")}
+          </span>
+          <span className="font-semibold text-green-700 dark:text-green-500">
+            -{fmtEUR(discountTotal, locale)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-900 dark:text-gray-100 font-semibold">
+            {t("checkout.totalToPay", "Total to pay")}
+          </span>
+          <span className="text-gray-900 dark:text-gray-100 font-semibold">
+            {fmtEUR(finalTotal, locale)}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
