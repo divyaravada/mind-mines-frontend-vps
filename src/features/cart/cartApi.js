@@ -29,9 +29,7 @@ function normalizeServerItems(serverItems) {
         // keep these if backend already sends them (safe)
         price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
         product_discount_percent:
-          x.product_discount_percent != null
-            ? Number(x.product_discount_percent)
-            : undefined,
+          x.discount_percent != null ? Number(x.discount_percent) : undefined,
       };
     })
     .filter(Boolean);
