@@ -37,7 +37,8 @@ export const cartApi = api.injectEndpoints({
         const token = cart_token || getCartToken();
         return {
           url: "/cart/",
-          params: token ? { cart_token: token } : undefined,
+          method: "POST",
+          body: token ? { cart_token: token } : {},
         };
       },
       providesTags: ["Cart"],
