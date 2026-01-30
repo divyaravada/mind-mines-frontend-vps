@@ -27,13 +27,14 @@ function normalizeServerItems(serverItems) {
         stock: x.stock ?? undefined,
 
         // ✅ important for discount logic (if backend sends them)
-        price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
         product_discount_percent:
           x.product_discount_percent != null
             ? Number(x.product_discount_percent)
             : x.discount_percent != null
               ? Number(x.discount_percent)
               : undefined,
+
+        price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
       };
     })
     .filter(Boolean);
@@ -59,7 +60,6 @@ export const cartApi = api.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
 
-          // backend might return {items:[...]} or list directly
           const serverItems = Array.isArray(data)
             ? data
             : Array.isArray(data?.items)
@@ -71,10 +71,30 @@ export const cartApi = api.injectEndpoints({
           if (serverItems.length > 0) {
             const normalized = normalizeServerItems(serverItems);
             if (normalized.length > 0) {
-              dispatch(setCartItems(normalized));
+              // ✅ merge: keep local extra fields (price_gross / product_discount_percent)
+              const local = getState()?.cart?.items || [];
+              const localById = new Map(
+                local.map((x) => [Number(x.productId ?? x.id), x]),
+              );
+
+              const merged = normalized.map((s) => {
+                const key = Number(s.productId ?? s.id);
+                const l = localById.get(key);
+                if (!l) return s;
+
+                return {
+                  ...s,
+                  // keep any locally-known fields if server doesn't provide them
+                  price_gross: s.price_gross ?? l.price_gross,
+                  product_discount_percent:
+                    s.product_discount_percent ?? l.product_discount_percent,
+                };
+              });
+
+              dispatch(setCartItems(merged));
             }
           } else {
-            // ✅ do nothing: keep localStorage cart
+            // keep local cart
           }
         } catch {
           // ignore network errors
