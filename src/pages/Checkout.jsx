@@ -1713,7 +1713,7 @@ export default function Checkout() {
                 {couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
                     {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                    <span>-{fmtEUR(discount, locale)}</span>
+                    <span>-{fmtEUR(couponDiscount, locale)}</span>
                   </div>
                 )}
               </div>
