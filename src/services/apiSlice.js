@@ -46,7 +46,7 @@ const baseQueryWithReauth = async (args, api, extra) => {
         body: { refresh: refreshToken },
       },
       api,
-      extra
+      extra,
     ).finally(() => {
       refreshPromise = null;
     });
@@ -76,6 +76,7 @@ export const api = createApi({
     "Auth",
     "Account",
     "Addresses",
+    "Cart",
     "Products",
     "Reviews",
     "Wishlist",

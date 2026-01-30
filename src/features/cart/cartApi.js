@@ -25,6 +25,13 @@ function normalizeServerItems(serverItems) {
         dimensions: x.dimensions || "",
         category: x.category || "",
         stock: x.stock ?? undefined,
+
+        // keep these if backend already sends them (safe)
+        price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
+        product_discount_percent:
+          x.product_discount_percent != null
+            ? Number(x.product_discount_percent)
+            : undefined,
       };
     })
     .filter(Boolean);
@@ -33,11 +40,14 @@ function normalizeServerItems(serverItems) {
 export const cartApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCart: build.query({
+      // ✅ Backend rejects GET → use POST to retrieve cart
       query: ({ cart_token } = {}) => {
         const token = cart_token || getCartToken();
         return {
           url: "/cart/",
-          params: token ? { cart_token: token } : undefined,
+          method: "POST",
+          // send only cart_token → should “read” cart without modifying
+          body: token ? { cart_token: token } : {},
         };
       },
       providesTags: ["Cart"],
