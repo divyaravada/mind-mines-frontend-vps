@@ -415,11 +415,7 @@ export default function ProductDetailPage() {
 
     const unit = resolveProductPrice(product);
     const gross = resolveBaseGross(product); // should be 99 in your example
-    const productDisc =
-      Number(product?.discount_percent ?? 0) ||
-      (typeof product?.is_discounted === "boolean" && product.is_discounted
-        ? Number(product?.discount_percent ?? 0)
-        : 0);
+    const prodDisc = Number(product?.discount_percent ?? 0) || 0;
 
     track({
       event_type: "add_to_cart",
@@ -435,10 +431,9 @@ export default function ProductDetailPage() {
         name: productTitle(product, lang),
         image: product.image,
         price: toNumber(unit), // current (final) price for UI
-        price_gross: Number(gross) || toNumber(unit),
-        product_discount_percent: Number.isFinite(productDisc)
-          ? productDisc
-          : 0,
+        price_gross:
+          Number(gross) || Number(product?.price_gross) || toNumber(unit),
+        product_discount_percent: prodDisc,
         qty,
         category: product.category,
         dimensions: product.dimensions,

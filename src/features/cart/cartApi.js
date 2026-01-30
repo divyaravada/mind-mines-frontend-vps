@@ -26,10 +26,14 @@ function normalizeServerItems(serverItems) {
         category: x.category || "",
         stock: x.stock ?? undefined,
 
-        // keep these if backend already sends them (safe)
+        // ✅ important for discount logic (if backend sends them)
         price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
         product_discount_percent:
-          x.discount_percent != null ? Number(x.discount_percent) : undefined,
+          x.product_discount_percent != null
+            ? Number(x.product_discount_percent)
+            : x.discount_percent != null
+              ? Number(x.discount_percent)
+              : undefined,
       };
     })
     .filter(Boolean);
