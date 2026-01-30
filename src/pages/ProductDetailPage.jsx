@@ -413,14 +413,15 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const unit = resolveProductPrice(product);
+    const unitFinal = toNumber(resolveProductPrice(product)); // e.g. 94
+    const unitOriginal = toNumber(resolveBaseGross(product)) || unitFinal; // e.g. 99
 
     track({
       event_type: "add_to_cart",
       product_id: product.id,
       category: product.category,
       quantity: qty,
-      value: unit * qty,
+      value: unitFinal * qty,
     });
 
     dispatch(
@@ -428,7 +429,15 @@ export default function ProductDetailPage() {
         id: product.id,
         name: productTitle(product, lang),
         image: product.image,
-        price: toNumber(unit),
+
+        // keep existing usage stable
+        price: unitFinal,
+
+        // ✅ NEW: store original + final explicitly
+        price_gross: unitOriginal,
+        final_price_gross: unitFinal,
+        discount_percent: Number(product.discount_percent ?? 0) || 0,
+
         qty,
         category: product.category,
         dimensions: product.dimensions,
