@@ -83,6 +83,35 @@ function isEuropeanCountry(code) {
   return EUROPE_COUNTRIES.includes(c);
 }
 
+function round2(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return Math.round(x * 100) / 100;
+}
+
+function safePct(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return Math.min(100, Math.max(0, x));
+}
+
+/**
+ * Your rule:
+ * - base = price_gross
+ * - productDisc = product_discount_percent
+ * - if couponPct > productDisc => extra = couponPct - productDisc
+ * - else => extra = productDisc (keep product discount only)
+ * final = base * (1 - extra/100)
+ */
+function computeUnitFinal({ priceGross, productDiscPct, couponPct }) {
+  const gross = Number(priceGross) || 0;
+  const pDisc = safePct(productDiscPct);
+  const cDisc = safePct(couponPct);
+
+  const effectivePct = cDisc > pDisc ? cDisc - pDisc : pDisc;
+  return round2(gross * (1 - effectivePct / 100));
+}
+
 // small debounce helper
 function useDebouncedFn(fn, delay = 250) {
   const timer = useRef(null);
@@ -100,159 +129,6 @@ function useDebouncedFn(fn, delay = 250) {
   );
 }
 
-function toNum(v) {
-  const n = Number(String(v ?? "").replace(",", "."));
-  return Number.isFinite(n) ? n : 0;
-}
-
-/**
- * Rule:
- * - product discount always applies (orig -> final)
- * - percent coupon sets a target total discount percent of ORIGINAL
- *   so effective discount = max(productDiscount, couponTargetDiscount)
- */
-function calcTotalsNoStack(items, couponInfo) {
-  const kind = couponInfo?.ok ? couponInfo.kind : null; // "percent" | "amount"
-  const couponPct = kind === "percent" ? toNum(couponInfo.value) : 0;
-  const couponAmt = kind === "amount" ? toNum(couponInfo.value) : 0;
-
-  let originalSubtotal = 0;
-  let finalSubtotal = 0;
-  let productDiscountTotal = 0;
-
-  // We'll compute line-by-line totals
-  const lines = items.map((it) => {
-    const qty = Math.max(1, Number(it.qty || 1));
-
-    const origUnit =
-      toNum(it.price_gross) ||
-      toNum(it.base_gross) ||
-      toNum(it.original_price) ||
-      toNum(it.priceRange) ||
-      toNum(it.price) ||
-      0;
-
-    const finalUnit =
-      toNum(it.final_price_gross) ||
-      toNum(it.final_price) ||
-      toNum(it.price) ||
-      origUnit;
-
-    const origLine = origUnit * qty;
-    const finalLine = finalUnit * qty;
-
-    originalSubtotal += origLine;
-    finalSubtotal += finalLine;
-
-    const productDisc = Math.max(0, origLine - finalLine);
-    productDiscountTotal += productDisc;
-
-    return {
-      id: it.id,
-      qty,
-      origLine,
-      finalLine,
-      productDisc,
-      // coupon portion computed later
-      couponDisc: 0,
-      payLine: finalLine,
-    };
-  });
-
-  // If no coupon, return product discount totals
-  if (!couponInfo?.ok || (!couponPct && !couponAmt)) {
-    const total = Math.max(0, finalSubtotal);
-    return {
-      originalSubtotal: round2(originalSubtotal),
-      subtotal: round2(finalSubtotal),
-      productDiscount: round2(productDiscountTotal),
-      couponDiscount: 0,
-      total: round2(total),
-    };
-  }
-
-  // --- Percent coupon: "top up" to coupon percent of ORIGINAL per line ---
-  if (couponPct > 0) {
-    const pct = Math.min(100, Math.max(0, couponPct)) / 100;
-
-    let couponDiscountEffective = 0;
-    let total = 0;
-
-    for (const line of lines) {
-      const couponTargetDisc = line.origLine * pct; // target discount on ORIGINAL
-      const effectiveDisc = Math.max(line.productDisc, couponTargetDisc);
-      const cappedDisc = Math.min(line.origLine, effectiveDisc);
-
-      const payLine = Math.max(0, line.origLine - cappedDisc);
-
-      line.couponDisc = Math.max(0, cappedDisc - line.productDisc); // "extra" due to coupon
-      line.payLine = payLine;
-
-      couponDiscountEffective += line.couponDisc;
-      total += payLine;
-    }
-
-    return {
-      originalSubtotal: round2(originalSubtotal),
-      subtotal: round2(finalSubtotal), // after product discount
-      productDiscount: round2(productDiscountTotal),
-      couponDiscount: round2(couponDiscountEffective),
-      total: round2(total),
-    };
-  }
-
-  // --- Amount coupon: apply across ORIGINAL proportionally, but never reduce below product-discounted floor ---
-  if (couponAmt > 0 && originalSubtotal > 0) {
-    const targetCouponTotal = Math.min(couponAmt, originalSubtotal);
-
-    let couponDiscountEffective = 0;
-    let total = 0;
-
-    for (const line of lines) {
-      const share = line.origLine / originalSubtotal;
-      const alloc = targetCouponTotal * share;
-
-      // coupon target tries to discount alloc from ORIGINAL
-      const couponTargetDisc = alloc;
-
-      const effectiveDisc = Math.max(
-        line.productDisc,
-        line.productDisc + couponTargetDisc,
-      );
-      const cappedDisc = Math.min(line.origLine, effectiveDisc);
-
-      const payLine = Math.max(0, line.origLine - cappedDisc);
-
-      line.couponDisc = Math.max(0, cappedDisc - line.productDisc);
-      line.payLine = payLine;
-
-      couponDiscountEffective += line.couponDisc;
-      total += payLine;
-    }
-
-    return {
-      originalSubtotal: round2(originalSubtotal),
-      subtotal: round2(finalSubtotal),
-      productDiscount: round2(productDiscountTotal),
-      couponDiscount: round2(couponDiscountEffective),
-      total: round2(total),
-    };
-  }
-
-  const total = Math.max(0, finalSubtotal);
-  return {
-    originalSubtotal: round2(originalSubtotal),
-    subtotal: round2(finalSubtotal),
-    productDiscount: round2(productDiscountTotal),
-    couponDiscount: 0,
-    total: round2(total),
-  };
-}
-
-function round2(n) {
-  return Number(Math.round((Number(n) + Number.EPSILON) * 100) / 100);
-}
-
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || "en";
@@ -263,15 +139,53 @@ export default function Checkout() {
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
 
-  // ✅ "subtotal after product discount" still shown, but we also track original subtotal
-  const totals = useMemo(() => {
-    return calcTotalsNoStack(items, couponInfo);
-  }, [items, couponInfo]);
+  // Coupon percent from preview (only for kind === "percent")
+  const couponPct = useMemo(() => {
+    if (!couponInfo?.ok) return 0;
+    if (String(couponInfo.kind || "").toLowerCase() !== "percent") return 0;
+    return safePct(couponInfo.value);
+  }, [couponInfo]);
 
-  const subtotal = totals.subtotal; // after product discount
-  const payTotal = totals.total; // after coupon "top-up" rule
-  const productDiscount = totals.productDiscount; // original - final
-  const couponDiscount = totals.couponDiscount; // extra due to coupon
+  // Gross subtotal (price_gross * qty). Falls back to current unit price if missing.
+  const grossSubtotal = useMemo(() => {
+    return round2(
+      items.reduce((sum, it) => {
+        const unitFallback =
+          it.price && Number(it.price) > 0
+            ? Number(it.price)
+            : Number(it.priceRange ?? 0);
+        const gross = Number(it.price_gross) || unitFallback;
+        const qty = Number(it.qty || 1);
+        return sum + gross * qty;
+      }, 0),
+    );
+  }, [items]);
+
+  // Final total using your rule
+  const computedTotal = useMemo(() => {
+    return round2(
+      items.reduce((sum, it) => {
+        const unitFallback =
+          it.price && Number(it.price) > 0
+            ? Number(it.price)
+            : Number(it.priceRange ?? 0);
+        const gross = Number(it.price_gross) || unitFallback;
+        const prodDisc = Number(it.product_discount_percent || 0);
+        const qty = Number(it.qty || 1);
+        const unitFinal = computeUnitFinal({
+          priceGross: gross,
+          productDiscPct: prodDisc,
+          couponPct,
+        });
+        return sum + unitFinal * qty;
+      }, 0),
+    );
+  }, [items, couponPct]);
+
+  const discount = useMemo(() => {
+    // "discount" shown to user = how much off compared to grossSubtotal
+    return round2(Math.max(0, grossSubtotal - computedTotal));
+  }, [grossSubtotal, computedTotal]);
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
@@ -476,6 +390,11 @@ export default function Checkout() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const payTotal = useMemo(() => {
+    const ttotal = computedTotal + shippingFee;
+    return round2(Math.max(0, ttotal));
+  }, [computedTotal, shippingFee]);
 
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
@@ -1713,23 +1632,22 @@ export default function Checkout() {
                 {couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
                     {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                    <span>-{fmtEUR(couponDiscount, locale)}</span>
+                    <span>-{fmtEUR(discount, locale)}</span>
                   </div>
                 )}
               </div>
-              {couponInfo?.ok && couponInfo.code && couponDiscount > 0 && (
+
+              {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
                 <Row
                   label={t("checkout.couponLine", { code: couponInfo.code })}
-                  value={`-${fmtEUR(couponDiscount, locale)}`}
+                  value={`-${fmtEUR(discount, locale)}`}
                 />
               )}
-              {productDiscount > 0 && (
-                <Row
-                  label={t("checkout.productDiscountLine", "Store discount")}
-                  value={`-${fmtEUR(productDiscount, locale)}`}
-                />
-              )}
-              <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
+
+              <Row
+                label={subtotalLabel}
+                value={fmtEUR(grossSubtotal, locale)}
+              />
               <Row
                 label={t("checkout.shipmentShort")}
                 value={

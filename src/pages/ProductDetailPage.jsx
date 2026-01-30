@@ -413,15 +413,20 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const unitFinal = toNumber(resolveProductPrice(product)); // e.g. 94
-    const unitOriginal = toNumber(resolveBaseGross(product)) || unitFinal; // e.g. 99
+    const unit = resolveProductPrice(product);
+    const gross = resolveBaseGross(product); // should be 99 in your example
+    const productDisc =
+      Number(product?.discount_percent ?? 0) ||
+      (typeof product?.is_discounted === "boolean" && product.is_discounted
+        ? Number(product?.discount_percent ?? 0)
+        : 0);
 
     track({
       event_type: "add_to_cart",
       product_id: product.id,
       category: product.category,
       quantity: qty,
-      value: unitFinal * qty,
+      value: unit * qty,
     });
 
     dispatch(
@@ -429,15 +434,11 @@ export default function ProductDetailPage() {
         id: product.id,
         name: productTitle(product, lang),
         image: product.image,
-
-        // keep existing usage stable
-        price: unitFinal,
-
-        // ✅ NEW: store original + final explicitly
-        price_gross: unitOriginal,
-        final_price_gross: unitFinal,
-        discount_percent: Number(product.discount_percent ?? 0) || 0,
-
+        price: toNumber(unit), // current (final) price for UI
+        price_gross: Number(gross) || toNumber(unit),
+        product_discount_percent: Number.isFinite(productDisc)
+          ? productDisc
+          : 0,
         qty,
         category: product.category,
         dimensions: product.dimensions,

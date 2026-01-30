@@ -165,6 +165,10 @@ export default function CartPage() {
         name: it.name,
         image: it.image,
         price: unitPrice.toFixed(2),
+        price_gross: (Number(it.price_gross) || unitPrice).toFixed(2),
+        product_discount_percent: String(
+          Number(it.product_discount_percent || 0),
+        ),
         qty,
         color: it.color || "",
         weight: it.weight || "",
