@@ -246,11 +246,7 @@ export default function Checkout() {
     if (!code) return;
     setCouponCode(code);
     try {
-      const r = await previewCoupon({
-        code,
-        items: backendItems,
-        email: (form.email || "").trim(),
-      }).unwrap();
+      const r = await previewCoupon({ code, items: backendItems }).unwrap();
       if (r?.ok) setCouponInfo(r);
       else setCouponErr(r?.error || t("checkout.couponInvalid"));
     } catch (e) {
@@ -1575,44 +1571,9 @@ export default function Checkout() {
                   <div className="text-red-700 text-sm">{couponErr}</div>
                 )}
                 {couponInfo?.ok && (
-                  <div className="mt-2 text-xs text-gray-700 dark:text-gray-200">
-                    {(() => {
-                      const base = Number(couponInfo.base_subtotal ?? 0);
-                      const curSub = Number(couponInfo.subtotal ?? 0);
-                      const total = Number(couponInfo.total ?? 0);
-
-                      if (!(base > 0 && curSub > 0)) return null;
-
-                      const storeDiscPct = ((base - curSub) / base) * 100;
-                      const extraDiscPct = ((curSub - total) / base) * 100;
-                      const totalDiscPct = ((base - total) / base) * 100;
-
-                      const fmtPct = (x) => `${Math.max(0, x).toFixed(0)}%`;
-
-                      return (
-                        <div className="rounded-lg border dark:border-neutral-700 p-2 bg-black/[0.02] dark:bg-white/[0.03]">
-                          <div>
-                            {t("checkout.discountLineSimple", {
-                              defaultValue:
-                                "Product Discount ({{store}}) + Coupon Applied (Extra {{extra}}) = Total {{total}} Off.",
-                              store: fmtPct(storeDiscPct),
-                              extra: fmtPct(extraDiscPct),
-                              total: fmtPct(totalDiscPct),
-                            })}
-                          </div>
-                          <div className="mt-1">
-                            {t("checkout.discountLineDetailed", {
-                              defaultValue:
-                                "This product already has a {{store}} store discount. Your {{coupon}} coupon adds an additional {{extra}} off, bringing your total savings to {{total}} of the original price.",
-                              store: fmtPct(storeDiscPct),
-                              coupon: `${Number(couponInfo.value || 0).toFixed(0)}%`,
-                              extra: fmtPct(extraDiscPct),
-                              total: fmtPct(totalDiscPct),
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })()}
+                  <div className="text-green-700 dark:text-green-500 text-sm">
+                    {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
+                    <span>-{fmtEUR(discount, locale)}</span>
                   </div>
                 )}
               </div>
