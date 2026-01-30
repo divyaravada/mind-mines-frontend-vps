@@ -108,20 +108,19 @@ function clampPct(p) {
   if (!Number.isFinite(n)) return 0;
   return Math.min(100, Math.max(0, n));
 }
+
 /**
- * Your rule:
+ * Rule:
  * - base = price_gross
- * - productDisc = product_discount_percent
- * - if couponPct > productDisc => extra = couponPct - productDisc
- * - else => extra = productDisc (keep product discount only)
- * final = base * (1 - extra/100)
+ * - if couponPct > 0 => use couponPct (coupon overrides product discount)
+ * - else => use productDiscPct
  */
 function computeUnitFinal({ priceGross, productDiscPct, couponPct }) {
   const gross = Number(priceGross) || 0;
   const pDisc = safePct(productDiscPct);
   const cDisc = safePct(couponPct);
 
-  const effectivePct = cDisc > pDisc ? cDisc - pDisc : pDisc;
+  const effectivePct = cDisc > 0 ? cDisc : pDisc; // ✅ override
   return round2(gross * (1 - effectivePct / 100));
 }
 
@@ -219,36 +218,15 @@ export default function Checkout() {
       }, 0),
     [items],
   );
-  const discount = useMemo(() => {
-    if (!couponInfo?.ok) return 0;
+  // ✅ total discount (grossSubtotal - computedTotal)
+  const discountTotal = useMemo(() => {
+    return round2(Math.max(0, grossSubtotal - computedTotal));
+  }, [grossSubtotal, computedTotal]);
 
-    // If percent coupon: apply "max(productDiscount, couponDiscount)" on BASE
-    if (couponInfo.kind === "percent") {
-      const couponPct = clampPct(couponInfo.value); // e.g. "25.00" -> 25
-      if (couponPct <= 0) return 0;
-
-      const extra = items.reduce((sum, it) => {
-        const qty = Math.max(1, Number(it.qty || 1));
-
-        // base gross must come from product detail page -> cart
-        const base = toNumber(it.basePriceGross);
-        if (base <= 0) return sum;
-
-        const prodPct = clampPct(it.productDiscountPercent);
-        const effectivePct = Math.max(prodPct, couponPct);
-        const extraPct = Math.max(0, effectivePct - prodPct);
-
-        return sum + base * qty * (extraPct / 100);
-      }, 0);
-
-      return Number(Math.max(0, extra).toFixed(2));
-    }
-
-    // For fixed/amount coupons: keep backend-provided discount
-    const d = toNumber(couponInfo.discount);
-    return Number(Math.max(0, d).toFixed(2));
-  }, [couponInfo, items]);
-
+  // ✅ amount to pay (final after all discounts + shipping)
+  const payTotal = useMemo(() => {
+    return Number(Math.max(0, computedTotal + shippingFee).toFixed(2));
+  }, [computedTotal, shippingFee]);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
@@ -440,11 +418,6 @@ export default function Checkout() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const payTotal = useMemo(() => {
-    const ttotal = subtotal + shippingFee - discount;
-    return Number(Math.max(0, ttotal).toFixed(2));
-  }, [subtotal, shippingFee, discount]);
 
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
@@ -1682,47 +1655,47 @@ export default function Checkout() {
                 {couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
                     {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                    <span>-{fmtEUR(discount, locale)}</span>
+                    <span>-{fmtEUR(discountTotal, locale)}</span>
                   </div>
                 )}
-              </div>
 
-              <PriceBreakdown
-                items={items}
-                locale={locale}
-                t={t}
-                couponInfo={couponInfo}
-              />
-              <Row
-                label={subtotalLabel}
-                value={fmtEUR(grossSubtotal, locale)}
-              />
-              <Row
-                label={t("checkout.shipmentShort")}
-                value={
-                  shippingFee === 0
-                    ? t("checkout.free")
-                    : fmtEUR(shippingFee, locale)
-                }
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-base font-semibold">
-                  {t("checkout.inTotal")}
+                <PriceBreakdown
+                  items={items}
+                  locale={locale}
+                  t={t}
+                  couponInfo={couponInfo}
+                />
+                <Row
+                  label={subtotalLabel}
+                  value={fmtEUR(grossSubtotal, locale)}
+                />
+                <Row
+                  label={t("checkout.shipmentShort")}
+                  value={
+                    shippingFee === 0
+                      ? t("checkout.free")
+                      : fmtEUR(shippingFee, locale)
+                  }
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <div className="text-base font-semibold">
+                    {t("checkout.inTotal")}
+                  </div>
+                  <div className="text-base font-semibold">
+                    {fmtEUR(payTotal, locale)}
+                  </div>
                 </div>
-                <div className="text-base font-semibold">
-                  {fmtEUR(payTotal, locale)}
+                <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                  {t("checkout.inclTax")}
                 </div>
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                {t("checkout.inclTax")}
-              </div>
 
-              <Link
-                to="/cart"
-                className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
-              >
-                {t("checkout.backToCart")}
-              </Link>
+                <Link
+                  to="/cart"
+                  className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
+                >
+                  {t("checkout.backToCart")}
+                </Link>
+              </div>
             </div>
           </aside>
         </div>
@@ -1744,7 +1717,8 @@ function PriceBreakdown({ items, locale, t, couponInfo }) {
     const g = Number(gross) || 0;
     const p = Math.min(100, Math.max(0, Number(prodDisc) || 0));
     const c = Math.min(100, Math.max(0, Number(coupon) || 0));
-    const effectivePct = c > p ? c - p : p; // ✅ your rule
+
+    const effectivePct = c > 0 ? c : p; // ✅ override
     return round2(g * (1 - effectivePct / 100));
   };
 
@@ -1756,10 +1730,12 @@ function PriceBreakdown({ items, locale, t, couponInfo }) {
         : Number(it.priceRange ?? 0);
 
     const gross = Number(it.price_gross) || fallbackUnit;
+
+    // ✅ product discount stored as string sometimes
     const prodDisc = Number(it.product_discount_percent || 0);
 
-    const extraCoupon = couponPct > prodDisc ? couponPct - prodDisc : 0;
-    const effectivePct = couponPct > prodDisc ? extraCoupon : prodDisc;
+    const extraCoupon = couponPct > 0 ? Math.max(0, couponPct - prodDisc) : 0; // display-only
+    const effectivePct = couponPct > 0 ? couponPct : prodDisc;
 
     const unitFinal = computeUnitFinal(gross, prodDisc, couponPct);
 
@@ -1777,135 +1753,6 @@ function PriceBreakdown({ items, locale, t, couponInfo }) {
       lineGross: round2(gross * qty),
     };
   });
-
-  const grossTotal = round2(rows.reduce((s, r) => s + r.lineGross, 0));
-  const finalTotal = round2(rows.reduce((s, r) => s + r.lineFinal, 0));
-  const discountTotal = round2(Math.max(0, grossTotal - finalTotal));
-
-  return (
-    <div className="mt-4 rounded-xl border dark:border-neutral-700 p-4 bg-gray-50/70 dark:bg-neutral-900/40">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-            {t("checkout.priceBreakdown", "Price breakdown")}
-          </div>
-          <div className="text-xs text-gray-600 dark:text-gray-300">
-            {t(
-              "checkout.priceBreakdownNote",
-              "Coupon is applied as extra discount over the product discount (not stacked).",
-            )}
-          </div>
-        </div>
-
-        {couponPct > 0 && (
-          <div className="text-xs font-semibold text-green-700 dark:text-green-500">
-            {t("checkout.coupon")} {couponInfo?.code}: {couponPct}%
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 space-y-3">
-        {rows.map((r) => (
-          <div
-            key={r.id}
-            className="rounded-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 p-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                  {r.name}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-300">
-                  {t("cart.quantity", "Qty")}: {r.qty}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {fmtEUR(r.lineFinal, locale)}
-                </div>
-                <div className="text-xs text-gray-500 line-through">
-                  {fmtEUR(r.lineGross, locale)}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 space-y-1">
-              <div className="flex justify-between">
-                <span>{t("checkout.originalGross", "Original (gross)")}:</span>
-                <span>{fmtEUR(r.gross, locale)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>
-                  {t("checkout.productDiscount", "Product discount")}:
-                </span>
-                <span>
-                  {r.prodDisc ? `${r.prodDisc}%` : t("common.none", "None")}
-                </span>
-              </div>
-
-              {couponPct > 0 && (
-                <>
-                  <div className="flex justify-between">
-                    <span>{t("checkout.couponDiscount", "Coupon")}:</span>
-                    <span>{couponPct}%</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>
-                      {t(
-                        "checkout.extraCoupon",
-                        "Extra coupon applied (coupon − product discount)",
-                      )}
-                      :
-                    </span>
-                    <span>{r.extraCoupon ? `${r.extraCoupon}%` : "0%"}</span>
-                  </div>
-                </>
-              )}
-
-              <div className="flex justify-between font-semibold">
-                <span>{t("checkout.finalUnitPrice", "Final unit price")}:</span>
-                <span>{fmtEUR(r.unitFinal, locale)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>
-                  {t("checkout.appliedDiscount", "Applied discount")}:
-                </span>
-                <span>{r.effectivePct}%</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 border-t dark:border-neutral-700 pt-3 text-sm space-y-1">
-        <div className="flex justify-between">
-          <span className="text-gray-700 dark:text-gray-200">
-            {t("checkout.subtotalGross", "Subtotal (gross)")}
-          </span>
-          <span className="font-semibold">{fmtEUR(grossTotal, locale)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-700 dark:text-gray-200">
-            {t("checkout.totalDiscount", "Total discount")}
-          </span>
-          <span className="font-semibold text-green-700 dark:text-green-500">
-            -{fmtEUR(discountTotal, locale)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-900 dark:text-gray-100 font-semibold">
-            {t("checkout.totalToPay", "Total to pay")}
-          </span>
-          <span className="text-gray-900 dark:text-gray-100 font-semibold">
-            {fmtEUR(finalTotal, locale)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function Row({ label, value }) {

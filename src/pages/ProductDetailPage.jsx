@@ -435,15 +435,12 @@ export default function ProductDetailPage() {
     dispatch(
       addItem({
         id: product.id,
+        productId: product.id,
         name: productTitle(product, lang),
         image: product.image,
 
-        // ✅ keep existing behavior for line totals (cart subtotal uses this)
-        price: toNumber(unitFinal),
-
-        // ✅ NEW: store base + product discount so checkout can do correct coupon logic
-        basePriceGross: toNumber(unitBase),
-        productDiscountPercent: toNumber(prodDiscPct),
+        // ✅ what user currently pays without coupon (already includes product discount)
+        price: toNumber(priceNumber), // priceNumber = resolveProductPrice(product) -> should be final_price_gross
 
         qty,
         category: product.category,
@@ -451,6 +448,11 @@ export default function ProductDetailPage() {
         weight: product.weight,
         color: product.color,
         stock: Number.isFinite(stockNum) ? stockNum : 0,
+
+        // ✅ NEW: keep original gross + product discount percent for checkout breakdown
+        price_gross: toNumber(product.price_gross ?? baseGross), // baseGross = resolveBaseGross(product)
+        final_price_gross: toNumber(product.final_price_gross ?? priceNumber),
+        product_discount_percent: toNumber(product.discount_percent ?? 0),
       }),
     );
 

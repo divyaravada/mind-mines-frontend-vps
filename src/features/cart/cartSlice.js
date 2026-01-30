@@ -44,7 +44,14 @@ const cartSlice = createSlice({
 
       const { title, name, price, image, ...rest } = payload;
       const itemTitle = title || name || "";
+
       const p = Number(price) || 0;
+
+      // ✅ sanitize optional fields
+      const price_gross = Number(rest.price_gross ?? 0) || 0;
+      const final_price_gross = Number(rest.final_price_gross ?? 0) || 0;
+      const product_discount_percent =
+        Number(rest.product_discount_percent ?? 0) || 0;
 
       const found = state.items.find(
         (i) => Number(i.productId ?? i.id) === productId,
@@ -58,22 +65,31 @@ const cartSlice = createSlice({
         if (image) found.image = image;
         found.productId = productId;
 
-        // ✅ keep base/discount fields refreshed too
         Object.assign(found, rest);
+
+        // ✅ ensure numeric
+        found.price_gross = price_gross;
+        found.final_price_gross = final_price_gross;
+        found.product_discount_percent = product_discount_percent;
       } else {
         state.items.push({
           id: productId,
-          productId: productId,
+          productId,
           name: itemTitle,
           title: itemTitle,
           price: p,
           image: image || "",
           qty: 1,
 
-          // ✅ will include basePriceGross, productDiscountPercent, etc.
           ...rest,
+
+          // ✅ ensure numeric
+          price_gross,
+          final_price_gross,
+          product_discount_percent,
         });
       }
+
       save(state.items);
     },
 
