@@ -96,7 +96,7 @@ function useDebouncedFn(fn, delay = 250) {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => fnRef.current(...args), delay);
     },
-    [delay]
+    [delay],
   );
 }
 
@@ -120,7 +120,7 @@ export default function Checkout() {
         const qty = it.qty || 1;
         return sum + unitPrice * qty;
       }, 0),
-    [items]
+    [items],
   );
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
@@ -132,7 +132,7 @@ export default function Checkout() {
 
   const { data: addrListRaw, isFetching: addrLoading } = useGetAddressesQuery(
     undefined,
-    { skip: !isAuth }
+    { skip: !isAuth },
   );
 
   const addrList = useMemo(() => {
@@ -236,7 +236,7 @@ export default function Checkout() {
         product_id: c.id,
         qty: c.qty,
       })),
-    [items]
+    [items],
   );
 
   const applyCoupon = async () => {
@@ -246,7 +246,11 @@ export default function Checkout() {
     if (!code) return;
     setCouponCode(code);
     try {
-      const r = await previewCoupon({ code, items: backendItems }).unwrap();
+      const r = await previewCoupon({
+        code,
+        items: backendItems,
+        email: (form.email || "").trim(),
+      }).unwrap();
       if (r?.ok) setCouponInfo(r);
       else setCouponErr(r?.error || t("checkout.couponInvalid"));
     } catch (e) {
@@ -340,7 +344,7 @@ export default function Checkout() {
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
     () => fmtEUR((payTotal || 0) / klarnaInstallments, locale),
-    [payTotal, locale]
+    [payTotal, locale],
   );
 
   const installmentsEnabled = payTotal >= 50;
@@ -364,18 +368,18 @@ export default function Checkout() {
         if (!parsed || !parsed.isValid()) {
           return t(
             "checkout.errPhoneFormat",
-            "Please enter a valid phone number for the selected country."
+            "Please enter a valid phone number for the selected country.",
           );
         }
       } catch {
         return t(
           "checkout.errPhoneFormat",
-          "Please enter a valid phone number for the selected country."
+          "Please enter a valid phone number for the selected country.",
         );
       }
       return null;
     },
-    [t]
+    [t],
   );
 
   const validateAddress = useCallback(() => {
@@ -397,12 +401,12 @@ export default function Checkout() {
     if (!form.houseNumber.trim()) {
       errors.houseNumber = t(
         "checkout.errHouseNumberRequired",
-        "House number is required."
+        "House number is required.",
       );
     } else if (!/^\d+[a-zA-Z]?$/.test(form.houseNumber.trim())) {
       errors.houseNumber = t(
         "checkout.errHouseNumberFormat",
-        "House number must start with digits (letters like 12a are ok)."
+        "House number must start with digits (letters like 12a are ok).",
       );
     }
 
@@ -514,7 +518,7 @@ export default function Checkout() {
           JSON.stringify({
             order_number: payload.order_number,
             email: guestEmail,
-          })
+          }),
         );
       } catch {
         try {
@@ -525,19 +529,19 @@ export default function Checkout() {
               order_id: orderId,
               order_number: fallbackNumber,
               email: guestEmail,
-            })
+            }),
           );
           sessionStorage.setItem(
             "guest_lookup_last",
             JSON.stringify({
               order_number: fallbackNumber,
               email: guestEmail,
-            })
+            }),
           );
         } catch {}
       }
     },
-    [isAuth, form.email]
+    [isAuth, form.email],
   );
 
   const onSuccessfulOrder = useCallback(
@@ -550,7 +554,7 @@ export default function Checkout() {
         navigate("/account/orders/");
       }
     },
-    [navigate, persistGuestInfo, wipeCart]
+    [navigate, persistGuestInfo, wipeCart],
   );
 
   const [payment, setPayment] = useState("");
@@ -563,7 +567,7 @@ export default function Checkout() {
 
   const hasMinimalAddress = useCallback(
     () => validateAddress(),
-    [validateAddress]
+    [validateAddress],
   );
 
   const handleCountryChange = (e) => {
@@ -668,7 +672,7 @@ export default function Checkout() {
       couponCode,
       t,
       hasMinimalAddress,
-    ]
+    ],
   );
 
   // URL coupon code pickup
@@ -734,8 +738,8 @@ export default function Checkout() {
                 alert(
                   t(
                     "checkout.fillFirst",
-                    "Please fill in contact + delivery first."
-                  )
+                    "Please fill in contact + delivery first.",
+                  ),
                 );
                 return actions.reject();
               }
@@ -820,7 +824,7 @@ export default function Checkout() {
         <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
           {t(
             "checkout.installmentsMinTotal",
-            "Installment payments are available from an order value of 50 €."
+            "Installment payments are available from an order value of 50 €.",
           )}
         </p>
       )}
@@ -870,7 +874,7 @@ export default function Checkout() {
                     const same = prev === m;
                     const next = same ? null : m;
                     setPaymentSafe(
-                      same ? "sepa_debit" : `sepa_installments_${m}`
+                      same ? "sepa_debit" : `sepa_installments_${m}`,
                     );
                     return next;
                   });
@@ -975,7 +979,7 @@ export default function Checkout() {
                       typeof grouped === "object" &&
                       !Array.isArray(grouped) &&
                       Object.values(grouped).every(
-                        (v) => v && typeof v === "object"
+                        (v) => v && typeof v === "object",
                       );
 
                     if (!isGrouped) {
@@ -1027,10 +1031,10 @@ export default function Checkout() {
                                   <option key={code} value={code}>
                                     {label}
                                   </option>
-                                )
+                                ),
                               )}
                             </optgroup>
-                          )
+                          ),
                         )}
                       </select>
                     );
@@ -1234,7 +1238,7 @@ export default function Checkout() {
                 <div className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
                   {t(
                     "checkout.choosePayment",
-                    "Please choose a payment method to continue."
+                    "Please choose a payment method to continue.",
                   )}
                 </div>
               )}
@@ -1333,7 +1337,7 @@ export default function Checkout() {
                 <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.installmentsMinTotal",
-                    "Installment payments are available from an order value of 50 €."
+                    "Installment payments are available from an order value of 50 €.",
                   )}
                 </p>
               )}
@@ -1464,7 +1468,7 @@ export default function Checkout() {
                 <p className="mt-3 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.sepaEuropeOnly",
-                    "SEPA direct debit is only available for European billing addresses."
+                    "SEPA direct debit is only available for European billing addresses.",
                   )}
                 </p>
               )}
@@ -1477,7 +1481,7 @@ export default function Checkout() {
                 <p className="mt-2 text-xs text-gray-600 dark:text-gray-300">
                   {t(
                     "checkout.installmentsMinTotal",
-                    "Installment payments are available from an order value of 50 €."
+                    "Installment payments are available from an order value of 50 €.",
                   )}
                 </p>
               )}
@@ -1571,9 +1575,44 @@ export default function Checkout() {
                   <div className="text-red-700 text-sm">{couponErr}</div>
                 )}
                 {couponInfo?.ok && (
-                  <div className="text-green-700 dark:text-green-500 text-sm">
-                    {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                    <span>-{fmtEUR(discount, locale)}</span>
+                  <div className="mt-2 text-xs text-gray-700 dark:text-gray-200">
+                    {(() => {
+                      const base = Number(couponInfo.base_subtotal ?? 0);
+                      const curSub = Number(couponInfo.subtotal ?? 0);
+                      const total = Number(couponInfo.total ?? 0);
+
+                      if (!(base > 0 && curSub > 0)) return null;
+
+                      const storeDiscPct = ((base - curSub) / base) * 100;
+                      const extraDiscPct = ((curSub - total) / base) * 100;
+                      const totalDiscPct = ((base - total) / base) * 100;
+
+                      const fmtPct = (x) => `${Math.max(0, x).toFixed(0)}%`;
+
+                      return (
+                        <div className="rounded-lg border dark:border-neutral-700 p-2 bg-black/[0.02] dark:bg-white/[0.03]">
+                          <div>
+                            {t("checkout.discountLineSimple", {
+                              defaultValue:
+                                "Product Discount ({{store}}) + Coupon Applied (Extra {{extra}}) = Total {{total}} Off.",
+                              store: fmtPct(storeDiscPct),
+                              extra: fmtPct(extraDiscPct),
+                              total: fmtPct(totalDiscPct),
+                            })}
+                          </div>
+                          <div className="mt-1">
+                            {t("checkout.discountLineDetailed", {
+                              defaultValue:
+                                "This product already has a {{store}} store discount. Your {{coupon}} coupon adds an additional {{extra}} off, bringing your total savings to {{total}} of the original price.",
+                              store: fmtPct(storeDiscPct),
+                              coupon: `${Number(couponInfo.value || 0).toFixed(0)}%`,
+                              extra: fmtPct(extraDiscPct),
+                              total: fmtPct(totalDiscPct),
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
