@@ -163,6 +163,7 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const localOrderIdRef = useRef(null);
 
+  const shippingFee = 0;
   // Coupon percent from preview (only for kind === "percent")
   const couponPct = useMemo(() => {
     if (!couponInfo?.ok) return 0;
@@ -319,8 +320,6 @@ export default function Checkout() {
     }, 150);
     return () => clearTimeout(id);
   }, [items.length, navigate]);
-
-  const shippingFee = 0;
 
   const backendItems = useMemo(
     () =>
