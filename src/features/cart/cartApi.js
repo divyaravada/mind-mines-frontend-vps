@@ -25,16 +25,6 @@ function normalizeServerItems(serverItems) {
         dimensions: x.dimensions || "",
         category: x.category || "",
         stock: x.stock ?? undefined,
-
-        // ✅ important for discount logic (if backend sends them)
-        product_discount_percent:
-          x.product_discount_percent != null
-            ? Number(x.product_discount_percent)
-            : x.discount_percent != null
-              ? Number(x.discount_percent)
-              : undefined,
-
-        price_gross: x.price_gross != null ? Number(x.price_gross) : undefined,
       };
     })
     .filter(Boolean);
@@ -43,14 +33,11 @@ function normalizeServerItems(serverItems) {
 export const cartApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCart: build.query({
-      // ✅ Backend rejects GET → use POST to retrieve cart
       query: ({ cart_token } = {}) => {
         const token = cart_token || getCartToken();
         return {
           url: "/cart/",
-          method: "POST",
-          // send only cart_token → should “read” cart without modifying
-          body: token ? { cart_token: token } : {},
+          params: token ? { cart_token: token } : undefined,
         };
       },
       providesTags: ["Cart"],
@@ -60,6 +47,7 @@ export const cartApi = api.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
 
+          // backend might return {items:[...]} or list directly
           const serverItems = Array.isArray(data)
             ? data
             : Array.isArray(data?.items)
@@ -71,30 +59,10 @@ export const cartApi = api.injectEndpoints({
           if (serverItems.length > 0) {
             const normalized = normalizeServerItems(serverItems);
             if (normalized.length > 0) {
-              // ✅ merge: keep local extra fields (price_gross / product_discount_percent)
-              const local = getState()?.cart?.items || [];
-              const localById = new Map(
-                local.map((x) => [Number(x.productId ?? x.id), x]),
-              );
-
-              const merged = normalized.map((s) => {
-                const key = Number(s.productId ?? s.id);
-                const l = localById.get(key);
-                if (!l) return s;
-
-                return {
-                  ...s,
-                  // keep any locally-known fields if server doesn't provide them
-                  price_gross: s.price_gross ?? l.price_gross,
-                  product_discount_percent:
-                    s.product_discount_percent ?? l.product_discount_percent,
-                };
-              });
-
-              dispatch(setCartItems(merged));
+              dispatch(setCartItems(normalized));
             }
           } else {
-            // keep local cart
+            // ✅ do nothing: keep localStorage cart
           }
         } catch {
           // ignore network errors
