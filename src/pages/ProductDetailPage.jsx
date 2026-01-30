@@ -413,12 +413,15 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const unit = resolveProductPrice(product);
-    const gross = resolveBaseGross(product); // should be 99 in your example
-    const productDisc =
+    const unitFinal = resolveProductPrice(product); // final_price_gross (already discounted)
+    const unitBase = resolveBaseGross(product); // price_gross (original)
+    const prodDiscPct =
       Number(product?.discount_percent ?? 0) ||
-      (typeof product?.is_discounted === "boolean" && product.is_discounted
-        ? Number(product?.discount_percent ?? 0)
+      (unitBase > 0
+        ? Math.max(
+            0,
+            Math.round(((unitBase - unitFinal) / unitBase) * 10000) / 100,
+          )
         : 0);
 
     track({
@@ -426,7 +429,7 @@ export default function ProductDetailPage() {
       product_id: product.id,
       category: product.category,
       quantity: qty,
-      value: unit * qty,
+      value: unitFinal * qty,
     });
 
     dispatch(
@@ -434,11 +437,14 @@ export default function ProductDetailPage() {
         id: product.id,
         name: productTitle(product, lang),
         image: product.image,
-        price: toNumber(unit), // current (final) price for UI
-        price_gross: Number(gross) || toNumber(unit),
-        product_discount_percent: Number.isFinite(productDisc)
-          ? productDisc
-          : 0,
+
+        // ✅ keep existing behavior for line totals (cart subtotal uses this)
+        price: toNumber(unitFinal),
+
+        // ✅ NEW: store base + product discount so checkout can do correct coupon logic
+        basePriceGross: toNumber(unitBase),
+        productDiscountPercent: toNumber(prodDiscPct),
+
         qty,
         category: product.category,
         dimensions: product.dimensions,
@@ -447,6 +453,7 @@ export default function ProductDetailPage() {
         stock: Number.isFinite(stockNum) ? stockNum : 0,
       }),
     );
+
     navigate("/cart");
   };
 

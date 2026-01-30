@@ -57,16 +57,20 @@ const cartSlice = createSlice({
         found.price = p;
         if (image) found.image = image;
         found.productId = productId;
+
+        // ✅ keep base/discount fields refreshed too
         Object.assign(found, rest);
       } else {
         state.items.push({
-          id: productId, // keep UI stable
-          productId: productId, // ✅ important
+          id: productId,
+          productId: productId,
           name: itemTitle,
           title: itemTitle,
           price: p,
           image: image || "",
           qty: 1,
+
+          // ✅ will include basePriceGross, productDiscountPercent, etc.
           ...rest,
         });
       }

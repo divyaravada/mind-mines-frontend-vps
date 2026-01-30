@@ -94,7 +94,20 @@ function safePct(n) {
   if (!Number.isFinite(x)) return 0;
   return Math.min(100, Math.max(0, x));
 }
+function toNumber(v) {
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  const s = String(v ?? "")
+    .replace(/[^\d.,-]/g, "")
+    .replace(",", ".");
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
 
+function clampPct(p) {
+  const n = toNumber(p);
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(100, Math.max(0, n));
+}
 /**
  * Your rule:
  * - base = price_gross
@@ -194,10 +207,47 @@ export default function Checkout() {
     );
   }, [items, couponPct]);
 
+  const subtotal = useMemo(
+    () =>
+      items.reduce((sum, it) => {
+        const unitPrice =
+          it.price && Number(it.price) > 0
+            ? Number(it.price)
+            : Number(it.priceRange ?? 0);
+        const qty = it.qty || 1;
+        return sum + toNumber(unitPrice) * qty;
+      }, 0),
+    [items],
+  );
   const discount = useMemo(() => {
-    // "discount" shown to user = how much off compared to grossSubtotal
-    return round2(Math.max(0, grossSubtotal - computedTotal));
-  }, [grossSubtotal, computedTotal]);
+    if (!couponInfo?.ok) return 0;
+
+    // If percent coupon: apply "max(productDiscount, couponDiscount)" on BASE
+    if (couponInfo.kind === "percent") {
+      const couponPct = clampPct(couponInfo.value); // e.g. "25.00" -> 25
+      if (couponPct <= 0) return 0;
+
+      const extra = items.reduce((sum, it) => {
+        const qty = Math.max(1, Number(it.qty || 1));
+
+        // base gross must come from product detail page -> cart
+        const base = toNumber(it.basePriceGross);
+        if (base <= 0) return sum;
+
+        const prodPct = clampPct(it.productDiscountPercent);
+        const effectivePct = Math.max(prodPct, couponPct);
+        const extraPct = Math.max(0, effectivePct - prodPct);
+
+        return sum + base * qty * (extraPct / 100);
+      }, 0);
+
+      return Number(Math.max(0, extra).toFixed(2));
+    }
+
+    // For fixed/amount coupons: keep backend-provided discount
+    const d = toNumber(couponInfo.discount);
+    return Number(Math.max(0, d).toFixed(2));
+  }, [couponInfo, items]);
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
@@ -392,9 +442,9 @@ export default function Checkout() {
   }, []);
 
   const payTotal = useMemo(() => {
-    const ttotal = computedTotal + shippingFee;
-    return round2(Math.max(0, ttotal));
-  }, [computedTotal, shippingFee]);
+    const ttotal = subtotal + shippingFee - discount;
+    return Number(Math.max(0, ttotal).toFixed(2));
+  }, [subtotal, shippingFee, discount]);
 
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
@@ -1637,12 +1687,6 @@ export default function Checkout() {
                 )}
               </div>
 
-              {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
-                <Row
-                  label={t("checkout.couponLine", { code: couponInfo.code })}
-                  value={`-${fmtEUR(discount, locale)}`}
-                />
-              )}
               <PriceBreakdown
                 items={items}
                 locale={locale}
