@@ -83,47 +83,6 @@ function isEuropeanCountry(code) {
   return EUROPE_COUNTRIES.includes(c);
 }
 
-function round2(n) {
-  const x = Number(n);
-  if (!Number.isFinite(x)) return 0;
-  return Math.round(x * 100) / 100;
-}
-
-function safePct(n) {
-  const x = Number(n);
-  if (!Number.isFinite(x)) return 0;
-  return Math.min(100, Math.max(0, x));
-}
-function toNumber(v) {
-  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
-  const s = String(v ?? "")
-    .replace(/[^\d.,-]/g, "")
-    .replace(",", ".");
-  const n = parseFloat(s);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function clampPct(p) {
-  const n = toNumber(p);
-  if (!Number.isFinite(n)) return 0;
-  return Math.min(100, Math.max(0, n));
-}
-
-/**
- * Rule:
- * - base = price_gross
- * - if couponPct > 0 => use couponPct (coupon overrides product discount)
- * - else => use productDiscPct
- */
-function computeUnitFinal({ priceGross, productDiscPct, couponPct }) {
-  const gross = Number(priceGross) || 0;
-  const pDisc = safePct(productDiscPct);
-  const cDisc = safePct(couponPct);
-
-  const effectivePct = cDisc > 0 ? cDisc : pDisc; // ✅ override
-  return round2(gross * (1 - effectivePct / 100));
-}
-
 // small debounce helper
 function useDebouncedFn(fn, delay = 250) {
   const timer = useRef(null);
@@ -151,62 +110,6 @@ export default function Checkout() {
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
 
-  const [addrErrors, setAddrErrors] = useState({});
-  const [cityOptions, setCityOptions] = useState([]);
-  const [cityLoading, setCityLoading] = useState(false);
-
-  const [couponCode, setCouponCode] = useState("");
-  const [couponInfo, setCouponInfo] = useState(null);
-  const [couponErr, setCouponErr] = useState("");
-
-  const skipCartGuardRef = useRef(false);
-  const addressIdRef = useRef(null);
-  const localOrderIdRef = useRef(null);
-
-  const shippingFee = 0;
-  // Coupon percent from preview (only for kind === "percent")
-  const couponPct = useMemo(() => {
-    if (!couponInfo?.ok) return 0;
-    if (String(couponInfo.kind || "").toLowerCase() !== "percent") return 0;
-    return safePct(couponInfo.value);
-  }, [couponInfo]);
-
-  // Gross subtotal (price_gross * qty). Falls back to current unit price if missing.
-  const grossSubtotal = useMemo(() => {
-    return round2(
-      items.reduce((sum, it) => {
-        const unitFallback =
-          it.price && Number(it.price) > 0
-            ? Number(it.price)
-            : Number(it.priceRange ?? 0);
-        const gross = Number(it.price_gross) || unitFallback;
-        const qty = Number(it.qty || 1);
-        return sum + gross * qty;
-      }, 0),
-    );
-  }, [items]);
-
-  // Final total using your rule
-  const computedTotal = useMemo(() => {
-    return round2(
-      items.reduce((sum, it) => {
-        const unitFallback =
-          it.price && Number(it.price) > 0
-            ? Number(it.price)
-            : Number(it.priceRange ?? 0);
-        const gross = Number(it.price_gross) || unitFallback;
-        const prodDisc = Number(it.product_discount_percent || 0);
-        const qty = Number(it.qty || 1);
-        const unitFinal = computeUnitFinal({
-          priceGross: gross,
-          productDiscPct: prodDisc,
-          couponPct,
-        });
-        return sum + unitFinal * qty;
-      }, 0),
-    );
-  }, [items, couponPct]);
-
   const subtotal = useMemo(
     () =>
       items.reduce((sum, it) => {
@@ -215,19 +118,11 @@ export default function Checkout() {
             ? Number(it.price)
             : Number(it.priceRange ?? 0);
         const qty = it.qty || 1;
-        return sum + toNumber(unitPrice) * qty;
+        return sum + unitPrice * qty;
       }, 0),
     [items],
   );
-  // ✅ total discount (grossSubtotal - computedTotal)
-  const discountTotal = useMemo(() => {
-    return round2(Math.max(0, grossSubtotal - computedTotal));
-  }, [grossSubtotal, computedTotal]);
 
-  // ✅ amount to pay (final after all discounts + shipping)
-  const payTotal = useMemo(() => {
-    return Number(Math.max(0, computedTotal + shippingFee).toFixed(2));
-  }, [computedTotal, shippingFee]);
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
   const [previewCoupon] = usePreviewCouponMutation();
@@ -262,6 +157,18 @@ export default function Checkout() {
     city: "",
     telephone: "",
   });
+
+  const [addrErrors, setAddrErrors] = useState({});
+  const [cityOptions, setCityOptions] = useState([]);
+  const [cityLoading, setCityLoading] = useState(false);
+
+  const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState(null);
+  const [couponErr, setCouponErr] = useState("");
+
+  const skipCartGuardRef = useRef(false);
+  const addressIdRef = useRef(null);
+  const localOrderIdRef = useRef(null);
 
   // Prefill address from default
   useEffect(() => {
@@ -320,6 +227,8 @@ export default function Checkout() {
     }, 150);
     return () => clearTimeout(id);
   }, [items.length, navigate]);
+
+  const shippingFee = 0;
 
   const backendItems = useMemo(
     () =>
@@ -417,6 +326,16 @@ export default function Checkout() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const discount = useMemo(() => {
+    const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
+    return Number.isFinite(d) ? d : 0;
+  }, [couponInfo]);
+
+  const payTotal = useMemo(() => {
+    const ttotal = subtotal + shippingFee - discount;
+    return Number(Math.max(0, ttotal).toFixed(2));
+  }, [subtotal, shippingFee, discount]);
 
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
@@ -1654,104 +1573,51 @@ export default function Checkout() {
                 {couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
                     {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
-                    <span>-{fmtEUR(discountTotal, locale)}</span>
+                    <span>-{fmtEUR(discount, locale)}</span>
                   </div>
                 )}
-
-                <PriceBreakdown
-                  items={items}
-                  locale={locale}
-                  t={t}
-                  couponInfo={couponInfo}
-                />
-                <Row
-                  label={subtotalLabel}
-                  value={fmtEUR(grossSubtotal, locale)}
-                />
-                <Row
-                  label={t("checkout.shipmentShort")}
-                  value={
-                    shippingFee === 0
-                      ? t("checkout.free")
-                      : fmtEUR(shippingFee, locale)
-                  }
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-base font-semibold">
-                    {t("checkout.inTotal")}
-                  </div>
-                  <div className="text-base font-semibold">
-                    {fmtEUR(payTotal, locale)}
-                  </div>
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                  {t("checkout.inclTax")}
-                </div>
-
-                <Link
-                  to="/cart"
-                  className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
-                >
-                  {t("checkout.backToCart")}
-                </Link>
               </div>
+
+              {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
+                <Row
+                  label={t("checkout.couponLine", { code: couponInfo.code })}
+                  value={`-${fmtEUR(discount, locale)}`}
+                />
+              )}
+
+              <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
+              <Row
+                label={t("checkout.shipmentShort")}
+                value={
+                  shippingFee === 0
+                    ? t("checkout.free")
+                    : fmtEUR(shippingFee, locale)
+                }
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-base font-semibold">
+                  {t("checkout.inTotal")}
+                </div>
+                <div className="text-base font-semibold">
+                  {fmtEUR(payTotal, locale)}
+                </div>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                {t("checkout.inclTax")}
+              </div>
+
+              <Link
+                to="/cart"
+                className="mt-5 inline-block w-full text-center py-2 rounded-lg border dark:border-neutral-700 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition"
+              >
+                {t("checkout.backToCart")}
+              </Link>
             </div>
           </aside>
         </div>
       </main>
     </>
   );
-}
-
-function PriceBreakdown({ items, locale, t, couponInfo }) {
-  const couponKind = String(couponInfo?.kind || "").toLowerCase();
-  const couponPct =
-    couponInfo?.ok && couponKind === "percent"
-      ? Math.min(100, Math.max(0, Number(couponInfo?.value) || 0))
-      : 0;
-
-  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
-
-  const computeUnitFinal = (gross, prodDisc, coupon) => {
-    const g = Number(gross) || 0;
-    const p = Math.min(100, Math.max(0, Number(prodDisc) || 0));
-    const c = Math.min(100, Math.max(0, Number(coupon) || 0));
-
-    const effectivePct = c > 0 ? c : p; // ✅ override
-    return round2(g * (1 - effectivePct / 100));
-  };
-
-  const rows = (items || []).map((it) => {
-    const qty = Number(it.qty || 1);
-    const fallbackUnit =
-      it.price && Number(it.price) > 0
-        ? Number(it.price)
-        : Number(it.priceRange ?? 0);
-
-    const gross = Number(it.price_gross) || fallbackUnit;
-
-    // ✅ product discount stored as string sometimes
-    const prodDisc = Number(it.product_discount_percent || 0);
-
-    const extraCoupon = couponPct > 0 ? Math.max(0, couponPct - prodDisc) : 0; // display-only
-    const effectivePct = couponPct > 0 ? couponPct : prodDisc;
-
-    const unitFinal = computeUnitFinal(gross, prodDisc, couponPct);
-
-    return {
-      id: it.id ?? it.productId,
-      name: it.name,
-      qty,
-      gross,
-      prodDisc,
-      couponPct,
-      extraCoupon,
-      effectivePct,
-      unitFinal,
-      lineFinal: round2(unitFinal * qty),
-      lineGross: round2(gross * qty),
-    };
-  });
 }
 
 function Row({ label, value }) {

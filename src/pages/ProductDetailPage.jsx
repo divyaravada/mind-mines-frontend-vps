@@ -413,49 +413,30 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const unitFinal = resolveProductPrice(product); // final_price_gross (already discounted)
-    const unitBase = resolveBaseGross(product); // price_gross (original)
-    const prodDiscPct =
-      Number(product?.discount_percent ?? 0) ||
-      (unitBase > 0
-        ? Math.max(
-            0,
-            Math.round(((unitBase - unitFinal) / unitBase) * 10000) / 100,
-          )
-        : 0);
+    const unit = resolveProductPrice(product);
 
     track({
       event_type: "add_to_cart",
       product_id: product.id,
       category: product.category,
       quantity: qty,
-      value: unitFinal * qty,
+      value: unit * qty,
     });
 
     dispatch(
       addItem({
         id: product.id,
-        productId: product.id,
         name: productTitle(product, lang),
         image: product.image,
-
-        // ✅ what user currently pays without coupon (already includes product discount)
-        price: toNumber(priceNumber), // priceNumber = resolveProductPrice(product) -> should be final_price_gross
-
+        price: toNumber(unit),
         qty,
         category: product.category,
         dimensions: product.dimensions,
         weight: product.weight,
         color: product.color,
         stock: Number.isFinite(stockNum) ? stockNum : 0,
-
-        // ✅ NEW: keep original gross + product discount percent for checkout breakdown
-        price_gross: toNumber(product.price_gross ?? baseGross), // baseGross = resolveBaseGross(product)
-        final_price_gross: toNumber(product.final_price_gross ?? priceNumber),
-        product_discount_percent: toNumber(product.discount_percent ?? 0),
       }),
     );
-
     navigate("/cart");
   };
 

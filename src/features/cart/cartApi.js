@@ -4,33 +4,22 @@ import { setCartItems } from "./cartSlice";
 import { getCartToken } from "../../lib/cartToken";
 
 function normalizeServerItems(serverItems) {
+  // Expecting server item like:
+  // { product: 12, qty: 2, name, image, price, color, weight, dimensions, category, stock }
+  // If backend returns less, we still return safe defaults.
   return serverItems
     .map((x) => {
       const productId = Number(x.product ?? x.product_id ?? x.id);
       if (!Number.isFinite(productId)) return null;
 
-      const unit = Number(x.price) || 0;
-      const gross = Number(x.price_gross ?? x.gross_price ?? unit) || 0;
-
       return {
-        id: productId,
-        productId: productId,
-
+        id: productId, // UI uses id
+        productId: productId, // backend FK
         name: x.name || "",
         image: x.image || "",
-
-        // ✅ keep price + gross price
-        price: unit,
-        price_gross: gross,
-
-        // ✅ keep product discount percent (your backend uses snake_case)
-        product_discount_percent: String(
-          Number(x.product_discount_percent ?? x.discount_percent ?? 0),
-        ),
-
+        price: Number(x.price) || 0,
         priceRange: x.priceRange ?? undefined,
         qty: Math.max(1, Number(x.qty) || 1),
-
         color: x.color || "",
         weight: x.weight || "",
         dimensions: x.dimensions || "",
