@@ -15,7 +15,7 @@ import {
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
 import { useGetCartQuery, useSaveCartMutation } from "../features/cart/cartApi";
-import { getCartToken } from "../lib/cartToken";
+import { resolveUnitGross } from "../lib/pricing";
 
 import {
   Heart,
@@ -147,10 +147,7 @@ export default function CartPage() {
   // Build payload once (memo) so effect doesn't re-run unnecessarily
   const cartBody = useMemo(() => {
     const itemsPayload = items.map((it) => {
-      const unitPrice =
-        it.price && Number(it.price) > 0
-          ? Number(it.price)
-          : Number(it.priceRange ?? 0);
+      const unitPrice = resolveUnitGross(item, { couponApplied: false });
 
       const stockNum = Number(it.stock);
       const maxQty =
@@ -184,10 +181,7 @@ export default function CartPage() {
   // Subtotal uses clamped qty as well
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
-      const unitPrice =
-        item.price && Number(item.price) > 0
-          ? Number(item.price)
-          : Number(item.priceRange ?? 0);
+      const unitPrice = resolveUnitGross(item, { couponApplied: false });
 
       const stockNum = Number(item.stock);
       const maxQty =

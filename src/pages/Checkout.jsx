@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { Helmet } from "react-helmet-async";
+import { resolveUnitGross } from "../lib/pricing";
 
 import { useTranslation } from "react-i18next";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -110,18 +111,27 @@ export default function Checkout() {
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
 
-  const subtotal = useMemo(
-    () =>
-      items.reduce((sum, it) => {
-        const unitPrice =
-          it.price && Number(it.price) > 0
-            ? Number(it.price)
-            : Number(it.priceRange ?? 0);
-        const qty = it.qty || 1;
-        return sum + unitPrice * qty;
-      }, 0),
-    [items],
-  );
+  const discountedSubtotal = useMemo(() => {
+    // no coupon → product discount allowed
+    return items.reduce((sum, it) => {
+      const unit = resolveUnitGross(it, { couponApplied: false });
+      const qty = Number(it.qty) || 1;
+      return sum + unit * qty;
+    }, 0);
+  }, [items]);
+
+  const originalSubtotal = useMemo(() => {
+    // coupon applied → ignore product discount
+    return items.reduce((sum, it) => {
+      const unit = resolveUnitGross(it, { couponApplied: true });
+      const qty = Number(it.qty) || 1;
+      return sum + unit * qty;
+    }, 0);
+  }, [items]);
+
+  const couponApplied = Boolean(couponInfo?.ok && Number(discount) > 0);
+
+  const subtotal = couponApplied ? originalSubtotal : discountedSubtotal;
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
@@ -1508,10 +1518,7 @@ export default function Checkout() {
 
               <div className="space-y-4">
                 {items.map((it) => {
-                  const unitPrice =
-                    it.price && Number(it.price) > 0
-                      ? Number(it.price)
-                      : Number(it.priceRange ?? 0);
+                  const unitPrice = resolveUnitGross(it, { couponApplied });
 
                   return (
                     <div key={it.id} className="flex items-center gap-3">
@@ -1537,7 +1544,7 @@ export default function Checkout() {
                         <div className="font-medium text-sm">{it.name}</div>
                       </div>
                       <div className="font-medium text-sm">
-                        {fmtEUR(unitPrice * it.qty, locale)}
+                        {fmtEUR(unitPrice * (Number(it.qty) || 1), locale)}
                       </div>
                     </div>
                   );

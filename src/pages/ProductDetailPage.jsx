@@ -426,10 +426,17 @@ export default function ProductDetailPage() {
     dispatch(
       addItem({
         id: product.id,
+        productId: product.id,
         name: productTitle(product, lang),
         image: product.image,
-        price: toNumber(unit),
         qty,
+
+        // IMPORTANT: store base & product discount info
+        price_gross: Number(baseGross || 0), // e.g. 178
+        final_price_gross: Number(priceNumber || 0), // e.g. 160
+        product_discount_percent: Number(product?.discount_percent || 0), // e.g. 10
+
+        // keep existing fields
         category: product.category,
         dimensions: product.dimensions,
         weight: product.weight,
@@ -437,6 +444,7 @@ export default function ProductDetailPage() {
         stock: Number.isFinite(stockNum) ? stockNum : 0,
       }),
     );
+
     navigate("/cart");
   };
 

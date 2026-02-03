@@ -13,8 +13,8 @@ function normalizeServerItems(serverItems) {
       if (!Number.isFinite(productId)) return null;
 
       return {
-        id: productId, // UI uses id
-        productId: productId, // backend FK
+        id: productId,
+        productId,
         name: x.name || "",
         image: x.image || "",
         price: Number(x.price) || 0,
@@ -25,6 +25,19 @@ function normalizeServerItems(serverItems) {
         dimensions: x.dimensions || "",
         category: x.category || "",
         stock: x.stock ?? undefined,
+
+        // ✅ keep pricing fields from backend (strings -> ok, we Number() later)
+        price_gross: x.price_gross ?? x.priceGross ?? x.price ?? 0,
+        final_price_gross:
+          x.final_price_gross ?? x.finalPriceGross ?? x.final_price ?? 0,
+        discount_percent:
+          x.discount_percent ??
+          x.discountPercent ??
+          x.product_discount_percent ??
+          0,
+        is_discounted: Boolean(
+          x.is_discounted ?? x.isDiscounted ?? x.is_discounted_flag,
+        ),
       };
     })
     .filter(Boolean);
