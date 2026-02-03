@@ -269,10 +269,9 @@ export default function CartPage() {
             {items.map((item) => {
               const inWishlist = wishlistIds.has(item.id);
 
-              const unitPrice =
-                item.price && Number(item.price) > 0
-                  ? Number(item.price)
-                  : Number(item.priceRange ?? 0);
+              const unitPrice = resolveUnitGross(item, {
+                couponApplied: false,
+              });
 
               const stockNum = Number(item.stock);
               const maxQty =
