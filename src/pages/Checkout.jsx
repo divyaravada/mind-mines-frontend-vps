@@ -111,6 +111,18 @@ export default function Checkout() {
   const items = useSelector(selectCartItems);
   const itemsCount = useSelector(selectCartCount);
 
+  const [addrErrors, setAddrErrors] = useState({});
+  const [cityOptions, setCityOptions] = useState([]);
+  const [cityLoading, setCityLoading] = useState(false);
+
+  const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState(null);
+  const [couponErr, setCouponErr] = useState("");
+
+  const skipCartGuardRef = useRef(false);
+  const addressIdRef = useRef(null);
+  const localOrderIdRef = useRef(null);
+
   const discountedSubtotal = useMemo(() => {
     // no coupon → product discount allowed
     return items.reduce((sum, it) => {
@@ -173,18 +185,6 @@ export default function Checkout() {
     city: "",
     telephone: "",
   });
-
-  const [addrErrors, setAddrErrors] = useState({});
-  const [cityOptions, setCityOptions] = useState([]);
-  const [cityLoading, setCityLoading] = useState(false);
-
-  const [couponCode, setCouponCode] = useState("");
-  const [couponInfo, setCouponInfo] = useState(null);
-  const [couponErr, setCouponErr] = useState("");
-
-  const skipCartGuardRef = useRef(false);
-  const addressIdRef = useRef(null);
-  const localOrderIdRef = useRef(null);
 
   // Prefill address from default
   useEffect(() => {
