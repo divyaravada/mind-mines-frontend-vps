@@ -129,6 +129,12 @@ export default function Checkout() {
     }, 0);
   }, [items]);
 
+  const discount = useMemo(() => {
+    if (!couponInfo?.ok) return 0;
+    const d = Number(couponInfo.discount);
+    return Number.isFinite(d) ? d : 0;
+  }, [couponInfo]);
+
   const couponApplied = Boolean(couponInfo?.ok && Number(discount) > 0);
 
   const subtotal = couponApplied ? originalSubtotal : discountedSubtotal;
@@ -336,11 +342,6 @@ export default function Checkout() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const discount = useMemo(() => {
-    const d = couponInfo?.ok ? Number(couponInfo.discount) : 0;
-    return Number.isFinite(d) ? d : 0;
-  }, [couponInfo]);
 
   const payTotal = useMemo(() => {
     const ttotal = subtotal + shippingFee - discount;
