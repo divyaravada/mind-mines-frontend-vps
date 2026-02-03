@@ -159,24 +159,35 @@ export default function Checkout() {
     }, 0);
   }, [items]);
 
-  // payment subtotal rule:
-  // couponApplied => use originalSubtotal
-  // else => use discountedSubtotal
-  const subtotal = couponApplied ? originalSubtotal : discountedSubtotal;
-
   // product discount total (visible only if NO coupon)
   const productDiscountAmount = useMemo(() => {
-    if (couponApplied) return 0;
     const d = originalSubtotal - discountedSubtotal;
     return Number.isFinite(d) ? Math.max(0, Number(d.toFixed(2))) : 0;
-  }, [couponApplied, originalSubtotal, discountedSubtotal]);
+  }, [originalSubtotal, discountedSubtotal]);
+
+  // ✅ Best discount wins (no stacking)
+  const bestIsCoupon = useMemo(() => {
+    if (!couponApplied) return false;
+    // couponDiscount is absolute € from backend preview
+    return couponDiscount > productDiscountAmount;
+  }, [couponApplied, couponDiscount, productDiscountAmount]);
+
+  const effectiveCouponApplied = couponApplied && bestIsCoupon;
 
   const shippingFee = 0;
 
+  // payment subtotal rule:
+  // - if coupon wins => use original subtotal (product discounts removed)
+  // - else => keep discounted subtotal (coupon ignored)
+  const subtotal = effectiveCouponApplied
+    ? originalSubtotal
+    : discountedSubtotal;
+
   const payTotal = useMemo(() => {
-    const ttotal = subtotal + shippingFee - couponDiscount;
+    const appliedCouponValue = effectiveCouponApplied ? couponDiscount : 0;
+    const ttotal = subtotal + shippingFee - appliedCouponValue;
     return Number(Math.max(0, ttotal).toFixed(2));
-  }, [subtotal, shippingFee, couponDiscount]);
+  }, [subtotal, shippingFee, couponDiscount, effectiveCouponApplied]);
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
@@ -1538,23 +1549,19 @@ export default function Checkout() {
                   const qty = Number(it.qty) || 1;
 
                   // Line computed with current coupon status
-                  const line = computeLinePricing(it, {
-                    couponApplied,
-                    couponPercent,
-                  });
+                  // Always compute product-discounted price (no coupon per-line here)
+                  // because backend returns coupon as cart-level absolute €
+                  const line = computeLinePricing(it, { couponApplied: false });
 
-                  // What user is paying per unit right now:
-                  // - couponApplied => base is original, coupon discount may apply later in totals line
-                  // - else => base is discounted (if product has discount)
-                  const unitShown = couponApplied
-                    ? line.originalGross
-                    : line.unitBaseGross;
+                  const unitShown = effectiveCouponApplied
+                    ? line.originalGross // coupon wins -> show original (product discounts removed)
+                    : line.unitBaseGross; // product discount wins (or no coupon)
 
                   const shownLineTotal = unitShown * qty;
                   const originalLineTotal = line.originalGross * qty;
 
                   const showStrike =
-                    (couponApplied || (!couponApplied && line.hasProd)) &&
+                    (effectiveCouponApplied || line.hasProd) &&
                     originalLineTotal > shownLineTotal;
 
                   return (
@@ -1579,7 +1586,12 @@ export default function Checkout() {
 
                         {/* Explanation */}
                         <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1">
-                          {!couponApplied && line.hasProd ? (
+                          {effectiveCouponApplied ? (
+                            <>
+                              Coupon applied: product discounts are not stacked
+                              (best discount wins).
+                            </>
+                          ) : line.hasProd ? (
                             <>
                               Product discount applied:{" "}
                               {fmtEUR(line.originalGross, locale)} →{" "}
@@ -1587,10 +1599,9 @@ export default function Checkout() {
                                 {fmtEUR(line.unitBaseGross, locale)}
                               </span>
                             </>
-                          ) : couponApplied ? (
+                          ) : couponApplied && !effectiveCouponApplied ? (
                             <>
-                              Coupon applied: product discounts are not stacked
-                              (coupon uses original price).
+                              Coupon ignored because product discount is better.
                             </>
                           ) : (
                             <>No discounts</>
@@ -1653,14 +1664,29 @@ export default function Checkout() {
                   </div>
                 )}
               </div>
-              {!couponApplied && productDiscountAmount > 0 && (
+              {/* Product discount line */}
+              {!effectiveCouponApplied && productDiscountAmount > 0 && (
                 <Row
                   label={t("checkout.productDiscountLine", "Product discount")}
                   value={`-${fmtEUR(productDiscountAmount, locale)}`}
                 />
               )}
+              {/* If coupon exists but ignored */}
+              {couponApplied && !effectiveCouponApplied && (
+                <Row
+                  label={t("checkout.couponLine", {
+                    code: couponInfo?.code || "",
+                    defaultValue: "Coupon ({{code}})",
+                  })}
+                  value={t(
+                    "checkout.couponIgnored",
+                    "Ignored (product discount is better)",
+                  )}
+                />
+              )}
 
-              {couponApplied && (
+              {/* Coupon applied */}
+              {effectiveCouponApplied && (
                 <Row
                   label={t("checkout.productDiscountLine", "Product discount")}
                   value={t(
@@ -1669,16 +1695,17 @@ export default function Checkout() {
                   )}
                 />
               )}
-
-              {couponApplied && couponInfo?.code && couponDiscount > 0 && (
-                <Row
-                  label={t("checkout.couponLine", {
-                    code: couponInfo.code,
-                    defaultValue: "Coupon ({{code}})",
-                  })}
-                  value={`-${fmtEUR(couponDiscount, locale)}`}
-                />
-              )}
+              {effectiveCouponApplied &&
+                couponInfo?.code &&
+                couponDiscount > 0 && (
+                  <Row
+                    label={t("checkout.couponLine", {
+                      code: couponInfo.code,
+                      defaultValue: "Coupon ({{code}})",
+                    })}
+                    value={`-${fmtEUR(couponDiscount, locale)}`}
+                  />
+                )}
 
               <hr className="my-2 border-gray-200 dark:border-neutral-700" />
 
