@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { Helmet } from "react-helmet-async";
-import { resolveUnitGross } from "../lib/pricing";
+import { resolveUnitGross, resolveUnitOriginalGross } from "../lib/pricing";
 
 import { useTranslation } from "react-i18next";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -123,8 +123,33 @@ export default function Checkout() {
   const addressIdRef = useRef(null);
   const localOrderIdRef = useRef(null);
 
+  const discount = useMemo(() => {
+    if (!couponInfo?.ok) return 0;
+    const d = Number(couponInfo.discount);
+    return Number.isFinite(d) ? d : 0;
+  }, [couponInfo]);
+
+  // --- Coupon discount (absolute amount from backend preview) ---
+  const couponDiscount = useMemo(() => {
+    if (!couponInfo?.ok) return 0;
+    const d = Number(couponInfo.discount);
+    return Number.isFinite(d) ? d : 0;
+  }, [couponInfo]);
+
+  const couponApplied = Boolean(couponInfo?.ok && couponDiscount > 0);
+
+  // --- Subtotals ---
+  // Original subtotal = full price (ignore product discount)
+  const originalSubtotal = useMemo(() => {
+    return items.reduce((sum, it) => {
+      const unit = resolveUnitOriginalGross(it);
+      const qty = Number(it.qty) || 1;
+      return sum + unit * qty;
+    }, 0);
+  }, [items]);
+
+  // Discounted subtotal = product discount applies only when NO coupon
   const discountedSubtotal = useMemo(() => {
-    // no coupon → product discount allowed
     return items.reduce((sum, it) => {
       const unit = resolveUnitGross(it, { couponApplied: false });
       const qty = Number(it.qty) || 1;
@@ -132,23 +157,9 @@ export default function Checkout() {
     }, 0);
   }, [items]);
 
-  const originalSubtotal = useMemo(() => {
-    // coupon applied → ignore product discount
-    return items.reduce((sum, it) => {
-      const unit = resolveUnitGross(it, { couponApplied: true });
-      const qty = Number(it.qty) || 1;
-      return sum + unit * qty;
-    }, 0);
-  }, [items]);
-
-  const discount = useMemo(() => {
-    if (!couponInfo?.ok) return 0;
-    const d = Number(couponInfo.discount);
-    return Number.isFinite(d) ? d : 0;
-  }, [couponInfo]);
-
-  const couponApplied = Boolean(couponInfo?.ok && Number(discount) > 0);
-
+  // This is the subtotal we will use for payment:
+  // - If coupon applied: use originalSubtotal (because product discount removed)
+  // - Else: use discountedSubtotal
   const subtotal = couponApplied ? originalSubtotal : discountedSubtotal;
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
@@ -343,10 +354,17 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Product discount amount is only visible/valid when coupon is NOT applied
+  const productDiscountAmount = useMemo(() => {
+    if (couponApplied) return 0;
+    const d = originalSubtotal - discountedSubtotal;
+    return Number.isFinite(d) ? Math.max(0, Number(d.toFixed(2))) : 0;
+  }, [couponApplied, originalSubtotal, discountedSubtotal]);
+
   const payTotal = useMemo(() => {
-    const ttotal = subtotal + shippingFee - discount;
+    const ttotal = subtotal + shippingFee - couponDiscount;
     return Number(Math.max(0, ttotal).toFixed(2));
-  }, [subtotal, shippingFee, discount]);
+  }, [subtotal, shippingFee, couponDiscount]);
 
   const klarnaInstallments = 3;
   const klarnaPerPayment = useMemo(
@@ -1520,6 +1538,8 @@ export default function Checkout() {
               <div className="space-y-4">
                 {items.map((it) => {
                   const unitPrice = resolveUnitGross(it, { couponApplied });
+                  const unitOriginal = resolveUnitOriginalGross(it);
+                  const qty = Number(it.qty) || 1;
 
                   return (
                     <div key={it.id} className="flex items-center gap-3">
@@ -1545,7 +1565,13 @@ export default function Checkout() {
                         <div className="font-medium text-sm">{it.name}</div>
                       </div>
                       <div className="font-medium text-sm">
-                        {fmtEUR(unitPrice * (Number(it.qty) || 1), locale)}
+                        {fmtEUR(unitPrice * qty, locale)}
+                        {(couponApplied || unitPrice < unitOriginal) &&
+                          unitOriginal > 0 && (
+                            <div className="text-xs text-gray-500 line-through">
+                              {fmtEUR(unitOriginal * qty, locale)}
+                            </div>
+                          )}
                       </div>
                     </div>
                   );
@@ -1574,6 +1600,11 @@ export default function Checkout() {
                     {t("checkout.apply")}
                   </button>
                 </div>
+                {/* --- Clear breakdown for user --- */}
+                <Row
+                  label={t("checkout.originalSubtotal", "Original subtotal")}
+                  value={fmtEUR(originalSubtotal, locale)}
+                />
 
                 {couponErr && (
                   <div className="text-red-700 text-sm">{couponErr}</div>
@@ -1585,15 +1616,43 @@ export default function Checkout() {
                   </div>
                 )}
               </div>
-
-              {couponInfo?.ok && couponInfo.code && Number(discount) > 0 && (
+              {!couponApplied && productDiscountAmount > 0 && (
                 <Row
-                  label={t("checkout.couponLine", { code: couponInfo.code })}
-                  value={`-${fmtEUR(discount, locale)}`}
+                  label={t("checkout.productDiscountLine", "Product discount")}
+                  value={`-${fmtEUR(productDiscountAmount, locale)}`}
                 />
               )}
 
-              <Row label={subtotalLabel} value={fmtEUR(subtotal, locale)} />
+              {couponApplied && (
+                <Row
+                  label={t(
+                    "checkout.productDiscountRemoved",
+                    "Product discount",
+                  )}
+                  value={t(
+                    "checkout.removedByCoupon",
+                    "Removed (coupon applied)",
+                  )}
+                />
+              )}
+
+              {couponApplied && couponInfo?.code && couponDiscount > 0 && (
+                <Row
+                  label={t("checkout.couponLine", {
+                    code: couponInfo.code,
+                    defaultValue: "Coupon ({{code}})",
+                  })}
+                  value={`-${fmtEUR(couponDiscount, locale)}`}
+                />
+              )}
+
+              <hr className="my-2 border-gray-200 dark:border-neutral-700" />
+
+              <Row
+                label={t("checkout.subtotalFinal", "Subtotal")}
+                value={fmtEUR(subtotal, locale)}
+              />
+
               <Row
                 label={t("checkout.shipmentShort")}
                 value={
@@ -1602,6 +1661,7 @@ export default function Checkout() {
                     : fmtEUR(shippingFee, locale)
                 }
               />
+
               <div className="flex items-center justify-between mt-2">
                 <div className="text-base font-semibold">
                   {t("checkout.inTotal")}

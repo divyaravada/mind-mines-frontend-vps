@@ -1,32 +1,43 @@
 // src/lib/pricing.js
 
-export function toNum(x) {
-  const n = Number(x);
-  return Number.isFinite(n) ? n : 0;
-}
+// Safe number parse (handles "179", 179, null, undefined)
+const n = (v) => {
+  const x = Number(v);
+  return Number.isFinite(x) ? x : 0;
+};
 
 /**
  * Business rule:
- * - If couponApplied: use original gross price (price_gross)
- * - Else: if product discounted: use discounted gross price (final_price_gross)
- * - Fallback: item.price / priceRange
+ * - If couponApplied === true  → ignore product discount (use full price_gross / sale_price_gross)
+ * - If couponApplied === false → allow product discount (use final_price_gross if present)
+ *
+ * Your backend fields (from network):
+ * price_gross: "179"
+ * final_price_gross: "161"   // already discounted
+ * sale_price_gross: null     // optional sales price
+ * discount_percent: 10
  */
 export function resolveUnitGross(item, { couponApplied = false } = {}) {
-  const priceGross = toNum(
-    item?.price_gross ?? item?.priceGross ?? item?.price_gross_amount,
-  );
-  const finalGross = toNum(item?.final_price_gross ?? item?.finalPriceGross);
+  const priceGross = n(item?.price_gross ?? item?.price ?? item?.priceGross);
+  const saleGross = n(item?.sale_price_gross ?? item?.salePriceGross);
+  const finalGross = n(item?.final_price_gross ?? item?.finalPriceGross);
 
-  const isDiscounted =
-    Boolean(item?.is_discounted) ||
-    toNum(item?.discount_percent ?? item?.product_discount_percent) > 0;
+  // Prefer sale price if you ever use it (optional)
+  const base = saleGross > 0 ? saleGross : priceGross;
 
   if (couponApplied) {
-    // coupon overrides product discount
-    return priceGross > 0 ? priceGross : toNum(item?.price ?? item?.priceRange);
+    // ✅ coupon overrides product discount
+    return base > 0 ? base : finalGross;
   }
 
-  if (isDiscounted && finalGross > 0) return finalGross;
+  // ✅ no coupon → allow product discount if backend provides it
+  if (finalGross > 0) return finalGross;
+  return base;
+}
 
-  return priceGross > 0 ? priceGross : toNum(item?.price ?? item?.priceRange);
+export function resolveUnitOriginalGross(item) {
+  const priceGross = n(item?.price_gross ?? item?.price ?? item?.priceGross);
+  const saleGross = n(item?.sale_price_gross ?? item?.salePriceGross);
+  const base = saleGross > 0 ? saleGross : priceGross;
+  return base;
 }
