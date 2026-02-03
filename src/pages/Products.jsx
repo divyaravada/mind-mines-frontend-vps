@@ -368,27 +368,44 @@ export default function ProductsPage() {
   };
 
   const onAddToCart = (p, priceFromTile) => {
-    const unitPrice = Number.isFinite(priceFromTile)
-      ? priceFromTile
-      : resolveProductPrice(p);
-    const stockNum = Number(p?.stock ?? p?.quantity ?? 0);
+    const unitPriceRaw =
+      Number.isFinite(priceFromTile) && priceFromTile > 0
+        ? priceFromTile
+        : Number(resolveProductPrice(p) || 0);
 
-    track({
-      event_type: "add_to_cart",
-      product_id: p.id,
-      value: unitPrice,
-      quantity: 1,
-    });
+    const baseGross = Number(p?.price_gross ?? p?.priceGross ?? 0);
+    const finalGross = Number(p?.final_price_gross ?? p?.finalPriceGross ?? 0);
+
+    // ✅ Strong fallback: prefer finalGross, else unitPriceRaw, else baseGross
+    const unitGross =
+      finalGross > 0 ? finalGross : unitPriceRaw > 0 ? unitPriceRaw : baseGross;
+
+    const stockNum = Number(p?.stock ?? p?.quantity ?? 0);
 
     dispatch(
       addItem({
         id: p.id,
+        productId: p.id, // ✅ keep consistent
         name: productTitle(p, lang),
-        priceRange: unitPrice,
         image: p.image,
+        qty: 1,
+
+        // ✅ IMPORTANT: store these for pricing.js
+        price: unitGross, // fallback path
+        priceRange: unitGross, // legacy fallback path
+        price_gross: baseGross > 0 ? baseGross : unitGross,
+        final_price_gross: finalGross > 0 ? finalGross : unitGross,
+        discount_percent: Number(p?.discount_percent ?? 0),
+        is_discounted: Boolean(p?.is_discounted),
+
         stock: Number.isFinite(stockNum) ? stockNum : 0,
+        category: p?.category || "",
+        color: p?.color || "",
+        weight: p?.weight || "",
+        dimensions: p?.dimensions || "",
       }),
     );
+
     navigate("/cart");
   };
 

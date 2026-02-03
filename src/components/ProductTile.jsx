@@ -223,7 +223,7 @@ export default function ProductTile({
           <button
             onClick={(e) => {
               e.stopPropagation(); // don't navigate when adding to cart
-              if (!isOut) onAddToCart?.(product, priceNum);
+              if (!isOut) onAddToCart?.(product, Number(priceNum || 0));
             }}
             disabled={isOut}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-backnewswhite text-white hover:opacity-90 transition disabled:opacity-50 dark:bg-backnewsdark dark:text-marbleblack"
