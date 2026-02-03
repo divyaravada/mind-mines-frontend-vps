@@ -45,31 +45,50 @@ const cartSlice = createSlice({
       const { title, name, price, image, ...rest } = payload;
       const itemTitle = title || name || "";
 
-      const p = Number(price) || 0;
+      const toNum = (v) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+      };
 
-      // ✅ sanitize optional fields
-      const price_gross = Number(rest.price_gross ?? 0) || 0;
-      const final_price_gross = Number(rest.final_price_gross ?? 0) || 0;
-      const product_discount_percent =
-        Number(rest.product_discount_percent ?? 0) || 0;
+      // ✅ qty from payload (ProductDetailPage sends qty)
+      const incomingQty = Math.max(1, toNum(payload.qty) || 1);
+
+      // ✅ sanitize optional pricing fields
+      const price_gross = toNum(rest.price_gross ?? rest.priceGross ?? 0);
+      const final_price_gross = toNum(
+        rest.final_price_gross ?? rest.finalPriceGross ?? 0,
+      );
+      const product_discount_percent = toNum(
+        rest.product_discount_percent ?? 0,
+      );
+
+      // ✅ Robust unit price:
+      // 1) payload.price (legacy)
+      // 2) final_price_gross
+      // 3) price_gross
+      const unitPrice = toNum(price) || final_price_gross || price_gross || 0;
 
       const found = state.items.find(
         (i) => Number(i.productId ?? i.id) === productId,
       );
 
       if (found) {
-        found.qty = Math.max(1, Number(found.qty || 1) + 1);
+        // ✅ increase by incomingQty (not always +1)
+        found.qty = Math.max(1, toNum(found.qty || 1) + incomingQty);
+
         found.name = itemTitle;
         found.title = itemTitle;
-        found.price = p;
-        if (image) found.image = image;
         found.productId = productId;
+        if (image) found.image = image;
+
+        // ✅ do NOT overwrite price with 0
+        if (unitPrice > 0) found.price = unitPrice;
 
         Object.assign(found, rest);
 
         // ✅ ensure numeric
-        found.price_gross = price_gross;
-        found.final_price_gross = final_price_gross;
+        if (price_gross > 0) found.price_gross = price_gross;
+        if (final_price_gross > 0) found.final_price_gross = final_price_gross;
         found.product_discount_percent = product_discount_percent;
       } else {
         state.items.push({
@@ -77,9 +96,9 @@ const cartSlice = createSlice({
           productId,
           name: itemTitle,
           title: itemTitle,
-          price: p,
+          price: unitPrice, // ✅ never 0 if gross fields exist
           image: image || "",
-          qty: 1,
+          qty: incomingQty, // ✅ use incoming qty
 
           ...rest,
 

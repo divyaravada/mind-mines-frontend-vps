@@ -99,7 +99,7 @@ export default function CartPage() {
 
   // ✅ IMPORTANT: call getCart so onQueryStarted can merge server cart on refresh
   const cart_token = useMemo(() => getCartToken(), []);
-  useGetCartQuery({ cart_token });
+  useGetCartQuery({ cart_token }, { skip: true });
 
   const { data: wl } = useGetWishlistQuery(undefined, { skip: !loggedIn });
 

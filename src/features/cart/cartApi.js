@@ -11,13 +11,21 @@ function normalizeServerItems(serverItems) {
     .map((x) => {
       const productId = Number(x.product ?? x.product_id ?? x.id);
       if (!Number.isFinite(productId)) return null;
-
+      const priceGross =
+        Number(
+          x.final_price_gross ??
+            x.finalPriceGross ??
+            x.price_gross ??
+            x.priceGross ??
+            x.price ??
+            0,
+        ) || 0;
       return {
         id: productId,
         productId,
         name: x.name || "",
         image: x.image || "",
-        price: Number(x.price) || 0,
+        price: priceGross,
         priceRange: x.priceRange ?? undefined,
         qty: Math.max(1, Number(x.qty) || 1),
         color: x.color || "",

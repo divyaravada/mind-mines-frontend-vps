@@ -1,3 +1,4 @@
+// src/lib/cartToken.js
 // Keep a stable token for guest carts
 export function getCartToken() {
   const key = "cart_token";

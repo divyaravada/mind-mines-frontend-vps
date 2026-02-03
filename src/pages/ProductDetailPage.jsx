@@ -415,6 +415,26 @@ export default function ProductDetailPage() {
 
     const unit = resolveProductPrice(product);
 
+    // robust numeric parsing (backend often sends strings like "179")
+    const toNumSafe = (v) => {
+      const n = Number(String(v ?? "").replace(",", "."));
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    // Prefer backend values first, then your helper values
+    const originalGross = toNumSafe(product?.price_gross ?? baseGross);
+    const discountedGross = toNumSafe(
+      product?.final_price_gross ??
+        product?.sale_price_gross ?? // if you use this field sometimes
+        priceNumber,
+    );
+
+    // If discounted is missing, fall back to original
+    const finalGross = discountedGross > 0 ? discountedGross : originalGross;
+
+    // ✅ legacy price field (many cart reducers/UI still read item.price)
+    const legacyPrice = finalGross > 0 ? finalGross : originalGross;
+
     track({
       event_type: "add_to_cart",
       product_id: product.id,
@@ -431,10 +451,19 @@ export default function ProductDetailPage() {
         image: product.image,
         qty,
 
-        // IMPORTANT: store base & product discount info
-        price_gross: Number(baseGross || 0), // e.g. 178
-        final_price_gross: Number(priceNumber || 0), // e.g. 160
-        product_discount_percent: Number(product?.discount_percent || 0), // e.g. 10
+        // ✅ MUST: keep BOTH fields for pricing.js resolver
+        price_gross: originalGross,
+        final_price_gross: finalGross,
+
+        // ✅ ALSO include legacy aliases so no old code path breaks
+        price: legacyPrice, // <--- important
+        priceGross: originalGross, // optional alias
+        finalPriceGross: finalGross, // optional alias
+
+        // ✅ discount flags (helps UI + calc)
+        is_discounted: Boolean(product?.is_discounted),
+        discount_percent: toNumSafe(product?.discount_percent),
+        product_discount_percent: toNumSafe(product?.discount_percent),
 
         // keep existing fields
         category: product.category,
