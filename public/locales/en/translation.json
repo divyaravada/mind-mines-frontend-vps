@@ -772,6 +772,7 @@
     "subtotalFinal": "Subtotal",
     "inTotal": "Total",
     "inclTax": "incl. VAT",
+    "orderSummary": "Order summary",
 
     "productDiscountLine": "Product discount",
     "removedByCoupon": "Removed (coupon applied)",
@@ -780,6 +781,12 @@
     "couponIgnored": "Ignored (product discount is better)",
     "couponApplied": "Coupon applied",
     "bestDiscountInfo": "Only the best discount is applied. Discounts are not combined.",
+    "perUnit": "/ unit",
+    "summaryOriginal": "Original",
+    "summaryProductDiscount": "Product discount",
+    "summaryFinalUnit": "Final unit",
+    "summaryCouponShare": "Coupon share",
+    "summarySaved": "Saved {{amount}}",
 
     "lineExplanation": {
       "couponWins": "Coupon applied: product discounts are not stacked (best discount wins).",

@@ -1598,7 +1598,10 @@ export default function Checkout() {
           </div>
 
           {/* RIGHT Summary */}
-          <aside className="lg:col-span-1" aria-label="Order summary">
+          <aside
+            className="lg:col-span-1"
+            aria-label={t("checkout.orderSummary", "Order summary")}
+          >
             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
               <h2 className="text-xl font-semibold mb-4">
                 {t("checkout.overview")}
@@ -1630,8 +1633,12 @@ export default function Checkout() {
 
                         <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 space-y-1">
                           <div>
-                            <span className="font-medium">Original:</span>{" "}
-                            {fmtEUR(l.originalUnit, locale)} / unit
+                            <span className="font-medium">
+                              {t("checkout.summaryOriginal", "Original")}
+                              :
+                            </span>{" "}
+                            {fmtEUR(l.originalUnit, locale)}{" "}
+                            {t("checkout.perUnit", "/ unit")}
                           </div>
 
                           {!effectiveCouponApplied &&
@@ -1640,7 +1647,11 @@ export default function Checkout() {
                               <>
                                 <div>
                                   <span className="font-medium">
-                                    Product discount:
+                                    {t(
+                                      "checkout.summaryProductDiscount",
+                                      "Product discount",
+                                    )}
+                                    :
                                   </span>{" "}
                                   <span className="text-green-700 dark:text-green-500">
                                     -
@@ -1650,12 +1661,16 @@ export default function Checkout() {
                                       ),
                                       locale,
                                     )}{" "}
-                                    / unit
+                                    {t("checkout.perUnit", "/ unit")}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="font-medium">
-                                    Final unit:
+                                    {t(
+                                      "checkout.summaryFinalUnit",
+                                      "Final unit",
+                                    )}
+                                    :
                                   </span>{" "}
                                   {fmtEUR(l.finalUnit, locale)}
                                 </div>
@@ -1666,7 +1681,11 @@ export default function Checkout() {
                             <>
                               <div>
                                 <span className="font-medium">
-                                  Coupon share:
+                                  {t(
+                                    "checkout.summaryCouponShare",
+                                    "Coupon share",
+                                  )}
+                                  :
                                 </span>{" "}
                                 <span className="text-green-700 dark:text-green-500">
                                   -
@@ -1674,11 +1693,17 @@ export default function Checkout() {
                                     Number((l.couponShare / l.qty).toFixed(2)),
                                     locale,
                                   )}{" "}
-                                  / unit
+                                  {t("checkout.perUnit", "/ unit")}
                                 </span>
                               </div>
                               <div>
-                                <span className="font-medium">Final unit:</span>{" "}
+                                <span className="font-medium">
+                                  {t(
+                                    "checkout.summaryFinalUnit",
+                                    "Final unit",
+                                  )}
+                                  :
+                                </span>{" "}
                                 {fmtEUR(l.finalUnit, locale)}
                               </div>
                             </>
@@ -1686,7 +1711,11 @@ export default function Checkout() {
 
                           {couponApplied && !effectiveCouponApplied && (
                             <div className="text-amber-700 dark:text-amber-400">
-                              Coupon ignored (product discount is better).
+                              {t(
+                                "checkout.couponIgnored",
+                                "Coupon ignored (product discount is better)",
+                              )}
+                              .
                             </div>
                           )}
                         </div>
@@ -1703,7 +1732,10 @@ export default function Checkout() {
                         )}
                         {l.totalSave > 0 && (
                           <div className="text-[11px] text-green-700 dark:text-green-500">
-                            Saved {fmtEUR(l.totalSave, locale)}
+                            {t("checkout.summarySaved", {
+                              amount: fmtEUR(l.totalSave, locale),
+                              defaultValue: "Saved {{amount}}",
+                            })}
                           </div>
                         )}
                       </div>

@@ -795,6 +795,7 @@
     "subtotalFinal": "Zwischensumme",
     "inTotal": "Gesamtbetrag",
     "inclTax": "inkl. MwSt.",
+    "orderSummary": "Bestellübersicht",
 
     "productDiscountLine": "Produkt-Rabatt",
     "removedByCoupon": "Entfernt (Gutschein angewendet)",
@@ -803,6 +804,12 @@
     "couponIgnored": "Nicht angewendet (Produkt-Rabatt ist besser)",
     "couponApplied": "Gutschein angewendet",
     "bestDiscountInfo": "Es wird nur der beste Rabatt angewendet. Rabatte werden nicht kombiniert.",
+    "perUnit": "pro Stück",
+    "summaryOriginal": "Originalpreis",
+    "summaryProductDiscount": "Produktrabatt",
+    "summaryFinalUnit": "Endpreis",
+    "summaryCouponShare": "Gutscheinanteil",
+    "summarySaved": "Gespart {{amount}}",
 
     "lineExplanation": {
       "couponWins": "Gutschein angewendet: Produkt-Rabatte werden nicht kombiniert (bester Rabatt zählt).",
