@@ -175,3 +175,43 @@ export function resolveUnitGross(item, { couponApplied = false } = {}) {
   const r = computeLinePricing(item, { couponApplied });
   return r.unitBaseGross; // base (before coupon) for cart; or adapt if needed
 }
+
+// Distribute a cart-level coupon discount (€) across lines proportionally.
+// Safe, stable, and sums back to the original couponDiscount (after rounding).
+export function allocateCouponAcrossLines(lines, couponDiscountTotal) {
+  const total = Math.max(0, Number(couponDiscountTotal) || 0);
+  if (!total || !Array.isArray(lines) || lines.length === 0) {
+    return lines.map((l) => ({ ...l, couponShare: 0 }));
+  }
+
+  const weights = lines.map((l) =>
+    Math.max(0, Number(l.originalLineTotal) || 0),
+  );
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+
+  if (weightSum <= 0) {
+    // fallback: equal split
+    const per = Number((total / lines.length).toFixed(2));
+    let remaining = Number((total - per * lines.length).toFixed(2));
+    return lines.map((l, idx) => {
+      const extra = idx === lines.length - 1 ? remaining : 0;
+      const share = Number((per + extra).toFixed(2));
+      return { ...l, couponShare: share };
+    });
+  }
+
+  // proportional split with rounding + remainder fix
+  const rawShares = weights.map((w) => (total * w) / weightSum);
+  const rounded = rawShares.map((s) => Number(s.toFixed(2)));
+
+  const roundedSum = rounded.reduce((a, b) => a + b, 0);
+  const diff = Number((total - roundedSum).toFixed(2)); // remainder due to rounding
+
+  // Apply remainder to the largest weight line (most fair)
+  let maxIdx = 0;
+  for (let i = 1; i < weights.length; i++)
+    if (weights[i] > weights[maxIdx]) maxIdx = i;
+  rounded[maxIdx] = Number((rounded[maxIdx] + diff).toFixed(2));
+
+  return lines.map((l, i) => ({ ...l, couponShare: Math.max(0, rounded[i]) }));
+}

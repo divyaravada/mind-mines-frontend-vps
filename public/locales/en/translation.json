@@ -768,6 +768,29 @@
     "noSugg": "No suggestions found"
   },
   "checkout": {
+    "originalSubtotal": "Original subtotal",
+    "subtotalFinal": "Subtotal",
+    "inTotal": "Total",
+    "inclTax": "incl. VAT",
+
+    "productDiscountLine": "Product discount",
+    "removedByCoupon": "Removed (coupon applied)",
+    "couponLine": "Coupon ({{code}})",
+
+    "couponIgnored": "Ignored (product discount is better)",
+    "couponApplied": "Coupon applied",
+    "bestDiscountInfo": "Only the best discount is applied. Discounts are not combined.",
+
+    "lineExplanation": {
+      "couponWins": "Coupon applied: product discounts are not stacked (best discount wins).",
+      "productWins": "Product discount applied.",
+      "couponIgnored": "Coupon ignored because the product discount is better.",
+      "noDiscount": "No discounts applied."
+    },
+
+    "savingsLabel": "You saved",
+    "discountReasonCoupon": "Coupon gives a better price",
+    "discountReasonProduct": "Product offer is better",
     "contact": "Contact",
     "emailPlaceholder": "Email address",
     "delivery": "Delivery",

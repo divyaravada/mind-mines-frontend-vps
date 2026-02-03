@@ -791,6 +791,29 @@
     "processing": "Wird verarbeitet…"
   },
   "checkout": {
+    "originalSubtotal": "Ursprüngliche Zwischensumme",
+    "subtotalFinal": "Zwischensumme",
+    "inTotal": "Gesamtbetrag",
+    "inclTax": "inkl. MwSt.",
+
+    "productDiscountLine": "Produkt-Rabatt",
+    "removedByCoupon": "Entfernt (Gutschein angewendet)",
+    "couponLine": "Gutschein ({{code}})",
+
+    "couponIgnored": "Nicht angewendet (Produkt-Rabatt ist besser)",
+    "couponApplied": "Gutschein angewendet",
+    "bestDiscountInfo": "Es wird nur der beste Rabatt angewendet. Rabatte werden nicht kombiniert.",
+
+    "lineExplanation": {
+      "couponWins": "Gutschein angewendet: Produkt-Rabatte werden nicht kombiniert (bester Rabatt zählt).",
+      "productWins": "Produkt-Rabatt angewendet.",
+      "couponIgnored": "Gutschein nicht angewendet, da der Produkt-Rabatt besser ist.",
+      "noDiscount": "Kein Rabatt angewendet."
+    },
+
+    "savingsLabel": "Sie sparen",
+    "discountReasonCoupon": "Gutschein bietet den besseren Preis",
+    "discountReasonProduct": "Produkt-Angebot ist besser",
     "contact": "Kontakt",
     "emailPlaceholder": "E-Mail-Adresse",
     "delivery": "Lieferung",

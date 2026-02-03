@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { Helmet } from "react-helmet-async";
-import { computeLinePricing } from "../lib/pricing";
+import { computeLinePricing, allocateCouponAcrossLines } from "../lib/pricing";
 
 import { useTranslation } from "react-i18next";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -188,6 +188,66 @@ export default function Checkout() {
     const ttotal = subtotal + shippingFee - appliedCouponValue;
     return Number(Math.max(0, ttotal).toFixed(2));
   }, [subtotal, shippingFee, couponDiscount, effectiveCouponApplied]);
+
+  const checkoutLines = useMemo(() => {
+    const base = items.map((it) => {
+      const qty = Math.max(1, Number(it.qty) || 1);
+
+      // always compute product-discounted (no coupon per-line)
+      const line = computeLinePricing(it, { couponApplied: false });
+
+      const originalLineTotal = Number((line.originalGross * qty).toFixed(2));
+      const productLineTotal = Number((line.unitBaseGross * qty).toFixed(2)); // discounted if product has discount
+      const productSave = Number(
+        (originalLineTotal - productLineTotal).toFixed(2),
+      );
+
+      return {
+        id: it.id,
+        name: it.name,
+        image: it.image,
+        qty,
+        originalUnit: line.originalGross,
+        productUnit: line.unitBaseGross,
+        hasProd: line.hasProd,
+
+        originalLineTotal,
+        productLineTotal,
+        productSave: Math.max(0, productSave),
+      };
+    });
+
+    // If coupon is NOT applied (or coupon ignored), no coupon per line
+    if (!effectiveCouponApplied) {
+      return base.map((b) => ({
+        ...b,
+        couponShare: 0,
+        finalLineTotal: b.productLineTotal,
+        finalUnit: Number((b.productLineTotal / b.qty).toFixed(2)),
+        totalSave: b.productSave,
+      }));
+    }
+
+    // Coupon wins -> distribute couponDiscount across ORIGINAL totals
+    const withCoupon = allocateCouponAcrossLines(
+      base.map((b) => ({ ...b, originalLineTotal: b.originalLineTotal })),
+      couponDiscount,
+    );
+
+    return withCoupon.map((b) => {
+      const finalLineTotal = Number(
+        Math.max(0, b.originalLineTotal - b.couponShare).toFixed(2),
+      );
+      const finalUnit = Number((finalLineTotal / b.qty).toFixed(2));
+      const totalSave = Number(b.couponShare.toFixed(2)); // product discount removed when coupon wins
+      return {
+        ...b,
+        finalLineTotal,
+        finalUnit,
+        totalSave,
+      };
+    });
+  }, [items, effectiveCouponApplied, couponDiscount]);
 
   const isAuth = useSelector((s) => !!s.auth?.access || !!s.auth?.user);
 
@@ -1545,31 +1605,15 @@ export default function Checkout() {
               </h2>
 
               <div className="space-y-4">
-                {items.map((it) => {
-                  const qty = Number(it.qty) || 1;
-
-                  // Line computed with current coupon status
-                  // Always compute product-discounted price (no coupon per-line here)
-                  // because backend returns coupon as cart-level absolute €
-                  const line = computeLinePricing(it, { couponApplied: false });
-
-                  const unitShown = effectiveCouponApplied
-                    ? line.originalGross // coupon wins -> show original (product discounts removed)
-                    : line.unitBaseGross; // product discount wins (or no coupon)
-
-                  const shownLineTotal = unitShown * qty;
-                  const originalLineTotal = line.originalGross * qty;
-
-                  const showStrike =
-                    (effectiveCouponApplied || line.hasProd) &&
-                    originalLineTotal > shownLineTotal;
+                {checkoutLines.map((l) => {
+                  const showStrike = l.originalLineTotal > l.finalLineTotal;
 
                   return (
-                    <div key={it.id} className="flex items-center gap-3">
+                    <div key={l.id} className="flex items-center gap-3">
                       <div className="relative">
                         <img
-                          src={it.image}
-                          alt={it.name}
+                          src={l.image}
+                          alt={l.name}
                           className="w-16 h-16 aspect-square object-cover rounded"
                           width="64"
                           height="64"
@@ -1577,46 +1621,89 @@ export default function Checkout() {
                           decoding="async"
                         />
                         <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                          {qty}
+                          {l.qty}
                         </span>
                       </div>
 
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{it.name}</div>
+                        <div className="font-medium text-sm">{l.name}</div>
 
-                        {/* Explanation */}
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1">
-                          {effectiveCouponApplied ? (
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 space-y-1">
+                          <div>
+                            <span className="font-medium">Original:</span>{" "}
+                            {fmtEUR(l.originalUnit, locale)} / unit
+                          </div>
+
+                          {!effectiveCouponApplied &&
+                            l.hasProd &&
+                            l.productSave > 0 && (
+                              <>
+                                <div>
+                                  <span className="font-medium">
+                                    Product discount:
+                                  </span>{" "}
+                                  <span className="text-green-700 dark:text-green-500">
+                                    -
+                                    {fmtEUR(
+                                      Number(
+                                        (l.productSave / l.qty).toFixed(2),
+                                      ),
+                                      locale,
+                                    )}{" "}
+                                    / unit
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">
+                                    Final unit:
+                                  </span>{" "}
+                                  {fmtEUR(l.finalUnit, locale)}
+                                </div>
+                              </>
+                            )}
+
+                          {effectiveCouponApplied && l.couponShare > 0 && (
                             <>
-                              Coupon applied: product discounts are not stacked
-                              (best discount wins).
+                              <div>
+                                <span className="font-medium">
+                                  Coupon share:
+                                </span>{" "}
+                                <span className="text-green-700 dark:text-green-500">
+                                  -
+                                  {fmtEUR(
+                                    Number((l.couponShare / l.qty).toFixed(2)),
+                                    locale,
+                                  )}{" "}
+                                  / unit
+                                </span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Final unit:</span>{" "}
+                                {fmtEUR(l.finalUnit, locale)}
+                              </div>
                             </>
-                          ) : line.hasProd ? (
-                            <>
-                              Product discount applied:{" "}
-                              {fmtEUR(line.originalGross, locale)} →{" "}
-                              <span className="text-green-700 dark:text-green-500">
-                                {fmtEUR(line.unitBaseGross, locale)}
-                              </span>
-                            </>
-                          ) : couponApplied && !effectiveCouponApplied ? (
-                            <>
-                              Coupon ignored because product discount is better.
-                            </>
-                          ) : (
-                            <>No discounts</>
+                          )}
+
+                          {couponApplied && !effectiveCouponApplied && (
+                            <div className="text-amber-700 dark:text-amber-400">
+                              Coupon ignored (product discount is better).
+                            </div>
                           )}
                         </div>
                       </div>
 
                       <div className="text-right">
                         <div className="font-medium text-sm">
-                          {fmtEUR(shownLineTotal, locale)}
+                          {fmtEUR(l.finalLineTotal, locale)}
                         </div>
-
                         {showStrike && (
                           <div className="text-xs text-gray-500 line-through">
-                            {fmtEUR(originalLineTotal, locale)}
+                            {fmtEUR(l.originalLineTotal, locale)}
+                          </div>
+                        )}
+                        {l.totalSave > 0 && (
+                          <div className="text-[11px] text-green-700 dark:text-green-500">
+                            Saved {fmtEUR(l.totalSave, locale)}
                           </div>
                         )}
                       </div>
