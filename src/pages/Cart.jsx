@@ -15,7 +15,7 @@ import {
   useRemoveFromWishlistMutation,
 } from "../features/wishlist/wishlistApi";
 import { useGetCartQuery, useSaveCartMutation } from "../features/cart/cartApi";
-import { resolveUnitGross } from "../lib/pricing";
+import { computeLinePricing } from "../lib/pricing";
 
 import {
   Heart,
@@ -148,7 +148,8 @@ export default function CartPage() {
   // Build payload once (memo) so effect doesn't re-run unnecessarily
   const cartBody = useMemo(() => {
     const itemsPayload = items.map((it) => {
-      const unitPrice = resolveUnitGross(it, { couponApplied: false });
+      const pricing = computeLinePricing(it, { couponApplied: false });
+      const unitPrice = pricing.unitBaseGross;
 
       const stockNum = Number(it.stock);
       const maxQty =
@@ -182,8 +183,8 @@ export default function CartPage() {
   // Subtotal uses clamped qty as well
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
-      const unitPrice = resolveUnitGross(item, { couponApplied: false });
-
+      const pricing = computeLinePricing(item, { couponApplied: false });
+      const unitPrice = pricing.unitBaseGross;
       const stockNum = Number(item.stock);
       const maxQty =
         Number.isFinite(stockNum) && stockNum > 0 ? stockNum : null;
@@ -269,9 +270,11 @@ export default function CartPage() {
             {items.map((item) => {
               const inWishlist = wishlistIds.has(item.id);
 
-              const unitPrice = resolveUnitGross(item, {
+              const pricing = computeLinePricing(item, {
                 couponApplied: false,
               });
+              const unitPrice = pricing.unitBaseGross; // this matches your cart subtotal logic
+              const lineTotal = pricing.lineFinalGross;
 
               const stockNum = Number(item.stock);
               const maxQty =
@@ -283,7 +286,6 @@ export default function CartPage() {
                   ? Math.max(1, effectiveQty)
                   : Math.min(Math.max(1, effectiveQty), maxQty);
 
-              const lineTotal = unitPrice * effectiveQty;
               const disablePlus = maxQty !== null && effectiveQty >= maxQty;
 
               return (
@@ -314,6 +316,40 @@ export default function CartPage() {
                         <div className="text-sm text-gray-700 dark:text-gray-200 mt-1">
                           {fmtEUR(unitPrice, locale)} / {t("cart.piece")}
                         </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300 mt-1 space-y-1">
+                          {/* Always show original */}
+                          <div>
+                            <span className="font-medium">Original:</span>{" "}
+                            {fmtEUR(pricing.originalGross, locale)}
+                          </div>
+
+                          {/* If product discount exists */}
+                          {!pricing.couponApplied &&
+                            pricing.hasProd &&
+                            pricing.unitProductDiscountGross > 0 && (
+                              <>
+                                <div>
+                                  <span className="font-medium">
+                                    Product discount:
+                                  </span>{" "}
+                                  <span className="text-green-700 dark:text-green-500">
+                                    -
+                                    {fmtEUR(
+                                      pricing.unitProductDiscountGross,
+                                      locale,
+                                    )}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">
+                                    Discounted unit:
+                                  </span>{" "}
+                                  {fmtEUR(pricing.discountedGross, locale)}
+                                </div>
+                              </>
+                            )}
+                        </div>
+
                         {Number.isFinite(stockNum) && stockNum > 0 && (
                           <div className="text-xs text-gray-700 dark:text-gray-200 mt-1">
                             {t("cart.stockInfo", {
