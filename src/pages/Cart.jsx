@@ -27,7 +27,7 @@ import {
   RotateCcw,
   Truck,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { fmtEUR } from "../lib/money";
 import { Helmet } from "react-helmet-async";
 import { getCartToken } from "../lib/cartToken";
@@ -601,6 +601,8 @@ function BrandBadge({ label }) {
 }
 
 function CheckoutChoiceModal({ onClose, onGuest, onSignup }) {
+  const { t } = useTranslation();
+  const couponPercent = 15;
   // close on ESC
   useEffect(() => {
     const onKey = (e) => {
@@ -626,22 +628,26 @@ function CheckoutChoiceModal({ onClose, onGuest, onSignup }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Continue to Checkout
+                  {t("cart.checkoutModal.title")}
                 </h3>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Want a discount? Create a MindMines account and get a{" "}
-                  <span className="font-semibold text-backnewswhite">
-                    15% coupon
-                  </span>
-                  .
+                  <Trans
+                    i18nKey="cart.checkoutModal.subtitle"
+                    values={{ percent: couponPercent }}
+                    components={{
+                      highlight: (
+                        <span className="font-semibold text-backnewswhite" />
+                      ),
+                    }}
+                  />
                 </p>
               </div>
 
               <button
                 onClick={onClose}
                 className="rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20"
-                aria-label="Close"
-                title="Close"
+                aria-label={t("common.close")}
+                title={t("common.close")}
               >
                 ✕
               </button>
@@ -652,36 +658,40 @@ function CheckoutChoiceModal({ onClose, onGuest, onSignup }) {
           <div className="p-6 space-y-4">
             <div className="rounded-xl bg-gray-50 dark:bg-neutral-800/60 p-4">
               <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                Option 1 — Sign up & get 15% OFF
+                {t("cart.checkoutModal.optionSignupTitle", {
+                  percent: couponPercent,
+                })}
               </div>
               <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                You’ll get a coupon after signup and continue to checkout.
+                {t("cart.checkoutModal.optionSignupDesc")}
               </div>
               <button
                 onClick={onSignup}
                 className="mt-3 w-full inline-flex items-center justify-center rounded-xl bg-backnewswhite text-white font-semibold py-3 hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite/50"
               >
-                Sign up & Continue (15% OFF)
+                {t("cart.checkoutModal.optionSignupCta", {
+                  percent: couponPercent,
+                })}
               </button>
             </div>
 
             <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
               <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                Option 2 — Continue as Guest
+                {t("cart.checkoutModal.optionGuestTitle")}
               </div>
               <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                Checkout without creating an account.
+                {t("cart.checkoutModal.optionGuestDesc")}
               </div>
               <button
                 onClick={onGuest}
                 className="mt-3 w-full inline-flex items-center justify-center rounded-xl bg-black text-white font-semibold py-3 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-black/30"
               >
-                Continue as Guest
+                {t("cart.checkoutModal.optionGuestCta")}
               </button>
             </div>
 
             <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              You can always create an account later from “My Account”.
+              {t("cart.checkoutModal.note")}
             </div>
           </div>
         </div>
