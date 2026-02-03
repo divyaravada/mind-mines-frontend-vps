@@ -30,6 +30,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { fmtEUR } from "../lib/money";
 import { Helmet } from "react-helmet-async";
+import { getCartToken } from "../lib/cartToken";
 
 /**
  * Stable debounced callback (doesn't change identity each render)
@@ -147,7 +148,7 @@ export default function CartPage() {
   // Build payload once (memo) so effect doesn't re-run unnecessarily
   const cartBody = useMemo(() => {
     const itemsPayload = items.map((it) => {
-      const unitPrice = resolveUnitGross(item, { couponApplied: false });
+      const unitPrice = resolveUnitGross(it, { couponApplied: false });
 
       const stockNum = Number(it.stock);
       const maxQty =
