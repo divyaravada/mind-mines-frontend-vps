@@ -44,7 +44,7 @@ export default function ProductReviews({ productId }) {
     if (clearImage) fd.append("clear_image", "true");
     if (fileRef.current?.files?.[0])
       fd.append("image", fileRef.current.files[0]);
-    await updateReview({ reviewId: id, form: fd }).unwrap();
+    await updateReview({ id, formData: fd }).unwrap();
     setEditingId(null);
   };
 

@@ -18,7 +18,7 @@ export const productsApi = api.injectEndpoints({
         if (!featured.error && featured.data) {
           const list = Array.isArray(featured.data)
             ? featured.data
-            : featured.data.results ?? [];
+            : (featured.data.results ?? []);
           if (list.length) return { data: list };
         }
         // Fallback to newest (your backend supports ordering by created_at)
@@ -29,7 +29,7 @@ export const productsApi = api.injectEndpoints({
         if (!newest.error && newest.data) {
           const list = Array.isArray(newest.data)
             ? newest.data
-            : newest.data.results ?? [];
+            : (newest.data.results ?? []);
           return { data: list };
         }
         return {
@@ -47,7 +47,10 @@ export const productsApi = api.injectEndpoints({
 
     listProductReviews: b.query({
       query: (id) => `products/${id}/reviews/`,
-      providesTags: (_r, _e, id) => [{ type: "Reviews", id }],
+      providesTags: (_r, _e, productId) => [
+        { type: "Reviews", id: "LIST" },
+        { type: "Reviews", id: `PRODUCT_${productId}` },
+      ],
     }),
 
     createProductReview: b.mutation({
