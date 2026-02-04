@@ -747,6 +747,32 @@ export default function Checkout() {
         }).unwrap();
 
         localOrderIdRef.current = res?.id;
+        // If backend returns bank transfer info, store it for success page
+        // Adjust these keys based on your backend response shape.
+        if (pmToSave === "bank" || pmToSave === "bank_transfer") {
+          const bank = res?.bank || res?.bank_info || null;
+          if (bank) {
+            try {
+              sessionStorage.setItem(
+                "bank_checkout_info",
+                JSON.stringify({
+                  order_id: res?.id,
+                  amount: bank.amount ?? res?.total_price ?? "",
+                  reference: bank.reference ?? res?.number ?? res?.id ?? "",
+                  iban: bank.iban ?? "",
+                  bic: bank.bic ?? "",
+                  beneficiary: bank.beneficiary ?? "",
+                  instructions: bank.instructions ?? "",
+                }),
+              );
+            } catch {}
+          }
+        }
+
+        try {
+          sessionStorage.setItem("last_order_id", String(res?.id || ""));
+        } catch {}
+
         return res?.id || null;
       } catch (e) {
         const msg =
@@ -1634,8 +1660,7 @@ export default function Checkout() {
                         <div className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 space-y-1">
                           <div>
                             <span className="font-medium">
-                              {t("checkout.summaryOriginal", "Original")}
-                              :
+                              {t("checkout.summaryOriginal", "Original")}:
                             </span>{" "}
                             {fmtEUR(l.originalUnit, locale)}{" "}
                             {t("checkout.perUnit", "/ unit")}
@@ -1698,10 +1723,7 @@ export default function Checkout() {
                               </div>
                               <div>
                                 <span className="font-medium">
-                                  {t(
-                                    "checkout.summaryFinalUnit",
-                                    "Final unit",
-                                  )}
+                                  {t("checkout.summaryFinalUnit", "Final unit")}
                                   :
                                 </span>{" "}
                                 {fmtEUR(l.finalUnit, locale)}

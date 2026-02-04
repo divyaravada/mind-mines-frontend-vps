@@ -1,3 +1,4 @@
+//src/utils/invoice.js
 import { API_BASE } from "../services/config";
 
 export function downloadPublicInvoice({ orderId, number, token }) {
@@ -142,8 +143,8 @@ export function buildOrderPayload({
     payment_method,
     coupon_code: (couponCode || "").trim(),
     items: (items || []).map((c) => ({
-      product_id: c.id,
-      qty: c.qty,
+      product_id: c.productId ?? c.id,
+      qty: Number(c.qty) || 1,
     })),
     shipping: buildShippingSnapshot(form),
     ...extra, // idempotency_key, installments data, etc.

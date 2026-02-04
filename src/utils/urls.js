@@ -1,3 +1,4 @@
+//src/utils/urls.js
 import { API_BASE } from "../services/config";
 
 // API_BASE like "https://mindmines.eu/api/"

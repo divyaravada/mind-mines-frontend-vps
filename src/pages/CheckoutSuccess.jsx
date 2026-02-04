@@ -50,7 +50,16 @@ export default function CheckoutSuccess() {
   const [bankInfo, setBankInfo] = useState(null);
   const [error, setError] = useState(null);
 
-  const hasAuth = useMemo(() => !!localStorage.getItem("authTokens"), []);
+  const [hasAuth, setHasAuth] = useState(
+    () => !!localStorage.getItem("authTokens"),
+  );
+
+  useEffect(() => {
+    const sync = () => setHasAuth(!!localStorage.getItem("authTokens"));
+    sync();
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   // Restore bank info if present
   useEffect(() => {
@@ -70,7 +79,7 @@ export default function CheckoutSuccess() {
 
   const guestSummary = useMemo(
     () => guestOrder || guestInfo,
-    [guestOrder, guestInfo]
+    [guestOrder, guestInfo],
   );
   const guestOrderNumber = useMemo(() => {
     if (guestSummary?.order_number) return guestSummary.order_number;
@@ -80,7 +89,16 @@ export default function CheckoutSuccess() {
     return orderId;
   }, [guestSummary, orderId]);
 
-  const guestInvoiceUrl = guestSummary?.invoice_download_url || null;
+  const guestInvoiceUrl = useMemo(() => {
+    const u =
+      guestSummary?.invoice_download_url ||
+      guestSummary?.invoice_pdf ||
+      guestSummary?.invoicePdf ||
+      null;
+
+    return u ? toAbsoluteUrl(u) : null;
+  }, [guestSummary]);
+
   const guestStatus = guestOrder?.status || guestSummary?.status || null;
   const guestTotal =
     guestOrder?.total_price || guestSummary?.total_price || null;

@@ -7,17 +7,13 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import {
   useStripeCreateSetupIntentMutation,
   useStripeCardInstallmentsMutation,
 } from "../features/payments/paymentsApi";
 import { buildOrderPayload } from "../utils/orderPayload";
 import InstallmentsSchedulePreview from "./InstallmentsSchedulePreview";
-
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
-);
+import { stripePromise } from "../lib/stripe";
 
 const pickErr = (e, fb) =>
   e?.data?.detail ||
@@ -126,7 +122,7 @@ export default function StripeCardInstallments({
   setLocalOrderId,
   onSuccess,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [createPlan, { isLoading }] = useStripeCardInstallmentsMutation();
   const [errorMsg, setErrorMsg] = useState("");
   const [localPM, setLocalPM] = useState(paymentMethodId || null);
@@ -197,7 +193,10 @@ export default function StripeCardInstallments({
 
       <Elements
         stripe={stripePromise}
-        options={{ appearance: { theme: "stripe" }, locale: "de" }}
+        options={{
+          appearance: { theme: "stripe" },
+          locale: i18n.language?.startsWith("de") ? "de" : "en",
+        }}
       >
         {!localPM ? (
           <SaveCardStep

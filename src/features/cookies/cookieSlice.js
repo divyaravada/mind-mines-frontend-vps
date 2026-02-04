@@ -1,5 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { injectGTM, removeGTM, deleteAnalyticsCookies } from "../../utils/gtm";
+import {
+  injectGTM,
+  removeGTM,
+  deleteAnalyticsCookies,
+  setGtagConsent,
+} from "../../utils/gtm";
 
 const KEY = "mm_cookie_consent_v1";
 const GTM_ID = process.env.REACT_APP_GTM_ID;
@@ -25,6 +30,10 @@ export const initConsent = createAsyncThunk("cookies/init", async () => {
       marketing: !!parsed.marketing,
       decided: !!parsed.decided,
     };
+    if (typeof window !== "undefined") {
+      window.__mmAnalyticsConsent = safe.analytics;
+    }
+    setGtagConsent({ analytics: safe.analytics, marketing: safe.marketing });
     if (safe.decided && safe.analytics) injectGTM(GTM_ID);
     return { open: false, consent: safe };
   } catch {
@@ -39,15 +48,26 @@ export const saveConsent = createAsyncThunk("cookies/save", async (consent) => {
     marketing: !!consent.marketing,
     decided: true,
   };
+
+  // ✅ global guard for GA helpers
+  if (typeof window !== "undefined") {
+    window.__mmAnalyticsConsent = decided.analytics;
+  }
+
   try {
     localStorage.setItem(KEY, JSON.stringify(decided));
   } catch {}
+
   if (decided.analytics) {
     injectGTM(GTM_ID);
   } else {
     removeGTM();
     deleteAnalyticsCookies();
   }
+  setGtagConsent({
+    analytics: decided.analytics,
+    marketing: decided.marketing,
+  });
   return decided;
 });
 

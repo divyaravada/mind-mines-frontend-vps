@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { loadStripe } from "@stripe/stripe-js";
 import { useTranslation } from "react-i18next";
-
-const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
-);
+import { stripePromise } from "../lib/stripe";
 
 export default function CheckoutReturn() {
   const { t } = useTranslation();

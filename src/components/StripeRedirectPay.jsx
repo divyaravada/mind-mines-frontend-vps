@@ -25,8 +25,8 @@ function Inner({ orderId, method, onSuccess, onError, returnUrl }) {
     method === "klarna"
       ? t("checkout.redirect.klarna")
       : method === "giropay"
-      ? t("checkout.redirect.giropay")
-      : method;
+        ? t("checkout.redirect.giropay")
+        : method;
 
   const onPay = async () => {
     if (!stripe || !elements) return;
@@ -110,10 +110,14 @@ export default function StripeRedirectPay({
         if (!orderIdRef.current && res.order_id) {
           orderIdRef.current = res.order_id;
           setEffectiveOrderId(res.order_id);
+
+          try {
+            sessionStorage.setItem("last_order_id", String(res.order_id));
+          } catch {}
         }
       } catch (e) {
         onError?.(
-          e?.data?.detail || e?.error || t("checkout.redirect.initFailed")
+          e?.data?.detail || e?.error || t("checkout.redirect.initFailed"),
         );
       }
     })();
@@ -125,7 +129,7 @@ export default function StripeRedirectPay({
 
   const returnUrl = useMemo(
     () => `${window.location.origin}/checkout/return`,
-    []
+    [],
   );
 
   const appearance = useMemo(() => {

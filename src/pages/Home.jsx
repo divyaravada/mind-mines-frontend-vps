@@ -20,11 +20,11 @@ export default function Home() {
   useEffect(() => {
     try {
       trackEvent({
-        event_type: "page_view_home",
+        event_type: "page_view",
         path: "/", // adjust if your home route is different
         locale: i18n.language, // optional extra info
       });
-    } catch {
+    } catch (error) {
       /* ignore tracking errors */
     }
   }, [trackEvent, i18n.language]);
@@ -32,7 +32,7 @@ export default function Home() {
   const title = t("home.meta.title", "MindMines – Marble & Stone Decor");
   const description = t(
     "home.meta.description",
-    "Handmade marble and natural stone decor, kitchenware and gifts from MindMines."
+    "Handmade marble and natural stone decor, kitchenware and gifts from MindMines.",
   );
 
   return (
