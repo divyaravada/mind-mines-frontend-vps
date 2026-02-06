@@ -4,8 +4,16 @@
 
 @layer base {
   body {
-    font-family: "Source Sans Pro", "Inter", "Segoe UI", system-ui, -apple-system,
-      BlinkMacSystemFont, sans-serif;
+    font-family: var(
+      --font-body,
+      "Source Sans Pro",
+      "Inter",
+      "Segoe UI",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif
+    );
   }
 
   h1,
@@ -14,7 +22,13 @@
   h4,
   h5,
   h6 {
-    font-family: "Playfair Display", "Times New Roman", Georgia, serif;
+    font-family: var(
+      --font-heading,
+      "Playfair Display",
+      "Times New Roman",
+      Georgia,
+      serif
+    );
   }
 }
 

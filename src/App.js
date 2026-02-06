@@ -57,14 +57,21 @@ function LoadingScreen() {
   );
 }
 
+const BODY_FONT =
+  '"Source Sans Pro", "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+const HEADING_FONT =
+  '"Playfair Display", "Times New Roman", Georgia, serif';
+
 export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute("data-gramm", "false");
     document.documentElement.setAttribute("data-gramm_editor", "false");
+    document.documentElement.style.setProperty("--font-body", BODY_FONT);
+    document.documentElement.style.setProperty("--font-heading", HEADING_FONT);
   }, []);
 
   return (
-    <div className="font-sans flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <GoogleAnalyticsTracker />
       <PromoBanner />
       <Navbar />
