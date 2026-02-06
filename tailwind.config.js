@@ -1,3 +1,5 @@
+import defaultTheme from "tailwindcss/defaultTheme";
+
 export default {
   darkMode: "class",
   content: [
@@ -6,6 +8,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Source Sans Pro", ...defaultTheme.fontFamily.sans],
+        heading: ["Playfair Display", ...defaultTheme.fontFamily.serif],
+      },
       colors: {
         marblewhite: "#ffffff",
         marbleblack: "#17160f",

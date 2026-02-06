@@ -130,7 +130,7 @@ export default function StripeCardInstallments({
 
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
-    [months]
+    [months],
   );
 
   async function startPlan(pmId) {
