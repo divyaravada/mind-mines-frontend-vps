@@ -16,6 +16,19 @@
     );
   }
 
+  p {
+    font-family: var(
+      --font-body,
+      "Source Sans Pro",
+      "Inter",
+      "Segoe UI",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif
+    );
+  }
+
   h1,
   h2,
   h3,
