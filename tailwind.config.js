@@ -9,7 +9,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Source Sans Pro", ...defaultTheme.fontFamily.sans],
+        sans: ["DM Sans", ...defaultTheme.fontFamily.sans],
         heading: ["Playfair Display", ...defaultTheme.fontFamily.serif],
       },
       colors: {
