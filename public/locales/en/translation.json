@@ -336,7 +336,11 @@
     "hours": "Hours",
     "hoursValue": "Mon–Fri, 09:00–18:00 CET",
     "address": "Address",
-    "addressValue": "Feldstraße 11, 21640 Horneburg, Germany"
+    "addressValue": "Feldstraße 11, 21640 Horneburg, Germany",
+    "meta": {
+      "title": "About MindMines | Handmade Marble & Natural Stone Décor",
+      "description": "Learn about MindMines: handmade décor from marble, granite, and onyx for modern European homes."
+    }
   },
   "badges": {
     "ariaLabel": "Checkout trust highlights",

@@ -2,13 +2,12 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { useLocation } from "react-router-dom";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>
@@ -22,8 +21,8 @@ export default function NaturalStonesPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("de") ? "de" : "en";
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const { pathname } = useLocation();
-  const canonical = `https://mindmines.eu${pathname}`;
+
+  const canonical = "https://mindmines.eu/natural-stone";
 
   const { data: stones = [], isFetching } = useGetNaturalStonesQuery();
   const [selectedStoneId, setSelectedStoneId] = useState(null);
@@ -37,7 +36,7 @@ export default function NaturalStonesPage() {
         /* ignore tracking failures */
       }
     },
-    [trackEvent]
+    [trackEvent],
   );
 
   const sectionLabels = useMemo(
@@ -47,7 +46,7 @@ export default function NaturalStonesPage() {
       key_features: t("naturalStone.sections.keyFeatures"),
       usage: t("naturalStone.sections.usage"),
     }),
-    [t]
+    [t],
   );
 
   const selectedStone = useMemo(() => {
@@ -66,7 +65,7 @@ export default function NaturalStonesPage() {
   useEffect(() => {
     if (!stones || !stones.length) return;
     const types = Array.from(
-      new Set(stones.map((s) => s.type).filter(Boolean))
+      new Set(stones.map((s) => s.type).filter(Boolean)),
     );
     track({
       event_type: "natural_stone_page_view",
@@ -112,42 +111,49 @@ export default function NaturalStonesPage() {
 
   const pageTitle = t(
     "naturalStone.meta.title",
-    "Natural Stone, Marble & Granite – MindMines"
+    "Natural Stone, Marble & Granite – MindMines",
   );
+
   const pageDesc = t(
     "naturalStone.meta.description",
-    "Explore premium marble, granite, travertine and other natural stones for countertops, flooring, bathrooms and custom projects."
+    "Explore premium marble, granite, travertine and other natural stones for countertops, flooring, bathrooms and custom projects.",
   );
-  const canonUrl = `${currentOrigin}/natural-stone`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: currentOrigin },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://mindmines.eu/",
+      },
       {
         "@type": "ListItem",
         position: 2,
         name: lang === "de" ? "Naturstein" : "Natural Stone",
-        item: canonUrl,
+        item: canonical,
       },
     ],
   };
 
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
-        <link rel="canonical" href={canonical} />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={canonical} />
-        <script type="application/ld+json">
-          {JSON.stringify(breadcrumbJsonLd)}
-        </script>
-      </Helmet>
+      {/* ✅ SEO without layout change */}
+      <SEO
+        title={pageTitle}
+        description={pageDesc}
+        canonical={canonical}
+        jsonLd={breadcrumbJsonLd}
+      />
+
+      {/* ✅ Fix “No H1” report without disturbing UI */}
+      <h1 className="sr-only">
+        {lang === "de"
+          ? "Naturstein, Marmor & Granit"
+          : "Natural Stone, Marble & Granite"}
+      </h1>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Horizontal selector */}
@@ -251,7 +257,7 @@ export default function NaturalStonesPage() {
                           {renderText(selectedStone, field, lang)}
                         </div>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
 

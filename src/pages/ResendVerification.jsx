@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useResendVerificationMutation } from "../features/auth/authApi";
+import SEO from "../components/SEO";
 
 export default function ResendVerification() {
   const { t } = useTranslation();
@@ -46,59 +47,74 @@ export default function ResendVerification() {
     "focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition";
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center bg-marblewhite dark:text-backnewsdark dark:bg-marbleblack px-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
-        <h2 className="text-2xl font-bold mb-2 text-center">
-          {t("auth.resendTitle")}
-        </h2>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
-          {t("auth.resendDesc")}
-        </p>
+    <>
+      <SEO
+        title={t(
+          "auth.resendSeoTitle",
+          "Resend Verification Email | MindMines",
+        )}
+        description={t(
+          "auth.resendSeoDesc",
+          "Resend your MindMines account verification email.",
+        )}
+        canonical="https://mindmines.eu/resend-verification"
+        noindex={true}
+      />
+      <h1 className="sr-only">{t("auth.resendTitle")}</h1>
+      <div className="min-h-[70vh] flex items-center justify-center bg-marblewhite dark:text-backnewsdark dark:bg-marbleblack px-4">
+        <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:text-backnewsdark dark:ring-white/5 p-6">
+          <h2 className="text-2xl font-bold mb-2 text-center">
+            {t("auth.resendTitle")}
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
+            {t("auth.resendDesc")}
+          </p>
 
-        <form onSubmit={handleResend} className="space-y-4">
-          <label className="block text-sm text-gray-700 dark:text-gray-300">
-            <span className="sr-only">{t("auth.resendPlaceholder")}</span>
-            <input
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder={t("auth.resendPlaceholder")}
-              className={inputCls}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
+          <form onSubmit={handleResend} className="space-y-4">
+            <label className="block text-sm text-gray-700 dark:text-gray-300">
+              <span className="sr-only">{t("auth.resendPlaceholder")}</span>
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder={t("auth.resendPlaceholder")}
+                className={inputCls}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </label>
 
-          <button
-            className="w-full py-2.5 rounded-lg bg-backnewswhite text-white font-medium
+            <button
+              className="w-full py-2.5 rounded-lg bg-backnewswhite text-white font-medium
                        hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite
                        focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-60 transition"
-            disabled={isLoading || !email.trim()}
-          >
-            {t("auth.resendButton")}
-          </button>
+              disabled={isLoading || !email.trim()}
+            >
+              {t("auth.resendButton")}
+            </button>
 
-          {msg && (
-            <p
-              className="text-center text-backnewsdark"
-              role="status"
-              aria-live="polite"
-            >
-              {msg}
-            </p>
-          )}
-          {error && (
-            <p
-              className="text-center text-red-600"
-              role="alert"
-              aria-live="assertive"
-            >
-              {error}
-            </p>
-          )}
-        </form>
+            {msg && (
+              <p
+                className="text-center text-backnewsdark"
+                role="status"
+                aria-live="polite"
+              >
+                {msg}
+              </p>
+            )}
+            {error && (
+              <p
+                className="text-center text-red-600"
+                role="alert"
+                aria-live="assertive"
+              >
+                {error}
+              </p>
+            )}
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 // src/pages/ProductDetailPage.jsx
 import { useTranslation } from "react-i18next";
+import SEO from "../components/SEO";
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -509,27 +510,21 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
-        <Helmet>
-          <title>{title}</title>
-          <meta name="description" content={description} />
-          <link rel="canonical" href={canonical} />
-          <meta property="og:type" content="product" />
-          <meta property="og:title" content={title} />
-          <meta property="og:description" content={description} />
-          <meta property="og:url" content={canonical} />
-          <meta property="og:image" content={image} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={title} />
-          <meta name="twitter:description" content={description} />
-          <meta name="twitter:image" content={image} />
-          <script type="application/ld+json">
-            {JSON.stringify(productJsonLd)}
-          </script>
-          <script type="application/ld+json">
-            {JSON.stringify(breadcrumbJsonLd)}
-          </script>
-        </Helmet>
+        <SEO
+          title={title}
+          description={description}
+          canonical={canonical}
+          ogType="product"
+          image={image}
+        />
 
+        {/* JSON-LD (structured data) — does not affect UI */}
+        <script type="application/ld+json">
+          {JSON.stringify(productJsonLd)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
           {/* MEDIA */}
           <div className="w-full lg:w-1/2">

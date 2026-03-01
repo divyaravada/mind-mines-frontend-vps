@@ -1,11 +1,18 @@
 // src/pages/ImprintPage.jsx
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function ImprintPage() {
   const { t } = useTranslation();
+
+  const title = `${t("legal.imprint.title")} | MindMines`;
+  const description = t(
+    "legal.imprint.meta_description",
+    "Legal notice and company information for MindMines GbR.",
+  );
+  const canonical = "https://mindmines.eu/imprint";
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
@@ -71,10 +78,7 @@ export default function ImprintPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{t("legal.imprint.title")} | MindMines</title>
-        <meta name="description" content={t("legal.imprint.section1_text_b")} />
-      </Helmet>
+      <SEO title={title} description={description} canonical={canonical} />
 
       <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 sm:pt-8 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-10">

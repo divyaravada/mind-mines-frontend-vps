@@ -1,6 +1,6 @@
 // src/pages/ShippingPolicyPage.jsx
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
@@ -14,10 +14,14 @@ export default function ShippingPolicyPage() {
     try {
       trackEvent({
         event_type: "page_view_shipping_policy",
-        path: "/shipping-policy", // adjust if route differs
+        path: "/shipping",
       });
     } catch {}
   }, [trackEvent]);
+
+  const title = `${t("legal.shipping.title")} | MindMines`;
+  const description = t("legal.shipping.intro");
+  const canonical = "https://mindmines.eu/shipping";
 
   const sections = [
     {
@@ -88,10 +92,7 @@ export default function ShippingPolicyPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{t("legal.shipping.title")} | MindMines</title>
-        <meta name="description" content={t("legal.shipping.intro")} />
-      </Helmet>
+      <SEO title={title} description={description} canonical={canonical} />
 
       <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-10">
@@ -105,8 +106,8 @@ export default function ShippingPolicyPage() {
               <span>{t("legal.shipping.title")}</span>
               <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 {isMobileTOCOpen
-                  ? t("common.close") ?? "Close"
-                  : t("common.open") ?? "Open"}
+                  ? (t("common.close") ?? "Close")
+                  : (t("common.open") ?? "Open")}
               </span>
             </button>
 

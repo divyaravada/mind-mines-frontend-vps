@@ -1,5 +1,6 @@
 // src/pages/RegisterPage.jsx
 import { useState } from "react";
+import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useRegisterMutation } from "../features/auth/authApi";
@@ -46,75 +47,87 @@ export default function RegisterForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="min-h-[calc(100vh-35rem)] grid place-items-center bg-marblewhite dark:bg-marbleblack px-1"
-    >
-      <div className="w-full max-w-md p-8 rounded-xl bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
-        <h2 className="text-2xl font-semibold mb-4">
-          {t("auth.registerTitle")}
-        </h2>
-
-        {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
-
-        {success && (
-          <div className="mb-3 text-sm text-green-600 space-y-1">
-            <p>{success}</p>
-            <p>
-              {t("auth.registerNoEmailHint")}{" "}
-              <Link
-                to="/resend-verification"
-                className="underline text-backnewswhite dark:text-backnewsdark"
-              >
-                {t("auth.registerResendLink")}
-              </Link>
-            </p>
-          </div>
+    <>
+      <SEO
+        title={t("auth.registerSeoTitle", "Create Account | MindMines")}
+        description={t(
+          "auth.registerSeoDesc",
+          "Create your MindMines account to manage orders, addresses and wishlist.",
         )}
+        canonical="https://mindmines.eu/register"
+        noindex={true}
+      />
+      <h1 className="sr-only">{t("auth.registerTitle")}</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="min-h-[calc(100vh-35rem)] grid place-items-center bg-marblewhite dark:bg-marbleblack px-1"
+      >
+        <div className="w-full max-w-md p-8 rounded-xl bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+          <h2 className="text-2xl font-semibold mb-4">
+            {t("auth.registerTitle")}
+          </h2>
 
-        <input
-          className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
-          name="username"
-          placeholder={t("auth.username")}
-          value={fields.username}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
-          name="email"
-          type="email"
-          placeholder={t("auth.email")}
-          value={fields.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
-          name="password"
-          type="password"
-          placeholder={t("auth.password")}
-          value={fields.password}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full mb-5 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
-          name="password2"
-          type="password"
-          placeholder={t("auth.passwordRepeat")}
-          value={fields.password2}
-          onChange={handleChange}
-          required
-        />
+          {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
 
-        <button
-          className="w-full py-2.5 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition disabled:opacity-60"
-          disabled={isLoading}
-        >
-          {t("auth.registerButton")}
-        </button>
-      </div>
-    </form>
+          {success && (
+            <div className="mb-3 text-sm text-green-600 space-y-1">
+              <p>{success}</p>
+              <p>
+                {t("auth.registerNoEmailHint")}{" "}
+                <Link
+                  to="/resend-verification"
+                  className="underline text-backnewswhite dark:text-backnewsdark"
+                >
+                  {t("auth.registerResendLink")}
+                </Link>
+              </p>
+            </div>
+          )}
+
+          <input
+            className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+            name="username"
+            placeholder={t("auth.username")}
+            value={fields.username}
+            onChange={handleChange}
+            required
+          />
+          <input
+            className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+            name="email"
+            type="email"
+            placeholder={t("auth.email")}
+            value={fields.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            className="w-full mb-3 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+            name="password"
+            type="password"
+            placeholder={t("auth.password")}
+            value={fields.password}
+            onChange={handleChange}
+            required
+          />
+          <input
+            className="w-full mb-5 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent transition"
+            name="password2"
+            type="password"
+            placeholder={t("auth.passwordRepeat")}
+            value={fields.password2}
+            onChange={handleChange}
+            required
+          />
+
+          <button
+            className="w-full py-2.5 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 transition disabled:opacity-60"
+            disabled={isLoading}
+          >
+            {t("auth.registerButton")}
+          </button>
+        </div>
+      </form>
+    </>
   );
 }

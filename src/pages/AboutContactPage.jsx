@@ -6,7 +6,7 @@ import ContactSection from "../components/ContactForm";
 import TrustBadges from "../components/TrustBadges";
 import marbleCrafting from "../assets/MindminesVideo.mp4";
 import marbleSculpting from "../assets/MindminesAboutvideoImage.jpeg";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { useLocation } from "react-router-dom";
 
 // TODO: replace these with your real images / video URLs
@@ -19,14 +19,19 @@ export default function AboutContactPage() {
 
   const VIDEO_SRC = marbleCrafting;
   const VIDEO_POSTER = marbleSculpting;
+  const title = t(
+    "about.meta.title",
+    "About MindMines | Handcrafted Marble & Natural Stone Decor",
+  );
+  const description = t(
+    "about.meta.description",
+    "Learn about MindMines: handcrafted marble, granite and onyx decor made for modern European homes.",
+  );
 
   return (
     <>
-      <Helmet>
-        <meta name="robots" content="noindex,nofollow" />
-        <meta name="googlebot" content="noindex,nofollow" />
-        <link rel="canonical" href={canonical} />
-      </Helmet>
+      <SEO title={title} description={description} canonical={canonical} />
+
       <main className="bg-marblewhite dark:bg-marbleblack min-h-screen py-10">
         {/* HERO SECTION */}
         <div className="w-full mx-auto flex flex-col md:flex-col items-center gap-10 px-6 pb-16 max-w-6xl">

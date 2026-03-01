@@ -9,7 +9,7 @@ import {
   useLoginStartMutation,
   useLoginVerifyMutation,
 } from "../features/auth/authApi";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -77,7 +77,7 @@ export default function LoginPage() {
     } catch (err) {
       console.warn("Login start failed", err);
       const detail = String(
-        err?.data?.detail || err?.data?.error || ""
+        err?.data?.detail || err?.data?.error || "",
       ).toLowerCase();
 
       if (
@@ -107,7 +107,7 @@ export default function LoginPage() {
     } catch (err) {
       console.warn("OTP verify failed", err);
       const detail = String(
-        err?.data?.detail || err?.data?.error || ""
+        err?.data?.detail || err?.data?.error || "",
       ).toLowerCase();
 
       if (detail.includes("expired")) {
@@ -115,17 +115,17 @@ export default function LoginPage() {
         resetOtpFlow();
       } else if (detail.includes("already used")) {
         setLoginError(
-          t("auth.otpUsed") || "OTP already used. Please login again."
+          t("auth.otpUsed") || "OTP already used. Please login again.",
         );
         resetOtpFlow();
       } else if (detail.includes("too many")) {
         setLoginError(
-          t("auth.otpTooMany") || "Too many attempts. Please login again."
+          t("auth.otpTooMany") || "Too many attempts. Please login again.",
         );
         resetOtpFlow();
       } else if (detail.includes("invalid")) {
         setLoginError(
-          t("auth.otpInvalid") || "Invalid code. Please try again."
+          t("auth.otpInvalid") || "Invalid code. Please try again.",
         );
       } else {
         setLoginError(t("auth.loginFailed"));
@@ -158,10 +158,12 @@ export default function LoginPage() {
 
   return (
     <>
-      <Helmet>
-        <meta name="robots" content="noindex,nofollow" />
-        <meta name="googlebot" content="noindex,nofollow" />
-      </Helmet>
+      <SEO
+        title={t("auth.loginTitle", "Login") + " | MindMines"}
+        description={t("auth.loginSub", "Login to your MindMines account.")}
+        canonical="https://mindmines.eu/users/login"
+        noindex
+      />
 
       <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
         <div className="min-h-[75vh] flex flex-col justify-center px-2">

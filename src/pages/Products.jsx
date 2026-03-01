@@ -1,6 +1,5 @@
 import ProductTile from "../components/ProductTile";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -11,6 +10,7 @@ import { resolveProductPrice } from "../lib/money";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import { productTitle } from "../lib/i18n";
+import SEO from "../components/SEO";
 import {
   useAddToWishlistMutation,
   useGetWishlistQuery,
@@ -266,13 +266,23 @@ export default function ProductsPage() {
     .find((c) => String(c.id) === String(categoryId));
 
   const pageTitle = categoryObj
-    ? t("products.meta.categoryTitle", { category: t(categoryObj.label) })
-    : t("products.meta.allTitle");
+    ? t("products.meta.categoryTitle", {
+        category: t(categoryObj.label),
+        defaultValue: `${t(categoryObj.label)} | MindMines`,
+      })
+    : t("products.meta.allTitle", {
+        defaultValue: "Decorative Products | MindMines",
+      });
 
   const pageDesc = categoryObj
-    ? t("products.meta.categoryDescription", { category: t(categoryObj.label) })
-    : t("products.meta.defaultDescription");
-
+    ? t("products.meta.categoryDescription", {
+        category: t(categoryObj.label),
+        defaultValue: `Explore ${t(categoryObj.label)} in marble, granite and onyx – handcrafted for modern European homes.`,
+      })
+    : t("products.meta.defaultDescription", {
+        defaultValue:
+          "Explore handcrafted marble, granite and onyx trays, bowls and decor designed for modern European homes.",
+      });
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -588,29 +598,19 @@ export default function ProductsPage() {
       )}
 
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        <Helmet>
-          <title>{pageTitle}</title>
-          <meta name="description" content={pageDesc} />
-          <meta property="og:title" content={pageTitle} />
-          <meta property="og:description" content={pageDesc} />
-          <meta property="og:url" content={canonical} />
-          <meta
-            property="og:image"
-            content="https://mindmines.eu/static/media/BlackLogo.5bca70d1f51039db05b5.webp"
-          />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={pageTitle} />
-          <meta name="twitter:description" content={pageDesc} />
-          <meta
-            name="twitter:image"
-            content="https://mindmines.eu/static/media/BlackLogo.5bca70d1f51039db05b5.webp"
-          />
-          <link rel="canonical" href={canonical} />
-          <script type="application/ld+json">
-            {JSON.stringify(breadcrumbJsonLd)}
-          </script>
-        </Helmet>
+        <SEO title={pageTitle} description={pageDesc} canonical={canonical} />
 
+        {/* ✅ H1 for SEO audit, but not visible */}
+        <h1 className="sr-only">
+          {categoryObj
+            ? t(categoryObj.label)
+            : t("products.h1", { defaultValue: "Decorative Products" })}
+        </h1>
+
+        {/* ✅ Keep your JSON-LD here (outside Helmet is fine) */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>
         {/* category chips */}
         <div className="flex gap-3 justify-center mb-4 flex-wrap">
           {homeCategories

@@ -314,7 +314,11 @@
     "hours": "Zeiten",
     "hoursValue": "Mo–Fr, 09:00–18:00 Uhr",
     "address": "Adresse",
-    "addressValue": "Feldstraße 11, 21640 Horneburg, Deutschland"
+    "addressValue": "Feldstraße 11, 21640 Horneburg, Deutschland",
+    "meta": {
+      "title": "Über MindMines | Handgefertigtes Marmor- & Naturstein-Dekor",
+      "description": "Erfahren Sie mehr über MindMines: handgefertigte Deko aus Marmor, Granit und Onyx für moderne Wohnräume in Europa."
+    }
   },
   "badges": {
     "ariaLabel": "Vertrauenssiegel",

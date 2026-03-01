@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { stripePromise } from "../lib/stripe";
+import SEO from "../components/SEO"; // ✅ add
 
 export default function CheckoutReturn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [status, setStatus] = useState("checking"); // checking | succeeded | processing | failed
+  const [status, setStatus] = useState("checking");
   const [message, setMessage] = useState("");
   const [piId, setPiId] = useState("");
 
@@ -31,9 +32,8 @@ export default function CheckoutReturn() {
         return;
       }
 
-      const { paymentIntent, error } = await stripe.retrievePaymentIntent(
-        clientSecret
-      );
+      const { paymentIntent, error } =
+        await stripe.retrievePaymentIntent(clientSecret);
 
       if (error) {
         setStatus("failed");
@@ -62,50 +62,68 @@ export default function CheckoutReturn() {
       if (storedOrderId && paymentIntent.status !== "requires_payment_method") {
         setTimeout(() => {
           navigate(
-            `/checkout/success?order=${encodeURIComponent(storedOrderId)}`
+            `/checkout/success?order=${encodeURIComponent(storedOrderId)}`,
           );
         }, 3000);
       }
     })();
   }, [searchParams, t, navigate]);
 
+  // ✅ SEO strings (translations optional)
+  const title = t("checkoutReturn.meta.title", "Checkout status | MindMines");
+  const description = t(
+    "checkoutReturn.meta.description",
+    "Checking your payment status and completing your order.",
+  );
+  const canonical = "https://mindmines.eu/checkout/return";
+
   return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark flex items-center justify-center px-4">
-      <div className="max-w-lg mx-auto py-12 px-4">
-        <div className="text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-8">
-          <h1 className="text-2xl font-semibold mb-4">
-            {status === "succeeded"
-              ? t("checkout.returnTitleSuccess")
-              : status === "failed"
-              ? t("checkout.returnTitleFailed")
-              : t("checkout.returnTitleProcessing")}
-          </h1>
+    <>
+      {/* ✅ Adds SEO without affecting UI */}
+      <SEO
+        title={title}
+        description={description}
+        canonical={canonical}
+        noindex
+      />
 
-          <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark flex items-center justify-center px-4">
+        <div className="max-w-lg mx-auto py-12 px-4">
+          <div className="text-center bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-8">
+            <h1 className="text-2xl font-semibold mb-4">
+              {status === "succeeded"
+                ? t("checkout.returnTitleSuccess")
+                : status === "failed"
+                  ? t("checkout.returnTitleFailed")
+                  : t("checkout.returnTitleProcessing")}
+            </h1>
 
-          {piId && (
-            <p className="text-xs text-gray-500 mb-6 break-all">
-              {t("checkout.paymentReference", { id: piId })}
-            </p>
-          )}
+            <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
 
-          <div className="space-y-3">
-            <Link
-              to="/account/orders"
-              className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
-            >
-              {t("checkout.viewOrders")}
-            </Link>
+            {piId && (
+              <p className="text-xs text-gray-500 mb-6 break-all">
+                {t("checkout.paymentReference", { id: piId })}
+              </p>
+            )}
 
-            <Link
-              to="/"
-              className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
-            >
-              {t("checkout.backHome")}
-            </Link>
+            <div className="space-y-3">
+              <Link
+                to="/account/orders"
+                className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                {t("checkout.viewOrders")}
+              </Link>
+
+              <Link
+                to="/"
+                className="block w-full border dark:border-neutral-700 rounded-lg py-2 text-center hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                {t("checkout.backHome")}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

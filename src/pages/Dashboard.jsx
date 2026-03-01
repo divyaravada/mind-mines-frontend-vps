@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { useGetAccountQuery } from "../features/account/accountApi";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -11,10 +11,12 @@ export default function Dashboard() {
 
   return (
     <>
-      <Helmet>
-        <meta name="robots" content="noindex,nofollow" />
-        <meta name="googlebot" content="noindex,nofollow" />
-      </Helmet>
+      <SEO
+        title="My Account | MindMines"
+        description="Manage your MindMines account."
+        canonical="https://mindmines.eu/account"
+        noindex
+      />
       <div className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-backnewsdark">
         <div className="max-w-6xl mx-auto px-6 py-10">
           <h1 className="text-5xl font-light mb-4 text-backnewswhite dark:text-backnewswhite">

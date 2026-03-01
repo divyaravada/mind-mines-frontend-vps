@@ -8,7 +8,7 @@ import HomeTrustSection from "../components/HomeTrustSection";
 import FreeDelivery from "../components/FreeDelivery";
 import { AboutUsRow } from "../components/AboutUsRow";
 
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
@@ -37,10 +37,15 @@ export default function Home() {
 
   return (
     <main>
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-      </Helmet>
+      <SEO
+        title={title}
+        description={description}
+        canonical="https://mindmines.eu/"
+      />
+
+      <h1 className="sr-only">
+        {t("home.h1", "Handcrafted Marble & Natural Stone Decor")}
+      </h1>
 
       <HomeCarousel />
       {/* <CountertopCTA /> */}

@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useTranslation, Trans } from "react-i18next";
 import { fmtEUR } from "../lib/money";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { getCartToken } from "../lib/cartToken";
 
 /**
@@ -73,7 +73,13 @@ export default function CartPage() {
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const title = t("cart.meta.title", "Cart | MindMines");
+  const description = t(
+    "cart.meta.description",
+    "Review your selected MindMines items and proceed to secure checkout.",
+  );
 
+  const canonical = "https://mindmines.eu/cart";
   const handleCheckoutClick = () => {
     if (loggedIn) {
       navigate("/checkout");
@@ -217,11 +223,12 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <main className="max-w-5xl mx-auto py-12 px-4 text-gray-900 dark:text-gray-100">
-        <Helmet>
-          <meta name="robots" content="noindex,nofollow" />
-          <meta name="googlebot" content="noindex,nofollow" />
-          <title>Cart | MindMines</title>
-        </Helmet>
+        <SEO
+          title={title}
+          description={description}
+          canonical={canonical}
+          noindex
+        />
         <h1 className="text-2xl font-bold mb-4 text-backnewswhite dark:text-backnewsdark">
           {t("cart.title", { count: 0 })}
         </h1>
@@ -242,11 +249,12 @@ export default function CartPage() {
 
   return (
     <>
-      <Helmet>
-        <meta name="robots" content="noindex,nofollow" />
-        <meta name="googlebot" content="noindex,nofollow" />
-        <title>Cart | MindMines</title>
-      </Helmet>
+      <SEO
+        title={title}
+        description={description}
+        canonical={canonical}
+        noindex
+      />
       {/* ✅ main landmark fixes “Document does not have a main landmark” */}
       <main className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 text-gray-900 dark:text-gray-100">
         {/* LEFT */}

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { computeLinePricing, allocateCouponAcrossLines } from "../lib/pricing";
 
 import { useTranslation } from "react-i18next";
@@ -1046,11 +1046,14 @@ export default function Checkout() {
 
   return (
     <>
-      <Helmet>
-        <meta name="robots" content="noindex,nofollow" />
-        <meta name="googlebot" content="noindex,nofollow" />
-        <title>Checkout | MindMines</title>
-      </Helmet>
+      <SEO
+        title={t("checkout.meta.title", "Checkout | MindMines")}
+        description={t(
+          "checkout.meta.description",
+          "Secure checkout for your MindMines order.",
+        )}
+        canonical="https://mindmines.eu/checkout"
+      />
 
       {/* ✅ main landmark */}
       <main className="min-h-screen bg-marblewhite dark:bg-marbleblack dark:text-white">

@@ -1,23 +1,32 @@
 // src/pages/CookiePolicyPage.jsx
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 
 export default function CookiePolicyPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
+  // ✅ Better: a dedicated meta description key (intro might be long)
+  const title = `${t("legal.cookies.title")} | MindMines`;
+  const description = t(
+    "legal.cookies.meta_description",
+    "Learn how MindMines uses cookies and similar technologies to improve your shopping experience.",
+  );
 
+  // ✅ canonical should match the real route
+  const canonical = "https://mindmines.eu/cookies";
   useEffect(() => {
     try {
       trackEvent({
         event_type: "page_view_cookies",
-        path: "/cookie-policy", // adjust as needed
+        path: "/cookies", // ✅ match App.jsx
+        locale: i18n?.language,
       });
     } catch {}
-  }, [trackEvent]);
+  }, [trackEvent, i18n?.language]);
 
   const sections = [
     {
@@ -76,10 +85,7 @@ export default function CookiePolicyPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{t("legal.cookies.title")} | MindMines</title>
-        <meta name="description" content={t("legal.cookies.intro")} />
-      </Helmet>
+      <SEO title={title} description={description} canonical={canonical} />
 
       <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10">

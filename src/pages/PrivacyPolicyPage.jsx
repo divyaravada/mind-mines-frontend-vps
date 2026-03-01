@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
@@ -99,10 +99,11 @@ export default function PrivacyPolicyPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{t("legal.privacy.title")} | MindMines</title>
-        <meta name="description" content={t("legal.privacy.intro")} />
-      </Helmet>
+      <SEO
+        title={`${t("legal.privacy.title")} | MindMines`}
+        description={t("legal.privacy.intro")}
+        canonical="https://mindmines.eu/privacy"
+      />
 
       <div className="min-h-screen bg-marblewhite dark:bg-backnewsdark pt-6 pb-14 px-4 sm:px-5 lg:px-8">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-10">
