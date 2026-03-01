@@ -896,7 +896,7 @@ export default function ProductDetailPage() {
                   key={p.id}
                   onClick={() => {
                     const slug = slugify(productTitle(p, lang));
-                    navigate(`/products/${slug}-${p.id}`);
+                    navigate(`/products/${p.id}/${slug}`);
                   }}
                   className="bg-white dark:text-backnewsdark dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
                 >
