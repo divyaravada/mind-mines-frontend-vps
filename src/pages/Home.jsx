@@ -16,17 +16,15 @@ import { useTrackEventMutation } from "../features/marketing/marketingApi";
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [trackEvent] = useTrackEventMutation();
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
 
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view",
-        path: "/", // adjust if your home route is different
-        locale: i18n.language, // optional extra info
-      });
-    } catch (error) {
-      /* ignore tracking errors */
-    }
+    if (isPrerender) return;
+    trackEvent({
+      event_type: "page_view",
+      path: "/", // adjust if your home route is different
+      locale: i18n.language, // optional extra info
+    });
   }, [trackEvent, i18n.language]);
 
   const title = t("home.meta.title", "MindMines – Marble & Stone Decor");

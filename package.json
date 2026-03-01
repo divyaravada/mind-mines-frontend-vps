@@ -52,7 +52,10 @@
     "puppeteerArgs": [
       "--no-sandbox",
       "--disable-setuid-sandbox"
-    ]
+    ],
+    "puppeteerOptions": {
+      "timeout": 120000
+    }
   },
   "eslintConfig": {
     "extends": [
