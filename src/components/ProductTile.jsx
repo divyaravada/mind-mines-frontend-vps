@@ -88,7 +88,7 @@ export default function ProductTile({
   // 👉 Global click: go to product details
   const goToDetail = () => {
     const slug = slugify(title);
-    navigate(`/products/${slug}-${product.id}`);
+    navigate(`/products/${product.id}/${slug}`);
   };
 
   return (

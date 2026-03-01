@@ -28,7 +28,7 @@ async function fetchJson(url) {
   const text = await res.text(); // ✅ read body even on error
   if (!res.ok) {
     throw new Error(
-      `Fetch failed ${res.status} for ${url}\n${text.slice(0, 500)}`
+      `Fetch failed ${res.status} for ${url}\n${text.slice(0, 500)}`,
     );
   }
 
@@ -55,28 +55,32 @@ async function main() {
 
   // Static pages
   urls.push(
-    urlXml(`${SITE}/`, { changefreq: "daily", priority: "1.0", lastmod: today })
+    urlXml(`${SITE}/`, {
+      changefreq: "daily",
+      priority: "1.0",
+      lastmod: today,
+    }),
   );
   urls.push(
     urlXml(`${SITE}/decorative-products`, {
       changefreq: "weekly",
       priority: "0.9",
       lastmod: today,
-    })
+    }),
   );
   urls.push(
     urlXml(`${SITE}/natural-stone`, {
       changefreq: "weekly",
       priority: "0.9",
       lastmod: today,
-    })
+    }),
   );
   urls.push(
     urlXml(`${SITE}/about`, {
       changefreq: "monthly",
       priority: "0.6",
       lastmod: today,
-    })
+    }),
   );
 
   // Products (paginate)
@@ -95,13 +99,17 @@ async function main() {
 
         const title = p.title_en || p.title_de || p.name || `product-${p.id}`;
         const slug = slugify(title);
-        const loc = `${SITE}/products/${slug}-${p.id}`;
+        const loc = `${SITE}/products/${p.id}/${slug}`;
 
         if (seen.has(loc)) continue;
         seen.add(loc);
 
         urls.push(
-          urlXml(loc, { changefreq: "weekly", priority: "0.7", lastmod: today })
+          urlXml(loc, {
+            changefreq: "weekly",
+            priority: "0.7",
+            lastmod: today,
+          }),
         );
       }
 
@@ -110,7 +118,7 @@ async function main() {
     }
   } catch (e) {
     console.error(
-      "⚠️ Products API failed, generating sitemap without product URLs."
+      "⚠️ Products API failed, generating sitemap without product URLs.",
     );
     console.error(String(e).slice(0, 500));
   }

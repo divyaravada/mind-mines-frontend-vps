@@ -59,8 +59,7 @@ function LoadingScreen() {
 
 const BODY_FONT =
   '"Source Sans Pro", "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-const HEADING_FONT =
-  '"Playfair Display", "Times New Roman", Georgia, serif';
+const HEADING_FONT = '"Playfair Display", "Times New Roman", Georgia, serif';
 
 export default function App() {
   useEffect(() => {
@@ -106,7 +105,7 @@ export default function App() {
               path="/decorative-products/category/:categoryId"
               element={<Products />}
             />
-            <Route path="/products/:slug-:id" element={<ProductDetailPage />} />
+            <Route path="/products/:id/:slug" element={<ProductDetailPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route path="/natural-stone" element={<NaturalStonePage />} />
             <Route path="/cart" element={<Cart />} />
