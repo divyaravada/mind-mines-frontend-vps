@@ -68,9 +68,9 @@ export default function ProductSearch({ t }) {
       setOpen(false);
       setQ("");
       // match your backend route
-      navigate(`/products/${item.id}`);
+      navigate(`/products/${item.id}/${item.slug}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const onKeyDown = (e) => {

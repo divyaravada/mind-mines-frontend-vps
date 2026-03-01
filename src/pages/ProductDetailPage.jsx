@@ -135,12 +135,12 @@ export default function ProductDetailPage() {
   const canonical = useMemo(() => {
     if (!product)
       return `https://mindmines.eu/products/${numericId || idParam}`;
-    return `https://mindmines.eu/products/${correctSlug}-${product.id}`;
+    return `https://mindmines.eu/products/${product.id}/${correctSlug}`;
   }, [product, correctSlug, numericId, idParam]);
 
   useEffect(() => {
     if (!product) return;
-    const expectedPath = `/products/${correctSlug}-${product.id}`;
+    const expectedPath = `/products/${product.id}/${correctSlug}`;
     if (window.location.pathname !== expectedPath) {
       navigate(expectedPath, { replace: true });
     }

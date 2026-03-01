@@ -55,8 +55,8 @@ export default function AccountWishlist() {
           missing.map((id) =>
             triggerGetProduct(id)
               .unwrap()
-              .catch(() => null)
-          )
+              .catch(() => null),
+          ),
         );
         results.forEach((p) => p?.id && (map[p.id] = p));
       }
@@ -75,7 +75,7 @@ export default function AccountWishlist() {
           return p ? { w, p } : null;
         })
         .filter(Boolean),
-    [items, products]
+    [items, products],
   );
 
   const Shell = ({ children }) => (
@@ -93,7 +93,7 @@ export default function AccountWishlist() {
         <p className="mb-8 text-gray-600 dark:text-gray-300">
           {t(
             "wishlist.loginPrompt",
-            "Please log in to view and manage your wishlist."
+            "Please log in to view and manage your wishlist.",
           )}
         </p>
         <Link
@@ -123,7 +123,7 @@ export default function AccountWishlist() {
         <p className="mb-8 text-red-600 dark:text-red-400">
           {t(
             "wishlist.loadError",
-            "We couldn't load your wishlist right now. Please try again later."
+            "We couldn't load your wishlist right now. Please try again later.",
           )}
         </p>
         <Link
@@ -196,14 +196,14 @@ export default function AccountWishlist() {
                     try {
                       await removeWishlist(p.id).unwrap();
                       toast.info(
-                        t("wishlist.removedToast", "Removed from wishlist")
+                        t("wishlist.removedToast", "Removed from wishlist"),
                       );
                     } catch {
                       toast.error(
                         t(
                           "wishlist.removeFailed",
-                          "Couldn't remove from wishlist."
-                        )
+                          "Couldn't remove from wishlist.",
+                        ),
                       );
                     }
                   }}
@@ -221,7 +221,7 @@ export default function AccountWishlist() {
                     fetchPriority="high"
                     loading="lazy"
                     decoding="async"
-                    onClick={() => navigate(`/products/${p.id}`)}
+                    onClick={() => navigate(`/products/${p.id}/${p.slug}`)}
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                 )}
