@@ -472,312 +472,313 @@ export default function ProductsPage() {
       return t("products.sort.featured", { defaultValue: "Featured" });
     return t(found.labelKey, { defaultValue: found.fallback });
   }, [appliedSort, t, SORT_OPTIONS]);
+  if (isPrerender) {
+    return (
+      <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
+        <QuickViewModal
+          open={!!quickViewProduct}
+          product={quickViewProduct}
+          lang={lang}
+          wished={quickViewProduct ? wlIds.has(quickViewProduct.id) : false}
+          onToggleWishlist={toggleWishlist}
+          onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
+          onClose={() => setQuickViewProduct(null)}
+        />
 
-  return (
-    <div className="min-h-screen bg-marblewhite dark:bg-marbleblack">
-      <QuickViewModal
-        open={!!quickViewProduct}
-        product={quickViewProduct}
-        lang={lang}
-        wished={quickViewProduct ? wlIds.has(quickViewProduct.id) : false}
-        onToggleWishlist={toggleWishlist}
-        onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
-        onClose={() => setQuickViewProduct(null)}
-      />
-
-      {/* Filter Drawer */}
-      {isFilterOpen && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setIsFilterOpen(false)}
-          />
-          <div className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-white dark:bg-neutral-900 shadow-xl p-5 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold dark:text-white">
-                {t("products.filters.title", { defaultValue: "Filter" })}
-              </h3>
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="px-3 py-1 rounded-lg border dark:border-neutral-700 dark:text-white"
-              >
-                {t("common.close", { defaultValue: "Close" })}
-              </button>
-            </div>
-
-            {/* Stone */}
-            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
-              <h4 className="font-semibold mb-2 dark:text-white">
-                {t("products.filters.material.title", {
-                  defaultValue: "Stone",
-                })}
-              </h4>
-              {MATERIALS.map((m) => (
-                <label
-                  key={m.value}
-                  className="block mb-2 text-sm dark:text-gray-200"
+        {/* Filter Drawer */}
+        {isFilterOpen && (
+          <div className="fixed inset-0 z-50">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setIsFilterOpen(false)}
+            />
+            <div className="absolute right-0 top-0 h-full w-[92%] max-w-md bg-white dark:bg-neutral-900 shadow-xl p-5 overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold dark:text-white">
+                  {t("products.filters.title", { defaultValue: "Filter" })}
+                </h3>
+                <button
+                  onClick={() => setIsFilterOpen(false)}
+                  className="px-3 py-1 rounded-lg border dark:border-neutral-700 dark:text-white"
                 >
-                  <input
-                    type="checkbox"
-                    className="mr-2 rounded border-gray-300 dark:border-neutral-700"
-                    checked={draftMaterials.includes(m.value)}
-                    onChange={() =>
-                      toggleDraftArrayValue(setDraftMaterials)(m.value)
-                    }
-                  />
-                  {t(m.label, { defaultValue: m.value })}
-                </label>
-              ))}
-            </div>
+                  {t("common.close", { defaultValue: "Close" })}
+                </button>
+              </div>
 
-            {/* Color */}
-            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
-              <h4 className="font-semibold mb-2 dark:text-white">
-                {t("products.filters.color.title", { defaultValue: "Color" })}
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                {COLORS.map((c) => (
-                  <label key={c.value} className="text-sm dark:text-gray-200">
+              {/* Stone */}
+              <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+                <h4 className="font-semibold mb-2 dark:text-white">
+                  {t("products.filters.material.title", {
+                    defaultValue: "Stone",
+                  })}
+                </h4>
+                {MATERIALS.map((m) => (
+                  <label
+                    key={m.value}
+                    className="block mb-2 text-sm dark:text-gray-200"
+                  >
                     <input
                       type="checkbox"
                       className="mr-2 rounded border-gray-300 dark:border-neutral-700"
-                      checked={draftColors.includes(c.value)}
+                      checked={draftMaterials.includes(m.value)}
                       onChange={() =>
-                        toggleDraftArrayValue(setDraftColors)(c.value)
+                        toggleDraftArrayValue(setDraftMaterials)(m.value)
                       }
                     />
-                    {t(c.label, { defaultValue: c.value })}
+                    {t(m.label, { defaultValue: m.value })}
                   </label>
                 ))}
               </div>
-            </div>
 
-            {/* Price */}
-            <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
-              <h4 className="font-semibold mb-2 dark:text-white">
-                {t("products.filters.price", { defaultValue: "Price" })}
-              </h4>
-              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
-                {PRICE_BUCKETS.map((r) => (
-                  <label
-                    key={r.label}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="price_filter_drawer"
-                      checked={
-                        draftPriceRange.min === r.min &&
-                        draftPriceRange.max === r.max
-                      }
-                      onChange={() =>
-                        setDraftPriceRange({ min: r.min, max: r.max })
-                      }
-                      className="accent-backnewswhite"
-                    />
-                    <span>{r.label} €</span>
-                  </label>
-                ))}
+              {/* Color */}
+              <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+                <h4 className="font-semibold mb-2 dark:text-white">
+                  {t("products.filters.color.title", { defaultValue: "Color" })}
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {COLORS.map((c) => (
+                    <label key={c.value} className="text-sm dark:text-gray-200">
+                      <input
+                        type="checkbox"
+                        className="mr-2 rounded border-gray-300 dark:border-neutral-700"
+                        checked={draftColors.includes(c.value)}
+                        onChange={() =>
+                          toggleDraftArrayValue(setDraftColors)(c.value)
+                        }
+                      />
+                      {t(c.label, { defaultValue: c.value })}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={resetFilters}
-                className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100"
-              >
-                {t("common.reset", { defaultValue: "Reset" })}
-              </button>
-              <button
-                onClick={applyFilters}
-                className="flex-1 py-2 rounded-xl bg-backnewswhite text-white border border-backnewswhite"
-              >
-                {t("common.apply", { defaultValue: "Apply" })}
-              </button>
+              {/* Price */}
+              <div className="mb-6 p-4 rounded-xl ring-1 ring-black/5 dark:ring-white/5 bg-white dark:bg-neutral-900">
+                <h4 className="font-semibold mb-2 dark:text-white">
+                  {t("products.filters.price", { defaultValue: "Price" })}
+                </h4>
+                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                  {PRICE_BUCKETS.map((r) => (
+                    <label
+                      key={r.label}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="price_filter_drawer"
+                        checked={
+                          draftPriceRange.min === r.min &&
+                          draftPriceRange.max === r.max
+                        }
+                        onChange={() =>
+                          setDraftPriceRange({ min: r.min, max: r.max })
+                        }
+                        className="accent-backnewswhite"
+                      />
+                      <span>{r.label} €</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={resetFilters}
+                  className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100"
+                >
+                  {t("common.reset", { defaultValue: "Reset" })}
+                </button>
+                <button
+                  onClick={applyFilters}
+                  className="flex-1 py-2 rounded-xl bg-backnewswhite text-white border border-backnewswhite"
+                >
+                  {t("common.apply", { defaultValue: "Apply" })}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        <SEO title={pageTitle} description={pageDesc} canonical={canonical} />
+        <div className="container max-w-7xl mx-auto px-4 py-8">
+          <SEO title={pageTitle} description={pageDesc} canonical={canonical} />
 
-        {/* ✅ H1 for SEO audit, but not visible */}
-        <h1 className="sr-only">
-          {categoryObj
-            ? t(categoryObj.label)
-            : t("products.h1", { defaultValue: "Decorative Products" })}
-        </h1>
+          {/* ✅ H1 for SEO audit, but not visible */}
+          <h1 className="sr-only">
+            {categoryObj
+              ? t(categoryObj.label)
+              : t("products.h1", { defaultValue: "Decorative Products" })}
+          </h1>
 
-        {/* ✅ Keep your JSON-LD here (outside Helmet is fine) */}
-        <script type="application/ld+json">
-          {JSON.stringify(breadcrumbJsonLd)}
-        </script>
-        {/* category chips */}
-        <div className="flex gap-3 justify-center mb-4 flex-wrap">
-          {homeCategories
-            .filter((cat) => String(cat.link || "").startsWith(BASE_PATH))
-            .map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => navigate(`${BASE_PATH}/category/${cat.id}`)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-full border shadow-sm transition
+          {/* ✅ Keep your JSON-LD here (outside Helmet is fine) */}
+          <script type="application/ld+json">
+            {JSON.stringify(breadcrumbJsonLd)}
+          </script>
+          {/* category chips */}
+          <div className="flex gap-3 justify-center mb-4 flex-wrap">
+            {homeCategories
+              .filter((cat) => String(cat.link || "").startsWith(BASE_PATH))
+              .map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => navigate(`${BASE_PATH}/category/${cat.id}`)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-full border shadow-sm transition
                             hover:scale-105 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70
                             ${
                               String(categoryId) === String(cat.id)
                                 ? "bg-backnewswhite text-white border-backnewswhite"
                                 : "bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-neutral-700"
                             }`}
-              >
-                <img
-                  src={cat.image}
-                  alt={t(cat.label)}
-                  className="w-8 h-8 rounded-full"
-                  fetchPriority="high"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span className="text-sm font-medium">{t(cat.label)}</span>
-              </button>
-            ))}
+                >
+                  <img
+                    src={cat.image}
+                    alt={t(cat.label)}
+                    className="w-8 h-8 rounded-full"
+                    fetchPriority="high"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className="text-sm font-medium">{t(cat.label)}</span>
+                </button>
+              ))}
 
-          <button
-            onClick={() => navigate(BASE_PATH)}
-            className={`px-4 py-2 rounded-full border shadow-sm transition hover:scale-105
+            <button
+              onClick={() => navigate(BASE_PATH)}
+              className={`px-4 py-2 rounded-full border shadow-sm transition hover:scale-105
                         focus:outline-none focus:ring-2 focus:ring-backnewswhite/70
                         ${
                           !categoryId
                             ? "bg-backnewswhite text-white border-backnewswhite"
                             : "bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-neutral-700"
                         }`}
-          >
-            {t("All", { defaultValue: "All" })}
-          </button>
-        </div>
-
-        {/* Filter / Sort bar */}
-        <div className="mb-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                setIsFilterOpen(true);
-                setIsSortOpen(false);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border shadow-sm
-                         bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
-                         border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
             >
-              <span className="inline-block">⎇</span>
-              {t("products.filters.title", { defaultValue: "Filter" })}
+              {t("All", { defaultValue: "All" })}
             </button>
+          </div>
 
-            <div className="relative">
+          {/* Filter / Sort bar */}
+          <div className="mb-8 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => {
-                  setIsSortOpen((v) => !v);
-                  setIsFilterOpen(false);
+                  setIsFilterOpen(true);
+                  setIsSortOpen(false);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border shadow-sm
-                           bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
-                           border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
+                         bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
+                         border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
               >
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("products.sort.title", { defaultValue: "Sort By:" })}
-                </span>
-                <span className="text-sm font-medium">{sortLabel}</span>
-                <span className="select-none">{isSortOpen ? "▴" : "▾"}</span>
+                <span className="inline-block">⎇</span>
+                {t("products.filters.title", { defaultValue: "Filter" })}
               </button>
 
-              {isSortOpen && (
-                <div
-                  className="absolute left-0 mt-2 w-72 rounded-xl border shadow-lg z-20
-                             bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setIsSortOpen((v) => !v);
+                    setIsFilterOpen(false);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border shadow-sm
+                           bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100
+                           border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-backnewswhite/70"
                 >
-                  {SORT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => {
-                        setAppliedSort(opt.value);
-                        setIsSortOpen(false);
-                        track({
-                          event_type: "sort_change",
-                          extra: {
-                            sort: opt.value || "featured",
-                            category: categoryId || null,
-                          },
-                        });
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm transition
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("products.sort.title", { defaultValue: "Sort By:" })}
+                  </span>
+                  <span className="text-sm font-medium">{sortLabel}</span>
+                  <span className="select-none">{isSortOpen ? "▴" : "▾"}</span>
+                </button>
+
+                {isSortOpen && (
+                  <div
+                    className="absolute left-0 mt-2 w-72 rounded-xl border shadow-lg z-20
+                             bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 overflow-hidden"
+                  >
+                    {SORT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => {
+                          setAppliedSort(opt.value);
+                          setIsSortOpen(false);
+                          track({
+                            event_type: "sort_change",
+                            extra: {
+                              sort: opt.value || "featured",
+                              category: categoryId || null,
+                            },
+                          });
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm transition
                                   hover:bg-gray-50 dark:hover:bg-neutral-800
                                   ${appliedSort === opt.value ? "font-semibold" : ""}
                                   text-gray-900 dark:text-gray-100`}
-                    >
-                      {t(opt.labelKey, { defaultValue: opt.fallback })}
-                    </button>
-                  ))}
-                </div>
-              )}
+                      >
+                        {t(opt.labelKey, { defaultValue: opt.fallback })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="font-medium">{totalCount}</span>{" "}
+              {t("products.items", { defaultValue: "Items" })}
             </div>
           </div>
 
-          <div className="text-sm text-gray-600 dark:text-gray-300">
-            <span className="font-medium">{totalCount}</span>{" "}
-            {t("products.items", { defaultValue: "Items" })}
-          </div>
-        </div>
+          {/* Grid */}
+          {isFetching ? (
+            <div className="text-center text-gray-500 dark:text-gray-300">
+              {t("common.loading", { defaultValue: "Loading..." })}
+            </div>
+          ) : isError ? (
+            <div className="text-center text-red-500">
+              {t("products.error", { defaultValue: "Something went wrong." })}
+            </div>
+          ) : displayProducts.length === 0 ? (
+            <div className="text-center text-gray-400 dark:text-gray-400">
+              {t("products.noResults", { defaultValue: "No results found." })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {displayProducts.map((p) => (
+                <ProductTile
+                  key={p.id}
+                  product={p}
+                  title={productTitle(p, lang)}
+                  subtitle={p[`short_description1_${lang}`]}
+                  image={p.image}
+                  wished={wlIds.has(p.id)}
+                  onToggleWishlist={toggleWishlist}
+                  onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
+                  onQuickView={() => handleQuickView(p)}
+                />
+              ))}
+            </div>
+          )}
 
-        {/* Grid */}
-        {isFetching ? (
-          <div className="text-center text-gray-500 dark:text-gray-300">
-            {t("common.loading", { defaultValue: "Loading..." })}
-          </div>
-        ) : isError ? (
-          <div className="text-center text-red-500">
-            {t("products.error", { defaultValue: "Something went wrong." })}
-          </div>
-        ) : displayProducts.length === 0 ? (
-          <div className="text-center text-gray-400 dark:text-gray-400">
-            {t("products.noResults", { defaultValue: "No results found." })}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {displayProducts.map((p) => (
-              <ProductTile
-                key={p.id}
-                product={p}
-                title={productTitle(p, lang)}
-                subtitle={p[`short_description1_${lang}`]}
-                image={p.image}
-                wished={wlIds.has(p.id)}
-                onToggleWishlist={toggleWishlist}
-                onAddToCart={(prod, priceNum) => onAddToCart(prod, priceNum)}
-                onQuickView={() => handleQuickView(p)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-10 flex-wrap">
-            {Array.from({ length: totalPages }).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setPage(idx + 1)}
-                className={`px-3 py-1.5 rounded-lg border transition
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-10 flex-wrap">
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setPage(idx + 1)}
+                  className={`px-3 py-1.5 rounded-lg border transition
                             focus:outline-none focus:ring-2 focus:ring-backnewswhite/70
                             ${
                               page === idx + 1
                                 ? "bg-backnewswhite text-white border-backnewswhite"
                                 : "bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-neutral-700"
                             }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
-          </div>
-        )}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
