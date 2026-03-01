@@ -32,29 +32,28 @@ export default function Home() {
     "home.meta.description",
     "Handmade marble and natural stone decor, kitchenware and gifts from MindMines.",
   );
-  if (isPrerender) {
-    return (
-      <main>
-        <SEO
-          title={title}
-          description={description}
-          canonical="https://mindmines.eu/"
-        />
 
-        <h1 className="sr-only">
-          {t("home.h1", "Handcrafted Marble & Natural Stone Decor")}
-        </h1>
+  return (
+    <main>
+      <SEO
+        title={title}
+        description={description}
+        canonical="https://mindmines.eu/"
+      />
 
-        <HomeCarousel />
-        {/* <CountertopCTA /> */}
-        <TopSellers />
-        <HandmadeGuarantee />
-        <CollectionRow />
-        <HomeTrustSection />
-        <FreeDelivery />
-        <AboutUsRow />
-        <FeatureStrip />
-      </main>
-    );
-  }
+      <h1 className="sr-only">
+        {t("home.h1", "Handcrafted Marble & Natural Stone Decor")}
+      </h1>
+
+      <HomeCarousel />
+      {/* <CountertopCTA /> */}
+      <TopSellers />
+      <HandmadeGuarantee />
+      <CollectionRow />
+      <HomeTrustSection />
+      <FreeDelivery />
+      <AboutUsRow />
+      <FeatureStrip />
+    </main>
+  );
 }
