@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 export default function CookiePolicyPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
+
   // ✅ Better: a dedicated meta description key (intro might be long)
   const title = `${t("legal.cookies.title")} | MindMines`;
   const description = t(

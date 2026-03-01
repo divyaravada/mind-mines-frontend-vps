@@ -12,11 +12,11 @@ import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
 
   useEffect(() => {
     if (isPrerender) return;
@@ -32,28 +32,29 @@ export default function Home() {
     "home.meta.description",
     "Handmade marble and natural stone decor, kitchenware and gifts from MindMines.",
   );
+  if (isPrerender) {
+    return (
+      <main>
+        <SEO
+          title={title}
+          description={description}
+          canonical="https://mindmines.eu/"
+        />
 
-  return (
-    <main>
-      <SEO
-        title={title}
-        description={description}
-        canonical="https://mindmines.eu/"
-      />
+        <h1 className="sr-only">
+          {t("home.h1", "Handcrafted Marble & Natural Stone Decor")}
+        </h1>
 
-      <h1 className="sr-only">
-        {t("home.h1", "Handcrafted Marble & Natural Stone Decor")}
-      </h1>
-
-      <HomeCarousel />
-      {/* <CountertopCTA /> */}
-      <TopSellers />
-      <HandmadeGuarantee />
-      <CollectionRow />
-      <HomeTrustSection />
-      <FreeDelivery />
-      <AboutUsRow />
-      <FeatureStrip />
-    </main>
-  );
+        <HomeCarousel />
+        {/* <CountertopCTA /> */}
+        <TopSellers />
+        <HandmadeGuarantee />
+        <CollectionRow />
+        <HomeTrustSection />
+        <FreeDelivery />
+        <AboutUsRow />
+        <FeatureStrip />
+      </main>
+    );
+  }
 }

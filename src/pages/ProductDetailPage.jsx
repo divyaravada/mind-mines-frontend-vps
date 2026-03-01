@@ -38,6 +38,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { slugify } from "../lib/slug";
+import { isPrerender } from "../isPrerender";
 
 function extractNumericId(param) {
   const s = String(param || "").trim();
@@ -139,6 +140,7 @@ export default function ProductDetailPage() {
   }, [product, correctSlug, numericId, idParam]);
 
   useEffect(() => {
+    if (isPrerender) return;
     if (!product) return;
     const expectedPath = `/products/${correctSlug}-${product.id}`;
     if (window.location.pathname !== expectedPath) {

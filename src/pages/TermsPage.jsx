@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 export default function TermsPage() {
   const { t } = useTranslation();
@@ -10,7 +11,7 @@ export default function TermsPage() {
   const [tocOpen, setTocOpen] = useState(false);
 
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
+
   // 🔹 Track page view
   useEffect(() => {
     if (isPrerender) return;

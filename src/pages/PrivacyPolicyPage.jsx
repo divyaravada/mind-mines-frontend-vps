@@ -3,13 +3,14 @@ import React, { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
+import { isPrerender } from "../isPrerender";
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileSection, setMobileSection] = useState("intro");
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
+
   useEffect(() => {
     if (isPrerender) return;
     try {

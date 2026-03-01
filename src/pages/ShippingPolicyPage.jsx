@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 export default function ShippingPolicyPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [isMobileTOCOpen, setIsMobileTOCOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
+
   useEffect(() => {
     if (isPrerender) return;
     try {

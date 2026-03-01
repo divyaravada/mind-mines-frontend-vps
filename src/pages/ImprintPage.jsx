@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 export default function ImprintPage() {
   const { t } = useTranslation();
@@ -16,7 +17,6 @@ export default function ImprintPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
 
   useEffect(() => {
     if (isPrerender) return;

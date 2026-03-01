@@ -18,6 +18,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import QuickViewModal from "../components/QuickViewModal";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import { isPrerender } from "../isPrerender";
 
 const MATERIALS = [
   { value: "granite", label: "products.filters.material.granite" },
@@ -321,6 +322,7 @@ export default function ProductsPage() {
   const [removeWish] = useRemoveFromWishlistMutation();
 
   useEffect(() => {
+    if (isPrerender) return;
     if (!products || products.length === 0) return;
 
     track({
