@@ -33,14 +33,6 @@ export default function SEO({
       ) : null}
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      {description ? (
-        <meta name="twitter:description" content={description} />
-      ) : null}
-      {ogImage ? <meta name="twitter:image" content={ogImage} /> : null}
-
       {/* Structured data */}
       {jsonLd ? (
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>

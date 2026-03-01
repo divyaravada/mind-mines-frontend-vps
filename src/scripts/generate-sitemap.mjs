@@ -4,7 +4,7 @@ import path from "path";
 
 const SITE = "https://mindmines.eu";
 const API = "https://mindmines.eu/api/products/list/"; // ✅ FIXED
-const OUT = path.join(process.cwd(), "public", "sitemap.xml");
+const OUT = path.join(process.cwd(), "build", "sitemap.xml");
 
 function slugify(text = "") {
   return text
