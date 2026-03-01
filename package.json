@@ -42,25 +42,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "react-snap",
+    "postbuild": "node src/scripts/generate-sitemap.mjs",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "reactSnap": {
-    "source": "build",
-    "include": [
-      "/",
-      "/about",
-      "/decorative-products",
-      "/natural-stone",
-      "/products/:productId",
-      "/terms",
-      "/privacy",
-      "/shipping",
-      "/returns",
-      "/cookies",
-      "/imprint"
-    ]
   },
   "eslintConfig": {
     "extends": [
