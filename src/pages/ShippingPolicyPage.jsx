@@ -9,15 +9,16 @@ export default function ShippingPolicyPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [isMobileTOCOpen, setIsMobileTOCOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_shipping_policy",
         path: "/shipping",
       });
     } catch {}
-  }, [trackEvent]);
+  }, [isPrerender, trackEvent]);
 
   const title = `${t("legal.shipping.title")} | MindMines`;
   const description = t("legal.shipping.intro");

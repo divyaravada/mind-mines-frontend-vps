@@ -9,15 +9,16 @@ export default function ReturnsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_returns_policy",
         path: "/returns", // or "/return-policy" etc. based on your route
       });
     } catch {}
-  }, [trackEvent]);
+  }, [isPrerender, trackEvent]);
 
   const sections = [
     {

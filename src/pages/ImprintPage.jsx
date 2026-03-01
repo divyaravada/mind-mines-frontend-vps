@@ -16,15 +16,17 @@ export default function ImprintPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
 
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_imprint",
         path: "/imprint", // e.g. /impressum if you use German route
       });
     } catch {}
-  }, [trackEvent]);
+  }, [isPrerender, trackEvent]);
 
   const sections = [
     {

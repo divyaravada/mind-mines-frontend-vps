@@ -9,15 +9,16 @@ export default function PrivacyPolicyPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [mobileSection, setMobileSection] = useState("intro");
   const [trackEvent] = useTrackEventMutation();
-
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_privacy",
         path: "/privacy-policy", // adjust to your real path
       });
     } catch {}
-  }, [trackEvent]);
+  }, [isPrerender, trackEvent]);
 
   const sections = [
     {

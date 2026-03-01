@@ -9,6 +9,7 @@ export default function CookiePolicyPage() {
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
   // ✅ Better: a dedicated meta description key (intro might be long)
   const title = `${t("legal.cookies.title")} | MindMines`;
   const description = t(
@@ -19,6 +20,7 @@ export default function CookiePolicyPage() {
   // ✅ canonical should match the real route
   const canonical = "https://mindmines.eu/cookies";
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_cookies",
@@ -26,7 +28,7 @@ export default function CookiePolicyPage() {
         locale: i18n?.language,
       });
     } catch {}
-  }, [trackEvent, i18n?.language]);
+  }, [isPrerender, trackEvent, i18n?.language]);
 
   const sections = [
     {

@@ -25,7 +25,7 @@ export default function Home() {
       path: "/", // adjust if your home route is different
       locale: i18n.language, // optional extra info
     });
-  }, [trackEvent, i18n.language]);
+  }, [isPrerender, trackEvent, i18n.language]);
 
   const title = t("home.meta.title", "MindMines – Marble & Stone Decor");
   const description = t(

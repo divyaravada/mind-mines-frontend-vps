@@ -10,9 +10,10 @@ export default function TermsPage() {
   const [tocOpen, setTocOpen] = useState(false);
 
   const [trackEvent] = useTrackEventMutation();
-
+  const isPrerender = process.env.REACT_APP_PRERENDER === "true";
   // 🔹 Track page view
   useEffect(() => {
+    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_terms",
@@ -21,7 +22,7 @@ export default function TermsPage() {
     } catch {
       /* ignore tracking errors */
     }
-  }, [trackEvent]);
+  }, [isPrerender, trackEvent]);
 
   const sections = [
     {
