@@ -8,7 +8,7 @@ import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../isPrerender";
+import { isPrerender } from "../utils/isPrerender";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>

@@ -1,4 +1,4 @@
-import { isPrerender } from "../../isPrerender";
+import { isPrerender } from "../../utils/isPrerender";
 import { api } from "../../services/apiSlice";
 
 const ALLOWED_EVENT_TYPES = new Set([

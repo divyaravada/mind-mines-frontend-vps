@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_BASE } from "./config";
-import { isPrerender } from "../isPrerender";
+import { isPrerender } from "../utils/isPrerender";
 
 // tiny in-memory gate so multiple 401s don't stampede the refresh endpoint
 let refreshPromise = null;

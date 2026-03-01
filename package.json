@@ -55,8 +55,7 @@
     ],
     "puppeteerOptions": {
       "timeout": 120000
-    },
-    "minifyHtml": false
+    }
   },
   "eslintConfig": {
     "extends": [

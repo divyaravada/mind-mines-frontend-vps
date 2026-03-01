@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
-import { isPrerender } from "../isPrerender";
+import { isPrerender } from "../utils/isPrerender";
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();

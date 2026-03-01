@@ -38,7 +38,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { slugify } from "../lib/slug";
-import { isPrerender } from "../isPrerender";
+import { isPrerender } from "../utils/isPrerender";
 
 function extractNumericId(param) {
   const s = String(param || "").trim();

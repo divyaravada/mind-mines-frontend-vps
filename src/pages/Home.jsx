@@ -12,7 +12,7 @@ import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../isPrerender";
+import { isPrerender } from "../utils/isPrerender";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
