@@ -213,7 +213,12 @@ export default function CheckoutSuccess() {
     timer = setInterval(() => !stopped && load(), 5000);
     return () => clearInterval(timer);
   }, [orderId, t, hasAuth]);
-
+  const title = t("checkoutSuccess.meta.title", "Order confirmed | MindMines");
+  const description = t(
+    "checkoutSuccess.meta.description",
+    "Thank you! Your order has been received. You can download your invoice or track your order here.",
+  );
+  const canonical = "https://mindmines.eu/checkout/success";
   if (!orderId) {
     return (
       <>
@@ -323,12 +328,7 @@ export default function CheckoutSuccess() {
       </>
     );
   }
-  const title = t("checkoutSuccess.meta.title", "Order confirmed | MindMines");
-  const description = t(
-    "checkoutSuccess.meta.description",
-    "Thank you! Your order has been received. You can download your invoice or track your order here.",
-  );
-  const canonical = "https://mindmines.eu/checkout/success";
+
   // ---- Guest mode ----
   return (
     <>

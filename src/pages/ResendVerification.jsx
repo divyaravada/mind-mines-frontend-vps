@@ -17,7 +17,7 @@ export default function ResendVerification() {
     setError("");
 
     try {
-      const res = await resend({ email: email.trim() }).unwrap();
+      await resend({ email }).unwrap();
       // If backend ever returns a custom message, you can use it,
       // but usually we just show the generic success:
       setMsg(t("auth.resendSuccess"));

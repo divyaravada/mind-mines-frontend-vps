@@ -103,12 +103,6 @@ export default function NaturalStonesPage() {
     });
   };
 
-  // 🔹 SEO helpers
-  const currentOrigin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : "https://mindmines.eu";
-
   const pageTitle = t(
     "naturalStone.meta.title",
     "Natural Stone, Marble & Granite – MindMines",

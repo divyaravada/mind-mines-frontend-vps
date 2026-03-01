@@ -7,12 +7,6 @@ function ensureDataLayer() {
   return window.dataLayer;
 }
 
-function bootDataLayer() {
-  const dl = ensureDataLayer();
-  if (!dl) return;
-  dl.push({ mm_consent_boot: Date.now() });
-}
-
 /**
  * (Optional but recommended) Google Consent Mode update.
  * Works if your GTM container uses GA/gtag tags.
@@ -41,7 +35,7 @@ export function injectGTM(gtmId) {
   s.id = "mm-gtm-script";
   s.async = true;
   s.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(
-    gtmId
+    gtmId,
   )}`;
   document.head.appendChild(s);
 }

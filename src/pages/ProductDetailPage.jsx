@@ -1,7 +1,6 @@
 // src/pages/ProductDetailPage.jsx
 import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
-import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
@@ -284,15 +283,6 @@ export default function ProductDetailPage() {
   }, [product]);
 
   useEffect(() => setQty(1), [numericId]);
-
-  const toNumber = (v) => {
-    if (typeof v === "number") return v;
-    const s = String(v || "")
-      .replace(/[^\d.,-]/g, "")
-      .replace(",", ".");
-    const n = parseFloat(s);
-    return isNaN(n) ? 0 : n;
-  };
 
   useEffect(() => {
     if (!product) return;

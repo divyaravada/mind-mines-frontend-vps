@@ -239,7 +239,7 @@ export default function ProductsPage() {
       Number(categoryId || 0) * 1009;
 
     return stableShuffle(sortedProducts, seed);
-  }, [sortedProducts, appliedSort, page, categoryId]);
+  }, [sortedProducts, appliedSort, page, categoryId, stableShuffle]);
 
   const totalCount = useMemo(() => {
     if (!data) return 0;
