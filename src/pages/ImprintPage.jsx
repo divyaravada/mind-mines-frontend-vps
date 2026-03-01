@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function ImprintPage() {
   const { t } = useTranslation();
@@ -19,14 +18,13 @@ export default function ImprintPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_imprint",
         path: "/imprint", // e.g. /impressum if you use German route
       });
     } catch {}
-  }, [isPrerender, trackEvent]);
+  }, [trackEvent]);
 
   const sections = [
     {

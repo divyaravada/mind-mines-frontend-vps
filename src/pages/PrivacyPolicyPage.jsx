@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
 import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function PrivacyPolicyPage() {
   const { t } = useTranslation();
@@ -12,14 +11,13 @@ export default function PrivacyPolicyPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_privacy",
         path: "/privacy-policy", // adjust to your real path
       });
     } catch {}
-  }, [isPrerender, trackEvent]);
+  }, [trackEvent]);
 
   const sections = [
     {

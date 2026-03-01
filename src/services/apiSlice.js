@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_BASE } from "./config";
-import { isPrerender } from "../utils/isPrerender";
 
 // tiny in-memory gate so multiple 401s don't stampede the refresh endpoint
 let refreshPromise = null;
@@ -26,9 +25,6 @@ const bareBaseQuery = fetchBaseQuery({
 });
 
 const baseQueryWithReauth = async (args, api, extra) => {
-  if (isPrerender) {
-    return { data: null };
-  }
   // First try normally
   let result = await rawBaseQuery(args, api, extra);
 

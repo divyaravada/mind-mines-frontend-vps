@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function TermsPage() {
   const { t } = useTranslation();
@@ -14,7 +13,6 @@ export default function TermsPage() {
 
   // 🔹 Track page view
   useEffect(() => {
-    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_terms",
@@ -23,7 +21,7 @@ export default function TermsPage() {
     } catch {
       /* ignore tracking errors */
     }
-  }, [isPrerender, trackEvent]);
+  }, [trackEvent]);
 
   const sections = [
     {

@@ -12,20 +12,22 @@ import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    if (isPrerender) return;
-    trackEvent({
-      event_type: "page_view",
-      path: "/", // adjust if your home route is different
-      locale: i18n.language, // optional extra info
-    });
-  }, [isPrerender, trackEvent, i18n.language]);
+    try {
+      trackEvent({
+        event_type: "page_view",
+        path: "/", // adjust if your home route is different
+        locale: i18n.language, // optional extra info
+      });
+    } catch (error) {
+      /* ignore tracking errors */
+    }
+  }, [trackEvent, i18n.language]);
 
   const title = t("home.meta.title", "MindMines – Marble & Stone Decor");
   const description = t(

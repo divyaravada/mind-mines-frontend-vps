@@ -8,7 +8,6 @@ import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>
@@ -64,7 +63,6 @@ export default function NaturalStonesPage() {
 
   // 🔹 Track natural stone page views once stones are loaded
   useEffect(() => {
-    if (isPrerender) return;
     if (!stones || !stones.length) return;
     const types = Array.from(
       new Set(stones.map((s) => s.type).filter(Boolean)),

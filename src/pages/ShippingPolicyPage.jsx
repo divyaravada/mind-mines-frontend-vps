@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function ShippingPolicyPage() {
   const { t } = useTranslation();
@@ -12,14 +11,13 @@ export default function ShippingPolicyPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_shipping_policy",
         path: "/shipping",
       });
     } catch {}
-  }, [isPrerender, trackEvent]);
+  }, [trackEvent]);
 
   const title = `${t("legal.shipping.title")} | MindMines`;
   const description = t("legal.shipping.intro");

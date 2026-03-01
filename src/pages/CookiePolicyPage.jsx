@@ -3,14 +3,12 @@ import { useTranslation } from "react-i18next";
 import SEO from "../components/SEO";
 import { useState, useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
-import { isPrerender } from "../utils/isPrerender";
 
 export default function CookiePolicyPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [trackEvent] = useTrackEventMutation();
-
   // ✅ Better: a dedicated meta description key (intro might be long)
   const title = `${t("legal.cookies.title")} | MindMines`;
   const description = t(
@@ -21,7 +19,6 @@ export default function CookiePolicyPage() {
   // ✅ canonical should match the real route
   const canonical = "https://mindmines.eu/cookies";
   useEffect(() => {
-    if (isPrerender) return;
     try {
       trackEvent({
         event_type: "page_view_cookies",
@@ -29,7 +26,7 @@ export default function CookiePolicyPage() {
         locale: i18n?.language,
       });
     } catch {}
-  }, [isPrerender, trackEvent, i18n?.language]);
+  }, [trackEvent, i18n?.language]);
 
   const sections = [
     {
