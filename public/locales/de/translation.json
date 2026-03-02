@@ -1,4 +1,121 @@
 {
+  "seoText": {
+    "home": {
+      "h2": "Luxuriöses Marmor- & Naturstein-Dekor für moderne Wohnräume",
+      "p": [
+        "MindMines fertigt handgearbeitete Produkte aus Marmor, Granit, Onyx und Naturstein – entworfen für moderne europäische Wohnräume. Da jedes Stück aus echtem Stein besteht, ist jede Maserung einzigartig und ein Zeichen echter Qualität.",
+        "Entdecken Sie hochwertige Tabletts, Schalen, Schneidebretter, Kerzenhalter, Vorratsdosen sowie Büro- und Bad-Accessoires, die Funktion und Ästhetik verbinden. Unsere Designs sind minimal, langlebig und ideal für Küche, Esstisch, Arbeitsplatz und Wohnzimmer.",
+        "Wir legen Wert auf Qualität, sichere Verpackung und zuverlässige Lieferung in Deutschland und der EU. Wenn Sie zeitlose Stein-Accessoires suchen, die luxuriös wirken und viele Jahre halten, entdecken Sie die Kollektionen von MindMines."
+      ]
+    },
+
+    "about": {
+      "h2": "Über MindMines — Aus Stein gefertigt, fürs Leben gestaltet",
+      "p": [
+        "MindMines ist eine Marke mit Sitz in Deutschland und spezialisiert auf hochwertige Natursteinprodukte und handgefertigtes Dekor. Unsere Mission: die zeitlose Schönheit von Marmor und Stein in den Alltag zu bringen – modern, funktional und langlebig.",
+        "Wir arbeiten mit erfahrenen Kunsthandwerkern und ausgewählten Materialien aus renommierten Steinregionen. Natürliche Variationen sind keine Fehler, sondern ein Echtheitsmerkmal. Jedes Produkt wird vor dem Versand geprüft und sicher verpackt.",
+        "Von Tabletts und Schalen bis zu Aufbewahrung und Büro-Accessoires – MindMines Produkte ergänzen moderne Interieurs und machen Alltagsmomente besonders."
+      ]
+    },
+
+    "decorativeProducts": {
+      "h2": "Dekorative Kollektion aus Naturstein",
+      "p": [
+        "Entdecken Sie dekorative Produkte von MindMines aus Marmor, Granit und hochwertigem Naturstein. Unsere Kollektion umfasst Tabletts, Schalen, Halter, Kerzenständer und Aufbewahrungsstücke – für moderne Wohnräume.",
+        "Naturstein ist robust, elegant und immer einzigartig. Farbe und Maserung machen jedes Stück zu einem Unikat.",
+        "Nutzen Sie unser Stein-Dekor in Küche, Wohnzimmer, Bad oder Büro – als funktionale Accessoires und hochwertige Interior-Akzente."
+      ]
+    },
+
+    "naturalStone": {
+      "h2": "Naturstein Kollektion — Marmor, Granit, Travertin & mehr",
+      "p": [
+        "Entdecken Sie unsere Naturstein-Kollektion für Projekte, Oberflächen und individuelle Anfragen. Wir unterstützen Sie bei der Wahl von Steinart, Farbe und Finish – von langlebigem Granit bis zu elegantem Marmor und warmem Travertin.",
+        "Naturstein überzeugt durch Langlebigkeit, Hitzebeständigkeit und zeitlose Optik. Jeder Stein besitzt eine eigene Struktur und Tonalität – ideal für einzigartige Innenraumprojekte.",
+        "Senden Sie eine Anfrage mit Maßen und gewünschter Oberfläche – wir melden uns mit passenden Optionen und Beratung."
+      ]
+    },
+
+    "shipping": {
+      "h2": "Versandinformationen",
+      "p": [
+        "MindMines versendet aus Deutschland innerhalb Deutschlands und in ausgewählte EU-Länder. Bestellungen werden in der Regel innerhalb von 48 Stunden an Werktagen bearbeitet und mit Schutzmaterialien sicher verpackt – ideal für empfindliche Steinprodukte.",
+        "Die Lieferzeit hängt vom Zielland und Versanddienstleister ab. Nach Versand erhalten Sie Tracking-Informationen. Bitte prüfen Sie Ihre Adresse sorgfältig, um Verzögerungen zu vermeiden.",
+        "Sollte ein Paket beschädigt ankommen, kontaktieren Sie uns bitte innerhalb von 48 Stunden und senden Sie Fotos von Verpackung und Produkt."
+      ]
+    },
+
+    "returns": {
+      "h2": "Rückgabe & Erstattung",
+      "p": [
+        "Sie können berechtigte Artikel innerhalb von 14 Tagen nach Zustellung zurückgeben. Rücksendungen müssen unbenutzt, unbeschädigt und in der Originalverpackung mit Schutzmaterial erfolgen.",
+        "Da Naturstein schwer und empfindlich ist, empfehlen wir einen versicherten und nachverfolgbaren Rückversand. Kommt ein Artikel beschädigt an, melden Sie sich innerhalb von 48 Stunden mit Fotos – wir prüfen den Fall.",
+        "Erstattungen erfolgen nach Prüfung und Freigabe, in der Regel innerhalb von 7–10 Werktagen auf die ursprüngliche Zahlungsmethode."
+      ]
+    },
+
+    "privacy": {
+      "h2": "Datenschutz – Kurzüberblick",
+      "p": [
+        "Wir respektieren Ihre Privatsphäre und verarbeiten personenbezogene Daten nur soweit erforderlich, um unsere Leistungen zu erbringen – z. B. für Bestellungen, Lieferung und Support.",
+        "Zahlungsdaten werden durch sichere Zahlungsanbieter verarbeitet. Wir speichern keine vollständigen Kartendaten. Optionale Analyse- oder Marketing-Cookies setzen wir nur mit Ihrer Einwilligung.",
+        "Sie können gemäß Datenschutzrecht Auskunft, Berichtigung oder Löschung Ihrer Daten anfordern."
+      ]
+    },
+
+    "terms": {
+      "h2": "AGB – Kurzüberblick",
+      "p": [
+        "Diese Bedingungen beschreiben, wie Einkauf, Zahlung, Versand und Rückgabe bei MindMines funktionieren. Mit Nutzung der Website und einer Bestellung stimmen Sie unseren AGB zu.",
+        "Verfügbarkeit kann begrenzt sein, Preise können sich ändern. Natursteinprodukte können leichte Variationen in Farbe und Muster aufweisen – das ist ein Merkmal echter Materialien.",
+        "Bei Fragen zu Bestellung, Lieferung oder Rückgabe hilft Ihnen unser Support-Team gerne weiter."
+      ]
+    },
+
+    "imprint": {
+      "h2": "Impressum & Unternehmensangaben",
+      "p": [
+        "Auf dieser Seite finden Sie die gesetzlich erforderlichen Angaben zu MindMines, einschließlich Anschrift, Kontakt und steuerlichen Informationen nach deutschem Recht.",
+        "Für rechtliche oder geschäftliche Anfragen nutzen Sie bitte die hier angegebene E-Mail-Adresse – wir antworten zeitnah."
+      ]
+    },
+
+    "cookies": {
+      "h2": "Cookie-Richtlinie – Kurzüberblick",
+      "p": [
+        "Cookies helfen, die Website korrekt zu betreiben – z. B. Sprache zu speichern, den Warenkorb zu halten und die Seite vor Missbrauch zu schützen.",
+        "Optionale Analyse- oder Marketing-Cookies werden nur mit Ihrer Einwilligung über das Cookie-Banner gesetzt. Ihre Einstellungen können Sie jederzeit ändern.",
+        "Auch im Browser können Cookies verwaltet werden – das Deaktivieren essenzieller Cookies kann jedoch Funktionen einschränken."
+      ]
+    },
+
+    "help": {
+      "h2": "Hilfe & Kundenservice",
+      "p": [
+        "Sie benötigen Unterstützung zu Bestellung, Lieferung, Rückgabe oder Produktinfos? Unser Kundenservice hilft Ihnen gerne weiter.",
+        "Für schnellere Hilfe nennen Sie bitte Bestellnummer und die beim Checkout verwendete E-Mail-Adresse. Bei Transportschäden senden Sie bitte Fotos von Paket und Produkt.",
+        "Sie erreichen uns per E-Mail oder WhatsApp innerhalb der Geschäftszeiten."
+      ]
+    },
+
+    "guestOrder": {
+      "h2": "Gastbestellung verfolgen",
+      "p": [
+        "Auch als Gast können Sie Ihre Bestellung hier verfolgen. Geben Sie Bestellnummer und die beim Checkout verwendete E-Mail-Adresse ein, um Status und Versandinformationen zu sehen.",
+        "Falls die Rechnung noch nicht verfügbar ist, wird sie ggf. noch verarbeitet – nach Zahlungsbestätigung erscheint sie automatisch.",
+        "Wenn Sie Ihre Bestellung nicht finden, prüfen Sie bitte E-Mail-Adresse und Bestellnummer aus der Bestätigungs-E-Mail."
+      ]
+    },
+
+    "notFound": {
+      "h2": "Seite nicht gefunden",
+      "p": [
+        "Die gesuchte Seite wurde möglicherweise verschoben, umbenannt oder existiert nicht mehr.",
+        "Nutzen Sie das Menü, um Kollektionen zu entdecken, oder kehren Sie zur Startseite zurück."
+      ]
+    }
+  },
+
   "navbar": {
     "shop": "Shop",
     "home": "Startseite",

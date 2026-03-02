@@ -1,4 +1,120 @@
 {
+  "seoText": {
+    "home": {
+      "h2": "Luxury Marble & Natural Stone Decor for Modern Homes",
+      "p": [
+        "MindMines creates handcrafted marble, granite, onyx and natural stone decor designed for modern European homes. Every piece is made from real stone, which means each product has its own unique pattern, veining and natural character.",
+        "Discover premium trays, bowls, cutting boards, candle holders, storage pots, office accessories and bathroom decor made to elevate everyday rituals. Our designs combine minimal aesthetics with durable materials — ideal for kitchens, dining tables, workspaces and living rooms.",
+        "We focus on quality, safe packaging and reliable delivery across Germany and the EU. If you are looking for timeless stone accessories that feel luxurious and last for years, explore MindMines collections and find the right piece for your space."
+      ]
+    },
+
+    "about": {
+      "h2": "About MindMines — Crafted from Stone, Designed for Life",
+      "p": [
+        "MindMines is a Germany-based brand focused on premium natural stone products and handcrafted decor. Our mission is simple: bring the timeless beauty of marble and stone into everyday life through modern, functional design.",
+        "We work with skilled artisans and carefully selected materials from renowned stone regions. Natural stone variations are not defects — they are the signature of authenticity. Each item is inspected and packed securely before shipping.",
+        "From trays and bowls to storage and office accessories, MindMines pieces are designed to complement modern interiors and make daily routines feel special."
+      ]
+    },
+
+    "decorativeProducts": {
+      "h2": "Decorative Stone Products Collection",
+      "p": [
+        "Explore MindMines decorative products made from marble, granite and premium natural stone. Our collection includes trays, bowls, holders, candle stands and storage pieces designed for modern homes.",
+        "Natural stone is durable, elegant and naturally unique. Each product features its own colour and veining, making every piece one of a kind.",
+        "Use our stone decor in the kitchen, living room, bathroom or office — as functional accessories and premium interior accents."
+      ]
+    },
+
+    "naturalStone": {
+      "h2": "Natural Stone Collection — Marble, Granite, Travertine & More",
+      "p": [
+        "Discover our natural stone collection for projects, surfaces and custom enquiries. We help you choose the right stone type, colour and finish for your needs — from durable granite to elegant marble and warm travertine.",
+        "Natural stone is valued for longevity, heat resistance and timeless aesthetics. Each stone has its own structure and tone, which makes it ideal for unique interior projects.",
+        "Send an enquiry with measurements and your preferred finish — our team will respond with guidance and options."
+      ]
+    },
+
+    "shipping": {
+      "h2": "Shipping Information",
+      "p": [
+        "MindMines ships from Germany to customers across Germany and selected EU countries. Orders are typically processed within 48 hours on business days and packed with protective materials suitable for fragile stone products.",
+        "Delivery times depend on destination and carrier. Tracking information is provided once your order is dispatched. Please ensure your address details are complete and correct to avoid delays.",
+        "If your parcel arrives damaged, contact us within 48 hours and include photos of the packaging and product so we can support you quickly."
+      ]
+    },
+
+    "returns": {
+      "h2": "Returns & Refunds",
+      "p": [
+        "You may return eligible items within 14 days of delivery. Returned products must be unused, undamaged and placed back in the original protective packaging.",
+        "Because natural stone is heavy and delicate, we recommend insured and trackable return shipping. If an item arrives damaged, contact us within 48 hours with photos and we will review the case.",
+        "Refunds are issued after inspection and approval, typically within 7–10 business days to the original payment method."
+      ]
+    },
+
+    "privacy": {
+      "h2": "Privacy Policy Summary",
+      "p": [
+        "We respect your privacy and process personal data only as needed to provide our services — for example, to fulfil orders, deliver parcels and provide customer support.",
+        "Payment details are handled by secure payment providers. We do not store full card details. Optional analytics or marketing cookies are used only with your consent.",
+        "You can request access, correction or deletion of your data according to applicable data protection laws."
+      ]
+    },
+
+    "terms": {
+      "h2": "Terms & Conditions Summary",
+      "p": [
+        "These terms describe how purchases, payments, shipping and returns work on MindMines. By using our website and ordering products, you agree to the rules described in our Terms & Conditions.",
+        "Product availability may be limited and prices can change. We always aim to provide accurate product information, but natural stone products may have minor variations in colour and pattern.",
+        "If you have questions about your order, delivery or returns, contact our support team and we will assist you."
+      ]
+    },
+
+    "imprint": {
+      "h2": "Imprint & Company Information",
+      "p": [
+        "This page contains the legal company details for MindMines, including address, contact information and tax identification required under German law.",
+        "If you need to reach us for legal or business enquiries, use the email address listed here and we will respond as soon as possible."
+      ]
+    },
+
+    "cookies": {
+      "h2": "Cookie Policy Summary",
+      "p": [
+        "Cookies help our website work correctly — for example, to remember language preferences, keep items in your cart and protect the site from abuse.",
+        "Optional analytics or marketing cookies are used only when you give consent through the cookie banner. You can change your cookie preferences at any time.",
+        "You can also manage cookies via your browser settings, but disabling essential cookies may affect site functionality."
+      ]
+    },
+
+    "help": {
+      "h2": "Help & Customer Service",
+      "p": [
+        "Need support with an order, delivery, returns or product information? Our customer service team is here to help.",
+        "For faster support, include your order number and the email address used during checkout. If your parcel arrives damaged, please attach photos of the box and product.",
+        "You can contact us by email or WhatsApp during business hours."
+      ]
+    },
+
+    "guestOrder": {
+      "h2": "Track Your Guest Order",
+      "p": [
+        "If you placed an order as a guest, you can still track it here. Enter your order number and the email address used at checkout to view the current status and shipping information.",
+        "If your invoice is not available yet, it may still be processing — it will appear after payment confirmation.",
+        "If you cannot find your order, double-check the email address and order number from the confirmation email."
+      ]
+    },
+
+    "notFound": {
+      "h2": "Page Not Found",
+      "p": [
+        "The page you are looking for may have moved, been renamed, or no longer exists.",
+        "Use the navigation menu to explore our collections or return to the homepage to continue shopping."
+      ]
+    }
+  },
   "navbar": {
     "shop": "Shop",
     "home": "Home",

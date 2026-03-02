@@ -12,6 +12,7 @@ import SEO from "../components/SEO";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import SeoBody from "../components/SeoBody";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -56,6 +57,7 @@ export default function Home() {
       <FreeDelivery />
       <AboutUsRow />
       <FeatureStrip />
+      <SeoBody pageKey="home" />
     </main>
   );
 }
