@@ -31,6 +31,8 @@ export function AboutUsRow() {
             <br />
             {t("home.aboutUs.text2")}
             <br />
+            {t("home.aboutUs.text3")}
+            <br />
             {t("home.aboutUs.secText")}
           </p>
         </div>
