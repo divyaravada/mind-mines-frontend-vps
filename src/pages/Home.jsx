@@ -56,8 +56,8 @@ export default function Home() {
       <HomeTrustSection />
       <FreeDelivery />
       <AboutUsRow />
-      <FeatureStrip />
       <SeoBody pageKey="home" />
+      <FeatureStrip />
     </main>
   );
 }
