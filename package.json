@@ -42,18 +42,32 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "node src/scripts/generate-sitemap.mjs && react-snap",
+    "postbuild": "node src/scripts/generate-sitemap.mjs && PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser react-snap",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "reactSnap": {
-    "puppeteerExecutablePath": "/snap/bin/chromium",
+    "include": [
+      "/",
+      "/about",
+      "/decorative-products",
+      "/natural-stone",
+      "/cart",
+      "/guest-order",
+      "/help",
+      "/imprint",
+      "/terms",
+      "/privacy",
+      "/returns",
+      "/shipping",
+      "/cookies",
+      "/products/1/...",
+      "/products/2/..."
+    ],
     "puppeteerArgs": [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--single-process"
+      "--disable-dev-shm-usage"
     ],
     "skipThirdPartyRequests": true
   },
