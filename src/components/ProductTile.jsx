@@ -88,7 +88,7 @@ export default function ProductTile({
   // 👉 Global click: go to product details
   const goToDetail = () => {
     const slug = slugify(title);
-    const url = `/products/${product.id}/${slug}`;
+    const url = `/decorative-products/${product.id}/${slug}`;
 
     // Open in new tab safely (no opener)
     if (typeof window !== "undefined") {

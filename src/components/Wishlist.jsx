@@ -221,7 +221,9 @@ export default function AccountWishlist() {
                     fetchPriority="high"
                     loading="lazy"
                     decoding="async"
-                    onClick={() => navigate(`/products/${p.id}/${p.slug}`)}
+                    onClick={() =>
+                      navigate(`/decorative-products/${p.id}/${p.slug}`)
+                    }
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                 )}

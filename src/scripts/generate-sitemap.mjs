@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const SITE = "https://mindmines.eu";
-const API = "https://mindmines.eu/api/products/list/"; // ✅ FIXED
+const API = "https://mindmines.eu/api/decorative-products/list/"; // ✅ FIXED
 const OUT = path.join(process.cwd(), "build", "sitemap.xml");
 
 function slugify(text = "") {
@@ -99,7 +99,7 @@ async function main() {
 
         const title = p.title_en || p.title_de || p.name || `product-${p.id}`;
         const slug = slugify(title);
-        const loc = `${SITE}/products/${p.id}/${slug}`;
+        const loc = `${SITE}/decorative-products/${p.id}/${slug}`;
 
         if (seen.has(loc)) continue;
         seen.add(loc);

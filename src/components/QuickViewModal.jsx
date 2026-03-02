@@ -161,7 +161,9 @@ export default function QuickViewModal({
                 type="button"
                 className="text-sm text-backnewswhite dark:text-backnewsdark underline self-start mt-1"
                 onClick={() => {
-                  navigate(`/products/${product.id}/${product.slug}`);
+                  navigate(
+                    `/decorative-products/${product.id}/${product.slug}`,
+                  );
                   onClose();
                 }}
               >

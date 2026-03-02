@@ -133,13 +133,13 @@ export default function ProductDetailPage() {
 
   const canonical = useMemo(() => {
     if (!product)
-      return `https://mindmines.eu/products/${numericId || idParam}`;
-    return `https://mindmines.eu/products/${product.id}/${correctSlug}`;
+      return `https://mindmines.eu/decorative-products/${numericId || idParam}`;
+    return `https://mindmines.eu/decorative-products/${product.id}/${correctSlug}`;
   }, [product, correctSlug, numericId, idParam]);
 
   useEffect(() => {
     if (!product) return;
-    const expectedPath = `/products/${product.id}/${correctSlug}`;
+    const expectedPath = `/decorative-products/${product.id}/${correctSlug}`;
     if (window.location.pathname !== expectedPath) {
       navigate(expectedPath, { replace: true });
     }
@@ -375,7 +375,7 @@ export default function ProductDetailPage() {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: `${currentOrigin}/products/`,
+        item: `${currentOrigin}/decorative-products/`,
       },
       {
         "@type": "ListItem",
@@ -886,7 +886,7 @@ export default function ProductDetailPage() {
                   key={p.id}
                   onClick={() => {
                     const slug = slugify(productTitle(p, lang));
-                    navigate(`/products/${p.id}/${slug}`);
+                    navigate(`/decorative-products/${p.id}/${slug}`);
                   }}
                   className="bg-white dark:text-backnewsdark dark:bg-neutral-900 rounded-xl p-4 shadow-sm ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md text-left transition"
                 >

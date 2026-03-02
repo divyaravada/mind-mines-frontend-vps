@@ -23,7 +23,7 @@ export default function TopSellers() {
   const isLoggedIn = useSelector(selectIsAuthenticated);
 
   const { data: topData, isLoading } = useGetTopProductsQuery();
-  const top = Array.isArray(topData) ? topData : topData?.results ?? [];
+  const top = Array.isArray(topData) ? topData : (topData?.results ?? []);
 
   const { data: wlRaw } = useGetWishlistQuery(undefined, { skip: !isLoggedIn });
   const wl = useMemo(() => {
@@ -59,7 +59,7 @@ export default function TopSellers() {
         name: productTitle(p, lang), // ✅ cart expects 'name'
         price,
         image: p.image || p.image_url,
-      })
+      }),
     );
     navigate("/cart");
   };
