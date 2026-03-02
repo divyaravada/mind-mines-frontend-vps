@@ -47,9 +47,13 @@
     "eject": "react-scripts eject"
   },
   "reactSnap": {
+    "puppeteerExecutablePath": "/snap/bin/chromium",
     "puppeteerArgs": [
       "--no-sandbox",
-      "--disable-setuid-sandbox"
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--single-process"
     ],
     "skipThirdPartyRequests": true
   },
