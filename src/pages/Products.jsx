@@ -18,6 +18,7 @@ import {
 } from "../features/wishlist/wishlistApi";
 import QuickViewModal from "../components/QuickViewModal";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import SeoBody from "../components/SeoBody";
 
 const MATERIALS = [
   { value: "granite", label: "products.filters.material.granite" },
@@ -754,7 +755,7 @@ export default function ProductsPage() {
             ))}
           </div>
         )}
-
+        <SeoBody pageKey="decorativeProducts" />
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-10 flex-wrap">

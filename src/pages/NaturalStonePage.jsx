@@ -8,6 +8,7 @@ import { useGetNaturalStonesQuery } from "../features/stones/stonesApi";
 import StoneGallery from "../components/StoneGallery";
 import StoneEnquiryForm from "../components/StoneEnquiryForm";
 import { useTrackEventMutation } from "../features/marketing/marketingApi";
+import SeoBody from "../components/SeoBody";
 
 // helper to turn "Travertine" -> "travertine", "Natural Stone" -> "natural_stone"
 const typeKeyFrom = (s) =>
@@ -148,7 +149,7 @@ export default function NaturalStonesPage() {
           ? "Naturstein, Marmor & Granit"
           : "Natural Stone, Marble & Granite"}
       </h1>
-
+      <SeoBody pageKey="naturalStone" />
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Horizontal selector */}
         <div className="w-full overflow-x-auto">

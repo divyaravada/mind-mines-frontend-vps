@@ -8,6 +8,7 @@ import marbleCrafting from "../assets/MindminesVideo.mp4";
 import marbleSculpting from "../assets/MindminesAboutvideoImage.jpeg";
 import SEO from "../components/SEO";
 import { useLocation } from "react-router-dom";
+import SeoBody from "../components/SeoBody";
 
 // TODO: replace these with your real images / video URLs
 
@@ -143,6 +144,8 @@ export default function AboutContactPage() {
           <TrustBadges />
         </div>
 
+        {/* SEO TEXT */}
+        <SeoBody pageKey="about" />
         {/* CONTACT FORM */}
         <ContactSection />
       </main>
