@@ -42,7 +42,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "REACT_SNAP=1 react-snap && node src/scripts/generate-sitemap.mjs"
+    "postbuild": "REACT_SNAP=1 react-snap && node src/scripts/generate-sitemap.mjs",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
