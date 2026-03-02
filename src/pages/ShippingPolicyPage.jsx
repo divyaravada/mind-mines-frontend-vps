@@ -11,12 +11,15 @@ export default function ShippingPolicyPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view_shipping_policy",
-        path: "/shipping",
-      });
-    } catch {}
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view_shipping_policy",
+          path: "/shipping",
+        });
+      } catch {}
+    })();
   }, [trackEvent]);
 
   const title = `${t("legal.shipping.title")} | MindMines`;

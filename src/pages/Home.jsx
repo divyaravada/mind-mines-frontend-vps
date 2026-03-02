@@ -19,15 +19,19 @@ export default function Home() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view",
-        path: "/", // adjust if your home route is different
-        locale: i18n.language, // optional extra info
-      });
-    } catch (error) {
-      /* ignore tracking errors */
-    }
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view",
+          path: "/", // adjust if your home route is different
+          locale: i18n.language, // optional extra info
+        });
+      } catch (error) {
+        /* ignore tracking errors */
+      }
+    })();
   }, [trackEvent, i18n.language]);
 
   const title = t("home.meta.title", "MindMines – Marble & Stone Decor");

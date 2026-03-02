@@ -13,14 +13,17 @@ export default function TermsPage() {
 
   // 🔹 Track page view
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view_terms",
-        path: "/terms", // change if your actual route is different
-      });
-    } catch {
-      /* ignore tracking errors */
-    }
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view_terms",
+          path: "/terms", // change if your actual route is different
+        });
+      } catch {
+        /* ignore tracking errors */
+      }
+    })();
   }, [trackEvent]);
 
   const sections = [

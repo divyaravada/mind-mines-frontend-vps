@@ -18,12 +18,16 @@ export default function ImprintPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view_imprint",
-        path: "/imprint", // e.g. /impressum if you use German route
-      });
-    } catch {}
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view_imprint",
+          path: "/imprint", // e.g. /impressum if you use German route
+        });
+      } catch {}
+    })();
   }, [trackEvent]);
 
   const sections = [

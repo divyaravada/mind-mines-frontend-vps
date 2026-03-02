@@ -11,12 +11,16 @@ export default function PrivacyPolicyPage() {
   const [trackEvent] = useTrackEventMutation();
 
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view_privacy",
-        path: "/privacy-policy", // adjust to your real path
-      });
-    } catch {}
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view_privacy",
+          path: "/privacy-policy", // adjust to your real path
+        });
+      } catch {}
+    })();
   }, [trackEvent]);
 
   const sections = [

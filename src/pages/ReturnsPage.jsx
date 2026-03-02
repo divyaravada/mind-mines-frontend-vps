@@ -19,13 +19,17 @@ export default function CookiePolicyPage() {
   // ✅ canonical should match the real route
   const canonical = "https://mindmines.eu/cookies";
   useEffect(() => {
-    try {
-      trackEvent({
-        event_type: "page_view_cookies",
-        path: "/cookies", // ✅ match App.jsx
-        locale: i18n?.language,
-      });
-    } catch {}
+    if (process.env.REACT_SNAP === "1") return; // ✅ don't run during snapshot
+
+    (async () => {
+      try {
+        trackEvent({
+          event_type: "page_view_cookies",
+          path: "/cookies", // ✅ match App.jsx
+          locale: i18n?.language,
+        });
+      } catch {}
+    })();
   }, [trackEvent, i18n?.language]);
 
   const sections = [
