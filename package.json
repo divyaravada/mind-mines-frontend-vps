@@ -54,10 +54,11 @@
       "--disable-dev-shm-usage",
       "--disable-gpu"
     ],
+    "puppeteerSettings": {
+      "waitUntil": "domcontentloaded"
+    },
     "skipThirdPartyRequests": true,
-    "cacheAjaxRequests": true,
-    "waitUntil": "domcontentloaded",
-    "timeout": 120000
+    "cacheAjaxRequests": true
   },
   "eslintConfig": {
     "extends": [
