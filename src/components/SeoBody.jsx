@@ -1,12 +1,19 @@
+//src/components/SeoBody.jsx
 import { useTranslation } from "react-i18next";
 
 export default function SeoBody({ pageKey }) {
   const { t } = useTranslation();
 
-  const paras = t(`seoText.${pageKey}.p`, { returnObjects: true });
-  const heading = t(`seoText.${pageKey}.h2`);
+  const keyH2 = `seoText.${pageKey}.h2`;
+  const heading = t(keyH2, { defaultValue: "" });
 
-  if (!heading) return null;
+  // If missing, i18next sometimes returns the key itself — hide section
+  if (!heading || heading === keyH2) return null;
+
+  const paras = t(`seoText.${pageKey}.p`, {
+    returnObjects: true,
+    defaultValue: [],
+  });
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
