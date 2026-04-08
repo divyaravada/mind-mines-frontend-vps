@@ -317,6 +317,7 @@
     "adminTab": "Admin",
     "loginTitle": "Ich bin bereits Kunde",
     "loginSub": "Schon Kunde? Dann loggen Sie sich direkt mit Ihren Benutzerdaten ein.",
+    "loginOtpHint": "Nach Eingabe Ihrer E-Mail und Passwort senden wir Ihnen einen Login-Code an Ihre E-Mail-Adresse.",
     "registerTitle": "Konto erstellen",
     "registerButton": "Registrieren",
     "username": "Benutzername",
@@ -366,6 +367,7 @@
     "loginInvalid": "E-Mail-Adresse oder Passwort ist falsch.",
     "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "otpSent": "Wir haben einen Bestätigungscode an Ihre E-Mail-Adresse gesendet.",
+    "otpSentDetailed": "Wir haben einen Login-Code an Ihre E-Mail-Adresse gesendet. Bitte geben Sie ihn unten ein, um Ihre Anmeldung abzuschließen.",
     "sendingOtp": "Code wird gesendet...",
     "otpHint": "Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail-Adresse gesendet wurde.",
     "otpCode": "Bestätigungscode",
@@ -381,11 +383,12 @@
     "accountNotVerified": "Ihr Konto ist noch nicht verifiziert. Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse.",
     "emailVerification": {
       "verifying": "E-Mail wird verifiziert...",
-      "tryAgain": "Versuchen Sie es später noch einmal",
+      "tryAgain": "Der Bestätigungslink ist ungültig oder abgelaufen.",
       "success": "E-Mail bestätigt! Weiterleitung zum Login...",
       "error": "Link ist ungültig oder abgelaufen. Bitte erneut registrieren.",
-      "redirect": "Sie werden in Kürze weitergeleitet...",
-      "pleaseWait": "Bitte warten Sie ein paar Sekunden...",
+      "redirect": "Sie werden in Kürze zum Login weitergeleitet.",
+      "pleaseWait": "Bitte warten Sie einen Moment, während wir Ihre E-Mail-Adresse bestätigen.",
+      "nextStep": "Ihre E-Mail-Adresse wurde bestätigt. Sie können sich nun mit Ihrer E-Mail-Adresse und Ihrem Passwort einloggen und den an Ihre E-Mail gesendeten Login-Code bestätigen.",
       "resendAlreadyVerified": "Ihr Konto ist bereits registriert und verifiziert. Sie können sich einloggen.",
       "resendError": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es später erneut."
     }
@@ -924,8 +927,9 @@
     "productDiscountLine": "Produkt-Rabatt",
     "removedByCoupon": "Entfernt (Gutschein angewendet)",
     "couponLine": "Gutschein ({{code}})",
-
-    "couponIgnored": "Nicht angewendet (Produkt-Rabatt ist besser)",
+    "paypalNotice": "PayPal-Rabatte werden im PayPal-Checkout angewendet, nicht hier. Der angezeigte Gesamtbetrag ist korrekt.",
+    "paypalExplain": "Der Rabatt wird im PayPal-Checkout angewendet, daher sehen Sie ihn hier nicht. Der angezeigte Gesamtbetrag ist korrekt und enthält den Rabatt.",
+    "couponIgnored": "Gutschein nicht angewendet, da der Produkt-Rabatt besser ist.",
     "couponApplied": "Gutschein angewendet",
     "bestDiscountInfo": "Es wird nur der beste Rabatt angewendet. Rabatte werden nicht kombiniert.",
     "perUnit": "pro Stück",
@@ -976,6 +980,7 @@
     "free": "Kostenlos",
     "payment": "Zahlung",
     "paymentNote": "Die Rechnungsadresse Ihrer Zahlungsmethode muss mit der Lieferadresse übereinstimmen. Alle Transaktionen sind sicher und verschlüsselt.",
+    "paymentStepNotice": "Bitte überprüfen Sie Ihre Zahlungsmethode sorgfältig. Das Abschließen des Zahlungsschritts wird Ihre Bestellung aufgeben.",
     "captureFailed": "Zahlung konnte nicht gebucht werden.",
     "initializingPayment": "Initialisierung…",
     "processingPayment": "Wird verarbeitet…",
@@ -1014,8 +1019,7 @@
     "subtotal_one": "Zwischensumme ({{count}} Artikel)",
     "subtotal_other": "Zwischensumme ({{count}} Artikel)",
     "shipmentShort": "Versand",
-    "inTotal": "Gesamt",
-    "inclTax": "(inkl. MwSt.)",
+
     "backToCart": "Zurück zum Warenkorb",
     "addrFail": "Adresse konnte nicht gespeichert werden. Bitte prüfen Sie Ihre Angaben.",
     "applied": "Angewendet",
@@ -1026,7 +1030,7 @@
     "continueCard": "Zur Kartenzahlung weiter",
     "couponInvalid": "Ungültiger Gutschein",
     "couponPlaceholder": "Gutscheincode",
-    "couponLine": "Gutschein ({{code}})",
+
     "deOnly": "SEPA/Überweisung ist nur in Deutschland (DE) verfügbar.",
     "emptyCart": "Ihr Warenkorb ist leer.",
     "fillFirst": "Bitte zuerst Kontakt- und Lieferdaten ausfüllen.",
@@ -1213,7 +1217,7 @@
 
       "section1_title": "1. Angaben gemäß § 5 TMG",
       "section1_text_a": "Diese Website wird betrieben von:",
-      "section1_text_b": "MindMines\nFeldstraße 11\n21640 Horneburg\nDeutschland",
+      "section1_text_b": "MindMines GbR\n Veera Ravada\nFeldstraße 11\n21640 Horneburg\nDeutschland",
       "section1_text_c": "E-Mail: service@mindmines.eu\nWebsite: https://mindmines.eu",
       "section1_text_d": "Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DE362093828",
 

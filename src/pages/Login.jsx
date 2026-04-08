@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       setOtpId(String(id));
       setStep("otp");
-      setInfoMsg(t("auth.otpSent") || "OTP sent to your email.");
+      setInfoMsg(t("auth.otpSentDetailed"));
     } catch (err) {
       console.warn("Login start failed", err);
       const detail = String(
@@ -90,6 +90,28 @@ export default function LoginPage() {
         setLoginError(t("auth.accountNotVerified") || t("auth.loginFailed"));
       } else {
         setLoginError(t("auth.loginFailed"));
+      }
+
+      {
+        loginError && (
+          <div className="mb-4 text-sm text-red-600">
+            {loginError}
+            {loginError === t("auth.accountNotVerified") && (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/resend-verification")}
+                  className="underline text-backnewswhite dark:text-backnewsdark"
+                >
+                  {t(
+                    "auth.resendVerificationLink",
+                    "Resend verification email",
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        );
       }
     }
   }
@@ -179,8 +201,14 @@ export default function LoginPage() {
                 <h2 className="text-2xl font-serif mb-2 text-marbleblack dark:text-backnewsdark">
                   {t("auth.loginTitle")}
                 </h2>
-                <p className="mb-6 text-gray-700 dark:text-gray-300">
+                <p className="mb-2 text-gray-700 dark:text-gray-300">
                   {t("auth.loginSub")}
+                </p>
+                <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+                  {t(
+                    "auth.loginOtpHint",
+                    "After entering your email and password, we will send a login code to your email.",
+                  )}
                 </p>
 
                 {loginError && (

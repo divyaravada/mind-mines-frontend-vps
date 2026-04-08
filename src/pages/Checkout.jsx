@@ -849,18 +849,26 @@ export default function Checkout() {
       </label>
 
       {payment === "paypal" && (
-        <div className="border dark:border-neutral-700 rounded-lg p-3">
+        <div className="border dark:border-neutral-700 rounded-lg p-3 space-y-3">
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            {t(
+              "checkout.paypalNotice",
+              "By continuing with PayPal, you are proceeding to the final paid order step.",
+            )}
+          </p>
+
+          <p className="text-xs text-gray-600 dark:text-gray-300">
+            {t(
+              "checkout.paypalExplain",
+              "After approving the payment in PayPal, your order will be placed.",
+            )}
+          </p>
           <PayPalButtons
             fundingSource={undefined}
             style={{ layout: "horizontal", label: "paypal" }}
             onClick={async (_, actions) => {
               if (!hasMinimalAddress()) {
-                alert(
-                  t(
-                    "checkout.fillFirst",
-                    "Please fill in contact + delivery first.",
-                  ),
-                );
+                alert(t("checkout.fillFirst"));
                 return actions.reject();
               }
               return actions.resolve();
@@ -1356,7 +1364,9 @@ export default function Checkout() {
               <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">
                 {t("checkout.paymentNote")}
               </p>
-
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                {t("checkout.paymentStepNotice")}
+              </p>
               {!payment && (
                 <div className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">
                   {t(

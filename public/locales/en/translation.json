@@ -287,6 +287,7 @@
     "adminTab": "Admin",
     "loginTitle": "I'm already a customer",
     "loginSub": "Already a customer? Log in directly with your user data.",
+    "loginOtpHint": "After entering your email and password, we will send a login code to your email.",
     "registerTitle": "Create an account",
     "registerButton": "Register",
     "username": "Username",
@@ -336,6 +337,7 @@
     "loginInvalid": "Incorrect e-mail or password.",
     "loginFailed": "Login failed. Please try again.",
     "otpSent": "We sent a verification code to your email.",
+    "otpSentDetailed": "We sent a login code to your email. Please enter it below to complete your login.",
     "sendingOtp": "Sending code...",
     "otpHint": "Enter the 6-digit code sent to your email.",
     "otpCode": "Verification code",
@@ -351,11 +353,12 @@
     "accountNotVerified": "Your account is not verified yet. Please verify your email first.",
     "emailVerification": {
       "verifying": "Verifying your email...",
-      "tryAgain": "Try again later",
+      "tryAgain": "Verification link is invalid or expired.",
       "success": "Email verified! Redirecting to login...",
       "error": "Link is invalid or expired. Please register again.",
-      "redirect": "You will be redirected shortly...",
-      "pleaseWait": "Please wait a few seconds...",
+      "redirect": "Email verified. Redirecting to login.",
+      "pleaseWait": "Please wait while we verify your email.",
+      "nextStep": "Your email has been verified. You can now log in with your email and password, then confirm the login code sent to your email.",
       "resendAlreadyVerified": "Your account is already registered and verified. You can log in.",
       "resendError": "We could not send the verification e-mail. Please try again later."
     }
@@ -900,7 +903,7 @@
     "removedByCoupon": "Removed (coupon applied)",
     "couponLine": "Coupon ({{code}})",
 
-    "couponIgnored": "Ignored (product discount is better)",
+    "couponIgnored": "This coupon was not applied because one or more products already have a better discount.",
     "couponApplied": "Coupon applied",
     "bestDiscountInfo": "Only the best discount is applied. Discounts are not combined.",
     "perUnit": "/ unit",
@@ -913,7 +916,7 @@
     "lineExplanation": {
       "couponWins": "Coupon applied: product discounts are not stacked (best discount wins).",
       "productWins": "Product discount applied.",
-      "couponIgnored": "Coupon ignored because the product discount is better.",
+      "couponIgnored": "This coupon was not applied because one or more products already have a better discount.",
       "noDiscount": "No discounts applied."
     },
 
@@ -951,6 +954,7 @@
     "free": "Free",
     "payment": "Payment",
     "paymentNote": "The billing address of your payment method must match the shipping address. All transactions are secure and encrypted.",
+    "paymentStepNotice": "Please review your payment method carefully. Completing the payment step will place your order.",
     "captureFailed": "Payment capture failed.",
     "initializingPayment": "Initializing…",
     "processingPayment": "Processing…",
@@ -989,8 +993,7 @@
     "subtotal_one": "Subtotal ({{count}} item)",
     "subtotal_other": "Subtotal ({{count}} items)",
     "shipmentShort": "Shipment",
-    "inTotal": "In total",
-    "inclTax": "(incl. tax)",
+
     "backToCart": "Back to cart",
     "addrFail": "Could not save the address. Please check your details.",
     "applied": "Applied",
@@ -1001,7 +1004,8 @@
     "continueCard": "Continue to card payment",
     "couponInvalid": "Invalid coupon",
     "couponPlaceholder": "Coupon code",
-    "couponLine": "Coupon ({{code}})",
+    "paypalNotice": "By continuing with PayPal, you are proceeding to the final paid order step.",
+    "paypalExplain": "After approving the payment in PayPal, your order will be placed. You will receive an order confirmation email shortly after.",
     "deOnly": "SEPA / bank transfer is only available in Germany (DE).",
     "emptyCart": "Your cart is empty.",
     "fillFirst": "Please fill in contact and delivery details first.",
@@ -1173,7 +1177,7 @@
 
       "section1_title": "1. Responsible for this Website",
       "section1_text_a": "This website is operated by MindMines.",
-      "section1_text_b": "MindMines\nFeldstraße 11\n21640 Horneburg\nGermany",
+      "section1_text_b": "MindMines GbR\n Veera Ravada\nFeldstraße 11\n21640 Horneburg\nGermany",
       "section1_text_c": "Email: service@mindmines.eu\nWebsite: https://mindmines.eu",
       "section1_text_d": "VAT ID (USt-IdNr.): DE362093828",
 

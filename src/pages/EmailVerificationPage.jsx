@@ -23,7 +23,16 @@ export default function EmailVerificationPage() {
     else {
       setStatus("success");
       const timeoutId = setTimeout(() => navigate("/users/login"), 4000);
-      return () => clearTimeout(timeoutId);
+      return () => {
+        <button
+          type="button"
+          onClick={() => navigate("/users/login")}
+          className="mt-4 px-4 py-2 rounded-lg bg-backnewswhite text-white"
+        >
+          {t("auth.goToLogin", "Go to login")}
+        </button>;
+        clearTimeout(timeoutId);
+      };
     }
   }, [skip, isFetching, isError, navigate]);
 
@@ -65,7 +74,10 @@ export default function EmailVerificationPage() {
             <h1 className="text-2xl font-semibold mb-2">{title}</h1>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               {status === "success"
-                ? t("auth.emailVerification.redirect")
+                ? t(
+                    "auth.emailVerification.nextStep",
+                    "Your email has been verified. You can now log in with your email and password, then confirm the login code sent to your email.",
+                  )
                 : status === "error"
                   ? t("auth.emailVerification.tryAgain")
                   : t("auth.emailVerification.pleaseWait")}
