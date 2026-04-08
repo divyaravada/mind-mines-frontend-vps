@@ -2,8 +2,8 @@
 import fs from "fs";
 import path from "path";
 
-const SITE = "https://mindmines.eu";
-const API = "https://mindmines.eu/api/decorative-products/list/"; // ✅ FIXED
+const SITE = process.env.REACT_APP_SITEMAP_SITE_URL || "https://mindmines.eu";
+const API = `${SITE}/api/products/list/`;
 const OUT = path.join(process.cwd(), "build", "sitemap.xml");
 
 function slugify(text = "") {
