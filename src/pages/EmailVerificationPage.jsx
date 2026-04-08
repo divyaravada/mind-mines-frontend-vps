@@ -24,13 +24,6 @@ export default function EmailVerificationPage() {
       setStatus("success");
       const timeoutId = setTimeout(() => navigate("/users/login"), 4000);
       return () => {
-        <button
-          type="button"
-          onClick={() => navigate("/users/login")}
-          className="mt-4 px-4 py-2 rounded-lg bg-backnewswhite text-white"
-        >
-          {t("auth.goToLogin", "Go to login")}
-        </button>;
         clearTimeout(timeoutId);
       };
     }
@@ -38,26 +31,17 @@ export default function EmailVerificationPage() {
 
   const title =
     status === "success"
-      ? t("auth.emailVerification.success", "Email verified | MindMines")
+      ? t("auth.emailVerification.success")
       : status === "error"
-        ? t("auth.emailVerification.error", "Verification failed | MindMines")
-        : t("auth.emailVerification.verifying", "Verifying email | MindMines");
+        ? t("auth.emailVerification.error")
+        : t("auth.emailVerification.verifying");
 
   const description =
     status === "success"
-      ? t(
-          "auth.emailVerification.redirect",
-          "Email verified. Redirecting to login.",
-        )
+      ? t("auth.emailVerification.redirect")
       : status === "error"
-        ? t(
-            "auth.emailVerification.tryAgain",
-            "Verification link is invalid or expired.",
-          )
-        : t(
-            "auth.emailVerification.pleaseWait",
-            "Please wait while we verify your email.",
-          );
+        ? t("auth.emailVerification.tryAgain")
+        : t("auth.emailVerification.pleaseWait");
 
   return (
     <>
@@ -74,14 +58,18 @@ export default function EmailVerificationPage() {
             <h1 className="text-2xl font-semibold mb-2">{title}</h1>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               {status === "success"
-                ? t(
-                    "auth.emailVerification.nextStep",
-                    "Your email has been verified. You can now log in with your email and password, then confirm the login code sent to your email.",
-                  )
+                ? t("auth.emailVerification.nextStep")
                 : status === "error"
                   ? t("auth.emailVerification.tryAgain")
                   : t("auth.emailVerification.pleaseWait")}
             </p>
+            <button
+              type="button"
+              onClick={() => navigate("/users/login")}
+              className="mt-4 px-4 py-2 rounded-lg bg-backnewswhite text-white"
+            >
+              {t("auth.goToLogin", "Go to login")}
+            </button>
           </div>
         </div>
       </div>

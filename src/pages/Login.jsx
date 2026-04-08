@@ -91,28 +91,6 @@ export default function LoginPage() {
       } else {
         setLoginError(t("auth.loginFailed"));
       }
-
-      {
-        loginError && (
-          <div className="mb-4 text-sm text-red-600">
-            {loginError}
-            {loginError === t("auth.accountNotVerified") && (
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => navigate("/resend-verification")}
-                  className="underline text-backnewswhite dark:text-backnewsdark"
-                >
-                  {t(
-                    "auth.resendVerificationLink",
-                    "Resend verification email",
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      }
     }
   }
 
@@ -212,7 +190,23 @@ export default function LoginPage() {
                 </p>
 
                 {loginError && (
-                  <div className="mb-4 text-sm text-red-600">{loginError}</div>
+                  <div className="mb-4 text-sm text-red-600">
+                    {loginError}
+                    {loginError === t("auth.accountNotVerified") && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate("/resend-verification")}
+                          className="underline text-backnewswhite dark:text-backnewsdark"
+                        >
+                          {t(
+                            "auth.resendVerificationLink",
+                            "Resend verification email",
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
                 {infoMsg && (
                   <div className="mb-4 text-sm text-green-700 dark:text-green-400">
