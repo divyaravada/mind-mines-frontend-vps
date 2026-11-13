@@ -344,7 +344,7 @@ export default function ProductDetailPage() {
 
   const stockNum = Number(product?.stock ?? product?.quantity ?? 0);
   const isOut = stockNum <= 0;
-  const giftOnly = product?.christmas_gift_only === true;
+  const isChristmasGift = product?.christmas_gift_only === true;
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -396,7 +396,6 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    if (giftOnly) return;
     if (isOut) {
       alert(t("productDetail.outOfStock", { defaultValue: "Out of stock." }));
       return;
@@ -688,7 +687,7 @@ export default function ProductDetailPage() {
                 max={stockNum > 0 ? stockNum : 1}
                 value={qty}
                 onChange={handleQtyChange}
-                disabled={isOut || giftOnly}
+                disabled={isOut}
                 className="border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900/60 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-backnewswhite/80 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
               />
               {stockNum > 0 && (
@@ -744,19 +743,21 @@ export default function ProductDetailPage() {
                 )}
               </div>
             )}
-
+            {isChristmasGift && (
+              <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                {lang === "de"
+                  ? "Weihnachtsgeschenk-Aktion"
+                  : "Christmas Gift Sale"}
+              </p>
+            )}
             <button
               onClick={handleAddToCart}
-              disabled={isOut || giftOnly}
+              disabled={isOut}
               className="mt-4 w-full inline-flex items-center justify-center py-3 rounded-lg bg-backnewswhite text-white font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-marbleblack transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {giftOnly
-                ? lang === "de"
-                  ? "Nur als Weihnachtsgeschenk"
-                  : "Christmas gift only"
-                : isOut
-                  ? t("productDetail.outOfStockCta", "Currently out of stock")
-                  : t("productDetail.addToCart")}
+              {isOut
+                ? t("productDetail.outOfStockCta", "Currently out of stock")
+                : t("productDetail.addToCart")}
             </button>
           </div>
         </div>

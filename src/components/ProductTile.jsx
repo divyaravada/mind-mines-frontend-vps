@@ -59,10 +59,10 @@ export default function ProductTile({
   const stockVal = product?.stock ?? product?.quantity ?? 0;
   const stock = Number.isFinite(Number(stockVal)) ? Number(stockVal) : 0;
   const isOut = stock <= 0;
-  const giftOnly = product?.christmas_gift_only === true;
+  const isChristmasGift = product?.christmas_gift_only === true;
   const giftLabel = locale.startsWith("de")
-    ? "Nur als Weihnachtsgeschenk"
-    : "Christmas gift only";
+    ? "Weihnachtsgeschenk-Aktion"
+    : "Christmas Gift Sale";
   const isLow = !isOut && stock < 2;
   const [trackEvent] = useTrackEventMutation();
   const track = (payload) => {
@@ -193,6 +193,11 @@ export default function ProductTile({
 
       {/* TEXT + PRICE */}
       <div className="pt-3">
+        {isChristmasGift && (
+          <span className="mb-1 inline-block rounded bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-900">
+            {giftLabel}
+          </span>
+        )}
         <h3
           className="font-medium text-sm md:text-base text-gray-900 dark:text-backnewsdark line-clamp-2"
           onClick={(e) => {
@@ -232,23 +237,24 @@ export default function ProductTile({
           <button
             onClick={(e) => {
               e.stopPropagation(); // don't navigate when adding to cart
-              if (!isOut && !giftOnly)
-                onAddToCart?.(product, Number(priceNum || 0));
+              if (!isOut) onAddToCart?.(product, Number(priceNum || 0));
             }}
-            disabled={isOut || giftOnly}
+            disabled={isOut}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-backnewswhite text-white hover:opacity-90 transition disabled:opacity-50 dark:bg-backnewsdark dark:text-marbleblack"
             title={
-              giftOnly
+              isChristmasGift
                 ? giftLabel
                 : isOut
                   ? t("product.cannotAdd", "Out of stock")
                   : undefined
             }
             aria-label={
-              giftOnly ? giftLabel : t("productDetail.addToCart", "Add to cart")
+              isChristmasGift
+                ? giftLabel
+                : t("productDetail.addToCart", "Add to cart")
             }
           >
-            {giftOnly ? giftLabel : <ShoppingCart className="w-4 h-4" />}
+            <ShoppingCart className="w-4 h-4" />
           </button>
         </div>
       </div>
