@@ -121,7 +121,7 @@ function Offers({ ticker, home, cart }) {
           ticker
             ? "mx-auto flex max-w-5xl items-center gap-2 px-3"
             : carousel
-              ? "mx-auto w-full max-w-[500px]"
+              ? "mx-auto w-full"
               : "mx-auto max-w-7xl"
         }
       >
@@ -129,8 +129,10 @@ function Offers({ ticker, home, cart }) {
         <div
           className={
             ticker
-              ? "flex min-w-0 flex-1 items-center gap-2"
-              : "flex items-center gap-2"
+              ? "w-full flex-none snap-start px-2 py-2 text-center text-sm font-semibold hover:underline"
+              : carousel
+                ? "flex min-h-[500px] w-full shrink-0 snap-start items-center rounded-lg border border-emerald-600 px-5 py-6 text-left hover:bg-emerald-800 md:h-[500px] md:px-10"
+                : "w-64 max-w-full shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800"
           }
         >
           {(home || ticker) && (
@@ -172,17 +174,19 @@ function Offers({ ticker, home, cart }) {
                 }
               >
                 {carousel ? (
-                  <span className="grid grid-cols-[minmax(0,35%)_minmax(0,1fr)] items-center gap-3">
+                  <span className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-12">
                     <img
                       src={`${process.env.PUBLIC_URL || ""}/christmas-offers/${OFFER_IMAGES[index]}.png`}
                       alt=""
                       width="384"
                       height="384"
-                      className="aspect-square h-auto w-full rounded-md object-contain"
+                      className="mx-auto aspect-square w-full max-w-[240px] rounded-md object-contain md:max-w-[420px]"
                     />
                     <span>
-                      <span className="block">{title}</span>
-                      <span className="mt-2 block font-normal leading-relaxed text-emerald-50">
+                      <span className="block text-2xl font-semibold md:text-4xl">
+                        {title}
+                      </span>
+                      <span className="mt-3 block text-base font-normal leading-relaxed text-emerald-50 md:text-lg">
                         {details}
                       </span>
                     </span>
