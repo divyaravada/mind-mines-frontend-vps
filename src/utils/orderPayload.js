@@ -40,6 +40,7 @@ export function buildOrderPayload({
   items,
   email,
   couponCode,
+  promotion,
   payment_method,
   extra = {},
 }) {
@@ -52,6 +53,7 @@ export function buildOrderPayload({
       qty: Number(c.qty) || 1,
     })),
     shipping: buildShippingSnapshot(form),
+    ...(promotion ? { promotion } : {}),
     ...extra, // idempotency_key, installments data, etc.
   };
 }

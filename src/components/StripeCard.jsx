@@ -4,7 +4,13 @@ import { useTranslation } from "react-i18next";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useStripeCreateIntentMutation } from "../features/payments/paymentsApi";
 
-export default function StripeCard({ orderId, onSuccess, onError }) {
+export default function StripeCard({
+  orderId,
+  promotionPaymentToken,
+  promotion,
+  onSuccess,
+  onError,
+}) {
   const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
@@ -16,7 +22,10 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await createIntent({ order_id: orderId }).unwrap();
+        const res = await createIntent({
+          order_id: orderId,
+          promotion_payment_token: promotionPaymentToken || undefined,
+        }).unwrap();
         if (mounted) setClientSecret(res.client_secret);
       } catch (e) {
         const msg =
@@ -27,7 +36,7 @@ export default function StripeCard({ orderId, onSuccess, onError }) {
     return () => {
       mounted = false;
     };
-  }, [orderId, createIntent, onError, t]);
+  }, [orderId, promotionPaymentToken, createIntent, onError, t]);
 
   const pay = async () => {
     if (!stripe || !elements || !clientSecret) return;

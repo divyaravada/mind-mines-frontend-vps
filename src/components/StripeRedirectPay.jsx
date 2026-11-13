@@ -76,6 +76,7 @@ export default function StripeRedirectPay({
   orderId,
   method,
   orderPayload,
+  promotionPaymentToken,
   onSuccess,
   onError,
 }) {
@@ -100,7 +101,11 @@ export default function StripeRedirectPay({
         setClientSecret("");
         const base = { method };
         const payload = orderIdRef.current
-          ? { ...base, order_id: orderIdRef.current }
+          ? {
+              ...base,
+              order_id: orderIdRef.current,
+              promotion_payment_token: promotionPaymentToken || undefined,
+            }
           : { ...base, ...(orderPayload || {}) };
 
         const res = await createPI(payload).unwrap();
@@ -125,7 +130,15 @@ export default function StripeRedirectPay({
     return () => {
       mounted = false;
     };
-  }, [method, orderPayload, createPI, onError, t]);
+  }, [
+    orderId,
+    method,
+    orderPayload,
+    promotionPaymentToken,
+    createPI,
+    onError,
+    t,
+  ]);
 
   const returnUrl = useMemo(
     () => `${window.location.origin}/checkout/return`,

@@ -1,4 +1,12 @@
 // src/pages/Cart.jsx
+import ChristmasGiftSelector from "../components/ChristmasGiftSelector";
+import ChristmasPromotionSummary from "../components/ChristmasPromotionSummary";
+import {
+  readChristmasGift,
+  rememberChristmasGift,
+  useChristmasCatalogue,
+  useChristmasQuoteQuery,
+} from "../features/promos/christmasApi";
 import { useMemo, useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch, shallowEqual } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -69,6 +77,30 @@ export default function CartPage() {
   const dispatch = useDispatch();
 
   const items = useSelector(selectCartItems, shallowEqual);
+  const [giftId, setGiftId] = useState(readChristmasGift);
+  const { enabled: christmasEnabled, gifts } = useChristmasCatalogue();
+  const selectedGiftId = gifts.some(({ id }) => id === giftId) ? giftId : null;
+  const {
+    currentData: christmasQuote,
+    isFetching: quotingChristmas,
+    isError: christmasQuoteError,
+  } = useChristmasQuoteQuery(
+    {
+      items: items.map((item) => ({
+        product_id: item.productId ?? item.id,
+        qty: Number(item.qty) || 1,
+      })),
+      gift_product_id: selectedGiftId,
+    },
+    {
+      skip: !christmasEnabled || !items.length,
+      refetchOnMountOrArgChange: true,
+    },
+  );
+  const selectGift = (id) => {
+    setGiftId(id);
+    rememberChristmasGift(id);
+  };
   const count = useSelector(selectCartCount);
   const loggedIn = useSelector((s) => Boolean(s.auth?.access));
 
@@ -79,7 +111,7 @@ export default function CartPage() {
     "Review your selected MindMines items and proceed to secure checkout.",
   );
 
-  const canonical = "https://mindmines.eu/cart";
+  const canonical = "http://mindmines.eu/cart";
   const handleCheckoutClick = () => {
     if (loggedIn) {
       navigate("/checkout");
@@ -500,6 +532,36 @@ export default function CartPage() {
               );
             })}
           </div>
+
+          {christmasEnabled && items.length > 0 && (
+            <>
+              <ChristmasGiftSelector
+                gifts={gifts}
+                giftId={selectedGiftId}
+                onChange={selectGift}
+                locale={locale}
+              />
+              <ChristmasPromotionSummary
+                quote={
+                  quotingChristmas ||
+                  christmasQuoteError ||
+                  !christmasQuote?.offer_code
+                    ? null
+                    : christmasQuote
+                }
+                gifts={gifts}
+                items={items}
+                locale={locale}
+              />
+              {christmasQuoteError && (
+                <p role="status" className="text-sm">
+                  {locale.startsWith("de")
+                    ? "Angebot derzeit nicht verfügbar. Wählen Sie ein anderes Geschenk oder entfernen Sie die Auswahl."
+                    : "Offer currently unavailable. Choose a different gift or clear your selection."}
+                </p>
+              )}
+            </>
+          )}
 
           <div className="mt-6 bg-marblewhite dark:bg-neutral-900 rounded-xl shadow p-4 border border-gray-200 dark:border-gray-800">
             <div className="text-sm text-gray-700 dark:text-gray-200 mb-3">

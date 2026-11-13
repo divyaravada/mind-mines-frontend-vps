@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import RequireAuth from "./routes/RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
+import ChristmasOffers from "./components/ChristmasOffers";
 import PromoBanner from "./components/PromoBanner";
 import GoogleAnalyticsTracker from "./components/GoogleAnalyticsTracker";
 
@@ -74,7 +75,7 @@ export default function App() {
       <GoogleAnalyticsTracker />
       <PromoBanner />
       <Navbar />
-
+      <ChristmasOffers />
       <div className="flex-1">
         <ScrollToTop />
         <Suspense fallback={<LoadingScreen />}>
@@ -181,7 +182,6 @@ export default function App() {
           </Routes>
         </Suspense>
       </div>
-
       <CookieConsent />
       <Footer />
     </div>

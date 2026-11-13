@@ -15,6 +15,7 @@ import {
 import { buildOrderPayload } from "../utils/orderPayload";
 
 const pickErr = (e, fb) =>
+  e?.data?.promotion?.[0] ||
   e?.data?.detail ||
   e?.data?.error ||
   e?.error ||
@@ -94,6 +95,7 @@ export default function StripeSepa({
   form,
   items,
   couponCode,
+  promotion,
   total,
   customerEmail,
   onSuccess,
@@ -108,6 +110,8 @@ export default function StripeSepa({
 
   useEffect(() => {
     let cancelled = false;
+    setClientSecret("");
+    setOrderId(null);
     if (!active) return;
 
     if (Number(total) <= 0) {
@@ -124,6 +128,7 @@ export default function StripeSepa({
           items,
           email: (customerEmail || form.email || "").trim(),
           couponCode,
+          promotion,
           payment_method: "sepa_debit",
         });
 
@@ -154,6 +159,7 @@ export default function StripeSepa({
     form,
     items,
     couponCode,
+    promotion,
     customerEmail,
     createSepaIntent,
     setLocalOrderId,
@@ -216,6 +222,7 @@ export default function StripeSepa({
 
       {clientSecret && orderId && (
         <Elements
+          key={orderId}
           stripe={stripePromise}
           options={{
             clientSecret,

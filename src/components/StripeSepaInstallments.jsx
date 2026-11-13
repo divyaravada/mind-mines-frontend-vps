@@ -31,6 +31,7 @@ function SepaInstallmentsInner({
   form,
   items,
   couponCode,
+  promotion,
   onCreated,
   setErrorMsg,
 }) {
@@ -42,7 +43,7 @@ function SepaInstallmentsInner({
 
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
-    [months]
+    [months],
   );
 
   const startInstallments = useCallback(
@@ -52,6 +53,7 @@ function SepaInstallmentsInner({
         items,
         email: form.email,
         couponCode,
+        promotion,
         payment_method: "sepa_installments",
         installments_months: monthsSafe,
         extra: {
@@ -72,7 +74,17 @@ function SepaInstallmentsInner({
         dates: res?.dates,
       });
     },
-    [startPlan, monthsSafe, countryCode, form, items, couponCode, onCreated, t]
+    [
+      startPlan,
+      monthsSafe,
+      countryCode,
+      form,
+      items,
+      couponCode,
+      promotion,
+      onCreated,
+      t,
+    ],
   );
 
   const confirmMandateThenCreate = async () => {
@@ -88,7 +100,7 @@ function SepaInstallmentsInner({
 
       if (error) {
         throw new Error(
-          error.message || t("checkout.sepaInstallments.mandateFailed")
+          error.message || t("checkout.sepaInstallments.mandateFailed"),
         );
       }
 
@@ -138,6 +150,7 @@ export default function StripeSepaInstallments({
   form,
   items,
   couponCode,
+  promotion,
   paymentMethodId,
   countryCode,
   setLocalOrderId,
@@ -147,7 +160,7 @@ export default function StripeSepaInstallments({
   const [errorMsg, setErrorMsg] = useState("");
   const monthsSafe = useMemo(
     () => ([3, 6, 9].includes(Number(months)) ? Number(months) : 3),
-    [months]
+    [months],
   );
 
   const [clientSecret, setClientSecret] = useState("");
@@ -204,6 +217,7 @@ export default function StripeSepaInstallments({
         items,
         email: form.email,
         couponCode,
+        promotion,
         payment_method: "sepa_installments",
         installments_months: monthsSafe,
         extra: {
@@ -307,6 +321,7 @@ export default function StripeSepaInstallments({
                 form={form}
                 items={items}
                 couponCode={couponCode}
+                promotion={promotion}
                 setErrorMsg={setErrorMsg}
                 onCreated={(orderId, schedule) => {
                   setServerSchedule(schedule || null);

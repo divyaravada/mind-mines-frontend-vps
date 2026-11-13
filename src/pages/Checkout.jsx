@@ -1,4 +1,13 @@
 // src/pages/Checkout.jsx
+import ChristmasGiftSelector from "../components/ChristmasGiftSelector";
+import ChristmasPromotionSummary from "../components/ChristmasPromotionSummary";
+import {
+  checkoutPromotion,
+  readChristmasGift,
+  rememberChristmasGift,
+  useChristmasCatalogue,
+  useChristmasQuoteQuery,
+} from "../features/promos/christmasApi";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
@@ -116,7 +125,17 @@ export default function Checkout() {
 
   const skipCartGuardRef = useRef(false);
   const addressIdRef = useRef(null);
+  const [stripeOrder, setStripeOrder] = useState(null);
+  const [giftId, setGiftId] = useState(readChristmasGift);
+  const [promotionSkipped, setPromotionSkipped] = useState(false);
+  const creatingStripeOrder = useRef(false);
+  const paypalOrder = useRef(null);
+  const { enabled: christmasEnabled, gifts } = useChristmasCatalogue();
+  const selectedGiftId = gifts.some(({ id }) => id === giftId) ? giftId : null;
   const localOrderIdRef = useRef(null);
+  const setLocalOrderId = useCallback((id) => {
+    localOrderIdRef.current = id;
+  }, []);
 
   const discount = useMemo(() => {
     if (!couponInfo?.ok) return 0;
@@ -183,7 +202,7 @@ export default function Checkout() {
     ? originalSubtotal
     : discountedSubtotal;
 
-  const payTotal = useMemo(() => {
+  const regularPayTotal = useMemo(() => {
     const appliedCouponValue = effectiveCouponApplied ? couponDiscount : 0;
     const ttotal = subtotal + shippingFee - appliedCouponValue;
     return Number(Math.max(0, ttotal).toFixed(2));
@@ -346,10 +365,62 @@ export default function Checkout() {
     () =>
       items.map((c) => ({
         product_id: c.productId ?? c.id,
-        qty: c.qty,
+        qty: Number(c.qty) || 1,
       })),
     [items],
   );
+
+  const christmasRequested =
+    christmasEnabled && !promotionSkipped && items.length > 0;
+  const {
+    currentData: christmasQuote,
+    isFetching: quotingChristmas,
+    isError: christmasQuoteError,
+    refetch: refreshChristmasQuote,
+  } = useChristmasQuoteQuery(
+    {
+      items: backendItems,
+      gift_product_id: selectedGiftId,
+      coupon_code: (couponCode || "").trim(),
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+        ? form.email.trim()
+        : "",
+    },
+    { skip: !christmasRequested, refetchOnMountOrArgChange: true },
+  );
+  const promotionReady =
+    christmasRequested &&
+    !quotingChristmas &&
+    !christmasQuoteError &&
+    christmasQuote;
+  const promotion = useMemo(
+    () =>
+      promotionReady
+        ? checkoutPromotion(christmasQuote, selectedGiftId)
+        : undefined,
+    [promotionReady, christmasQuote, selectedGiftId],
+  );
+  const payTotal = promotion
+    ? Number(promotion.expected_total)
+    : regularPayTotal;
+  const checkoutSnapshot = JSON.stringify([
+    backendItems,
+    form,
+    couponCode,
+    promotion,
+  ]);
+  const stripeOrderFor = (method) =>
+    stripeOrder?.snapshot === checkoutSnapshot && stripeOrder.method === method
+      ? stripeOrder
+      : null;
+
+  const selectGift = (id) => {
+    setGiftId(id);
+    rememberChristmasGift(id);
+  };
+  const showPaymentError = useCallback((message) => alert(message), []);
+
+  const promotionPending = christmasRequested && !promotionReady;
 
   const applyCoupon = async () => {
     setCouponErr("");
@@ -588,6 +659,7 @@ export default function Checkout() {
   const wipeCart = useCallback(() => {
     skipCartGuardRef.current = true;
     dispatch(clearCart());
+    rememberChristmasGift(null);
     try {
       localStorage.removeItem("cart_v1");
     } catch {}
@@ -725,6 +797,7 @@ export default function Checkout() {
         pmToSave = pm;
       }
 
+      creatingStripeOrder.current = true;
       try {
         const res = await createOrder({
           email: (form.email || "").trim(),
@@ -732,6 +805,7 @@ export default function Checkout() {
           installments_months,
           coupon_code: (couponCode || "").trim(),
           items: backendItems,
+          promotion,
           shipping: {
             first_name: form.fullName.split(" ")[0] || form.fullName,
             last_name: form.fullName.split(" ").slice(1).join(" "),
@@ -746,7 +820,12 @@ export default function Checkout() {
           },
         }).unwrap();
 
-        localOrderIdRef.current = res?.id;
+        setStripeOrder({
+          id: res.id,
+          token: res.promotion_payment_token,
+          method: pm,
+          snapshot: checkoutSnapshot,
+        });
         // If backend returns bank transfer info, store it for success page
         // Adjust these keys based on your backend response shape.
         if (pmToSave === "bank" || pmToSave === "bank_transfer") {
@@ -776,12 +855,16 @@ export default function Checkout() {
         return res?.id || null;
       } catch (e) {
         const msg =
+          e?.data?.promotion?.[0] ||
           e?.data?.detail ||
           e?.data?.non_field_errors?.[0] ||
           e?.error ||
           t("checkout.orderCreateFailed");
         alert(msg);
+        if (promotion && e?.data?.promotion) refreshChristmasQuote();
         return null;
+      } finally {
+        creatingStripeOrder.current = false;
       }
     },
     [
@@ -790,6 +873,10 @@ export default function Checkout() {
       items.length,
       backendItems,
       couponCode,
+      promotion,
+      promotionPending,
+      checkoutSnapshot,
+      refreshChristmasQuote,
       t,
       hasMinimalAddress,
     ],
@@ -864,9 +951,11 @@ export default function Checkout() {
             )}
           </p>
           <PayPalButtons
+            forceReRender={[checkoutSnapshot, promotionPending]}
             fundingSource={undefined}
             style={{ layout: "horizontal", label: "paypal" }}
             onClick={async (_, actions) => {
+              if (promotionPending) return actions.reject();
               if (!hasMinimalAddress()) {
                 alert(t("checkout.fillFirst"));
                 return actions.reject();
@@ -874,11 +963,14 @@ export default function Checkout() {
               return actions.resolve();
             }}
             createOrder={async () => {
+              if (promotionPending)
+                throw new Error(t("checkout.orderCreateFailed"));
               const res = await paypalCreateOrder({
                 email: form.email,
                 payment_method: "paypal",
                 coupon_code: (couponCode || "").trim(),
                 items: backendItems,
+                promotion,
                 shipping: {
                   first_name: form.fullName.split(" ")[0] || form.fullName,
                   last_name: form.fullName.split(" ").slice(1).join(" "),
@@ -891,17 +983,29 @@ export default function Checkout() {
                 },
               }).unwrap();
 
-              localOrderIdRef.current = res?.order_id;
-              return res?.id;
+              paypalOrder.current = {
+                providerId: res.id,
+                localId: res.order_id,
+              };
+              return res.id;
+            }}
+            onError={(error) => {
+              const detail = error?.data?.promotion?.[0] || error?.data?.detail;
+              if (promotion && error?.data?.promotion) refreshChristmasQuote();
+              alert(detail || t("checkout.orderCreateFailed"));
             }}
             onApprove={async (data) => {
+              const localId =
+                paypalOrder.current?.providerId === data.orderID
+                  ? paypalOrder.current.localId
+                  : null;
               const cap = await paypalCaptureOrder({
                 paypalOrderId: data.orderID,
-                localOrderId: localOrderIdRef.current,
+                localOrderId: localId,
               }).unwrap();
 
               if (cap?.status === "COMPLETED") {
-                await onSuccessfulOrder(localOrderIdRef.current);
+                await onSuccessfulOrder(localId);
               } else {
                 alert(t("checkout.captureFailed"));
               }
@@ -960,14 +1064,17 @@ export default function Checkout() {
       {cardMonths && installmentsEnabled && (
         <>
           <StripeCardInstallments
-            active={payment === `card_installments_${cardMonths}`}
+            active={
+              payment === `sepa_installments_${sepaMonths}` && !promotionPending
+            }
             setActive={() => setPaymentSafe(`card_installments_${cardMonths}`)}
             months={cardMonths}
             form={form}
             items={items}
             couponCode={couponCode}
+            promotion={promotion}
             paymentMethodId={savedCardPaymentMethodId}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            setLocalOrderId={setLocalOrderId}
             onSuccess={async (id) => {
               await onSuccessfulOrder(id);
             }}
@@ -1024,15 +1131,18 @@ export default function Checkout() {
       {sepaMonths && installmentsEnabled && (
         <>
           <StripeSepaInstallments
-            active={payment === `sepa_installments_${sepaMonths}`}
+            active={
+              payment === `sepa_installments_${sepaMonths}` && !promotionPending
+            }
             setActive={() => setPaymentSafe(`sepa_installments_${sepaMonths}`)}
             months={sepaMonths}
             form={form}
             items={items}
             couponCode={couponCode}
+            promotion={promotion}
             paymentMethodId={savedSepaPaymentMethodId}
             countryCode={normalizeCountry(form.country)}
-            setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+            setLocalOrderId={setLocalOrderId}
             onSuccess={async (id) => {
               await onSuccessfulOrder(id);
             }}
@@ -1060,7 +1170,7 @@ export default function Checkout() {
           "checkout.meta.description",
           "Secure checkout for your MindMines order.",
         )}
-        canonical="https://mindmines.eu/checkout"
+        canonical="http://mindmines.eu/checkout"
       />
 
       {/* ✅ main landmark */}
@@ -1396,11 +1506,11 @@ export default function Checkout() {
 
               {payment === "klarna_single" && (
                 <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                  {!localOrderIdRef.current ? (
+                  {!stripeOrderFor("klarna_single")?.id ? (
                     <button
                       type="button"
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                      disabled={creatingOrder}
+                      disabled={creatingOrder || promotionPending}
                       onClick={() => ensureStripeOrder("klarna_single")}
                       aria-label={t("checkout.continueKlarnaNow")}
                     >
@@ -1410,34 +1520,17 @@ export default function Checkout() {
                     </button>
                   ) : (
                     <StripeRedirectPay
-                      orderId={localOrderIdRef.current}
-                      method="klarna"
-                      orderPayload={{
-                        email: form.email.trim(),
-                        payment_method: "klarna_single",
-                        coupon_code: (couponCode || "").trim(),
-                        items: backendItems,
-                        shipping: {
-                          first_name:
-                            form.fullName.split(" ")[0] || form.fullName,
-                          last_name: form.fullName
-                            .split(" ")
-                            .slice(1)
-                            .join(" "),
-                          line1: `${form.street} ${form.houseNumber}`.trim(),
-                          line2: form.apartment || "",
-                          postal_code: form.postalCode,
-                          city: form.city,
-                          country: normalizeCountry(form.country),
-                          phone: form.telephone || "",
-                          street_name: form.street || "",
-                          house_number: form.houseNumber || "",
-                        },
-                      }}
-                      onSuccess={async () =>
-                        await onSuccessfulOrder(localOrderIdRef.current)
+                      orderId={stripeOrderFor("klarna_single")?.id}
+                      promotionPaymentToken={
+                        stripeOrderFor("klarna_single")?.token
                       }
-                      onError={(m) => alert(m)}
+                      method="klarna"
+                      onSuccess={async () =>
+                        await onSuccessfulOrder(
+                          stripeOrderFor("klarna_single")?.id,
+                        )
+                      }
+                      onError={showPaymentError}
                     />
                   )}
                 </div>
@@ -1477,11 +1570,11 @@ export default function Checkout() {
 
               {payment === "klarna_installments" && (
                 <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                  {!localOrderIdRef.current ? (
+                  {!stripeOrderFor("klarna_installments")?.id ? (
                     <button
                       type="button"
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                      disabled={creatingOrder}
+                      disabled={creatingOrder || promotionPending}
                       onClick={() => ensureStripeOrder("klarna_installments")}
                       aria-label={t("checkout.continueKlarnaInst")}
                     >
@@ -1491,34 +1584,17 @@ export default function Checkout() {
                     </button>
                   ) : (
                     <StripeRedirectPay
-                      orderId={localOrderIdRef.current}
-                      method="klarna"
-                      orderPayload={{
-                        email: form.email.trim(),
-                        payment_method: "klarna_installments",
-                        coupon_code: (couponCode || "").trim(),
-                        items: backendItems,
-                        shipping: {
-                          first_name:
-                            form.fullName.split(" ")[0] || form.fullName,
-                          last_name: form.fullName
-                            .split(" ")
-                            .slice(1)
-                            .join(" "),
-                          line1: `${form.street} ${form.houseNumber}`.trim(),
-                          line2: form.apartment || "",
-                          postal_code: form.postalCode,
-                          city: form.city,
-                          country: normalizeCountry(form.country),
-                          phone: form.telephone || "",
-                          street_name: form.street || "",
-                          house_number: form.houseNumber || "",
-                        },
-                      }}
-                      onSuccess={async () =>
-                        await onSuccessfulOrder(localOrderIdRef.current)
+                      orderId={stripeOrderFor("klarna_installments")?.id}
+                      promotionPaymentToken={
+                        stripeOrderFor("klarna_installments")?.token
                       }
-                      onError={(m) => alert(m)}
+                      method="klarna"
+                      onSuccess={async () =>
+                        await onSuccessfulOrder(
+                          stripeOrderFor("klarna_installments")?.id,
+                        )
+                      }
+                      onError={showPaymentError}
                     />
                   )}
 
@@ -1550,11 +1626,11 @@ export default function Checkout() {
 
               {payment === "card" && (
                 <div className="border dark:border-neutral-700 rounded-lg p-3 mt-3">
-                  {!localOrderIdRef.current ? (
+                  {!stripeOrderFor("card")?.id ? (
                     <button
                       type="button"
                       className="px-4 py-2 rounded-lg bg-backnewswhite text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-backnewswhite focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 transition"
-                      disabled={creatingOrder}
+                      disabled={creatingOrder || promotionPending}
                       onClick={() => ensureStripeOrder("card")}
                       aria-label={t("checkout.continueCard")}
                     >
@@ -1565,11 +1641,12 @@ export default function Checkout() {
                   ) : (
                     <StripeProvider>
                       <StripeCard
-                        orderId={localOrderIdRef.current}
+                        orderId={stripeOrderFor("card")?.id}
+                        promotionPaymentToken={stripeOrderFor("card")?.token}
                         onSuccess={async () => {
-                          await onSuccessfulOrder(localOrderIdRef.current);
+                          await onSuccessfulOrder(stripeOrderFor("card")?.id);
                         }}
-                        onError={(m) => alert(m)}
+                        onError={showPaymentError}
                       />
                     </StripeProvider>
                   )}
@@ -1585,14 +1662,15 @@ export default function Checkout() {
               {/* SEPA */}
               {isEuropean ? (
                 <StripeSepa
-                  active={payment === "sepa_debit"}
+                  active={payment === "sepa_debit" && !promotionPending}
                   setActive={(val) => setPaymentSafe(val)}
                   form={form}
                   items={items}
                   couponCode={couponCode}
+                  promotion={promotion}
                   total={payTotal}
                   customerEmail={form.email}
-                  setLocalOrderId={(id) => (localOrderIdRef.current = id)}
+                  setLocalOrderId={setLocalOrderId}
                   onSuccess={async (id) => {
                     await onSuccessfulOrder(id || localOrderIdRef.current);
                   }}
@@ -1715,44 +1793,53 @@ export default function Checkout() {
                               </>
                             )}
 
-                          {effectiveCouponApplied && l.couponShare > 0 && (
-                            <>
-                              <div>
-                                <span className="font-medium">
-                                  {t(
-                                    "checkout.summaryCouponShare",
-                                    "Coupon share",
-                                  )}
-                                  :
-                                </span>{" "}
-                                <span className="text-green-700 dark:text-green-500">
-                                  -
-                                  {fmtEUR(
-                                    Number((l.couponShare / l.qty).toFixed(2)),
-                                    locale,
-                                  )}{" "}
-                                  {t("checkout.perUnit", "/ unit")}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="font-medium">
-                                  {t("checkout.summaryFinalUnit", "Final unit")}
-                                  :
-                                </span>{" "}
-                                {fmtEUR(l.finalUnit, locale)}
-                              </div>
-                            </>
-                          )}
+                          {!promotion &&
+                            effectiveCouponApplied &&
+                            l.couponShare > 0 && (
+                              <>
+                                <div>
+                                  <span className="font-medium">
+                                    {t(
+                                      "checkout.summaryCouponShare",
+                                      "Coupon share",
+                                    )}
+                                    :
+                                  </span>{" "}
+                                  <span className="text-green-700 dark:text-green-500">
+                                    -
+                                    {fmtEUR(
+                                      Number(
+                                        (l.couponShare / l.qty).toFixed(2),
+                                      ),
+                                      locale,
+                                    )}{" "}
+                                    {t("checkout.perUnit", "/ unit")}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">
+                                    {t(
+                                      "checkout.summaryFinalUnit",
+                                      "Final unit",
+                                    )}
+                                    :
+                                  </span>{" "}
+                                  {fmtEUR(l.finalUnit, locale)}
+                                </div>
+                              </>
+                            )}
 
-                          {couponApplied && !effectiveCouponApplied && (
-                            <div className="text-amber-700 dark:text-amber-400">
-                              {t(
-                                "checkout.couponIgnored",
-                                "Coupon ignored (product discount is better)",
-                              )}
-                              .
-                            </div>
-                          )}
+                          {!promotion &&
+                            couponApplied &&
+                            !effectiveCouponApplied && (
+                              <div className="text-amber-700 dark:text-amber-400">
+                                {t(
+                                  "checkout.couponIgnored",
+                                  "Coupon ignored (product discount is better)",
+                                )}
+                                .
+                              </div>
+                            )}
                         </div>
                       </div>
 
@@ -1811,7 +1898,7 @@ export default function Checkout() {
                 {couponErr && (
                   <div className="text-red-700 text-sm">{couponErr}</div>
                 )}
-                {couponInfo?.ok && (
+                {!promotion && couponInfo?.ok && (
                   <div className="text-green-700 dark:text-green-500 text-sm">
                     {t("checkout.applied")} <b>{couponInfo.code}</b>:{" "}
                     <span>-{fmtEUR(discount, locale)}</span>
@@ -1826,7 +1913,7 @@ export default function Checkout() {
                 />
               )}
               {/* If coupon exists but ignored */}
-              {couponApplied && !effectiveCouponApplied && (
+              {!promotion && couponApplied && !effectiveCouponApplied && (
                 <Row
                   label={t("checkout.couponLine", {
                     code: couponInfo?.code || "",
@@ -1839,8 +1926,63 @@ export default function Checkout() {
                 />
               )}
 
+              {christmasEnabled && (
+                <>
+                  {!promotionSkipped && (
+                    <ChristmasGiftSelector
+                      gifts={gifts}
+                      giftId={selectedGiftId}
+                      onChange={selectGift}
+                      locale={locale}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="my-2 text-sm underline"
+                    onClick={() => setPromotionSkipped((value) => !value)}
+                  >
+                    {locale.startsWith("de")
+                      ? promotionSkipped
+                        ? "Weihnachtsangebote prüfen"
+                        : "Ohne Weihnachtsangebot fortfahren"
+                      : promotionSkipped
+                        ? "Check Christmas offers"
+                        : "Continue without Christmas offers"}
+                  </button>
+                  {promotionPending && (
+                    <p role="status" className="text-sm">
+                      {christmasQuoteError
+                        ? locale.startsWith("de")
+                          ? "Angebot derzeit nicht verfügbar. Ändern Sie die Auswahl oder versuchen Sie es erneut."
+                          : "Offer currently unavailable. Change your selection or try again."
+                        : locale.startsWith("de")
+                          ? "Angebot wird geprüft…"
+                          : "Checking offer…"}
+                    </p>
+                  )}
+                  {christmasRequested && christmasQuoteError && (
+                    <button
+                      type="button"
+                      className="text-sm underline"
+                      onClick={() => refreshChristmasQuote()}
+                    >
+                      {locale.startsWith("de")
+                        ? "Erneut versuchen"
+                        : "Try again"}
+                    </button>
+                  )}
+                  <ChristmasPromotionSummary
+                    quote={promotion ? christmasQuote : null}
+                    gifts={gifts}
+                    items={items}
+                    locale={locale}
+                    confirmed={Boolean(stripeOrderFor(payment)?.id)}
+                  />
+                </>
+              )}
+
               {/* Coupon applied */}
-              {effectiveCouponApplied && (
+              {!promotion && effectiveCouponApplied && (
                 <Row
                   label={t("checkout.productDiscountLine", "Product discount")}
                   value={t(
@@ -1849,7 +1991,8 @@ export default function Checkout() {
                   )}
                 />
               )}
-              {effectiveCouponApplied &&
+              {!promotion &&
+                effectiveCouponApplied &&
                 couponInfo?.code &&
                 couponDiscount > 0 && (
                   <Row
@@ -1857,7 +2000,10 @@ export default function Checkout() {
                       code: couponInfo.code,
                       defaultValue: "Coupon ({{code}})",
                     })}
-                    value={`-${fmtEUR(couponDiscount, locale)}`}
+                    value={fmtEUR(
+                      promotion ? Number(christmasQuote.subtotal) : subtotal,
+                      locale,
+                    )}
                   />
                 )}
 
