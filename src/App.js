@@ -74,8 +74,9 @@ export default function App() {
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <GoogleAnalyticsTracker />
       <PromoBanner />
+      <ChristmasOffers placement="ticker" />
       <Navbar />
-      <ChristmasOffers />
+      <ChristmasOffers placement="page" />
       <div className="flex-1">
         <ScrollToTop />
         <Suspense fallback={<LoadingScreen />}>

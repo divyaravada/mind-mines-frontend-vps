@@ -1,7 +1,7 @@
 import { api } from "../../services/apiSlice";
 
 export const christmasUiEnabled =
-  process.env.REACT_APP_CHRISTMAS_CHECKOUT === "true";
+  process.env.REACT_APP_CHRISTMAS_CHECKOUT !== "false";
 
 const christmasApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -22,15 +22,14 @@ export const { useChristmasGiftsQuery, useChristmasQuoteQuery } = christmasApi;
 
 export function useChristmasCatalogue() {
   const { currentData, isError } = useChristmasGiftsQuery(undefined, {
-    skip: !christmasUiEnabled,
     refetchOnMountOrArgChange: 60,
-    pollingInterval: christmasUiEnabled ? 60000 : 0,
+    pollingInterval: 60000,
   });
+  const active = !isError && currentData?.active === true;
   return {
+    enabled: active,
     enabled:
-      !isError &&
-      currentData?.active === true &&
-      currentData?.checkout_enabled === true,
+      active && christmasUiEnabled && currentData?.checkout_enabled === true,
     gifts: currentData?.products ?? [],
   };
 }
