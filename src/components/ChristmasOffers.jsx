@@ -174,7 +174,7 @@ function Offers({ ticker, home, cart }) {
                 {carousel ? (
                   <span className="grid grid-cols-[minmax(0,35%)_minmax(0,1fr)] items-center gap-3">
                     <img
-                      src={`${process.env.PUBLIC_URL || ""}/christmas-offers/${OFFER_IMAGES[index]}.webp`}
+                      src={`${process.env.PUBLIC_URL || ""}/christmas-offers/${OFFER_IMAGES[index]}.png`}
                       alt=""
                       width="384"
                       height="384"
