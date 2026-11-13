@@ -9,11 +9,11 @@ export default function ChristmasGiftSelector({
 }) {
   const de = locale.startsWith("de");
   return (
-    <fieldset className="my-4 rounded-xl border border-emerald-700 p-4">
+    <fieldset className="my-4 min-w-0 w-full max-w-full rounded-xl border border-emerald-700 p-4">
       <legend className="px-2 font-semibold">
         {de ? "Weihnachtsgeschenk" : "Christmas gift"}
       </legend>
-      <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+      <div className="flex min-w-0 w-full snap-x gap-3 overflow-x-auto px-1 pb-2">
         {gifts.map((gift) => {
           const title = giftName(gift, de);
           const selected = gift.id === giftId;

@@ -290,7 +290,7 @@ export default function CartPage() {
       {/* ✅ main landmark fixes “Document does not have a main landmark” */}
       <main className="max-w-7xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 text-gray-900 dark:text-gray-100">
         {/* LEFT */}
-        <section className="lg:col-span-2" aria-label="Cart items">
+        <section className="min-w-0 lg:col-span-2" aria-label="Cart items">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t("cart.title_one")} ({count}{" "}

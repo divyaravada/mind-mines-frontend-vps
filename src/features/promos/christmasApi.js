@@ -27,7 +27,7 @@ export function useChristmasCatalogue() {
   });
   const active = !isError && currentData?.active === true;
   return {
-    enabled: active,
+    active,
     enabled:
       active && christmasUiEnabled && currentData?.checkout_enabled === true,
     gifts: currentData?.products ?? [],

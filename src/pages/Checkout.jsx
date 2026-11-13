@@ -1716,7 +1716,7 @@ export default function Checkout() {
 
           {/* RIGHT Summary */}
           <aside
-            className="lg:col-span-1"
+            className="min-w-0 lg:col-span-1"
             aria-label={t("checkout.orderSummary", "Order summary")}
           >
             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/5 p-6 lg:sticky lg:top-24">
