@@ -7,29 +7,29 @@ const OFFER_COPY = {
   en: [
     [
       "Vases · Buy one, get one free",
-      "Buy an eligible vase and get a second vase of the same SKU free, while stocks last.",
+      "Add one eligible vase to your cart. If a second identical vase is in stock and this is your best available offer, it is added for €0 at checkout.",
     ],
     [
       "Buy one item · Choose a gift",
-      "Buy a qualifying item and choose a free gift from the selected products priced under €80.",
+      "Add one eligible product to your cart, then choose one free gift from the Christmas gift list. Each gift on the list is priced under €80.",
     ],
     [
       "Buy two items · Save 25% + get a gift",
-      "Get 25% off two qualifying paid items and choose one free gift from the selected products priced under €80.",
+      "Add two eligible products to your cart. This offer takes 25% off both items and lets you choose one free gift from the Christmas gift list (under €80).",
     ],
   ],
   de: [
     [
       "Vasen · 1 kaufen, 1 gratis",
-      "Beim Kauf einer teilnehmenden Vase erhalten Sie eine zweite Vase desselben Artikels gratis, solange der Vorrat reicht.",
+      "Legen Sie eine teilnehmende Vase in den Warenkorb. Ist eine zweite identische Vase verfügbar und ist dies Ihr bestes Angebot, erhalten Sie die zweite Vase an der Kasse für 0 €.",
     ],
     [
       "1 Artikel kaufen · Geschenk wählen",
-      "Kaufen Sie einen teilnehmenden Artikel und wählen Sie ein Gratisgeschenk aus den ausgewählten Produkten unter 80 €.",
+      "Legen Sie einen teilnehmenden Artikel in den Warenkorb und wählen Sie ein Gratisgeschenk aus der Weihnachtsgeschenkliste. Alle Geschenke auf der Liste kosten unter 80 €.",
     ],
     [
       "2 Artikel kaufen · 25 % Rabatt + Geschenk",
-      "Sparen Sie 25 % auf zwei teilnehmende Artikel und wählen Sie ein Gratisgeschenk aus den ausgewählten Produkten unter 80 €.",
+      "Legen Sie zwei teilnehmende Artikel in den Warenkorb. Sie erhalten mit diesem Angebot 25 % Rabatt auf beide Artikel und wählen ein Gratisgeschenk aus der Weihnachtsgeschenkliste (unter 80 €).",
     ],
   ],
 };
@@ -56,6 +56,7 @@ function Offers({ ticker, home, cart }) {
   const de = i18n.language?.startsWith("de");
   const offers = OFFER_COPY[de ? "de" : "en"];
   const dialog = useRef(null);
+  const carousel = home && !ticker;
 
   const track = useRef(null);
   const titleId = useId();
@@ -70,21 +71,23 @@ function Offers({ ticker, home, cart }) {
   const [focused, setFocused] = useState(false);
 
   useEffect(() => {
-    if (!active || !ticker || paused || hovered || focused || dialogOpen)
-      return;
+    if (!active || !home || paused || hovered || focused || dialogOpen) return;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const timer = window.setInterval(() => {
-      if (motion.matches || document.hidden || !track.current) return;
-      const { scrollLeft, clientWidth, scrollWidth } = track.current;
-      if (clientWidth === 0) return;
-      const atEnd = scrollLeft + clientWidth >= scrollWidth - 2;
-      track.current.scrollTo({
-        left: atEnd ? 0 : scrollLeft + clientWidth,
-        behavior: "smooth",
-      });
-    }, 4500);
+    const timer = window.setInterval(
+      () => {
+        if (motion.matches || document.hidden || !track.current) return;
+        const { scrollLeft, clientWidth, scrollWidth } = track.current;
+        if (clientWidth === 0) return;
+        const atEnd = scrollLeft + clientWidth >= scrollWidth - 2;
+        track.current.scrollTo({
+          left: atEnd ? 0 : scrollLeft + clientWidth,
+          behavior: "smooth",
+        });
+      },
+      ticker ? 4500 : 8000,
+    );
     return () => window.clearInterval(timer);
-  }, [active, ticker, paused, hovered, focused, dialogOpen]);
+  }, [active, home, ticker, paused, hovered, focused, dialogOpen]);
 
   if (!active) return null;
 
@@ -115,7 +118,9 @@ function Offers({ ticker, home, cart }) {
         className={
           ticker
             ? "mx-auto flex max-w-5xl items-center gap-2 px-3"
-            : "mx-auto max-w-7xl"
+            : carousel
+              ? "mx-auto w-full max-w-[500px]"
+              : "mx-auto max-w-7xl"
         }
       >
         {!ticker && <h2 className="mb-3 text-lg font-semibold">{heading}</h2>}
@@ -138,6 +143,7 @@ function Offers({ ticker, home, cart }) {
           )}
           <div
             ref={track}
+            style={home ? { scrollbarWidth: "none" } : undefined}
             className={
               home
                 ? "flex min-w-0 flex-1 snap-x snap-mandatory overflow-x-auto"
@@ -151,7 +157,7 @@ function Offers({ ticker, home, cart }) {
                 setFocused(false);
             }}
           >
-            {offers.map(([title], index) => (
+            {offers.map(([title, details], index) => (
               <button
                 key={index}
                 type="button"
@@ -163,7 +169,12 @@ function Offers({ ticker, home, cart }) {
                     : `${home ? "w-full" : "w-64 max-w-full"} shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800`
                 }
               >
-                {title}
+                <span className="block">{title}</span>
+                {carousel && (
+                  <span className="mt-2 block font-normal leading-relaxed text-emerald-50">
+                    {details}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -178,10 +189,10 @@ function Offers({ ticker, home, cart }) {
             </button>
           )}
         </div>
-        {ticker && (
+        {home && (
           <button
             type="button"
-            className="shrink-0 px-2 py-1 text-xs underline"
+            className={`${carousel ? "mt-2" : ""} shrink-0 px-2 py-1 text-xs underline`}
             onClick={() => setPaused(!paused)}
           >
             {paused ? (de ? "Start" : "Play") : "Pause"}
