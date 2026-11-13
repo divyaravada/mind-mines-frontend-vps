@@ -25,14 +25,8 @@ const EVENT_TYPE_MAP = {
 export const marketingApi = api.injectEndpoints({
   endpoints: (build) => ({
     trackEvent: build.mutation({
-      query: (rawPayload = {}) => {
-        // ✅ STOP ALL NETWORK DURING PRERENDER
-        if (isPrerender) {
-          return {
-            url: "noop/",
-            method: "GET",
-          };
-        }
+      queryFn: async (rawPayload = {}, _api, _extraOptions, baseQuery) => {
+        if (isPrerender) return { data: null };
 
         const {
           event_type: rawType,
@@ -58,7 +52,7 @@ export const marketingApi = api.injectEndpoints({
           ...(rawType === "wishlist_remove" && { action: "remove" }),
         };
 
-        return {
+        return baseQuery({
           url: "marketing/track/",
           method: "POST",
           body: {
@@ -68,7 +62,7 @@ export const marketingApi = api.injectEndpoints({
             extra: finalExtra,
             ...rest,
           },
-        };
+        });
       },
     }),
   }),
