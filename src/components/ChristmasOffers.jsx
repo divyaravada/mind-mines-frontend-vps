@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useChristmasCatalogue } from "../features/promos/christmasApi";
 
+const OFFER_IMAGES = ["vase-bogo", "one-item-gift", "two-items-discount-gift"];
+
 const OFFER_COPY = {
   en: [
     [
@@ -14,8 +16,8 @@ const OFFER_COPY = {
       "Add one eligible product to your cart, then choose one free gift from the Christmas gift list. Each gift on the list is priced under €80.",
     ],
     [
-      "Buy two items · Save 25% + get a gift",
-      "Add two eligible products to your cart. This offer takes 25% off both items and lets you choose one free gift from the Christmas gift list (under €80).",
+      "Buy two items · Save 15% + get a gift",
+      "Add two eligible products to your cart. This offer takes 15% off both items and lets you choose one free gift from the Christmas gift list (under €80).",
     ],
   ],
   de: [
@@ -28,8 +30,8 @@ const OFFER_COPY = {
       "Legen Sie einen teilnehmenden Artikel in den Warenkorb und wählen Sie ein Gratisgeschenk aus der Weihnachtsgeschenkliste. Alle Geschenke auf der Liste kosten unter 80 €.",
     ],
     [
-      "2 Artikel kaufen · 25 % Rabatt + Geschenk",
-      "Legen Sie zwei teilnehmende Artikel in den Warenkorb. Sie erhalten mit diesem Angebot 25 % Rabatt auf beide Artikel und wählen ein Gratisgeschenk aus der Weihnachtsgeschenkliste (unter 80 €).",
+      "2 Artikel kaufen · 15 % Rabatt + Geschenk",
+      "Legen Sie zwei teilnehmende Artikel in den Warenkorb. Sie erhalten mit diesem Angebot 15 % Rabatt auf beide Artikel und wählen ein Gratisgeschenk aus der Weihnachtsgeschenkliste (unter 80 €).",
     ],
   ],
 };
@@ -169,11 +171,24 @@ function Offers({ ticker, home, cart }) {
                     : `${home ? "w-full" : "w-64 max-w-full"} shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800`
                 }
               >
-                <span className="block">{title}</span>
-                {carousel && (
-                  <span className="mt-2 block font-normal leading-relaxed text-emerald-50">
-                    {details}
+                {carousel ? (
+                  <span className="grid grid-cols-[minmax(0,35%)_minmax(0,1fr)] items-center gap-3">
+                    <img
+                      src={`${process.env.PUBLIC_URL || ""}/christmas-offers/${OFFER_IMAGES[index]}.webp`}
+                      alt=""
+                      width="384"
+                      height="384"
+                      className="aspect-square h-auto w-full rounded-md object-contain"
+                    />
+                    <span>
+                      <span className="block">{title}</span>
+                      <span className="mt-2 block font-normal leading-relaxed text-emerald-50">
+                        {details}
+                      </span>
+                    </span>
                   </span>
+                ) : (
+                  <span className="block">{title}</span>
                 )}
               </button>
             ))}
