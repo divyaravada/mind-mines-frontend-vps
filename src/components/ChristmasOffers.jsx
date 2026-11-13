@@ -113,7 +113,9 @@ function Offers({ ticker, home, cart }) {
       className={
         ticker
           ? "bg-emerald-950 text-white"
-          : "bg-emerald-950 px-4 py-4 text-white"
+          : carousel
+            ? "bg-gradient-to-br from-[#082f27] via-[#104337] to-[#06241d] px-2 py-5 text-white sm:px-6"
+            : "bg-emerald-950 px-4 py-4 text-white"
       }
     >
       <div
@@ -125,20 +127,33 @@ function Offers({ ticker, home, cart }) {
               : "mx-auto max-w-7xl"
         }
       >
-        {!ticker && <h2 className="mb-3 text-lg font-semibold">{heading}</h2>}
+        {!ticker && (
+          <h2
+            className={
+              carousel
+                ? "mb-4 text-center font-serif text-xl text-amber-100 sm:text-2xl"
+                : "mb-3 text-lg font-semibold"
+            }
+          >
+            {heading}
+          </h2>
+        )}
+
         <div
           className={
-            ticker
-              ? "w-full flex-none snap-start px-2 py-2 text-center text-sm font-semibold hover:underline"
-              : carousel
-                ? "flex min-h-[500px] w-full shrink-0 snap-start items-center rounded-lg border border-emerald-600 px-5 py-6 text-left hover:bg-emerald-800 md:h-[500px] md:px-10"
-                : "w-64 max-w-full shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800"
+            carousel
+              ? "flex items-center gap-1 sm:gap-4"
+              : "flex min-w-0 flex-1 items-center gap-2"
           }
         >
           {(home || ticker) && (
             <button
               type="button"
-              className="shrink-0 p-2"
+              className={
+                carousel
+                  ? "h-8 w-8 shrink-0 rounded-full border border-amber-100/40 text-2xl leading-none hover:bg-white/10 sm:h-11 sm:w-11"
+                  : "shrink-0 px-2 py-1"
+              }
               onClick={() => move(-1)}
               aria-label={de ? "Vorheriges Angebot" : "Previous offer"}
             >
@@ -170,24 +185,32 @@ function Offers({ ticker, home, cart }) {
                 className={
                   ticker
                     ? "w-full flex-none snap-start px-2 py-2 text-center text-sm font-semibold hover:underline"
-                    : `${home ? "w-full" : "w-64 max-w-full"} shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800`
+                    : carousel
+                      ? "flex w-full shrink-0 snap-start items-center rounded-2xl bg-white/5 px-4 py-6 text-left hover:bg-white/10 focus-visible:outline focus-visible:-outline-offset-4 focus-visible:outline-amber-200 sm:px-8 lg:h-[500px]"
+                      : "w-64 max-w-full shrink-0 snap-start rounded-lg border border-emerald-600 px-4 py-3 text-left text-sm font-semibold hover:bg-emerald-800"
                 }
               >
                 {carousel ? (
-                  <span className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-12">
+                  <span className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-5 md:grid-cols-2 md:gap-10 lg:gap-16">
                     <img
                       src={`${process.env.PUBLIC_URL || ""}/christmas-offers/${OFFER_IMAGES[index]}.png`}
                       alt=""
                       width="384"
                       height="384"
-                      className="mx-auto aspect-square w-full max-w-[240px] rounded-md object-contain md:max-w-[420px]"
+                      className="mx-auto aspect-square w-full max-w-[240px] rounded-xl object-contain shadow-xl md:max-w-[420px]"
                     />
                     <span>
-                      <span className="block text-2xl font-semibold md:text-4xl">
+                      <span className="block font-serif text-3xl font-semibold leading-tight text-amber-50 lg:text-5xl">
                         {title}
                       </span>
                       <span className="mt-3 block text-base font-normal leading-relaxed text-emerald-50 md:text-lg">
                         {details}
+                      </span>
+                      <span className="mt-5 inline-flex rounded-full bg-amber-100 px-5 py-2 text-sm font-semibold text-emerald-950">
+                        {de ? "Angebot ansehen" : "View offer"}{" "}
+                        <span aria-hidden="true" className="ml-2">
+                          →
+                        </span>
                       </span>
                     </span>
                   </span>
@@ -200,7 +223,11 @@ function Offers({ ticker, home, cart }) {
           {(home || ticker) && (
             <button
               type="button"
-              className="shrink-0 p-2"
+              className={
+                carousel
+                  ? "h-8 w-8 shrink-0 rounded-full border border-amber-100/40 text-2xl leading-none hover:bg-white/10 sm:h-11 sm:w-11"
+                  : "shrink-0 px-2 py-1"
+              }
               onClick={() => move(1)}
               aria-label={de ? "Nächstes Angebot" : "Next offer"}
             >
@@ -211,7 +238,7 @@ function Offers({ ticker, home, cart }) {
         {home && (
           <button
             type="button"
-            className={`${carousel ? "mt-2" : ""} shrink-0 px-2 py-1 text-xs underline`}
+            className={`${carousel ? "mx-auto mt-3 block" : ""} shrink-0 px-2 py-1 text-xs underline`}
             onClick={() => setPaused(!paused)}
           >
             {paused ? (de ? "Start" : "Play") : "Pause"}
